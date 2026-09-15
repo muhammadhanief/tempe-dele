@@ -1,5 +1,4 @@
 <?php
-// app/Models/Transaksi.php
 
 namespace App\Models;
 
