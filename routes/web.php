@@ -19,6 +19,7 @@ use App\Http\Controllers\admin\PengajuanController as AdminPengajuanController;
 use App\Http\Controllers\admin\DashboardController;
 use App\Http\Controllers\pimpinan\DashboardController as PimpinanDashboardController;
 use App\Http\Controllers\pimpinan\PengajuanController as PimpinanPengajuanController;
+use App\Http\Controllers\ketuatim\KabagUmumPengajuanController;
 
 // ─── Public ───────────────────────────────────────────────
 Route::get('/', fn() => view('welcome'));
@@ -26,6 +27,36 @@ Route::get('/', fn() => view('welcome'));
 Route::get('/debug-session', function () {
     dd(session('user'));
 })->middleware('checksession');
+
+// ─── Dev Test Login (Memudahkan Pengujian Peran Tanpa Password SSO) ───
+Route::get('/dev-login/{nip}', function ($nip) {
+    $pegawai = \DB::table('m_pegawai')->where('nip', $nip)->orWhere('id_pegawai', $nip)->orWhere('nip_lama', $nip)->first();
+    if (!$pegawai) {
+        return response("Pegawai dengan NIP/ID {$nip} tidak ditemukan di database m_pegawai.", 404);
+    }
+    session()->put('user', [
+        'nip'       => $pegawai->nip,
+        'nip_lama'  => $pegawai->nip_lama,
+        'nama'      => $pegawai->nama,
+        'email'     => $pegawai->email,
+        'role'      => $pegawai->role,
+        'satker'    => $pegawai->satker,
+        'kd_satker' => $pegawai->kd_satker,
+    ]);
+    session()->put('logged_in', true);
+    session()->put('id_pegawai', $pegawai->id_pegawai);
+    session()->put('role', $pegawai->role);
+
+    if ($pegawai->role === 'superadmin' || $pegawai->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    } elseif ($pegawai->role === 'ketua_tim') {
+        return redirect()->route('ketua-tim.dashboard');
+    } elseif ($pegawai->role === 'pimpinan') {
+        return redirect()->route('pimpinan.dashboard');
+    } else {
+        return redirect()->route('pegawai.dashboard');
+    }
+})->name('dev.login');
 
 Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.proses');
@@ -63,6 +94,14 @@ Route::middleware('checksession')->group(function () {
         Route::get('/pengajuan/anggota', [\App\Http\Controllers\ketuatim\PengajuanController::class, 'anggotaTim'])->name('pengajuan.anggota');
         Route::get('/lembur', [\App\Http\Controllers\LemburController::class, 'index'])->name('lembur');
         Route::post('/lembur', [\App\Http\Controllers\LemburController::class, 'store'])->name('lembur.store');
+    });
+
+    // ─── Kabag Umum (Persetujuan Tim Lain) ───────────────
+    Route::prefix('kabag-umum')->name('kabag-umum.')->middleware('checksession')->group(function () {
+        Route::get('/pengajuan', [KabagUmumPengajuanController::class, 'index'])->name('pengajuan');
+        Route::post('/pengajuan/{id}/approve', [KabagUmumPengajuanController::class, 'approve'])->name('pengajuan.approve');
+        Route::get('/pengajuan/{id}/presensi', [KabagUmumPengajuanController::class, 'presensi'])->name('pengajuan.presensi');
+        Route::get('/pengajuan/pegawai', [KabagUmumPengajuanController::class, 'semuaPegawai'])->name('pengajuan.pegawai');
     });
 
     // ─── Admin ────────────────────────────────────────────

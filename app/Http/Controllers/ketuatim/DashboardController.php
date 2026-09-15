@@ -90,15 +90,49 @@ class DashboardController extends Controller
             $jamSelesai->addDay();
         }
 
+        // Cek apakah tim adalah Tim Bagian Umum atau approver adalah Kabag Umum
+        $isTimBagianUmum = false;
+        if (!empty($transaksi->tim_kode_tim)) {
+            $tim = DB::table('m_tim')->where('kode_tim', $transaksi->tim_kode_tim)->first();
+            if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
+                $isTimBagianUmum = true;
+            }
+        }
+
+        $nipSess = session('user')['nip'] ?? null;
+        $nipLamaSess = session('user')['nip_lama'] ?? null;
+        $isApproverKabag = DB::table('m_pejabat')
+            ->where('jabatan', 'Kepala Bagian Umum')
+            ->where('status', 'aktif')
+            ->where(function($q) use ($nipSess, $nipLamaSess) {
+                if ($nipSess) $q->where('nip', $nipSess);
+                if ($nipLamaSess) $q->orWhere('nip_lama', $nipLamaSess);
+            })->exists();
+
+        $finalStatus = ($isTimBagianUmum || $isApproverKabag) ? 'approved' : 'menunggu_kabag';
+        $approvedKabagAt = ($isTimBagianUmum || $isApproverKabag) ? now() : null;
+
+        $updateData = [
+            'status'                => $finalStatus,
+            'jam_mulai_disetujui'   => $jamMulai->format('H:i:s'),
+            'jam_selesai_disetujui' => $jamSelesai?->format('H:i:s'),
+            'approved_at'           => now()->toDateString(),
+        ];
+
+        if ($approvedKabagAt) {
+            $updateData['approved_kabag_at'] = $approvedKabagAt;
+        }
+
         DB::table('t_transaksi')
             ->where('id_transaksi', $id)
-            ->update([
-                'status'                => 'approved',
-                'jam_mulai_disetujui'   => $jamMulai->format('H:i:s'),
-                'jam_selesai_disetujui' => $jamSelesai?->format('H:i:s'),
-                'approved_at'           => now()->toDateString(),
-            ]);
+            ->update($updateData);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'status'  => $finalStatus,
+            'message' => $finalStatus === 'menunggu_kabag' 
+                ? 'Pengajuan berhasil disetujui Ketua Tim dan diteruskan ke Kabag Umum' 
+                : 'Pengajuan berhasil disetujui'
+        ]);
     }
 }

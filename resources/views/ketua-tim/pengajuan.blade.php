@@ -176,6 +176,8 @@
                             <div class="inline-flex items-center justify-center gap-2">
                                 @if($p->status === 'pending')
                                     <span class="whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Menunggu</span>
+                                @elseif($p->status === 'menunggu_kabag')
+                                    <span class="whitespace-nowrap rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">Menunggu Kabag</span>
                                 @elseif($p->status === 'approved')
                                     <span class="whitespace-nowrap rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">Disetujui</span>
                                 @elseif($p->status === 'rejected')
@@ -820,11 +822,20 @@ window.simpanKeputusan = function() {
             </svg>
         `;
 
-        const badgeClass = keputusan === 'approved'
-            ? 'bg-green-100 text-green-700'
-            : 'bg-red-100 text-red-600';
+        const finalStatus = data.status || keputusan;
+        let badgeClass = 'bg-amber-100 text-amber-700';
+        let badgeText = 'Menunggu';
 
-        const badgeText = keputusan === 'approved' ? 'Disetujui' : 'Ditolak';
+        if (finalStatus === 'menunggu_kabag') {
+            badgeClass = 'bg-blue-100 text-blue-700';
+            badgeText = 'Menunggu Kabag';
+        } else if (finalStatus === 'approved') {
+            badgeClass = 'bg-green-100 text-green-700';
+            badgeText = 'Disetujui';
+        } else if (finalStatus === 'rejected') {
+            badgeClass = 'bg-red-100 text-red-600';
+            badgeText = 'Ditolak';
+        }
 
         const statusElement = document.getElementById(`status-${currentId}`);
 

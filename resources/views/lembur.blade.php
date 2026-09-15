@@ -189,19 +189,35 @@
 
                         <td class="px-3 py-3 text-center text-xs text-gray-900">
                             @if($t->status === 'pending')
-                                <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Diproses</span>
+                                <span class="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Menunggu Ketua</span>
+                            @elseif($t->status === 'menunggu_kabag')
+                                <span class="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">Menunggu Kabag</span>
                             @elseif($t->status === 'approved')
-                                <span class="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">Disetujui</span>
+                                <span class="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">Disetujui</span>
                             @elseif($t->status === 'rejected')
-                                <span class="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">Ditolak</span>
+                                <span class="whitespace-nowrap rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-600">Ditolak</span>
                             @else
                                 <span class="text-xs text-gray-400">-</span>
                             @endif
                         </td>
 
                         <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[160px] whitespace-normal break-words">
-                                {{ $t->note ?? '-' }}
+                            <div class="max-w-[180px] space-y-1 text-left">
+                                @if(!empty($t->note))
+                                    <div>
+                                        <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
+                                        <div class="text-[11px] text-gray-700 italic break-words">{{ $t->note }}</div>
+                                    </div>
+                                @endif
+                                @if(!empty($t->note_kabag))
+                                    <div>
+                                        <span class="text-[10px] font-bold uppercase text-blue-600">Kabag Umum:</span>
+                                        <div class="text-[11px] text-blue-900 italic break-words">{{ $t->note_kabag }}</div>
+                                    </div>
+                                @endif
+                                @if(empty($t->note) && empty($t->note_kabag))
+                                    <span class="text-gray-400">-</span>
+                                @endif
                             </div>
                         </td>
 

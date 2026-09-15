@@ -218,6 +218,30 @@ class LemburController extends Controller
             }
         }
 
+        // Jika tidak ditolak otomatis dan merupakan Tim Bagian Umum atau approver adalah Kabag Umum,
+        // pengajuan langsung masuk ke antrean persetujuan Kabag Umum (status: menunggu_kabag)
+        if ($status !== 'rejected') {
+            $isTimBagianUmum = false;
+            if (!empty($validated['kode_tim'])) {
+                $tim = DB::table('m_tim')->where('kode_tim', $validated['kode_tim'])->first();
+                if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
+                    $isTimBagianUmum = true;
+                }
+            }
+
+            $isApproverKabag = DB::table('m_pejabat')
+                ->where('jabatan', 'Kepala Bagian Umum')
+                ->where('status', 'aktif')
+                ->where(function ($q) use ($validated) {
+                    $q->where('nip', $validated['approver_id'])
+                      ->orWhere('nip_lama', $validated['approver_id']);
+                })->exists();
+
+            if ($isTimBagianUmum || $isApproverKabag) {
+                $status = 'menunggu_kabag';
+            }
+        }
+
         $idTransaksi = DB::table('t_transaksi')->insertGetId([
             'submitted_by_NIP'      => $nip,
             'date'                  => $tanggal->toDateString(),

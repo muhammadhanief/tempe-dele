@@ -12,6 +12,20 @@ class PengajuanController extends Controller
     public function index(Request $request)
     {
         $nipKetua = session('user')['nip'];
+        $nipLamaKetua = session('user')['nip_lama'] ?? null;
+
+        // Jika user adalah Kabag Umum, redirect langsung ke halaman Persetujuan Kabag Umum
+        $isKabagUmum = DB::table('m_pejabat')
+            ->where('jabatan', 'Kepala Bagian Umum')
+            ->where('status', 'aktif')
+            ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                if ($nipKetua) $q->where('nip', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('nip_lama', $nipLamaKetua);
+            })->exists();
+
+        if ($isKabagUmum) {
+            return redirect()->route('kabag-umum.pengajuan');
+        }
 
         $bulan = $request->get('bulan', now()->format('Y-m'));
 
@@ -75,16 +89,63 @@ class PengajuanController extends Controller
             $jamSelesaiDisetujui->addDay();
         }
 
-        DB::table('t_transaksi')->where('id_transaksi', $id)->update([
-            'status'                => $request->status,
+        // Cek apakah tim adalah Tim Bagian Umum atau approver adalah Kabag Umum
+        $isTimBagianUmum = false;
+        if (!empty($transaksi->tim_kode_tim)) {
+            $tim = DB::table('m_tim')->where('kode_tim', $transaksi->tim_kode_tim)->first();
+            if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
+                $isTimBagianUmum = true;
+            }
+        }
+
+        $nipSess = session('user')['nip'] ?? null;
+        $nipLamaSess = session('user')['nip_lama'] ?? null;
+        $isApproverKabag = DB::table('m_pejabat')
+            ->where('jabatan', 'Kepala Bagian Umum')
+            ->where('status', 'aktif')
+            ->where(function($q) use ($nipSess, $nipLamaSess) {
+                if ($nipSess) $q->where('nip', $nipSess);
+                if ($nipLamaSess) $q->orWhere('nip_lama', $nipLamaSess);
+            })->exists();
+
+        $finalStatus = $request->status;
+        $approvedKabagAt = null;
+
+        if ($request->status === 'approved') {
+            if ($isTimBagianUmum || $isApproverKabag) {
+                // Tim Bagian Umum langsung disetujui final
+                $finalStatus = 'approved';
+                $approvedKabagAt = now();
+            } else {
+                // Tim Lain naik ke persetujuan Kabag Umum
+                $finalStatus = 'menunggu_kabag';
+            }
+        }
+
+        $updateData = [
+            'status'                => $finalStatus,
             'jam_mulai_disetujui'   => $jamMulaiDisetujui->format('H:i:s'),
             'jam_selesai_disetujui' => $jamSelesaiDisetujui->format('H:i:s'),
             'note'                  => $noteKetua !== '' ? $noteKetua : null,
-            'eligible'              => $request->status === 'approved' ? null : null,
+            'eligible'              => null,
             'approved_at'           => now()->toDateString(),
-        ]);
+        ];
 
-        return response()->json(['success' => true]);
+        if ($approvedKabagAt) {
+            $updateData['approved_kabag_at'] = $approvedKabagAt;
+        }
+
+        DB::table('t_transaksi')->where('id_transaksi', $id)->update($updateData);
+
+        return response()->json([
+            'success'               => true,
+            'status'                => $finalStatus,
+            'jam_mulai_disetujui'   => $jamMulaiDisetujui->format('H:i'),
+            'jam_selesai_disetujui' => $jamSelesaiDisetujui->format('H:i'),
+            'message'               => $finalStatus === 'menunggu_kabag' 
+                ? 'Pengajuan berhasil disetujui Ketua Tim dan diteruskan ke Kabag Umum' 
+                : ($finalStatus === 'approved' ? 'Pengajuan berhasil disetujui' : 'Pengajuan berhasil ditolak')
+        ]);
     }
 
     public function presensi($id)

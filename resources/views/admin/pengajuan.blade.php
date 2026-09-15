@@ -178,11 +178,13 @@
                         <td class="px-2 py-2 text-center" id="status-{{ $p->id_transaksi }}">
                             @if($p->status === 'approved')
                                 <span class="bg-green-100 rounded-full px-2 text-xs text-green-700 py-0.5">Disetujui</span>
+                            @elseif($p->status === 'menunggu_kabag')
+                                <span class="bg-blue-100 rounded-full px-2 text-xs text-blue-700 py-0.5">Menunggu Kabag</span>
                             @elseif($p->status === 'rejected')
                                 <span class="bg-red-100 rounded-full px-2 text-xs text-red-700 py-0.5">Ditolak</span>
                             @else
                                 <div class="inline-flex items-center gap-2">
-                                    <span class="bg-amber-100 rounded-full px-2 text-xs text-amber-700 py-0.5">Menunggu</span>
+                                    <span class="bg-amber-100 rounded-full px-2 text-xs text-amber-700 py-0.5">Menunggu Ketua</span>
 
                                     <button type="button"
                                         onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai,0,5) }}')"

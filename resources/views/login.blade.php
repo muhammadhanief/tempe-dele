@@ -129,6 +129,71 @@
                     </button>
                 </form>
 
+                @if (app()->isLocal())
+                    <div class="mt-6 pt-5 border-t border-slate-200">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">⚡ Testing Auto-Login</span>
+                            <span class="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">Dev Mode</span>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            {{-- Kabag Umum --}}
+                            <div>
+                                <span class="text-[10px] font-semibold text-slate-500 block mb-1">🏛️ Kabag Umum:</span>
+                                <a href="{{ route('dev.login', '197106131993121001') }}"
+                                   class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-900 hover:bg-indigo-100 transition-colors font-medium">
+                                    <span>Joko Suwarjo (Kabag Umum)</span>
+                                    <span class="text-[10px] bg-indigo-200 px-1.5 py-0.5 rounded text-indigo-900 font-bold">Masuk &rarr;</span>
+                                </a>
+                            </div>
+
+                            {{-- Tim SID --}}
+                            <div>
+                                <span class="text-[10px] font-semibold text-slate-500 block mb-1">🌐 Tim SID (Alur Bertingkat):</span>
+                                <div class="space-y-1.5">
+                                    <a href="{{ route('dev.login', '197703081999011001') }}"
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 hover:bg-blue-100 transition-colors font-medium">
+                                        <span>Sumbodo Aji (Ketua Tim SID)</span>
+                                        <span class="text-[10px] bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 font-bold">Masuk &rarr;</span>
+                                    </a>
+                                    <div class="grid grid-cols-3 gap-1.5">
+                                        <a href="{{ route('dev.login', '198907112010122003') }}"
+                                           class="px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 text-center font-medium truncate text-[11px]" title="Pristiana Diah Ariyantika (Pegawai SID 1)">
+                                            Pegawai 1
+                                        </a>
+                                        <a href="{{ route('dev.login', '198501252006042001') }}"
+                                           class="px-2 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-900 hover:bg-emerald-100 text-center font-semibold truncate text-[11px]" title="Indah Purnamasari (Pegawai SID 2)">
+                                            Pegawai 2 (Indah)
+                                        </a>
+                                        <a href="{{ route('dev.login', '197205242006041002') }}"
+                                           class="px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 text-center font-medium truncate text-[11px]" title="Herry Kusmaiwanto (Pegawai SID 3)">
+                                            Pegawai 3
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Tim Bagian Umum --}}
+                            <div>
+                                <span class="text-[10px] font-semibold text-slate-500 block mb-1">📋 Pegawai Tim Bagian Umum (Alur Langsung):</span>
+                                <div class="grid grid-cols-3 gap-1.5">
+                                    <a href="{{ route('dev.login', '198110052006042035') }}"
+                                       class="px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 text-center font-medium truncate text-[11px]" title="Ika Budi (Pegawai Umum)">
+                                        Ika Budi
+                                    </a>
+                                    <a href="{{ route('dev.login', '197509231998032001') }}"
+                                       class="px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 text-center font-medium truncate text-[11px]" title="Istiqomah (Pegawai Umum)">
+                                        Istiqomah
+                                    </a>
+                                    <a href="{{ route('dev.login', '197412171998032004') }}"
+                                       class="px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 text-center font-medium truncate text-[11px]" title="Aning Widiyatmi (Pegawai Umum)">
+                                        Aning W.
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </section>
 

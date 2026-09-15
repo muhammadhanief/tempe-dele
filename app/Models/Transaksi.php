@@ -1,5 +1,5 @@
-// app/Models/Transaksi.php
 <?php
+// app/Models/Transaksi.php
 
 namespace App\Models;
 
@@ -25,6 +25,9 @@ class Transaksi extends Model
         'submitted_at',
         'hari',
         'note',
+        'note_kabag',
+        'approved_at',
+        'approved_kabag_at',
     ];
 
     // Hitung durasi dalam jam (floor ke bawah)
