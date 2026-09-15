@@ -82,8 +82,8 @@ Route::middleware('checksession')->group(function () {
         Route::get('/rekapitulasi', [\App\Http\Controllers\pegawai\RekapitulasiController::class, 'index'])->name('rekapitulasi')->middleware('checksession');
         Route::get('/dokumen/download/{type}', [\App\Http\Controllers\admin\DokumenGenerateController::class, 'download'])->name('dokumen.download')->middleware('checksession');
         Route::get('/rekapitulasi/export', [\App\Http\Controllers\admin\RekapitulasiController::class, 'downloadExcel'])->name('rekapitulasi.export');
-        Route::get('admin/rekapitulasi', [\App\Http\Controllers\admin\RekapitulasiController::class, 'index']);
-        Route::get('/rekapitulasi/export-status', [\App\Http\Controllers\admin\RekapitulasiController::class, 'exportStatus'])->name('rekapitulasi.export.status');
+        Route::get('admin/rekapitulasi', [RekapitulasiController::class, 'index']);
+        Route::get('/rekapitulasi/export-status', [RekapitulasiController::class, 'exportStatus'])->name('rekapitulasi.export.status');
 
         //Laporan
         Route::get('/laporan', [\App\Http\Controllers\admin\LaporanController::class, 'index'])->name('laporan');

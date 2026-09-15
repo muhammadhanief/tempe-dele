@@ -91,8 +91,14 @@
 <div class="page">
 
     {{-- HEADER GAMBAR --}}
+    @php
+        $logoPath = '/home/lemburwe/public_html/images/LOGO BPS PROVINSI JATENG.png';
+        $logoBase64 = base64_encode(file_get_contents($logoPath));
+        $logoSrc = 'data:image/png;base64,' . $logoBase64;
+    @endphp
+    
     <img
-        src="{{ public_path('images/LOGO BPS PROVINSI JATENG.png') }}"
+        src="{{ $logoSrc }}"
         alt="Header BPS Provinsi Jawa Tengah"
         style="width: 80%; display: block; margin-bottom: 6px;"
     >

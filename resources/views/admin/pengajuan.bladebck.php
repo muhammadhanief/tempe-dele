@@ -95,17 +95,17 @@
 
             <div class="hidden sm:block flex-1"></div>
 
-            {{-- Tombol Hari Libur --}}
-            <button type="button" onclick="openModalHariLibur()"
-                class="h-10 w-full sm:w-10 inline-flex items-center justify-center gap-2 bg-[#faa938] text-white rounded-xl sm:rounded-full hover:bg-[#fd9a10] transition-colors"
-                title="Kelola Hari Libur">
+            <!--{{-- Tombol Hari Libur --}}-->
+            <!--<button type="button" onclick="openModalHariLibur()"-->
+            <!--    class="h-10 w-full sm:w-10 inline-flex items-center justify-center gap-2 bg-[#faa938] text-white rounded-xl sm:rounded-full hover:bg-[#fd9a10] transition-colors"-->
+            <!--    title="Kelola Hari Libur">-->
 
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+            <!--    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">-->
+            <!--        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />-->
+            <!--    </svg>-->
 
-                <span class="sm:hidden text-sm font-medium">Kelola Hari Libur</span>
-            </button>
+            <!--    <span class="sm:hidden text-sm font-medium">Kelola Hari Libur</span>-->
+            <!--</button>-->
         </div>
     </div>
 
@@ -490,8 +490,8 @@ function makeBtn(text, cls, onClick) {
 // =====================
 // STATE FILTER
 // =====================
-const urlParams = new URLSearchParams(window.location.search);
-const activeNip = urlParams.get('nip') || '';
+let selectedDate = null;
+let selectedNip = null;
 let cachedPegawai = [];
 
 // =====================
@@ -501,16 +501,6 @@ fetch('/admin/pengajuan/pegawai')
     .then(r => r.json())
     .then(data => {
         cachedPegawai = data;
-
-        if (activeNip) {
-            const emp = cachedPegawai.find(e => e.nip === activeNip);
-
-            if (emp) {
-                document.getElementById('searchPegawai').value = `${emp.nama} — ${emp.nip}`;
-            }
-        }
-
-        updateResetBtn();
         renderDropdownPegawai('');
     });
 
@@ -547,14 +537,11 @@ window.filterDropdownPegawai = function () {
 };
 
 function pilihPegawai(emp) {
-    const params = new URLSearchParams();
-    params.set('bulan', document.getElementById('periodValue').value);
-
-    if (emp) {
-        params.set('nip', emp.nip);
-    }
-
-    window.location.href = `?${params.toString()}`;
+    selectedNip = emp ? emp.nip : null;
+    document.getElementById('searchPegawai').value = emp ? `${emp.nama} — ${emp.nip}` : '';
+    document.getElementById('dropdownPegawai').classList.add('hidden');
+    filterTabel();
+    updateResetBtn();
 }
 
     // =====================
@@ -562,7 +549,7 @@ function pilihPegawai(emp) {
     // =====================
     (function () {
         const el = (id) => document.getElementById(id);
-
+        
         const now = new Date();
         function pad2(n) { return String(n).padStart(2, '0'); }
 
@@ -597,15 +584,7 @@ function pilihPegawai(emp) {
             selYear = y;
             selMonth = m;
             updateDisplayOnly(y, m);
-
-            const params = new URLSearchParams();
-            params.set('bulan', `${y}-${pad2(m + 1)}`);
-
-            if (activeNip) {
-                params.set('nip', activeNip);
-            }
-
-            window.location.href = `?${params.toString()}`;
+            window.location.href = `?bulan=${y}-${pad2(m + 1)}`;
         }
 
         function openPanel() {
@@ -721,25 +700,37 @@ function pilihPegawai(emp) {
     })();
 
 // =====================
-// RESET FILTER
+// FILTER TABEL
 // =====================
+function filterTabel() {
+    document.querySelectorAll('#tabelPengajuan tr').forEach(row => {
+        const cocokTanggal = !selectedDate || row.dataset.tanggal === selectedDate;
+        const cocokNip = !selectedNip || row.dataset.nip === selectedNip;
+
+        row.style.display = (cocokTanggal && cocokNip) ? '' : 'none';
+    });
+}
+
 function updateResetBtn() {
     const btn = document.getElementById('btnResetFilter');
 
     if (!btn) return;
 
-    (activeNip)
+    (selectedDate || selectedNip)
         ? btn.classList.remove('hidden')
         : btn.classList.add('hidden');
 }
 
-updateResetBtn();
-
 document.getElementById('btnResetFilter')?.addEventListener('click', () => {
-    const params = new URLSearchParams();
-    params.set('bulan', document.getElementById('periodValue').value);
+    selectedDate = null;
+    selectedNip = null;
 
-    window.location.href = `?${params.toString()}`;
+    document.getElementById('dateLabel').textContent = 'Semua Tanggal';
+    document.getElementById('dateValue').value = '';
+    document.getElementById('searchPegawai').value = '';
+
+    filterTabel();
+    updateResetBtn();
 });
 
 // =====================

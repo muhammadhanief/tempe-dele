@@ -9,9 +9,12 @@ use Carbon\Carbon;
 
 class PengajuanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pengajuan = DB::table('t_transaksi as t')
+        $bulan  = $request->get('bulan', now()->format('Y-m'));
+        $search = trim((string) $request->get('nip'));
+
+        $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
             ->select([
@@ -25,13 +28,33 @@ class PengajuanController extends Controller
                     WHERE pr.niplama = p.nip_lama
                     AND DATE(pr.tanggal) = t.date
                 ) as has_presensi')
-            ])
+            ]);
+
+        if ($bulan) {
+            try {
+                $periode = Carbon::parse($bulan . '-01');
+
+                $bulan = $periode->format('Y-m');
+
+                $query->whereYear('t.date', $periode->year)
+                    ->whereMonth('t.date', $periode->month);
+            } catch (\Exception $e) {
+                $bulan = now()->format('Y-m');
+            }
+        }
+
+        if ($search !== '') {
+            $query->where('p.nip', $search);
+        }
+
+        $pengajuan = $query
             ->orderBy('t.date', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $hariLibur = DB::table('m_hari_libur')->orderBy('tanggal', 'asc')->get();
 
-        return view('admin.pengajuan', compact('pengajuan', 'hariLibur'));
+        return view('admin.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'search'));
     }
 
     public function approve(Request $request, $id)

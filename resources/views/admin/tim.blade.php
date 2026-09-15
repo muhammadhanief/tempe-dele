@@ -4,16 +4,16 @@
 
 @section('content')
 
-{{-- Header Filter + Tambah --}}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-5">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+{{-- ===================== TOOLBAR ===================== --}}
+<div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 my-4 sm:my-5">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
 
         {{-- Filter Tim --}}
-        <div class="relative w-full sm:w-[30rem]">
+        <div class="relative w-full sm:flex-1 sm:min-w-[260px]">
             <input type="text" id="searchTim" placeholder="Cari nama tim..."
                 onclick="toggleDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
                 value="{{ request('search') }}"
-                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-4 pr-8 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"/>
+                class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-4 pr-8 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"/>
 
             <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3 text-gray-400">
@@ -21,18 +21,33 @@
                 </svg>
             </div>
 
-            <div id="dropdownTim" class="hidden absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+            <div id="dropdownTim"
+                class="hidden absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
                 <ul id="listTim"></ul>
             </div>
         </div>
 
-        {{-- Tombol Tambah --}}
+        <div class="hidden sm:block h-6 self-center border-l border-gray-200"></div>
+
+        {{-- Sinkron --}}
+        <button type="button" title="Sinkron Tim dari API" onclick="syncTim()"
+            class="inline-flex h-10 w-full sm:w-10 items-center justify-center gap-2 rounded-xl sm:rounded-full border border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+
+            <span class="sm:hidden text-sm font-medium">Sinkron Tim</span>
+        </button>
+
+        {{-- Tambah Tim --}}
         <button type="button" title="Tambah Tim" onclick="openCreateModal()"
-            class="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-sm font-medium text-white transition-all hover:brightness-95 sm:ml-auto sm:w-10 sm:rounded-full sm:px-0">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            class="inline-flex h-10 w-full sm:w-10 items-center justify-center gap-2 rounded-xl sm:rounded-full bg-[#faa938] text-white hover:brightness-95 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
             </svg>
-            <span class="sm:hidden">Tambah Tim</span>
+
+            <span class="sm:hidden text-sm font-medium">Tambah Tim</span>
         </button>
 
     </div>
@@ -1002,6 +1017,22 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target === this) closeModalAnggota();
     });
 });
+
+window.syncTim = async function () {
+    if (!confirm('Tarik data tim & anggota dari API? Proses ini bisa beberapa saat.')) return;
+    showAlert('Memproses sinkronisasi...', 'success');
+    try {
+        const res = await fetch('{{ route("admin.tim.sync") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+        });
+        const data = await res.json();
+        showAlert(data.message, res.ok ? 'success' : 'error');
+        if (res.ok) setTimeout(() => location.reload(), 1000);
+    } catch {
+        showAlert('Gagal menghubungi server.', 'error');
+    }
+};
 </script>
 
 @endsection

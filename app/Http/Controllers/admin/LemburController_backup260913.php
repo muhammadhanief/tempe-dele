@@ -67,35 +67,22 @@ class LemburController extends Controller
         $idPegawai = session('id_pegawai');
 
         $ketuaTim = DB::table('t_anggota_tim as at')
-            ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
-            ->where('at.pegawai_id_pegawai', $idPegawai)
-            ->where('mt.status', 'aktif')
-            ->whereNotNull('mt.nipbaru_ketua')
-            ->where('mt.nipbaru_ketua', '!=', $nipUser)
-            ->select(
-                'mt.nipbaru_ketua as nip',
-                'mt.nama_ketua as nama',
-                'mt.nama_tim as tim',
-                'mt.kode_tim'
-            )
-            ->get()
-            ->map(fn($item) => (array) $item)
-            ->toArray();
-
-        $timSendiri = DB::table('m_tim')
-            ->where('nipbaru_ketua', $nipUser)
-            ->where('status', 'aktif')
-            ->select('kode_tim', 'nama_tim')
-            ->first();
-
-        if ($timSendiri) {
-            $ketuaTim[] = [
-                'nip'      => $nipUser,
-                'nama'     => session('user')['nama'],
-                'tim'      => $timSendiri->nama_tim,
-                'kode_tim' => $timSendiri->kode_tim,
-            ];
-        }
+        ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
+        ->where('at.pegawai_id_pegawai', $idPegawai)
+        ->where('mt.status', 'aktif')
+        ->whereNotNull('mt.nipbaru_ketua')
+        ->select(
+            'mt.nipbaru_ketua as nip',
+        // ->whereNotNull('mt.niplama_ketua')
+        // ->select(
+        //     'mt.niplama_ketua as nip',
+            'mt.nama_ketua as nama',
+            'mt.nama_tim as tim',
+            'mt.kode_tim'
+        )
+        ->get()
+        ->map(fn($item) => (array) $item)
+        ->toArray();
 
         $hariLibur = DB::table('m_hari_libur')
             ->pluck('tanggal')
@@ -114,18 +101,17 @@ class LemburController extends Controller
         $validated = $request->validate([
             'approver_id' => 'required|string',
             'kode_tim'    => 'required|string',
-            'tanggal'     => 'required|date_format:Y-m-d',
+            'tanggal'     => 'required|date',
             'jam_mulai'   => 'required',
             'jam_selesai' => 'nullable',
             'uraian'      => 'required|string|max:255',
             'signature'   => 'required|string',
         ], [
             'uraian.required' => 'Uraian kegiatan wajib diisi.',
-            'tanggal.date_format' => 'Format tanggal tidak valid. Gunakan format YYYY-MM-DD.',
         ]);
 
         $nip     = session('user')['nip'];
-        $tanggal = Carbon::parse($validated['tanggal']);
+        $tanggal = Carbon::createFromFormat('Y-m-d', $validated['tanggal']);
 
         $isWeekend = $tanggal->isWeekend();
 

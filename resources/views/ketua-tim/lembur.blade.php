@@ -72,6 +72,30 @@
             </div>
         </div>
 
+        {{-- Filter Bulan & Jumlah per Halaman --}}
+        <div class="flex items-center gap-2">
+            <select id="filterBulan" onchange="gantiFilter('bulan', this.value)"
+                class="h-10 rounded-full border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
+                <option value="">Semua Bulan</option>
+                @php $tahunBulan = now()->format('Y'); \Carbon\Carbon::setLocale('id'); @endphp
+                @for($m = 1; $m <= 12; $m++)
+                    @php
+                        $valBulan  = \Carbon\Carbon::create($tahunBulan, $m, 1)->format('Y-m');
+                        $namaBulan = \Carbon\Carbon::create($tahunBulan, $m, 1)->translatedFormat('F');
+                    @endphp
+                    <option value="{{ $valBulan }}" @selected(($bulan ?? '') === $valBulan)>{{ ucfirst($namaBulan) }} {{ $tahunBulan }}</option>
+                @endfor
+            </select>
+
+            <select id="perHalaman" onchange="gantiFilter('perPage', this.value)"
+                class="h-10 rounded-full border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
+                <option value="10"  @selected(($perPage ?? 10) == 10)>10 / hal</option>
+                <option value="25"  @selected(($perPage ?? 10) == 25)>25 / hal</option>
+                <option value="50"  @selected(($perPage ?? 10) == 50)>50 / hal</option>
+                <option value="100" @selected(($perPage ?? 10) == 100)>100 / hal</option>
+            </select>
+        </div>
+
         {{-- Reset Filter --}}
         <button type="button" id="btnResetFilter"
             class="hidden h-10 rounded-full border border-gray-200 bg-white px-4 text-sm font-medium text-gray-500 transition-colors hover:border-red-300 hover:text-red-400">
@@ -98,7 +122,6 @@
                 <tr class="bg-gray-100">
                     <th class="w-28 rounded-tl-xl px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Tanggal</th>
                     <th class="w-28 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Jam Diajukan</th>
-                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Jam Disetujui</th>
                     <th class="px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Uraian Kegiatan</th>
                     <th class="w-32 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Ketua Tim</th>
                     <th class="w-36 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Nama Tim</th>
@@ -122,14 +145,6 @@
                                 {{ substr($t->jam_mulai, 0, 5) }} - {{ substr($t->jam_selesai, 0, 5) }}
                             @elseif($t->jam_mulai)
                                 {{ substr($t->jam_mulai, 0, 5) }} - <span class="italic text-gray-400">menunggu</span>
-                            @else
-                                -
-                            @endif
-                        </td>
-
-                        <td class="whitespace-nowrap px-3 py-3 text-center text-xs text-gray-900">
-                            @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
-                                {{ substr($t->jam_mulai_disetujui, 0, 5) }} - {{ substr($t->jam_selesai_disetujui, 0, 5) }}
                             @else
                                 -
                             @endif
@@ -184,7 +199,7 @@
                                             Lihat
                                         </a>
 
-                                        <form action="{{ route('ketua-tim.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
+                                        <form action="{{ route('pegawai.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
                                             onsubmit="return confirm('Hapus dokumentasi ini?')">
                                             @csrf
                                             @method('DELETE')
@@ -198,7 +213,8 @@
                                     </div>
                                 @else
                                     <button type="button"
-                                        onclick="openModalDok({{ $t->id_transaksi }})"
+                                        onclick="openModalDok(this)"
+                                        data-action="{{ route('pegawai.lembur.storeDoc', $t->id_transaksi) }}"
                                         class="text-xs text-[#faa938] underline hover:text-[#fd9a10]">
                                         + Tambah
                                     </button>
@@ -283,6 +299,16 @@
             <form id="formDok" method="POST" class="space-y-4 px-5 py-5 sm:px-6">
                 @csrf
 
+                @if ($errors->any())
+                    <div class="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">
+                        <ul class="list-disc pl-4">
+                            @foreach ($errors->all() as $errorDok)
+                                <li>{{ $errorDok }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700">Link Google Drive</label>
                     <input type="url" name="file_path" required
@@ -327,6 +353,9 @@
                 <form id="formAjukan" action="{{ route('ketua-tim.lembur.store') }}" method="POST"
                     class="space-y-5 px-5 py-5 sm:px-6">
                     @csrf
+
+                    <input type="hidden" name="bulan" value="{{ request('bulan') }}">
+                    <input type="hidden" name="perPage" value="{{ request('perPage') }}">
 
                     <input type="hidden" name="kode_tim" id="kode_tim">
 
@@ -430,6 +459,21 @@ document.addEventListener('DOMContentLoaded', function () {
     function pad2(value) {
         return String(value).padStart(2, '0');
     }
+
+    window.gantiFilter = function (key, value) {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+
+        if (value === '') {
+            params.delete(key);
+        } else {
+            params.set(key, value);
+        }
+
+        params.delete('page');
+
+        window.location.href = url.pathname + '?' + params.toString();
+    };
 
     function makeBtn(text, className, onClick) {
         const button = document.createElement('button');
@@ -638,13 +682,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // =====================
     // MODAL DOKUMENTASI
     // =====================
-    window.openModalDok = function (idTransaksi) {
-        const base = "{{ url('ketua-tim/lembur') }}";
+    window.openModalDok = function (el) {
         const form = document.getElementById('formDok');
         const modalDok = document.getElementById('modalDok');
 
-        if (form) {
-            form.action = `${base}/${idTransaksi}/dokumentasi`;
+        if (form && el) {
+            form.action = el.getAttribute('data-action');
         }
 
         modalDok?.classList.remove('hidden');
@@ -655,6 +698,10 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('modalDok')?.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
+
+    @if ($errors->has('file_path'))
+        window.openModalDok(document.querySelector('#tabelLembur [data-action]') ?? document.querySelector('[data-action]'));
+    @endif
 
     // =====================
     // FILTER TANGGAL

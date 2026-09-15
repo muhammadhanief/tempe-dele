@@ -114,18 +114,17 @@ class LemburController extends Controller
         $validated = $request->validate([
             'approver_id' => 'required|string',
             'kode_tim'    => 'required|string',
-            'tanggal'     => 'required|date_format:Y-m-d',
+            'tanggal'     => 'required|date',
             'jam_mulai'   => 'required',
             'jam_selesai' => 'nullable',
             'uraian'      => 'required|string|max:255',
             'signature'   => 'required|string',
         ], [
             'uraian.required' => 'Uraian kegiatan wajib diisi.',
-            'tanggal.date_format' => 'Format tanggal tidak valid. Gunakan format YYYY-MM-DD.',
         ]);
 
         $nip     = session('user')['nip'];
-        $tanggal = Carbon::parse($validated['tanggal']);
+        $tanggal = Carbon::createFromFormat('Y-m-d', $validated['tanggal']);
 
         $isWeekend = $tanggal->isWeekend();
 

@@ -1,33 +1,22 @@
 <?php
 
-namespace App\Http\Controllers\ketuatim;
+namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon; 
+use Carbon\Carbon;
 
 class PengajuanController extends Controller
 {
     public function index(Request $request)
     {
-        $nipKetua = session('user')['nip'];
-
-        $bulan = $request->get('bulan', now()->format('Y-m'));
-
-        try {
-            $periode = Carbon::parse($bulan . '-01');
-        } catch (\Exception $e) {
-            $periode = Carbon::now();
-            $bulan = $periode->format('Y-m');
-        }
-
-        $tim = DB::table('m_tim')->where('nipbaru_ketua', $nipKetua)->first();
-
-        $pengajuan = DB::table('t_transaksi as t')
+       /*file asli $bulan = $request->get('bulan');*/
+       $bulan = $request->get('bulan', now()->format('Y-m'));
+    
+        $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
-            ->where('t.approver_employee_id', $nipKetua)
             ->select([
                 't.*',
                 'p.nama as nama_pegawai',
@@ -39,18 +28,30 @@ class PengajuanController extends Controller
                     WHERE pr.niplama = p.nip_lama
                     AND DATE(pr.tanggal) = t.date
                 ) as has_presensi')
-            ])
-            ->whereYear('t.date', $periode->year)
-            ->whereMonth('t.date', $periode->month)
+            ]);
+    
+        if ($bulan) {
+            try {
+                /*ini aslinya $periode = Carbon::createFromFormat('Y-m-d', $bulan . '-01');ak nambah 2 baris ini*/
+                 $periode = Carbon::parse($bulan . '-01');
+                 $bulan = $periode->format('Y-m');
+    
+                $query->whereYear('t.date', $periode->year)
+                    ->whereMonth('t.date', $periode->month);
+            } catch (\Exception $e) {
+                /*$bulan = null; ini jg ak benerin*/
+                $bulan = now()->format('Y-m');
+            }
+        }
+    
+        $pengajuan = $query
             ->orderBy('t.date', 'desc')
-            // ->paginate(10);
-            ->paginate(10)->appends($request->query());
-
-        $hariLibur = DB::table('m_hari_libur')
-            ->orderBy('tanggal', 'asc')
-            ->get();
-
-        return view('ketua-tim.pengajuan', compact('pengajuan', 'hariLibur', 'bulan'));
+            ->paginate(10)
+            ->withQueryString();
+    
+        $hariLibur = DB::table('m_hari_libur')->orderBy('tanggal', 'asc')->get();
+    
+        return view('admin.pengajuan', compact('pengajuan', 'hariLibur', 'bulan'));
     }
 
     public function approve(Request $request, $id)
@@ -62,8 +63,10 @@ class PengajuanController extends Controller
             'note'                  => 'nullable|string',
         ]);
 
-        $transaksi = DB::table('t_transaksi')
-            ->where('id_transaksi', $id)
+        $transaksi = DB::table('t_transaksi as t')
+            ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
+            ->where('t.id_transaksi', $id)
+            ->select('t.*', 'p.nip_lama')
             ->first();
 
         $noteKetua = trim($request->note ?? '');
@@ -99,7 +102,6 @@ class PengajuanController extends Controller
             return response()->json(['error' => 'Data tidak ditemukan'], 404);
         }
 
-        // Cari presensi berdasarkan niplama dan tanggal
         $presensi = DB::table('t_presensi')
             ->whereDate('tanggal', $transaksi->date)
             ->where('niplama', $transaksi->nip_lama)
@@ -115,17 +117,14 @@ class PengajuanController extends Controller
         ]);
     }
 
-    public function anggotaTim()
+    public function semuaPegawai()
     {
-        $nipKetua = session('user')['nip'];
-
-        $anggota = DB::table('t_anggota_tim as at')
-            ->join('m_pegawai as p', 'at.pegawai_id_pegawai', '=', 'p.id_pegawai')
-            ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
-            ->where('mt.nipbaru_ketua', $nipKetua)
-            ->select('p.nama', 'p.nip')
+        $pegawai = DB::table('m_pegawai')
+            ->select('nama', 'nip')
+            ->orderBy('nama')
             ->get();
 
-        return response()->json($anggota);
+        return response()->json($pegawai);
     }
+
 }

@@ -71,30 +71,6 @@
             </div>
         </div>
 
-        {{-- Filter Bulan & Jumlah per Halaman --}}
-        <div class="flex items-center gap-2">
-            <select id="filterBulan" onchange="gantiFilter('bulan', this.value)"
-                class="h-10 rounded-full border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
-                <option value="">Semua Bulan</option>
-                @php $tahunBulan = now()->format('Y'); \Carbon\Carbon::setLocale('id'); @endphp
-                @for($m = 1; $m <= 12; $m++)
-                    @php
-                        $valBulan  = \Carbon\Carbon::create($tahunBulan, $m, 1)->format('Y-m');
-                        $namaBulan = \Carbon\Carbon::create($tahunBulan, $m, 1)->translatedFormat('F');
-                    @endphp
-                    <option value="{{ $valBulan }}" @selected(($bulan ?? '') === $valBulan)>{{ ucfirst($namaBulan) }} {{ $tahunBulan }}</option>
-                @endfor
-            </select>
-
-            <select id="perHalaman" onchange="gantiFilter('perPage', this.value)"
-                class="h-10 rounded-full border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
-                <option value="10"  @selected(($perPage ?? 10) == 10)>10 / hal</option>
-                <option value="25"  @selected(($perPage ?? 10) == 25)>25 / hal</option>
-                <option value="50"  @selected(($perPage ?? 10) == 50)>50 / hal</option>
-                <option value="100" @selected(($perPage ?? 10) == 100)>100 / hal</option>
-            </select>
-        </div>
-
         {{-- Filter Tim --}}
         <div class="relative w-full lg:w-[30rem]">
             <input type="text" id="searchTim" placeholder="Cari nama tim..."
@@ -232,8 +208,7 @@
                                     </div>
                                 @else
                                     <button type="button"
-                                        onclick="openModalDok(this)"
-                                        data-action="{{ route('pegawai.lembur.storeDoc', $t->id_transaksi) }}"
+                                        onclick="openModalDok({{ $t->id_transaksi }})"
                                         class="text-xs text-[#faa938] underline hover:text-[#fd9a10]">
                                         + Tambah
                                     </button>
@@ -319,16 +294,6 @@
             <form id="formDok" method="POST" class="space-y-4 px-5 py-5 sm:px-6">
                 @csrf
 
-                @if ($errors->any())
-                    <div class="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">
-                        <ul class="list-disc pl-4">
-                            @foreach ($errors->all() as $errorDok)
-                                <li>{{ $errorDok }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700">Link Google Drive</label>
                     <input type="url" name="file_path" required
@@ -372,9 +337,6 @@
                 <form id="formAjukan" action="{{ route('ketua-tim.lembur.store') }}" method="POST"
                     class="space-y-5 px-5 py-5 sm:px-6">
                     @csrf
-
-                    <input type="hidden" name="bulan" value="{{ request('bulan') }}">
-                    <input type="hidden" name="perPage" value="{{ request('perPage') }}">
 
                     <input type="hidden" name="kode_tim" id="kode_tim">
 
@@ -490,21 +452,6 @@
             btn.classList.add('hidden');
         }
     }
-
-    window.gantiFilter = function (key, value) {
-        const url = new URL(window.location.href);
-        const params = url.searchParams;
-
-        if (value === '') {
-            params.delete(key);
-        } else {
-            params.set(key, value);
-        }
-
-        params.delete('page');
-
-        window.location.href = url.pathname + '?' + params.toString();
-    };
 
     function filterTabel() {
         document.querySelectorAll('#tabelLembur tr[data-tanggal]').forEach(row => {
@@ -907,12 +854,13 @@
     // =====================
     // MODAL DOKUMENTASI
     // =====================
-    window.openModalDok = function (el) {
+    window.openModalDok = function (idTransaksi) {
+        const base = "{{ url('pegawai/lembur') }}";
         const modal = document.getElementById('modalDok');
         const form = document.getElementById('formDok');
 
-        if (form && el) {
-            form.action = el.getAttribute('data-action');
+        if (form) {
+            form.action = `${base}/${idTransaksi}/dokumentasi`;
         }
 
         modal?.classList.remove('hidden');
@@ -923,10 +871,6 @@
         document.getElementById('modalDok')?.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
-
-    @if ($errors->has('file_path'))
-        window.openModalDok(document.querySelector('#tabelLembur [data-action]') ?? document.querySelector('[data-action]'));
-    @endif
 
     // =====================
     // MODAL AJUKAN

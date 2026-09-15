@@ -178,7 +178,7 @@
 
                             <td class="p-3 sm:p-4 border border-gray-100 h-12 text-center">
                                 @if($d->signature_path)
-                                    <img src="{{ asset('storage/' . $d->signature_path) }}"
+                                    <img src="{{ Storage::url($d->signature_path) }}"
                                         alt="TTD {{ $d->nama }}"
                                         class="h-10 w-auto mx-auto object-contain">
                                 @else

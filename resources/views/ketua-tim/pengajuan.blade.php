@@ -9,60 +9,64 @@
     {{-- Toolbar --}}
     <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
 
-        {{-- Datepicker --}}
-        <div class="relative w-full sm:w-auto" id="datePicker">
-            <button type="button" id="dateBtn"
-                class="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:border-[#faa938] sm:w-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-4 w-4 shrink-0 fill-current">
-                    <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
-                </svg>
+        {{-- Period Picker --}}
+            <div class="relative w-full sm:w-auto shrink-0" id="periodPicker">
+                <button type="button" id="periodBtn"
+                    class="inline-flex w-full sm:w-auto items-center justify-between sm:justify-start h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors">
 
-                <span id="dateLabel" class="truncate leading-none">Semua Tanggal</span>
-
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-3 w-3 shrink-0 fill-current opacity-50">
-                    <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
-                </svg>
-            </button>
-
-            <input type="hidden" id="dateValue" value="">
-
-            <div id="datePanel"
-                class="absolute left-0 z-50 mt-2 hidden w-[calc(100vw-2rem)] max-w-72 rounded-xl border border-gray-200 bg-white p-3 shadow-lg sm:w-72">
-                <div class="mb-3 flex items-center justify-between">
-                    <button type="button" id="datePrev"
-                        class="rounded-lg border border-gray-200 p-2 transition-all hover:border-[#faa938] hover:text-[#faa938]">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-3 w-3 fill-current">
-                            <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
+                    <span class="inline-flex items-center gap-2 min-w-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current shrink-0">
+                            <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
                         </svg>
-                    </button>
 
-                    <span id="dateNavLabel"
-                        class="cursor-pointer select-none text-sm font-medium text-gray-900 hover:text-[#faa938]">
+                        <span id="periodLabel" class="leading-none truncate">
+                            {{ \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('M Y') }}
+                        </span>
                     </span>
 
-                    <button type="button" id="dateNext"
-                        class="rounded-lg border border-gray-200 p-2 transition-all hover:border-[#faa938] hover:text-[#faa938]">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-3 w-3 fill-current">
-                            <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
-                        </svg>
-                    </button>
-                </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-50 shrink-0">
+                        <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                    </svg>
+                </button>
 
-                <div id="dateGrid"></div>
+                <input type="hidden" id="periodValue" name="period" value="">
 
-                <div class="mt-3 flex items-center justify-between">
-                    <button type="button" id="btnResetDate"
-                        class="text-sm font-medium text-gray-500 hover:text-[#faa938]">
-                        Hari ini
-                    </button>
+                <div id="periodPanel"
+                    class="hidden absolute z-50 mt-2 left-0 w-full sm:w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white shadow-lg p-3">
 
-                    <button type="button" id="btnDateClose"
-                        class="rounded-full border border-gray-200 px-3 py-1 text-sm font-medium text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">
-                        Tutup
-                    </button>
+                    <div class="flex items-center justify-between mb-3">
+                        <button type="button" id="yearPrev"
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
+                            </svg>
+                        </button>
+
+                        <span id="yearLabel" class="text-sm font-medium text-gray-900">2026</span>
+
+                        <button type="button" id="yearNext"
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2" id="monthGrid"></div>
+
+                    <div class="flex items-center justify-between mt-3">
+                        <button type="button" id="btnThisMonth"
+                            class="text-sm font-medium text-gray-500 hover:text-[#faa938]">
+                            Bulan ini
+                        </button>
+
+                        <button type="button" id="btnClosePanel"
+                            class="px-3 py-1 text-sm font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">
+                            Tutup
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
         {{-- Filter Pegawai --}}
         <div class="relative w-full sm:w-[22rem]">
@@ -474,303 +478,160 @@ document.getElementById('btnResetFilter')?.addEventListener('click', () => {
     updateResetBtn();
 });
 
-// =====================
-// DATE PICKER
-// =====================
-(function () {
-    const picker = document.getElementById('datePicker');
-    const btn = document.getElementById('dateBtn');
-    const panel = document.getElementById('datePanel');
-    const grid = document.getElementById('dateGrid');
-    const navLabel = document.getElementById('dateNavLabel');
-    const dateLabel = document.getElementById('dateLabel');
-    const dateValue = document.getElementById('dateValue');
-    const btnPrev = document.getElementById('datePrev');
-    const btnNext = document.getElementById('dateNext');
-    const btnToday = document.getElementById('btnResetDate');
-    const btnClose = document.getElementById('btnDateClose');
+    // =====================
+    // PERIOD PICKER
+    // =====================
+    (function () {
+        const el = (id) => document.getElementById(id);
 
-    if (!picker || !btn || !panel || !grid || !navLabel) return;
+        const now = new Date();
+        function pad2(n) { return String(n).padStart(2, '0'); }
 
-    const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    const monthShort = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-    const dayNames = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+        const picker = el('periodPicker');
+        const btn = el('periodBtn');
+        const panel = el('periodPanel');
+        const grid = el('monthGrid');
+        const navLabel = el('yearLabel');
+        const periodLabel = el('periodLabel');
+        const periodValue = el('periodValue');
+        const btnPrev = el('yearPrev');
+        const btnNext = el('yearNext');
+        const btnThisMonth = el('btnThisMonth');
+        const btnClose = el('btnClosePanel');
 
-    const now = new Date();
+        if (!picker || !btn || !panel) return;
 
-    let view = 'day';
-    let viewYear = now.getFullYear();
-    let viewMonth = now.getMonth();
-    let selYear = null;
-    let selMonth = null;
-    let selDay = null;
+        const monthShort = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-    function setDate(year, month, day) {
-        selYear = year;
-        selMonth = month;
-        selDay = day;
+        let view = 'month';
+        let selYear  = {{ \Carbon\Carbon::parse($bulan . '-01')->year }};
+        let selMonth = {{ \Carbon\Carbon::parse($bulan . '-01')->month - 1 }};
+        let viewYear = selYear;
 
-        selectedDate = `${year}-${pad2(month + 1)}-${pad2(day)}`;
+        function updateDisplayOnly(y, m) {
+            periodLabel.textContent = `${monthShort[m]} ${y}`;
+            periodValue.value = `${y}-${pad2(m + 1)}`;
+        }
 
-        dateLabel.textContent = `${day} ${monthShort[month]} ${year}`;
-        dateValue.value = selectedDate;
+        function setPeriod(y, m) {
+            selYear = y;
+            selMonth = m;
+            updateDisplayOnly(y, m);
+            window.location.href = `?bulan=${y}-${pad2(m + 1)}`;
+        }
 
-        filterTabel();
-        updateResetBtn();
-    }
-
-    function openPanel() {
-        if (selYear !== null && selMonth !== null) {
+        function openPanel() {
             viewYear = selYear;
-            viewMonth = selMonth;
-        } else {
-            viewYear = now.getFullYear();
-            viewMonth = now.getMonth();
+            renderMonth();
+            panel.classList.remove('hidden');
         }
 
-        renderDay();
-        panel.classList.remove('hidden');
-    }
-
-    function closePanel() {
-        panel.classList.add('hidden');
-    }
-
-    function renderDay() {
-        view = 'day';
-
-        navLabel.textContent = `${monthNames[viewMonth]} ${viewYear}`;
-        navLabel.className = 'cursor-pointer select-none text-sm font-medium text-gray-900 hover:text-[#faa938]';
-
-        grid.innerHTML = '';
-
-        const header = document.createElement('div');
-        header.className = 'mb-1 grid grid-cols-7';
-
-        dayNames.forEach(day => {
-            const span = document.createElement('span');
-            span.className = 'py-1 text-center text-xs text-gray-400';
-            span.textContent = day;
-            header.appendChild(span);
-        });
-
-        grid.appendChild(header);
-
-        const dayGrid = document.createElement('div');
-        dayGrid.className = 'grid grid-cols-7 gap-y-1';
-
-        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-        const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-        const daysInPrev = new Date(viewYear, viewMonth, 0).getDate();
-
-        const base = 'rounded-lg border py-1 text-sm transition ';
-
-        for (let i = firstDay - 1; i >= 0; i--) {
-            const day = daysInPrev - i;
-
-            dayGrid.appendChild(makeBtn(day, base + 'border-transparent text-gray-300 hover:border-gray-200', () => {
-                let month = viewMonth - 1;
-                let year = viewYear;
-
-                if (month < 0) {
-                    month = 11;
-                    year--;
-                }
-
-                setDate(year, month, day);
-                closePanel();
-            }));
+        function closePanel() {
+            panel.classList.add('hidden');
         }
 
-        for (let day = 1; day <= daysInMonth; day++) {
-            const isSelected = day === selDay && selMonth === viewMonth && selYear === viewYear;
-            const isToday = day === now.getDate() && viewMonth === now.getMonth() && viewYear === now.getFullYear();
+        function renderMonth() {
+            view = 'month';
+            navLabel.textContent = String(viewYear);
+            navLabel.className = 'text-sm font-medium text-gray-900 cursor-pointer hover:text-[#faa938] select-none';
+            grid.innerHTML = '';
 
-            const className = isSelected
-                ? 'border-[#faa938] bg-[#faa938] text-white'
-                : isToday
-                    ? 'border-transparent bg-[#faa938]/20 text-[#faa938]'
-                    : 'border-transparent text-gray-700 hover:border-[#faa938] hover:text-[#faa938]';
+            monthNames.forEach((name, m) => {
+                const isSel = (m === selMonth && viewYear === selYear);
+                const isNow = (m === now.getMonth() && viewYear === now.getFullYear());
 
-            dayGrid.appendChild(makeBtn(day, base + className, () => {
-                setDate(viewYear, viewMonth, day);
-                closePanel();
-            }));
+                const cls = 'px-2 py-2 text-sm rounded-lg border transition ' + (
+                    isSel
+                        ? 'bg-[#faa938] text-white border-[#faa938]'
+                        : isNow
+                            ? 'border-[#faa938] text-[#faa938] bg-white'
+                            : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]'
+                );
+
+                grid.appendChild(makeBtn(name.slice(0, 3), cls, () => {
+                    setPeriod(viewYear, m);
+                    closePanel();
+                }));
+            });
         }
 
-        const total = firstDay + daysInMonth;
-        const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+        function renderYear() {
+            view = 'year';
 
-        for (let day = 1; day <= remaining; day++) {
-            dayGrid.appendChild(makeBtn(day, base + 'border-transparent text-gray-300 hover:border-gray-200', () => {
-                let month = viewMonth + 1;
-                let year = viewYear;
+            const startYear = Math.floor(viewYear / 12) * 12;
 
-                if (month > 11) {
-                    month = 0;
-                    year++;
-                }
+            navLabel.textContent = `${startYear} - ${startYear + 11}`;
+            navLabel.className = 'text-sm font-medium text-gray-400 select-none cursor-default';
+            grid.innerHTML = '';
 
-                setDate(year, month, day);
-                closePanel();
-            }));
+            for (let y = startYear; y < startYear + 12; y++) {
+                const isSel = (y === selYear);
+                const isNow = (y === now.getFullYear());
+                const _y = y;
+
+                const cls = 'px-2 py-2 text-sm rounded-lg border transition ' + (
+                    isSel
+                        ? 'bg-[#faa938] text-white border-[#faa938]'
+                        : isNow
+                            ? 'border-[#faa938] text-[#faa938] bg-white'
+                            : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]'
+                );
+
+                grid.appendChild(makeBtn(String(_y), cls, () => {
+                    viewYear = _y;
+                    renderMonth();
+                }));
+            }
         }
 
-        grid.appendChild(dayGrid);
-    }
-
-    function renderMonth() {
-        view = 'month';
-
-        navLabel.textContent = String(viewYear);
-        navLabel.className = 'cursor-pointer select-none text-sm font-medium text-gray-900 hover:text-[#faa938]';
-
-        grid.innerHTML = '';
-
-        const monthGrid = document.createElement('div');
-        monthGrid.className = 'grid grid-cols-3 gap-2';
-
-        monthNames.forEach((name, month) => {
-            const isSelected = month === selMonth && viewYear === selYear;
-            const isNow = month === now.getMonth() && viewYear === now.getFullYear();
-
-            const className = isSelected
-                ? 'border-[#faa938] bg-[#faa938] text-white'
-                : isNow
-                    ? 'border-[#faa938] bg-white text-[#faa938]'
-                    : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]';
-
-            monthGrid.appendChild(makeBtn(name.slice(0, 3), 'rounded-lg border px-2 py-2 text-sm transition ' + className, () => {
-                viewMonth = month;
-                renderDay();
-            }));
-        });
-
-        grid.appendChild(monthGrid);
-    }
-
-    function renderYear() {
-        view = 'year';
-
-        const startYear = Math.floor(viewYear / 12) * 12;
-
-        navLabel.textContent = `${startYear} - ${startYear + 11}`;
-        navLabel.className = 'cursor-default select-none text-sm font-medium text-gray-400';
-
-        grid.innerHTML = '';
-
-        const yearGrid = document.createElement('div');
-        yearGrid.className = 'grid grid-cols-3 gap-2';
-
-        for (let year = startYear; year < startYear + 12; year++) {
-            const isSelected = year === selYear;
-            const isNow = year === now.getFullYear();
-
-            const className = isSelected
-                ? 'border-[#faa938] bg-[#faa938] text-white'
-                : isNow
-                    ? 'border-[#faa938] bg-white text-[#faa938]'
-                    : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]';
-
-            yearGrid.appendChild(makeBtn(year, 'rounded-lg border px-2 py-2 text-sm transition ' + className, () => {
-                viewYear = year;
+        function navigate(dir) {
+            if (view === 'month') {
+                viewYear += dir;
                 renderMonth();
-            }));
-        }
-
-        grid.appendChild(yearGrid);
-    }
-
-    btn.addEventListener('click', event => {
-        event.stopPropagation();
-
-        if (panel.classList.contains('hidden')) {
-            openPanel();
-        } else {
-            closePanel();
-        }
-    });
-
-    navLabel.addEventListener('click', event => {
-        event.stopPropagation();
-
-        if (view === 'day') {
-            renderMonth();
-        } else if (view === 'month') {
-            renderYear();
-        }
-    });
-
-    btnPrev?.addEventListener('click', event => {
-        event.stopPropagation();
-
-        if (view === 'day') {
-            viewMonth--;
-
-            if (viewMonth < 0) {
-                viewMonth = 11;
-                viewYear--;
+            } else {
+                viewYear += dir * 12;
+                renderYear();
             }
-
-            renderDay();
-        } else if (view === 'month') {
-            viewYear--;
-            renderMonth();
-        } else if (view === 'year') {
-            viewYear -= 12;
-            renderYear();
         }
-    });
 
-    btnNext?.addEventListener('click', event => {
-        event.stopPropagation();
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            panel.classList.contains('hidden') ? openPanel() : closePanel();
+        });
 
-        if (view === 'day') {
-            viewMonth++;
+        navLabel.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (view === 'month') renderYear();
+        });
 
-            if (viewMonth > 11) {
-                viewMonth = 0;
-                viewYear++;
-            }
+        btnPrev?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigate(-1);
+        });
 
-            renderDay();
-        } else if (view === 'month') {
-            viewYear++;
-            renderMonth();
-        } else if (view === 'year') {
-            viewYear += 12;
-            renderYear();
-        }
-    });
+        btnNext?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigate(1);
+        });
 
-    btnToday?.addEventListener('click', event => {
-        event.stopPropagation();
-
-        viewYear = now.getFullYear();
-        viewMonth = now.getMonth();
-
-        setDate(now.getFullYear(), now.getMonth(), now.getDate());
-        closePanel();
-    });
-
-    btnClose?.addEventListener('click', event => {
-        event.stopPropagation();
-        closePanel();
-    });
-
-    document.addEventListener('click', event => {
-        if (!picker.contains(event.target)) {
+        btnThisMonth?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setPeriod(now.getFullYear(), now.getMonth());
             closePanel();
-        }
+        });
 
-        const dropdownPegawai = document.getElementById('dropdownPegawai');
-        const searchPegawai = document.getElementById('searchPegawai');
+        btnClose?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closePanel();
+        });
 
-        if (dropdownPegawai && searchPegawai && !dropdownPegawai.contains(event.target) && !searchPegawai.contains(event.target)) {
-            dropdownPegawai.classList.add('hidden');
-        }
-    });
-})();
+        document.addEventListener('click', (e) => {
+            if (!picker.contains(e.target)) closePanel();
+        });
+
+        updateDisplayOnly(selYear, selMonth);
+    })();
 
 // =====================
 // MODAL PRESENSI
