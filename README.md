@@ -1,59 +1,158 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# 📋 TEMPE DELE
+### Sistem Pengelolaan Dokumen Lembur Pegawai
+**Badan Pusat Statistik (BPS) Provinsi Jawa Tengah**
 
-## About Laravel
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+</div>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 📖 Tentang Aplikasi
 
-## Learning Laravel
+**TEMPE DELE** adalah sistem informasi berbasis web yang dirancang khusus untuk mengelola, memvalidasi, dan mengotomatisasi seluruh alur dokumen lembur pegawai di lingkungan **BPS Provinsi Jawa Tengah**.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Sistem ini mengintegrasikan otentikasi **Single Sign-On (SSO) BPS**, sinkronisasi struktur tim kerja **KIPAPP**, validasi data kehadiran presensi riil, tanda tangan digital, alur persetujuan bertingkat (*tiered approval*), serta penerbitan dokumen administrasi lembur resmi (SPKL, Daftar Hadir, Laporan Lembur, dan Rekapitulasi).
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## ✨ Fitur-Fitur Utama
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 1. 🔐 Integrasi SSO & API Eksternal BPS
+- **SSO BPS Authentication**: Autentikasi terpusat pegawai BPS Jawa Tengah via API Connect.
+- **SSO Attribute Fetcher**: Penarikan golongan kepangkatan pegawai otomatis untuk perhitungan uang lembur dan makan.
+- **KIPAPP Tim Kerja Sync**: Penarikan struktur tim fungsional dan penugasan anggota secara periodik.
 
-### Premium Partners
+### 2. ⚡ Alur Persetujuan Bertingkat (*Tiered Approval Workflow*)
+- **Tim Fungsional Lain (SID, Humas, Sosial, Distribusi, dll.)**:
+  - `Pegawai Mengajukan` $\rightarrow$ `Persetujuan Ketua Tim` $\rightarrow$ `Persetujuan Akhir Kabag Umum` $\rightarrow$ `Selesai (Disetujui Final)`.
+- **Tim Bagian Umum**:
+  - Pengajuan pegawai Bagian Umum langsung masuk ke antrean persetujuan **Kepala Bagian Umum** (menghindari duplikasi tahapan).
+- **Penolakan Transparan**: Ketua Tim maupun Kabag Umum dapat menolak pengajuan lembur dengan catatan alasan yang terdokumentasi terpisah.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 3. ⏱️ Koreksi Otomatis Presensi Riil
+- Sinkronisasi data presensi harian pegawai untuk memverifikasi jam pulang aktual.
+- Otomasi validasi durasi lembur (minimal 2 jam).
+- Pengecekan kepatuhan status kehadiran kantor (WFO/WFOL) serta jam kehadiran pagi.
 
-## Contributing
+### 4. 📑 Generator Dokumen Resmi & Ekspor Laporan
+- **Surat Perintah Kerja Lembur (SPKL)**: PDF otomatis berstandar kedinasan.
+- **Daftar Hadir Lembur**: Rekap absensi lembur per penugasan tim.
+- **Laporan Pelaksanaan Lembur**: Uraian output hasil kerja pegawai lembur.
+- **Rekapitulasi Bulanan**: Ekspor rekapitulasi data lembur ke format Excel dan PDF.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 5. 🖊️ Digital Signature & Upload Dokumentasi
+- Pembubuhan tanda tangan langsung secara digital pada saat pengajuan lembur.
+- Unggah berkas dokumentasi hasil lembur untuk pertanggungjawaban kegiatan.
 
-## Code of Conduct
+### 6. 🏛️ Manajemen Pejabat Dinamis (Tanpa Hardcode)
+- Pengaturan pejabat struktural (Kepala BPS, Kepala Bagian Umum, PPK) dikelola dinamis melalui database (`m_pejabat`), sehingga pergantian atau mutasi pejabat tidak memerlukan perubahan kode aplikasi.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 👥 Struktur Role & Hak Akses
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Role | Cakupan Wewenang |
+|:---|:---|
+| **Pegawai (`user`)** | Mengajukan lembur, melihat status tahapan, tanda tangan digital, unggah dokumentasi, dan rekap lembur mandiri. |
+| **Ketua Tim (`ketua_tim`)** | Dashboard tim, meninjau presensi anggota, menyetujui pengajuan (naik ke Kabag), atau menolak pengajuan anggota timnya. |
+| **Kabag Umum (`ketua_tim` + Pejabat)** | Dashboard monitoring seluruh satker, menu tunggal **Persetujuan Kabag Umum** untuk persetujuan akhir seluruh lembur BPS. |
+| **Pimpinan (`pimpinan`)** | Dashboard eksekutif pemantauan lembur seluruh kantor BPS Provinsi Jawa Tengah (Kepala BPS). |
+| **Admin / Superadmin** | Manajemen data pegawai, sinkronisasi tim kerja, penetapan pejabat aktif, pengelolaan tarif lembur, dan rekapitulasi satker. |
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🛠️ Prasyarat Sistem (*Requirements*)
+
+- **PHP**: `>= 8.2`
+  - Ekstensi: `pdo_mysql`, `mbstring`, `openssl`, `curl`, `gd`, `zip`, `fileinfo`
+- **Web Server**: Apache / Nginx
+- **Database**: MySQL `>= 8.0` atau MariaDB `>= 10.4`
+- **Dependency Manager**: Composer `>= 2.x`
+- **Node.js**: `>= 18.x` & **NPM**: `>= 9.x`
+
+---
+
+## 💻 Panduan Instalasi Lokal (*Local Development Setup*)
+
+### 1. Clone Repositori
+```bash
+git clone https://github.com/whoNann/tempe-dele-update.git
+cd tempe-dele-update
+```
+
+### 2. Instalasi Dependency Backend & Frontend
+```bash
+composer install
+npm install
+```
+
+### 3. Konfigurasi Environment
+Salin file konfigurasi contoh:
+```bash
+cp .env.example .env
+```
+Sesuaikan konfigurasi database dan API pada `.env`:
+```env
+APP_NAME="TEMPE DELE"
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=lembur
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Generate application key:
+```bash
+php artisan key:generate
+```
+
+### 4. Migrasi Database
+Jalankan migrasi tabel aplikasi:
+```bash
+php artisan migrate
+```
+
+Buat symbolic link untuk storage upload berkas & tanda tangan:
+```bash
+php artisan storage:link
+```
+
+### 5. Jalankan Server Lokal
+Jalankan development server Laravel:
+```bash
+php artisan serve
+```
+Pada terminal terpisah, jalankan Vite compiler:
+```bash
+npm run dev
+```
+Akses aplikasi melalui browser di: **`http://127.0.0.1:8000`**
+
+---
+
+## 📚 Dokumentasi Pendukung
+
+Informasi teknis dan panduan operasional lebih detail dapat dibaca pada dokumen berikut:
+
+* 📄 **[DOKUMENTASI_PERUBAHAN_ALUR_LEMBUR.md](DOKUMENTASI_PERUBAHAN_ALUR_LEMBUR.md)**: Rincian latar belakang, arsitektur alur bertingkat, serta daftar kode yang diubah.
+* 🚀 **[PANDUAN_DEPLOY_SERVER.md](PANDUAN_DEPLOY_SERVER.md)**: Panduan checklist teknis untuk proses deploy ke server produksi (cPanel / VPS).
+* 🔑 **[AKUN_TESTING.md](AKUN_TESTING.md)**: Daftar akun pengujian lokal dan panduan skenario testing step-by-step.
+
+---
+
+<div align="center">
+    <sub>Dikembangkan untuk <b>Badan Pusat Statistik (BPS) Provinsi Jawa Tengah</b></sub>
+</div>
