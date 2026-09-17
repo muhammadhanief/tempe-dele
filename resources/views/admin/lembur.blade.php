@@ -145,19 +145,6 @@
                 </span>
             </button>
 
-            {{-- Menunggu Ketua --}}
-            <button type="button" onclick="selectStatus('pending')"
-                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'pending' ? 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/25 ring-2 ring-amber-500/20' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50/80 hover:border-amber-300' }}">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'pending' ? 'bg-white opacity-75' : 'bg-amber-400 opacity-75' }}"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'pending' ? 'bg-white' : 'bg-amber-500' }}"></span>
-                </span>
-                <span>Menunggu Ketua</span>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }}">
-                    {{ $statusCounts['pending'] ?? 0 }}
-                </span>
-            </button>
-
             {{-- Menunggu Kabag --}}
             <button type="button" onclick="selectStatus('menunggu_kabag')"
                 class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'menunggu_kabag' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-600/25 ring-2 ring-blue-600/20' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50/80 hover:border-blue-300' }}">
@@ -168,6 +155,19 @@
                 <span>Menunggu Kabag</span>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'menunggu_kabag' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
                     {{ $statusCounts['menunggu_kabag'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Menunggu Ketua --}}
+            <button type="button" onclick="selectStatus('pending')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'pending' ? 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/25 ring-2 ring-amber-500/20' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50/80 hover:border-amber-300' }}">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'pending' ? 'bg-white opacity-75' : 'bg-amber-400 opacity-75' }}"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'pending' ? 'bg-white' : 'bg-amber-500' }}"></span>
+                </span>
+                <span>Menunggu Ketua</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }}">
+                    {{ $statusCounts['pending'] ?? 0 }}
                 </span>
             </button>
 
@@ -197,24 +197,22 @@
             <table class="min-w-[1180px] lg:min-w-full table-auto">
                 <thead>
                     <tr class="bg-gray-100">
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tl-xl w-28 cursor-pointer select-none hover:bg-gray-200 transition-colors group"
-                            onclick="toggleSortTanggal()"
-                            title="Urutkan: {{ ($sort ?? 'desc') === 'asc' ? 'Terlama (Klik untuk Terbaru)' : 'Terbaru (Klik untuk Terlama)' }}">
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tl-xl w-32">
                             <div class="inline-flex items-center justify-center gap-1.5 w-full">
                                 <span>Tanggal</span>
-                                @if(($sort ?? 'desc') === 'asc')
-                                    <span class="inline-flex items-center justify-center p-0.5 rounded bg-[#faa938] text-white shadow-xs" title="Terlama ke Terbaru">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+                                <div class="relative inline-block text-left">
+                                    <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                                        class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                        <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
+                                        <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                        <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                                         </svg>
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center justify-center p-0.5 rounded bg-[#faa938] text-white shadow-xs" title="Terbaru ke Terlama">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </span>
-                                @endif
+                                    </div>
+                                </div>
                             </div>
                         </th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Pegawai</th>
@@ -857,7 +855,7 @@
     let selectedTimId   = @json(request('tim')) || null;
     let selectedTanggal = @json(request('tanggal')) || null;
     let selectedStatus  = @json(request('status')) || null;
-    let selectedSort    = @json(request('sort', 'desc')) || 'desc';
+    let selectedSort    = @json(request('sort', 'priority')) || 'priority';
     let cachedTim       = [];
     let cachedPegawai   = [];
 
@@ -870,7 +868,7 @@
         if (selectedNip)     params.set('nip',     selectedNip);
         if (selectedTanggal) params.set('tanggal', selectedTanggal);
         if (selectedStatus)  params.set('status',  selectedStatus);
-        if (selectedSort && selectedSort !== 'desc') params.set('sort', selectedSort);
+        if (selectedSort && selectedSort !== 'priority') params.set('sort', selectedSort);
         window.location.href = '?' + params.toString();
     }
 
@@ -879,8 +877,8 @@
         applyFilter();
     };
 
-    window.toggleSortTanggal = function () {
-        selectedSort = (selectedSort === 'asc') ? 'desc' : 'asc';
+    window.onHeaderSortChange = function (sortVal) {
+        selectedSort = sortVal;
         applyFilter();
     };
 
@@ -891,7 +889,7 @@
         const tim    = selectedTimId   ?? '';
         const nip    = selectedNip     ?? '';
         const status = selectedStatus  ?? '';
-        const sort   = selectedSort    ?? 'desc';
+        const sort   = selectedSort    ?? 'priority';
         const bulan  = selectedTanggal
             ? selectedTanggal.slice(0, 7)
             : `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;

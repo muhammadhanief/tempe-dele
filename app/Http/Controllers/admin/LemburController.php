@@ -22,7 +22,7 @@ class LemburController extends Controller
         $tim     = $request->query('tim');
         $nip     = $request->query('nip');
         $status  = $request->query('status');
-        $sort    = in_array(strtolower($request->query('sort', 'desc')), ['asc', 'desc']) ? strtolower($request->query('sort', 'desc')) : 'desc';
+        $sort    = in_array(strtolower($request->query('sort', 'priority')), ['priority', 'desc', 'asc']) ? strtolower($request->query('sort', 'priority')) : 'priority';
         $nipUser = session('user')['nip'];
 
         // Koreksi otomatis presensi untuk akun admin sendiri saja
@@ -91,8 +91,15 @@ class LemburController extends Controller
             $query->where('t.status', $status);
         }
 
-        $query->orderBy('t.date', $sort)
-              ->orderBy('t.id_transaksi', $sort);
+        if ($sort === 'asc') {
+            $query->orderBy('t.date', 'asc')->orderBy('t.id_transaksi', 'asc');
+        } elseif ($sort === 'desc') {
+            $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
+        } else { // priority
+            $query->orderByRaw("CASE WHEN t.status = 'menunggu_kabag' THEN 0 WHEN t.status = 'pending' THEN 1 WHEN t.status = 'approved' THEN 2 ELSE 3 END")
+                  ->orderBy('t.date', 'desc')
+                  ->orderBy('t.id_transaksi', 'desc');
+        }
 
         $transaksi = $query->paginate($perPage)->appends($request->query());
 

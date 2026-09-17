@@ -61,7 +61,7 @@ class PengajuanController extends Controller
         } elseif ($sort === 'desc') {
             $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
         } else { // priority
-            $query->orderByRaw("CASE WHEN t.status = 'pending' THEN 0 WHEN t.status = 'menunggu_kabag' THEN 1 WHEN t.status = 'approved' THEN 2 ELSE 3 END")
+            $query->orderByRaw("CASE WHEN t.status = 'menunggu_kabag' THEN 0 WHEN t.status = 'pending' THEN 1 WHEN t.status = 'approved' THEN 2 ELSE 3 END")
                 ->orderBy('t.date', 'desc')
                 ->orderBy('t.id_transaksi', 'desc');
         }

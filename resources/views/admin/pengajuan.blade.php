@@ -92,8 +92,8 @@
                 <select id="filterStatus" onchange="onFilterStatusChange(this.value)"
                     class="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-sm font-medium text-gray-700 shadow-2xs hover:border-[#faa938] focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
                     <option value="all" {{ (($status ?? 'all') === 'all') ? 'selected' : '' }}>Semua Status</option>
-                    <option value="pending" {{ (($status ?? '') === 'pending') ? 'selected' : '' }}>Menunggu Ketua</option>
                     <option value="menunggu_kabag" {{ (($status ?? '') === 'menunggu_kabag') ? 'selected' : '' }}>Menunggu Kabag</option>
+                    <option value="pending" {{ (($status ?? '') === 'pending') ? 'selected' : '' }}>Menunggu Ketua</option>
                     <option value="approved" {{ (($status ?? '') === 'approved') ? 'selected' : '' }}>Disetujui Final</option>
                     <option value="rejected" {{ (($status ?? '') === 'rejected') ? 'selected' : '' }}>Ditolak</option>
                 </select>
