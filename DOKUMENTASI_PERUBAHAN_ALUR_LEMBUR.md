@@ -47,16 +47,19 @@ Pegawai ──► Ketua Tim (Setujui / Tolak) ──► Selesai
 | 1 | **Baru** | `database/migrations/2026_09_15_000001_add_kabag_approval_to_t_transaksi.php` | Migrasi penambahan kolom `note_kabag` dan `approved_kabag_at`. |
 | 2 | **Baru** | `database/migrations/2026_09_15_000002_widen_status_column_in_t_transaksi.php` | Migrasi pelebaran tipe data kolom `status` dari `VARCHAR(10)` ke `VARCHAR(30)` agar menampung `menunggu_kabag`. |
 | 3 | **Ubah** | `app/Models/Transaksi.php` | Menambahkan kolom baru ke `$fillable`. |
-| 4 | **Ubah** | `app/Http/Controllers/ketuatim/PengajuanController.php` | Logika approval Ketua Tim (pengecualian Tim Bagian Umum vs Tim Lain). |
-| 5 | **Ubah** | `app/Http/Controllers/ketuatim/DashboardController.php` | Penyesuaian quick approve di dashboard Ketua Tim. |
-| 6 | **Baru** | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Controller khusus Kabag Umum untuk meninjau & meng-ACC lembur tim lain. |
-| 7 | **Ubah** | `routes/web.php` | Rute grup `/kabag-umum` dan rute pengujian `/dev-login/{nip}`. |
-| 8 | **Ubah** | `resources/views/partials/sidebar.blade.php` | Deteksi wewenang Kabag Umum & penambahan menu **Persetujuan Kabag Umum**. |
-| 9 | **Baru** | `resources/views/kabag-umum/pengajuan.blade.php` | Halaman utama persetujuan lembur Kabag Umum + modal keputusan & presensi. |
-| 10 | **Ubah** | `resources/views/lembur.blade.php` | Tampilan status pegawai (`Menunggu Kabag`) & riwayat catatan terpisah. |
-| 11 | **Ubah** | `resources/views/ketua-tim/pengajuan.blade.php` | Penyesuaian status badge `Menunggu Kabag`. |
-| 12 | **Ubah** | `resources/views/admin/pengajuan.blade.php` | Penyesuaian status badge `Menunggu Kabag`. |
-| 13 | **Ubah** | `.gitignore` | Mengabaikan folder `__MACOSX/`. |
+| 4 | **Ubah** | `app/Http/Controllers/ketuatim/PengajuanController.php` | Logika approval Ketua Tim, penguncian status (status locking), dan validasi hak koreksi jam/catatan. |
+| 5 | **Ubah** | `app/Http/Controllers/ketuatim/DashboardController.php` | Penyesuaian quick approve di dashboard Ketua Tim (hanya untuk status pending). |
+| 6 | **Baru** | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Controller khusus Kabag Umum untuk meninjau, meng-ACC, penguncian status, dan sorting prioritas. |
+| 7 | **Ubah** | `app/Http/Controllers/admin/PengajuanController.php` | Pengurutan prioritas status Admin (Menunggu Kabag > Menunggu Ketua > Disetujui > Ditolak) & filter status. |
+| 8 | **Ubah** | `app/Http/Controllers/admin/LemburController.php` | Pengurutan prioritas status Admin pada monitoring lembur & filter status. |
+| 9 | **Ubah** | `routes/web.php` | Rute grup `/kabag-umum` dan rute pengujian `/dev-login/{nip}`. |
+| 10 | **Ubah** | `resources/views/partials/sidebar.blade.php` | Deteksi wewenang Kabag Umum & penambahan menu **Persetujuan Kabag Umum**. |
+| 11 | **Baru** | `resources/views/kabag-umum/pengajuan.blade.php` | Halaman utama persetujuan lembur Kabag Umum + modal keputusan terkunci & presensi. |
+| 12 | **Ubah** | `resources/views/lembur.blade.php` | Tampilan status pegawai (`Menunggu Kabag`) & riwayat catatan terpisah. |
+| 13 | **Ubah** | `resources/views/ketua-tim/pengajuan.blade.php` | Pemisahan kolom Status & Aksi, banner gembok 🔒 status terkunci, tombol Koreksi, mode koreksi penolakan. |
+| 14 | **Ubah** | `resources/views/admin/pengajuan.blade.php` | Filter status dropdown & hierarki prioritas status admin. |
+| 15 | **Ubah** | `resources/views/admin/lembur.blade.php` | Filter status dropdown & hierarki prioritas status admin. |
+| 16 | **Ubah** | `.gitignore` | Mengabaikan folder `__MACOSX/`. |
 
 ---
 
@@ -359,5 +362,39 @@ Item menu yang ditambahkan pada `$menuItems`:
    ```
 2. **Login Tanpa Password SSO**:
    - Sebagai Kabag Umum (Bpk. Joko Suwarjo): `http://127.0.0.1:8000/dev-login/197106131993121001`
+   - Sebagai Ketua Tim SID (Bpk. Sumbodo Aji Cahyono): `http://127.0.0.1:8000/dev-login/197703081999011001`
    - Sebagai Ketua Tim Lain (Bpk. Subuh Sukmono): `http://127.0.0.1:8000/dev-login/197503151996121001`
+   - Sebagai Admin (Khaerul Anam): `http://127.0.0.1:8000/dev-login/199008262014031001`
    - Sebagai Pegawai Biasa: `http://127.0.0.1:8000/dev-login/196911261989031001`
+
+---
+
+## 🔒 5. Pembaharuan Fitur Lanjutan (Penguncian Status, Pemisahan Kolom, & Prioritas Admin)
+
+### A. Penguncian Status & Hak Koreksi (Status Locking)
+- **Latar Belakang**: Mencegah kesalahan operasional di mana pengajuan yang sudah di-ACC/disetujui dapat diubah sewaktu-waktu menjadi ditolak atau sebaliknya.
+- **Aturan Penguncian**:
+  - Jika pengajuan berstatus `menunggu_kabag`, `approved` (Disetujui Final), atau `rejected` (Ditolak), status keputusan **terkunci permanen**.
+  - Pilihan tombol keputusan (`Tolak` / `Setujui`) otomatis disembunyikan.
+  - Terdapat **Banner Terkunci (🔒)** dengan warna indikator:
+    - **Biru**: Menunggu Kabag Umum (*"Status Menunggu Kabag terkunci. Pengajuan telah diteruskan ke Kabag Umum. Anda hanya dapat mengoreksi jam disetujui dan catatan."*).
+    - **Hijau**: Disetujui Final (*"Status Disetujui Final terkunci. Anda hanya dapat mengoreksi jam disetujui dan catatan."*).
+    - **Merah**: Ditolak (*"Status Ditolak terkunci. Anda dapat mengoreksi catatan alasan penolakan."* - input jam otomatis disembunyikan).
+  - Tombol pada tabel berlabel **`Koreksi`** dan tombol simpan di modal bertuliskan **`Simpan Koreksi`**.
+- **Proteksi Backend**:
+  - `KabagUmumPengajuanController.php` dan `PengajuanController.php` memverifikasi status transaksi yang ada di database. Request yang mencoba membalikkan status yang telah diproses akan ditolak dengan respons HTTP 422.
+
+### B. Pemisahan Kolom Status & Aksi pada Ketua Tim
+- Kolom tabel pengajuan pada Ketua Tim (`ketua-tim/pengajuan`) dipisahkan menjadi 2 kolom terpisah:
+  1. **Kolom `Status`**: Menampilkan badge status secara mandiri (`Menunggu`, `Menunggu Kabag`, `Disetujui`, `Ditolak`).
+  2. **Kolom `Aksi`**: Menampilkan tombol interaktif:
+     - Tombol **`Proses`** (Oranye `#faa938`) untuk pengajuan baru yang berstatus *Menunggu*.
+     - Tombol **`Koreksi`** (Outlined netral dengan ikon pensil) untuk pengajuan yang telah diproses.
+
+### C. Hierarki Prioritas Status Admin & Filter Terintegrasi
+- Default pengurutan (sorting) data pengajuan di sisi Admin (`admin/pengajuan` dan `admin/lembur`):
+  1. **Priority 0**: `Menunggu Kabag` (`menunggu_kabag`)
+  2. **Priority 1**: `Menunggu Ketua` (`pending`)
+  3. **Priority 2**: `Disetujui` (`approved`)
+  4. **Priority 3**: `Ditolak` (`rejected`)
+- Dilengkapi dengan filter status dropdown di toolbar dan filter sorting tanggal (Terbaru, Terlama, Prioritas Status) yang tersinkronisasi penuh dengan filter nama pegawai dan filter bulan periode.
