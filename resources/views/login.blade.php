@@ -137,6 +137,23 @@
                         </div>
 
                         <div class="space-y-3 text-xs">
+                            {{-- Admin & Superadmin --}}
+                            <div>
+                                <span class="text-[10px] font-semibold text-slate-500 block mb-1">👑 Admin & Superadmin (Monitoring & Pengelolaan):</span>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <a href="{{ route('dev.login', 'superadmin') }}"
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-900 hover:bg-purple-100 transition-colors font-semibold">
+                                        <span>Super Admin</span>
+                                        <span class="text-[10px] bg-purple-200 px-1.5 py-0.5 rounded text-purple-900 font-bold">&rarr;</span>
+                                    </a>
+                                    <a href="{{ route('dev.login', 'admin') }}"
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-900 hover:bg-rose-100 transition-colors font-semibold">
+                                        <span>Admin Lembur</span>
+                                        <span class="text-[10px] bg-rose-200 px-1.5 py-0.5 rounded text-rose-900 font-bold">&rarr;</span>
+                                    </a>
+                                </div>
+                            </div>
+
                             {{-- Kabag Umum --}}
                             <div>
                                 <span class="text-[10px] font-semibold text-slate-500 block mb-1">🏛️ Kabag Umum:</span>

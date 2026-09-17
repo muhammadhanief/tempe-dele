@@ -17,14 +17,16 @@ class LemburExport implements FromCollection, WithColumnWidths, WithEvents
     protected $bulan;
     protected $tim;
     protected $nip;
+    protected $status;
     protected $data;
     protected $namaBulan;
 
-    public function __construct($bulan, $tim = null, $nip = null)
+    public function __construct($bulan, $tim = null, $nip = null, $status = null)
     {
-        $this->bulan = $bulan;
-        $this->tim   = $tim;
-        $this->nip   = $nip;
+        $this->bulan  = $bulan;
+        $this->tim    = $tim;
+        $this->nip    = $nip;
+        $this->status = $status;
 
         $periode         = Carbon::parse($bulan . '-01');
         $this->namaBulan = $periode->translatedFormat('F Y');
@@ -41,6 +43,7 @@ class LemburExport implements FromCollection, WithColumnWidths, WithEvents
 
         if ($tim) $query->where('t.tim_kode_tim', $tim);
         if ($nip) $query->where('t.submitted_by_NIP', $nip);
+        if ($status) $query->where('t.status', $status);
 
         $this->data = $query->get();
     }

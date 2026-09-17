@@ -4,10 +4,10 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-5">
+<div class="w-full max-w-full px-2 sm:px-3 my-4">
 
     {{-- Banner Header --}}
-    <div class="mb-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 text-white shadow-lg">
+    <div class="mb-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-5 text-white shadow-lg">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <span class="inline-flex items-center gap-1.5 rounded-full bg-[#faa938]/20 px-3 py-1 text-xs font-semibold text-[#faa938]">
@@ -42,21 +42,18 @@
         </div>
     </div>
 
-    {{-- Toolbar --}}
-    <div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-
-        <div class="flex flex-wrap items-center gap-3">
-            {{-- Period Picker --}}
-            <div class="relative" id="periodPicker">
+    {{-- Toolbar Filter & Pencarian --}}
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-wrap items-center gap-2">
+            {{-- Filter Periode Bulan --}}
+            <div class="relative">
                 <button type="button" id="periodBtn"
-                    class="inline-flex items-center justify-between h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors shadow-sm">
-                    <span class="inline-flex items-center gap-2 min-w-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current shrink-0 text-slate-500">
-                            <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
-                        </svg>
-                        <span id="periodLabel" class="leading-none truncate font-semibold">
-                            {{ \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('F Y') }}
-                        </span>
+                    class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 shadow-sm hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span id="periodLabel">
+                        {{ \Carbon\Carbon::parse($bulan.'-01')->translatedFormat('F Y') }}
                     </span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-50 shrink-0">
                         <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
@@ -98,33 +95,33 @@
 
             {{-- Filter Status Tabs --}}
             <div class="inline-flex rounded-xl bg-gray-100 p-1 text-xs font-semibold">
-                <a href="{{ request()->fullUrlWithQuery(['status' => 'menunggu_kabag']) }}"
+                <a href="{{ request()->fullUrlWithQuery(['status' => 'all', 'page' => 1]) }}"
+                    class="rounded-lg px-3 py-1.5 transition-colors {{ ($statusFilter === 'all') ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
+                    Semua Tim ({{ $stats['total'] ?? 0 }})
+                </a>
+                <a href="{{ request()->fullUrlWithQuery(['status' => 'menunggu_kabag', 'page' => 1]) }}"
                     class="rounded-lg px-3 py-1.5 transition-colors {{ ($statusFilter === 'menunggu_kabag') ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     Menunggu Kabag ({{ $stats['menunggu_kabag'] ?? 0 }})
                 </a>
-                <a href="{{ request()->fullUrlWithQuery(['status' => 'approved']) }}"
+                <a href="{{ request()->fullUrlWithQuery(['status' => 'approved', 'page' => 1]) }}"
                     class="rounded-lg px-3 py-1.5 transition-colors {{ ($statusFilter === 'approved') ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     Disetujui ({{ $stats['approved'] ?? 0 }})
                 </a>
-                <a href="{{ request()->fullUrlWithQuery(['status' => 'rejected']) }}"
+                <a href="{{ request()->fullUrlWithQuery(['status' => 'rejected', 'page' => 1]) }}"
                     class="rounded-lg px-3 py-1.5 transition-colors {{ ($statusFilter === 'rejected') ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                     Ditolak ({{ $stats['rejected'] ?? 0 }})
-                </a>
-                <a href="{{ request()->fullUrlWithQuery(['status' => 'all']) }}"
-                    class="rounded-lg px-3 py-1.5 transition-colors {{ ($statusFilter === 'all') ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
-                    Semua Tim ({{ $stats['total'] ?? 0 }})
                 </a>
             </div>
         </div>
 
         {{-- Filter Pencarian Pegawai --}}
-        <div class="relative w-full lg:w-72">
+        <div class="relative w-full sm:w-64">
             <input type="text" id="searchPegawai" placeholder="Cari nama pegawai / NIP..."
                 oninput="filterTableRows()" autocomplete="off"
-                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-4 pr-9 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 shadow-sm">
+                class="h-9 w-full rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-xs text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 shadow-sm">
 
-            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </div>
@@ -133,20 +130,36 @@
 
     {{-- Tabel Pengajuan --}}
     <div class="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-200">
-        <table class="w-full min-w-[1200px] table-auto">
+        <table class="w-full table-auto">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200 text-left">
-                    <th class="w-12 px-4 py-3.5 text-center text-xs font-semibold text-gray-700">No</th>
-                    <th class="w-56 px-4 py-3.5 text-xs font-semibold text-gray-700">Nama Pegawai</th>
-                    <th class="w-48 px-4 py-3.5 text-xs font-semibold text-gray-700">Tim & Ketua Tim</th>
-                    <th class="w-32 px-4 py-3.5 text-center text-xs font-semibold text-gray-700">Tanggal Lembur</th>
-                    <th class="w-28 px-4 py-3.5 text-center text-xs font-semibold text-gray-700">Jam Diajukan</th>
-                    <th class="w-28 px-4 py-3.5 text-center text-xs font-semibold text-gray-700">Jam Disetujui</th>
-                    <th class="px-4 py-3.5 text-xs font-semibold text-gray-700">Uraian Tugas</th>
-                    <th class="w-44 px-4 py-3.5 text-xs font-semibold text-gray-700">Catatan</th>
-                    <th class="w-28 px-4 py-3.5 text-center text-xs font-semibold text-gray-700">Presensi</th>
-                    <th class="w-36 px-4 py-3.5 text-center text-xs font-semibold text-gray-700">Status</th>
-                    <th class="w-24 px-4 py-3.5 text-center text-xs font-semibold text-gray-700">Aksi</th>
+                    <th class="w-9 px-2 py-3 text-center text-xs font-semibold text-gray-700">No</th>
+                    <th class="w-44 px-2.5 py-3 text-xs font-semibold text-gray-700">Nama Pegawai</th>
+                    <th class="w-40 px-2.5 py-3 text-xs font-semibold text-gray-700">Tim & Ketua</th>
+                    <th class="w-32 px-2 py-3 text-center text-xs font-semibold text-gray-700">
+                        <div class="inline-flex items-center justify-center gap-1 w-full">
+                            <span>Tanggal</span>
+                            <div class="relative inline-block text-left">
+                                <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                                    class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[10px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                    <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
+                                    <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                    <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+                    <th class="w-24 px-1.5 py-3 text-center text-xs font-semibold text-gray-700">Diajukan</th>
+                    <th class="w-24 px-1.5 py-3 text-center text-xs font-semibold text-gray-700">Disetujui</th>
+                    <th class="px-2.5 py-3 text-xs font-semibold text-gray-700 min-w-[120px]">Uraian Tugas</th>
+                    <th class="w-36 px-2.5 py-3 text-xs font-semibold text-gray-700">Catatan</th>
+                    <th class="w-28 px-2 py-3 text-center text-xs font-semibold text-gray-700">Status</th>
+                    <th class="w-20 px-2 py-3 text-center text-xs font-semibold text-gray-700">Aksi</th>
                 </tr>
             </thead>
 
@@ -159,29 +172,29 @@
                     <tr class="bg-white transition-colors hover:bg-slate-50/80"
                         data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . $p->nama_tim) }}">
 
-                        <td class="px-4 py-3 text-center text-xs text-gray-600 font-medium">
+                        <td class="px-2 py-2.5 text-center text-xs text-gray-600 font-medium">
                             {{ $pengajuan->firstItem() + $i }}
                         </td>
 
-                        <td class="px-4 py-3 text-xs">
-                            <div class="font-semibold text-gray-900 max-w-[200px] break-words">{{ $p->nama_pegawai }}</div>
+                        <td class="px-2.5 py-2.5 text-xs">
+                            <div class="font-semibold text-gray-900 max-w-[160px] break-words">{{ $p->nama_pegawai }}</div>
                             <div class="text-[11px] text-gray-500 font-mono mt-0.5">{{ $p->nip_pegawai }}</div>
                         </td>
 
-                        <td class="px-4 py-3 text-xs">
-                            <div class="font-medium text-indigo-900 max-w-[180px] break-words">{{ $p->nama_tim ?? '-' }}</div>
+                        <td class="px-2.5 py-2.5 text-xs">
+                            <div class="font-medium text-indigo-900 max-w-[150px] break-words">{{ $p->nama_tim ?? '-' }}</div>
                             <div class="text-[11px] text-gray-500 mt-0.5">Ketua: {{ $p->nama_ketua ?? '-' }}</div>
                         </td>
 
-                        <td class="px-4 py-3 text-center text-xs text-gray-800 whitespace-nowrap font-medium">
+                        <td class="px-2 py-2.5 text-center text-xs text-gray-800 whitespace-nowrap font-medium">
                             {{ \Carbon\Carbon::parse($p->date)->translatedFormat('d M Y') }}
                         </td>
 
-                        <td class="px-4 py-3 text-center text-xs text-gray-700 whitespace-nowrap font-mono">
+                        <td class="px-1.5 py-2.5 text-center text-xs text-gray-700 whitespace-nowrap font-mono">
                             {{ $p->jam_mulai ? substr($p->jam_mulai, 0, 5) . ' - ' . substr($p->jam_selesai, 0, 5) : '-' }}
                         </td>
 
-                        <td class="px-4 py-3 text-center text-xs text-gray-900 whitespace-nowrap font-mono font-semibold" id="jam-disetujui-{{ $p->id_transaksi }}">
+                        <td class="px-1.5 py-2.5 text-center text-xs text-gray-900 whitespace-nowrap font-mono font-semibold" id="jam-disetujui-{{ $p->id_transaksi }}">
                             @if($p->jam_mulai_disetujui && $p->jam_selesai_disetujui)
                                 {{ substr($p->jam_mulai_disetujui, 0, 5) }} - {{ substr($p->jam_selesai_disetujui, 0, 5) }}
                             @else
@@ -189,14 +202,14 @@
                             @endif
                         </td>
 
-                        <td class="px-4 py-3 text-xs text-gray-700">
-                            <div class="max-w-[240px] break-words line-clamp-2" title="{{ $p->uraian ?? '' }}">
+                        <td class="px-2.5 py-2.5 text-xs text-gray-700">
+                            <div class="max-w-[170px] break-words line-clamp-2" title="{{ $p->uraian ?? '' }}">
                                 {{ $p->uraian ?? '-' }}
                             </div>
                         </td>
 
-                        <td class="px-4 py-3 text-xs text-gray-600">
-                            <div class="space-y-1 max-w-[180px]">
+                        <td class="px-2.5 py-2.5 text-xs text-gray-600">
+                            <div class="space-y-1 max-w-[150px]">
                                 @if(!empty($p->note))
                                     <div>
                                         <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-slate-500">Ketua Tim:</span>
@@ -217,54 +230,53 @@
                             </div>
                         </td>
 
-                        <td class="px-4 py-3 text-center">
-                            <button type="button" onclick="openModalPresensi({{ $p->id_transaksi }})"
-                                class="inline-flex items-center justify-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors
-                                {{ $p->has_presensi ? 'border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100' : 'border-gray-200 text-gray-400 bg-gray-50' }}">
-                                {{ $p->has_presensi ? 'Ada' : 'Kosong' }}
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/>
-                                </svg>
-                            </button>
-                        </td>
-
-                        <td class="px-4 py-3 text-center" id="status-{{ $p->id_transaksi }}">
+                        <td class="px-2 py-2.5 text-center" id="status-{{ $p->id_transaksi }}">
                             @if($p->status === 'menunggu_kabag')
-                                <span class="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800 border border-blue-200">
+                                <span class="whitespace-nowrap rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800 border border-blue-200">
                                     Menunggu Kabag
                                 </span>
                             @elseif($p->status === 'pending')
-                                <span class="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 border border-amber-200">
+                                <span class="whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 border border-amber-200">
                                     Menunggu Ketua
                                 </span>
                             @elseif($p->status === 'approved')
-                                <span class="whitespace-nowrap rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
+                                <span class="whitespace-nowrap rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800 border border-emerald-200">
                                     Disetujui Final
                                 </span>
                             @elseif($p->status === 'rejected')
-                                <span class="whitespace-nowrap rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-800 border border-rose-200">
+                                <span class="whitespace-nowrap rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-800 border border-rose-200">
                                     Ditolak
                                 </span>
                             @endif
                         </td>
 
-                        <td class="px-4 py-3 text-center">
-                            <button type="button"
-                                onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', '{{ addslashes($p->note ?? '') }}', '{{ addslashes($p->note_kabag ?? '') }}', '{{ $p->status }}')"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm
-                                {{ $p->status === 'menunggu_kabag' 
-                                    ? 'bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow' 
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                </svg>
-                                <span>{{ $p->status === 'menunggu_kabag' ? 'Proses' : 'Ubah' }}</span>
-                            </button>
+                        <td class="px-2 py-2.5 text-center">
+                            @if($p->status === 'menunggu_kabag')
+                                <button type="button"
+                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', '{{ addslashes($p->note ?? '') }}', '{{ addslashes($p->note_kabag ?? '') }}', '{{ $p->status }}')"
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                    <span>Proses</span>
+                                </button>
+                            @elseif(in_array($p->status, ['approved', 'rejected']))
+                                <button type="button"
+                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', '{{ addslashes($p->note ?? '') }}', '{{ addslashes($p->note_kabag ?? '') }}', '{{ $p->status }}')"
+                                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                                    </svg>
+                                    <span>Koreksi</span>
+                                </button>
+                            @else
+                                <span class="text-xs text-gray-400">-</span>
+                            @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="px-4 py-12 text-center text-sm text-gray-400">
+                        <td colspan="10" class="px-4 py-12 text-center text-sm text-gray-400">
                             <div class="flex flex-col items-center justify-center">
                                 <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -297,8 +309,8 @@
             {{-- Modal Header --}}
             <div class="bg-gradient-to-r from-slate-900 to-indigo-950 px-6 py-4 text-white flex items-center justify-between">
                 <div>
-                    <h3 class="text-base font-bold">Persetujuan Akhir Kabag Umum</h3>
-                    <p class="text-xs text-slate-300 mt-0.5">Berikan persetujuan atau penolakan final atas lembur pegawai</p>
+                    <h3 class="text-base font-bold" id="mModalTitle">Persetujuan Akhir Kabag Umum</h3>
+                    <p class="text-xs text-slate-300 mt-0.5" id="mModalSubtitle">Berikan persetujuan atau penolakan final atas lembur pegawai</p>
                 </div>
                 <button type="button" onclick="closeModalKabag()" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
             </div>
@@ -321,8 +333,18 @@
                     </div>
                 </div>
 
+                {{-- Status Terkunci Banner (Jika status sudah approved / rejected) --}}
+                <div id="mWrapperStatusLocked" class="hidden">
+                    <div id="mStatusLockedBanner" class="flex items-center gap-2 rounded-xl p-3 border text-xs font-medium">
+                        <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="mStatusLockedText">Status terkunci.</span>
+                    </div>
+                </div>
+
                 {{-- Jam Disetujui --}}
-                <div class="grid grid-cols-2 gap-3">
+                <div id="mWrapperJamDisetujui" class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Jam Mulai Disetujui</label>
                         <input id="mJamMulai" type="time"
@@ -338,15 +360,15 @@
                 {{-- Catatan Kabag Umum --}}
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1">
-                        Catatan / Arahan Kabag Umum <span class="text-gray-400 font-normal">(Wajib jika menolak)</span>
+                        Catatan / Arahan Kabag Umum <span class="text-gray-400 font-normal" id="mNoteWajibHint">(Wajib jika menolak)</span>
                     </label>
                     <textarea id="mNoteKabag" rows="3"
                         class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none"
                         placeholder="Tuliskan catatan, arahan, atau alasan penolakan..."></textarea>
                 </div>
 
-                {{-- Pilihan Keputusan --}}
-                <div>
+                {{-- Pilihan Keputusan (Hanya tampil saat status menunggu_kabag) --}}
+                <div id="mWrapperPilihanKeputusan">
                     <label class="block text-xs font-semibold text-gray-700 mb-2">Keputusan Akhir</label>
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" onclick="setKeputusanKabag('approved')" id="btnPilihSetuju"
@@ -407,6 +429,7 @@
 <script>
 let currentKabagId = null;
 let selectedKeputusanKabag = 'approved';
+let isStatusLocked = false;
 
 // =====================
 // MODAL KEPUTUSAN KABAG
@@ -429,10 +452,51 @@ window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua,
         wrapperKetua.classList.add('hidden');
     }
 
-    // Default keputusan: jika sudah rejected, defaultkan ke tolak, jika belum defaultkan ke setuju
-    if (currentStatus === 'rejected') {
-        setKeputusanKabag('rejected');
+    const modalTitle = document.getElementById('mModalTitle');
+    const modalSubtitle = document.getElementById('mModalSubtitle');
+    const wrapperPilihan = document.getElementById('mWrapperPilihanKeputusan');
+    const wrapperLocked = document.getElementById('mWrapperStatusLocked');
+    const bannerLocked = document.getElementById('mStatusLockedBanner');
+    const lockedText = document.getElementById('mStatusLockedText');
+    const wrapperJam = document.getElementById('mWrapperJamDisetujui');
+    const noteWajibHint = document.getElementById('mNoteWajibHint');
+    const btnSimpan = document.getElementById('btnSimpanKabag');
+
+    if (currentStatus === 'approved') {
+        isStatusLocked = true;
+        selectedKeputusanKabag = 'approved';
+        modalTitle.textContent = 'Koreksi Jam & Catatan';
+        modalSubtitle.textContent = 'Status Disetujui Final terkunci. Anda dapat mengoreksi jam disetujui atau catatan.';
+        wrapperPilihan.classList.add('hidden');
+        wrapperLocked.classList.remove('hidden');
+        bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-emerald-50 p-3 border border-emerald-200 text-xs text-emerald-800 font-medium';
+        lockedText.innerHTML = 'Status <b>Disetujui Final</b> terkunci. Anda hanya dapat mengoreksi jam disetujui dan catatan arahan.';
+        wrapperJam.classList.remove('hidden');
+        noteWajibHint.textContent = '(Opsional)';
+        btnSimpan.textContent = 'Simpan Koreksi';
+    } else if (currentStatus === 'rejected') {
+        isStatusLocked = true;
+        selectedKeputusanKabag = 'rejected';
+        modalTitle.textContent = 'Koreksi Catatan Penolakan';
+        modalSubtitle.textContent = 'Status Ditolak terkunci. Anda dapat mengoreksi catatan alasan penolakan.';
+        wrapperPilihan.classList.add('hidden');
+        wrapperLocked.classList.remove('hidden');
+        bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800 font-medium';
+        lockedText.innerHTML = 'Status <b>Ditolak</b> terkunci. Anda dapat mengoreksi catatan alasan penolakan.';
+        wrapperJam.classList.add('hidden');
+        noteWajibHint.textContent = '(Wajib)';
+        btnSimpan.textContent = 'Simpan Koreksi';
     } else {
+        // Status menunggu_kabag (Proses baru)
+        isStatusLocked = false;
+        selectedKeputusanKabag = 'approved';
+        modalTitle.textContent = 'Persetujuan Akhir Kabag Umum';
+        modalSubtitle.textContent = 'Berikan persetujuan atau penolakan final atas lembur pegawai';
+        wrapperPilihan.classList.remove('hidden');
+        wrapperLocked.classList.add('hidden');
+        wrapperJam.classList.remove('hidden');
+        noteWajibHint.textContent = '(Wajib jika menolak)';
+        btnSimpan.textContent = 'Simpan Keputusan';
         setKeputusanKabag('approved');
     }
 
@@ -444,19 +508,25 @@ window.closeModalKabag = function() {
     document.getElementById('modalKabag').classList.add('hidden');
     document.body.classList.remove('overflow-hidden');
     currentKabagId = null;
+    isStatusLocked = false;
 };
 
 window.setKeputusanKabag = function(val) {
+    if (isStatusLocked) return;
+
     selectedKeputusanKabag = val;
     const btnSetuju = document.getElementById('btnPilihSetuju');
     const btnTolak = document.getElementById('btnPilihTolak');
+    const wrapperJam = document.getElementById('mWrapperJamDisetujui');
 
     if (val === 'approved') {
         btnSetuju.className = 'flex items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 bg-emerald-100 p-3 text-sm font-bold text-emerald-800 shadow-sm transition-all';
         btnTolak.className = 'flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white p-3 text-sm font-semibold text-gray-500 hover:border-rose-300 hover:bg-rose-50 transition-all';
+        wrapperJam.classList.remove('hidden');
     } else {
         btnTolak.className = 'flex items-center justify-center gap-2 rounded-xl border-2 border-rose-500 bg-rose-100 p-3 text-sm font-bold text-rose-800 shadow-sm transition-all';
         btnSetuju.className = 'flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white p-3 text-sm font-semibold text-gray-500 hover:border-emerald-300 hover:bg-emerald-50 transition-all';
+        wrapperJam.classList.add('hidden');
     }
 };
 
@@ -576,6 +646,16 @@ window.openModalPresensi = function(id) {
 window.closeModalPresensi = function() {
     document.getElementById('modalPresensi').classList.add('hidden');
     document.body.classList.remove('overflow-hidden');
+};
+
+// =====================
+// SORT TANGGAL DROPDOWN
+// =====================
+window.onHeaderSortChange = function(val) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', val);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
 };
 
 // =====================

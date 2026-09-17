@@ -87,6 +87,23 @@
                 </div>
             </div>
 
+            {{-- Filter Status --}}
+            <div class="relative w-full sm:w-48 shrink-0">
+                <select id="filterStatus" onchange="onFilterStatusChange(this.value)"
+                    class="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-sm font-medium text-gray-700 shadow-2xs hover:border-[#faa938] focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
+                    <option value="all" {{ (($status ?? 'all') === 'all') ? 'selected' : '' }}>Semua Status</option>
+                    <option value="pending" {{ (($status ?? '') === 'pending') ? 'selected' : '' }}>Menunggu Ketua</option>
+                    <option value="menunggu_kabag" {{ (($status ?? '') === 'menunggu_kabag') ? 'selected' : '' }}>Menunggu Kabag</option>
+                    <option value="approved" {{ (($status ?? '') === 'approved') ? 'selected' : '' }}>Disetujui Final</option>
+                    <option value="rejected" {{ (($status ?? '') === 'rejected') ? 'selected' : '' }}>Ditolak</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </div>
+
             {{-- Reset Filter --}}
             <button type="button" id="btnResetFilter"
                 class="hidden h-10 w-full sm:w-auto px-4 text-sm font-medium border border-gray-200 bg-white text-gray-500 rounded-xl sm:rounded-full hover:border-[#faa938] hover:text-[#faa938] transition-colors">
@@ -116,7 +133,25 @@
                 <tr class="bg-gray-100">
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 rounded-tl-xl w-8">No</th>
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Nama Pegawai</th>
-                    <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Tanggal Lembur</th>
+                    <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Tim & Ketua</th>
+                    <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">
+                        <div class="inline-flex items-center justify-center gap-1.5 w-full">
+                            <span>Tanggal Lembur</span>
+                            <div class="relative inline-block text-left">
+                                <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                                    class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                    <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
+                                    <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                    <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Jam Diajukan</th>
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Jam Disetujui</th>
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Uraian Kegiatan</th>
@@ -139,6 +174,11 @@
                         <td class="px-2 py-2 text-xs text-gray-900">
                             <div class="font-medium">{{ $p->nama_pegawai }}</div>
                             <div class="text-xs text-gray-400">{{ $p->nip_pegawai }}</div>
+                        </td>
+
+                        <td class="px-2 py-2 text-xs text-gray-900 text-left">
+                            <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $p->nama_tim ?? '-' }}</div>
+                            <div class="text-[11px] text-gray-500 mt-0.5">Ketua: {{ $p->nama_ketua ?? '-' }}</div>
                         </td>
 
                         <td class="px-2 py-2 text-xs text-gray-900 text-left whitespace-nowrap">
@@ -199,7 +239,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-3 py-8 text-center text-sm text-gray-400">
+                        <td colspan="9" class="px-3 py-8 text-center text-sm text-gray-400">
                             Tidak ada pengajuan lembur yang menunggu keputusan.
                         </td>
                     </tr>
@@ -494,6 +534,8 @@ function makeBtn(text, cls, onClick) {
 // =====================
 const urlParams = new URLSearchParams(window.location.search);
 const activeNip = urlParams.get('nip') || '';
+const activeStatus = urlParams.get('status') || '';
+const activeSort = urlParams.get('sort') || '';
 let cachedPegawai = [];
 
 // =====================
@@ -549,15 +591,43 @@ window.filterDropdownPegawai = function () {
 };
 
 function pilihPegawai(emp) {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(window.location.search);
     params.set('bulan', document.getElementById('periodValue').value);
 
     if (emp) {
         params.set('nip', emp.nip);
+    } else {
+        params.delete('nip');
     }
+    params.delete('page');
 
     window.location.href = `?${params.toString()}`;
 }
+
+// =====================
+// FILTER STATUS & SORT TANGGAL
+// =====================
+window.onFilterStatusChange = function(statusVal) {
+    const params = new URLSearchParams(window.location.search);
+    if (statusVal && statusVal !== 'all') {
+        params.set('status', statusVal);
+    } else {
+        params.delete('status');
+    }
+    params.delete('page');
+    window.location.href = `?${params.toString()}`;
+};
+
+window.onHeaderSortChange = function(sortVal) {
+    const params = new URLSearchParams(window.location.search);
+    if (sortVal && sortVal !== 'priority') {
+        params.set('sort', sortVal);
+    } else {
+        params.delete('sort');
+    }
+    params.delete('page');
+    window.location.href = `?${params.toString()}`;
+};
 
     // =====================
     // PERIOD PICKER
@@ -600,12 +670,9 @@ function pilihPegawai(emp) {
             selMonth = m;
             updateDisplayOnly(y, m);
 
-            const params = new URLSearchParams();
+            const params = new URLSearchParams(window.location.search);
             params.set('bulan', `${y}-${pad2(m + 1)}`);
-
-            if (activeNip) {
-                params.set('nip', activeNip);
-            }
+            params.delete('page');
 
             window.location.href = `?${params.toString()}`;
         }
@@ -730,7 +797,7 @@ function updateResetBtn() {
 
     if (!btn) return;
 
-    (activeNip)
+    (activeNip || (activeStatus && activeStatus !== 'all') || (activeSort && activeSort !== 'priority'))
         ? btn.classList.remove('hidden')
         : btn.classList.add('hidden');
 }

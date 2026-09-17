@@ -104,10 +104,22 @@ class KabagUmumPengajuanController extends Controller
             $query->where('t.status', $statusFilter);
         }
 
-        // Urutkan: prioritas 'menunggu_kabag' paling atas, lalu tanggal terbaru
+        // Opsi sorting tanggal: priority (default), desc (terbaru), asc (terlama)
+        $sort = in_array(strtolower($request->get('sort', 'priority')), ['priority', 'desc', 'asc'])
+            ? strtolower($request->get('sort', 'priority'))
+            : 'priority';
+
+        if ($sort === 'asc') {
+            $query->orderBy('t.date', 'asc')->orderBy('t.id_transaksi', 'asc');
+        } elseif ($sort === 'desc') {
+            $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
+        } else { // priority
+            $query->orderByRaw("CASE WHEN t.status = 'menunggu_kabag' THEN 0 WHEN t.status = 'pending' THEN 1 WHEN t.status = 'approved' THEN 2 ELSE 3 END")
+                ->orderBy('t.date', 'desc')
+                ->orderBy('t.id_transaksi', 'desc');
+        }
+
         $pengajuan = $query
-            ->orderByRaw("CASE WHEN t.status = 'menunggu_kabag' THEN 0 WHEN t.status = 'pending' THEN 1 WHEN t.status = 'approved' THEN 2 ELSE 3 END")
-            ->orderBy('t.date', 'desc')
             ->paginate(10)
             ->appends($request->query());
 
@@ -115,7 +127,7 @@ class KabagUmumPengajuanController extends Controller
             ->orderBy('tanggal', 'asc')
             ->get();
 
-        return view('kabag-umum.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'statusFilter', 'stats'));
+        return view('kabag-umum.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'statusFilter', 'stats', 'sort'));
     }
 
     public function approve(Request $request, $id)
@@ -136,15 +148,31 @@ class KabagUmumPengajuanController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
         }
 
+        // Pengajuan berstatus pending belum boleh diproses oleh Kabag Umum
+        if ($transaksi->status === 'pending') {
+            return response()->json(['success' => false, 'message' => 'Pengajuan ini masih menunggu persetujuan Ketua Tim.'], 422);
+        }
+
+        // KUNCI STATUS: Jika sudah disetujui final atau ditolak, status keputusannya tidak boleh dibalik
+        if (in_array($transaksi->status, ['approved', 'rejected']) && $request->status !== $transaksi->status) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Status keputusan sudah final dan terkunci (' . ($transaksi->status === 'approved' ? 'Disetujui Final' : 'Ditolak') . '). Anda hanya dapat mengoreksi jam disetujui atau catatan.'
+            ], 422);
+        }
+
         $noteKabag = trim($request->note_kabag ?? '');
 
+        // Menentukan status akhir (tetap sama jika sudah final, atau sesuai pilihan jika menunggu_kabag)
+        $finalStatus = in_array($transaksi->status, ['approved', 'rejected']) ? $transaksi->status : $request->status;
+
         $updateData = [
-            'status'            => $request->status,
+            'status'            => $finalStatus,
             'note_kabag'        => $noteKabag !== '' ? $noteKabag : null,
             'approved_kabag_at' => now(),
         ];
 
-        if ($request->status === 'approved') {
+        if ($finalStatus === 'approved') {
             if (empty($transaksi->approved_at)) {
                 $updateData['approved_at'] = now()->toDateString();
             }
