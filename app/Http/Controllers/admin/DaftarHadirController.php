@@ -17,7 +17,9 @@ class DaftarHadirController extends Controller
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
             ->where('t.status', 'approved')
-            ->where('t.eligible', 1)
+            ->where(function ($q) {
+                $q->where('t.eligible', 1)->orWhereNull('t.eligible');
+            })
             ->whereDate('t.date', $tanggal)
             ->select(
                 't.date', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui',
@@ -38,7 +40,7 @@ class DaftarHadirController extends Controller
         $daftarHadir = $query->get();
         $tim = DB::table('m_tim')->select('kode_tim', 'nama_tim')->get();
 
-        return view('admin.daftar_hadir', compact('daftarHadir', 'tanggal', 'tim',));
+        return view('admin.daftar_hadir', compact('daftarHadir', 'tanggal', 'tim'));
     }
 
     public function download(Request $request)
@@ -50,7 +52,9 @@ class DaftarHadirController extends Controller
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
             ->where('t.status', 'approved')
-            ->where('t.eligible', 1)
+            ->where(function ($q) {
+                $q->where('t.eligible', 1)->orWhereNull('t.eligible');
+            })
             ->whereDate('t.date', $tanggal)
             ->select(
                 't.date', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui',
@@ -58,9 +62,7 @@ class DaftarHadirController extends Controller
                 'mt.kode_tim', 'mt.nama_tim',
                 't.signature_path'
             )
-             ->where('t.status', 'approved')
-             ->whereDate('t.date', $tanggal)
-             ->orderBy('p.nama');
+            ->orderBy('p.nama');
 
         if ($jenis === 'pns') {
             $query->where('p.email', 'not like', '%-pppk@bps.go.id');

@@ -53,13 +53,14 @@ Pegawai ──► Ketua Tim (Setujui / Tolak) ──► Selesai
 | 7 | **Ubah** | `app/Http/Controllers/admin/PengajuanController.php` | Pengurutan prioritas status Admin (Menunggu Kabag > Menunggu Ketua > Disetujui > Ditolak) & filter status. |
 | 8 | **Ubah** | `app/Http/Controllers/admin/LemburController.php` | Pengurutan prioritas status Admin pada monitoring lembur & filter status. |
 | 9 | **Ubah** | `routes/web.php` | Rute grup `/kabag-umum` dan rute pengujian `/dev-login/{nip}`. |
-| 10 | **Ubah** | `resources/views/partials/sidebar.blade.php` | Deteksi wewenang Kabag Umum & penambahan menu **Persetujuan Kabag Umum**. |
+| 10 | **Ubah** | `resources/views/partials/sidebar.blade.php` | Deteksi wewenang Kabag Umum, penambahan menu **Persetujuan Kabag**, serta perapihan label agar tidak terpotong elipsis (`...`). |
 | 11 | **Baru** | `resources/views/kabag-umum/pengajuan.blade.php` | Halaman utama persetujuan lembur Kabag Umum + modal keputusan terkunci & presensi. |
 | 12 | **Ubah** | `resources/views/lembur.blade.php` | Tampilan status pegawai (`Menunggu Kabag`) & riwayat catatan terpisah. |
 | 13 | **Ubah** | `resources/views/ketua-tim/pengajuan.blade.php` | Pemisahan kolom Status & Aksi, banner gembok 🔒 status terkunci, tombol Koreksi, mode koreksi penolakan. |
 | 14 | **Ubah** | `resources/views/admin/pengajuan.blade.php` | Filter status dropdown & hierarki prioritas status admin. |
 | 15 | **Ubah** | `resources/views/admin/lembur.blade.php` | Filter status dropdown & hierarki prioritas status admin. |
 | 16 | **Ubah** | `.gitignore` | Mengabaikan folder `__MACOSX/`. |
+| 17 | **Ubah** | `resources/views/ketua-tim/lembur.blade.php` | Perapihan UI/UX pengajuan lembur pribadi Ketua Tim/Kabag Umum: Card container berbingkai, empty state interaktif, penyelarasan tabel, dan modal dialog dengan docked header/footer. |
 
 ---
 
@@ -299,11 +300,11 @@ Mendeteksi apakah NIP pengguna terdaftar sebagai Kabag Umum di `m_pejabat`, dan 
             ? \DB::table('t_transaksi')->where('status', 'menunggu_kabag')->count() 
             : 0;
 ```
-Item menu yang ditambahkan pada `$menuItems`:
+Item menu yang ditambahkan pada `$menuItems` (menggunakan label ringkas `'Persetujuan Kabag'` agar badge antrean tidak memotong teks dengan elipsis):
 ```php
             if ($isKabagUmum) {
                 $menuItems[] = [
-                    'label'  => 'Persetujuan Kabag Umum',
+                    'label'  => 'Persetujuan Kabag',
                     'path'   => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
                     'route'  => 'kabag-umum.pengajuan',
                     'active' => request()->routeIs('kabag-umum.pengajuan*'),
@@ -398,3 +399,94 @@ Item menu yang ditambahkan pada `$menuItems`:
   3. **Priority 2**: `Disetujui` (`approved`)
   4. **Priority 3**: `Ditolak` (`rejected`)
 - Dilengkapi dengan filter status dropdown di toolbar dan filter sorting tanggal (Terbaru, Terlama, Prioritas Status) yang tersinkronisasi penuh dengan filter nama pegawai dan filter bulan periode.
+
+---
+
+## 🎨 6. Perapihan Antarmuka Pengajuan Lembur Mandiri Ketua Tim / Kabag Umum (`ketua-tim/lembur.blade.php`) & Sidebar
+
+Pada tahap penyempurnaan lanjutan, dilakukan audit dan penataan ulang desain visual (UI/UX) pada halaman **Lembur Mandiri** (`resources/views/ketua-tim/lembur.blade.php`) yang digunakan oleh Ketua Tim dan Kepala Bagian Umum untuk mengajukan kegiatan lembur pribadinya, serta perbaikan estetika pada menu sidebar navigasi.
+
+### A. Permasalahan Visual Sebelumnya
+1. **Tabel Mengambang Tanpa Bingkai Kartu:** Tabel diletakkan langsung di atas latar belakang halaman putih polos tanpa kontainer kartu bergaris tepi (*border*) atau bayangan halus (*shadow*), sehingga header abu-abu tabel tampak seperti garis pita yang melayang tanpa batas visual yang jelas.
+2. **Tombol Aksi Tambah Terisolasi:** Tombol tambah lembur menciut menjadi lingkaran kecil 40px oranye tanpa teks label di pojok kanan layar desktop, meninggalkan ruang kosong raksasa di tengah toolbar dan membingungkan pengguna baru.
+3. **Tampilan Data Kosong (*Empty State*) Polos:** Saat belum memiliki pengajuan lembur pada periode terpilih, halaman hanya menampilkan teks abu-abu kecil monoton: *"Belum ada pengajuan lembur."* tanpa ilustrasi ataupun tombol aksi cepat.
+4. **Ketidaksesuaian Alignment Kolom (*Misalignment*):** Seluruh judul kolom di `<thead>` dibuat rata tengah (*center*), sedangkan isi data teks di `<tbody>` (*Tanggal, Uraian Kegiatan, Ketua Tim, Nama Tim, Catatan*) rata kiri (*left*). Selain itu terdapat kesalahan atribut `colspan="9"` padahal jumlah kolom header hanya ada 8.
+5. **Tombol Keputusan Modal Terpotong di Bawah Layar (*Off-Screen*):** Dialog modal "Ajukan Lembur" sangat panjang ke bawah tanpa batas tinggi (*max-height*), *fixed header*, ataupun *fixed footer*. Akibatnya tombol **"Batal"** dan **"Kirim"** berada di luar batas layar (*off-screen*) dan memaksa pengguna men-scroll jendela luar ke bawah. Saat di-scroll ke bawah, judul modal dan tombol silang `×` ikut tergulung hilang ke atas.
+6. **Label Sidebar Terpotong Elipsis:** Teks menu `"Persetujuan Kabag Umum"` terpotong menjadi `"Persetujuan Kabag... [3]"` karena keterbatasan lebar kontainer sidebar saat berdampingan dengan lencana angka antrean.
+
+### B. Solusi & Perubahan Desain yang Diterapkan
+
+#### 1. Perapihan Label Menu Sidebar
+Mengubah properti `label` pada `resources/views/partials/sidebar.blade.php` menjadi ringkas:
+```php
+'label' => 'Persetujuan Kabag',
+```
+Hal ini memastikan teks menu tetap utuh dan lencana angka (`[ 3 ]`) tampil rapi tanpa terpotong tanda titik-titik (`...`).
+
+#### 2. Header Halaman & Tombol Primer Proporsional
+Menambahkan header halaman yang jelas dan informatif, serta mengganti tombol tambah kecil dengan tombol aksi primer yang proporsional:
+```blade
+{{-- Page Header --}}
+<div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+        <h1 class="text-xl font-bold tracking-tight text-slate-800">
+            Pengajuan Lembur Pribadi
+        </h1>
+        <p class="text-xs text-slate-500 mt-0.5">
+            Kelola dan pantau riwayat pengajuan kegiatan lembur mandiri Anda.
+        </p>
+    </div>
+
+    {{-- Tombol Ajukan Lembur --}}
+    <button type="button" id="btnAjukan"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow-sm transition-all shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+        </svg>
+        <span>Ajukan Lembur</span>
+    </button>
+</div>
+```
+
+#### 3. Pembungkus Tabel Berbentuk Kartu Modern (*Card Container*) & Alignment Rapi
+Tabel data dibungkus dalam kartu berbingkai halus (`rounded-2xl border border-gray-200/80 bg-white shadow-xs overflow-hidden`) dengan header tabel berwarna `bg-gray-50/90 border-b border-gray-200`. Alignment kolom diselaraskan secara konsisten:
+- **Rata Kiri (`text-left`)**: Tanggal, Uraian Kegiatan, Ketua Tim, Nama Tim, Catatan.
+- **Rata Tengah (`text-center`)**: Jam Diajukan, Status, Dokumentasi.
+- **Format Header**: Menggunakan tipografi modern `text-xs font-semibold uppercase tracking-wider text-gray-600`.
+
+#### 4. Desain *Empty State* Interaktif Lengkap dengan Tombol CTA
+Ketika riwayat pengajuan lembur belum ada, sistem menyajikan tampilan kartu kosong yang ramah dan interaktif:
+```blade
+@empty
+    <tr>
+        <td colspan="8" class="px-4 py-16 text-center">
+            <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 text-[#faa938] mb-3 border border-amber-100/80 shadow-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-900 mb-1">Belum Ada Pengajuan Lembur</h3>
+                <p class="text-xs text-gray-500 mb-4 text-center leading-relaxed">
+                    Anda belum memiliki riwayat pengajuan kegiatan lembur mandiri pada periode ini.
+                </p>
+                <button type="button" onclick="openModal()"
+                    class="inline-flex items-center gap-2 rounded-xl bg-[#faa938] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
+                    Ajukan Lembur Sekarang
+                </button>
+            </div>
+        </td>
+    </tr>
+@endforelse
+```
+
+#### 5. Modal Dialog dengan *Docked Header & Docked Footer*
+Struktur modal dialog "Ajukan Lembur" dirombak total menggunakan model *fixed header & docked footer*:
+- **Header Dialog (Sticky/Fixed)**: Memuat ikon, judul, subjudul deskriptif, dan tombol tutup silang (`×`) yang selalu berada di atas.
+- **Footer Dialog (Docked/Fixed)**: Tombol **"Batal"** dan **"Kirim Pengajuan"** selalu menempel di bagian bawah dialog dan berada di dalam *viewport* layar di berbagai resolusi monitor pengguna.
+- **Body Formulir (Scrollable)**: Formulir, estimasi durasi lembur, dan kanvas tanda tangan dapat di-scroll secara mandiri di dalam kontainer (`max-h-[90vh] overflow-y-auto pr-5 scrollbar-thin`).
+- **Styling Input**: Seluruh kolom input dan dropdown menggunakan border lembut dengan sudut `rounded-xl` dan fokus ring khas Tempe Dele (`#faa938/20`).
+

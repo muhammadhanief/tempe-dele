@@ -43,35 +43,35 @@
     </div>
 
     {{-- Toolbar Filter & Pencarian --}}
-    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-wrap items-center gap-2">
+    <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-wrap items-center gap-2.5">
             {{-- Filter Periode Bulan --}}
-            <div class="relative">
+            <div class="relative shrink-0">
                 <button type="button" id="periodBtn"
-                    class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 shadow-sm hover:border-[#faa938] hover:text-[#faa938] transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    class="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-sm hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <span id="periodLabel">
                         {{ \Carbon\Carbon::parse($bulan.'-01')->translatedFormat('F Y') }}
                     </span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-50 shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-40 shrink-0">
                         <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
                     </svg>
                 </button>
 
                 <div id="periodPanel"
-                    class="hidden absolute z-50 mt-2 left-0 w-72 rounded-xl border border-gray-200 bg-white shadow-xl p-3">
+                    class="hidden absolute z-50 mt-2 left-0 w-72 rounded-2xl border border-gray-200 bg-white shadow-xl p-3.5">
                     <div class="flex items-center justify-between mb-3">
                         <button type="button" id="yearPrev"
-                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                                 <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
                             </svg>
                         </button>
                         <span id="yearLabel" class="text-sm font-bold text-gray-900">2026</span>
                         <button type="button" id="yearNext"
-                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                                 <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
                             </svg>
@@ -80,13 +80,13 @@
 
                     <div class="grid grid-cols-3 gap-2" id="monthGrid"></div>
 
-                    <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100">
                         <button type="button" id="btnThisMonth"
-                            class="text-xs font-semibold text-gray-500 hover:text-[#faa938]">
+                            class="text-xs font-semibold text-gray-600 hover:text-[#faa938] transition-colors">
                             Bulan ini
                         </button>
                         <button type="button" id="btnClosePanel"
-                            class="px-3 py-1 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">
+                            class="px-3 py-1 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
                             Tutup
                         </button>
                     </div>
@@ -94,37 +94,43 @@
             </div>
 
             {{-- Filter Status Tabs --}}
-            <div class="inline-flex rounded-xl bg-gray-100 p-1 text-xs font-semibold">
+            <div class="inline-flex h-10 items-center rounded-xl bg-gray-100/90 p-1 text-xs font-semibold overflow-x-auto max-w-full shrink-0">
                 <a href="{{ request()->fullUrlWithQuery(['status' => 'all', 'page' => 1]) }}"
-                    class="rounded-lg px-3 py-1.5 transition-colors {{ ($statusFilter === 'all') ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
-                    Semua Tim ({{ $stats['total'] ?? 0 }})
+                    class="inline-flex items-center h-8 rounded-lg px-3 transition-all whitespace-nowrap {{ ($statusFilter === 'all') ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-600 hover:text-gray-900' }}">
+                    Semua ({{ $stats['total'] ?? 0 }})
                 </a>
                 <a href="{{ request()->fullUrlWithQuery(['status' => 'menunggu_kabag', 'page' => 1]) }}"
-                    class="rounded-lg px-3 py-1.5 transition-colors {{ ($statusFilter === 'menunggu_kabag') ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
+                    class="inline-flex items-center h-8 rounded-lg px-3 transition-all whitespace-nowrap {{ ($statusFilter === 'menunggu_kabag') ? 'bg-white text-blue-700 shadow-xs' : 'text-gray-600 hover:text-gray-900' }}">
                     Menunggu Kabag ({{ $stats['menunggu_kabag'] ?? 0 }})
                 </a>
                 <a href="{{ request()->fullUrlWithQuery(['status' => 'approved', 'page' => 1]) }}"
-                    class="rounded-lg px-3 py-1.5 transition-colors {{ ($statusFilter === 'approved') ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
+                    class="inline-flex items-center h-8 rounded-lg px-3 transition-all whitespace-nowrap {{ ($statusFilter === 'approved') ? 'bg-white text-emerald-700 shadow-xs' : 'text-gray-600 hover:text-gray-900' }}">
                     Disetujui ({{ $stats['approved'] ?? 0 }})
                 </a>
                 <a href="{{ request()->fullUrlWithQuery(['status' => 'rejected', 'page' => 1]) }}"
-                    class="rounded-lg px-3 py-1.5 transition-colors {{ ($statusFilter === 'rejected') ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
+                    class="inline-flex items-center h-8 rounded-lg px-3 transition-all whitespace-nowrap {{ ($statusFilter === 'rejected') ? 'bg-white text-rose-600 shadow-xs' : 'text-gray-600 hover:text-gray-900' }}">
                     Ditolak ({{ $stats['rejected'] ?? 0 }})
                 </a>
             </div>
         </div>
 
         {{-- Filter Pencarian Pegawai --}}
-        <div class="relative w-full sm:w-64">
-            <input type="text" id="searchPegawai" placeholder="Cari nama pegawai / NIP..."
-                oninput="filterTableRows()" autocomplete="off"
-                class="h-9 w-full rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-xs text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 shadow-sm">
-
-            <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="relative w-full lg:w-72 xl:w-80 shrink-0">
+            <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </div>
+            <input type="text" id="searchPegawai" placeholder="Cari nama pegawai / NIP..."
+                oninput="filterTableRows()" autocomplete="off"
+                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-8 text-xs text-gray-700 shadow-xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all placeholder:text-gray-400">
+            <button type="button" id="clearSearchBtn" onclick="clearSearchInput()"
+                class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                title="Hapus pencarian">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
     </div>
 
@@ -287,6 +293,16 @@
                         </td>
                     </tr>
                 @endforelse
+                <tr id="noSearchMatchRow" class="hidden">
+                    <td colspan="10" class="px-4 py-10 text-center text-xs text-gray-400">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <p class="font-medium text-gray-600">Tidak ada pegawai yang cocok dengan pencarian.</p>
+                        </div>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -662,16 +678,47 @@ window.onHeaderSortChange = function(val) {
 // FILTER SEARCH PEGAWAI
 // =====================
 window.filterTableRows = function() {
-    const query = document.getElementById('searchPegawai').value.toLowerCase();
+    const input = document.getElementById('searchPegawai');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const query = input.value.toLowerCase().trim();
+
+    if (clearBtn) {
+        if (query.length > 0) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+    }
+
     const rows = document.querySelectorAll('#tabelPengajuan tr[data-search]');
+    let matchCount = 0;
     rows.forEach(r => {
         const text = r.getAttribute('data-search');
         if (text.includes(query)) {
             r.classList.remove('hidden');
+            matchCount++;
         } else {
             r.classList.add('hidden');
         }
     });
+
+    const noResultRow = document.getElementById('noSearchMatchRow');
+    if (noResultRow) {
+        if (matchCount === 0 && query.length > 0) {
+            noResultRow.classList.remove('hidden');
+        } else {
+            noResultRow.classList.add('hidden');
+        }
+    }
+};
+
+window.clearSearchInput = function() {
+    const input = document.getElementById('searchPegawai');
+    if (input) {
+        input.value = '';
+        filterTableRows();
+        input.focus();
+    }
 };
 
 // =====================

@@ -113,7 +113,7 @@ Route::middleware('checksession')->group(function () {
         Route::get('/pegawai/all', [PresensiController::class, 'getAllPegawai'])->name('pegawai.all')->middleware('checksession');
 
         //Superadmin
-        Route::get('/master-pegawai', [\App\Http\Controllers\admin\MasterPegawaiController::class, 'index'])->name('master_pegawai');
+        // Route::get('/master-pegawai', [\App\Http\Controllers\admin\MasterPegawaiController::class, 'index'])->name('master_pegawai');
 
         //Rekapitulasi
         Route::get('/spkl', [\App\Http\Controllers\admin\RekapitulasiController::class, 'index'])->name('spkl');
