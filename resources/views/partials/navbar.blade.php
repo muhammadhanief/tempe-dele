@@ -8,6 +8,7 @@
             'superadmin' => 'Super Admin',
             'admin'      => 'Admin',
             'ketua_tim'  => 'Ketua Tim',
+            'pimpinan'   => 'Pimpinan',
             'user'       => 'Pegawai',
             default      => 'User',
         };

@@ -281,7 +281,7 @@ class AuthController extends Controller
                     }
 
                     // Jangan overwrite role admin/superadmin
-                    if (!in_array($existing->role, ['admin', 'superadmin', 'ketua_tim'])) {
+                    if (!in_array($existing->role, ['admin', 'superadmin', 'ketua_tim', 'pimpinan'])) {
                         $updateData['role'] = $roleFromApi;
                     }
 
@@ -314,6 +314,8 @@ class AuthController extends Controller
                     return redirect()->route('admin.dashboard');
                 } elseif ($role === 'ketua_tim') {
                     return redirect()->route('ketua-tim.dashboard');
+                } elseif ($role === 'pimpinan') {
+                    return redirect()->route('pimpinan.dashboard');
                 } else {
                     return redirect()->route('pegawai.dashboard');
                 }

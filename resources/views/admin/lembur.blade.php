@@ -111,7 +111,7 @@
 
                     {{-- Unduh Rekapitulasi --}}
                     <a id="btnExport"
-                        href="{{ route('admin.lembur.export', ['bulan' => now()->format('Y-m'), 'tim' => request('tim'), 'nip' => request('nip')]) }}"
+                        href="{{ route('admin.lembur.export', ['bulan' => now()->format('Y-m'), 'tim' => request('tim'), 'nip' => request('nip'), 'status' => request('status'), 'sort' => request('sort')]) }}"
                         title="Unduh Rekapitulasi"
                         class="inline-flex h-10 flex-1 lg:flex-none lg:w-10 items-center justify-center gap-2 rounded-xl lg:rounded-full border border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -134,19 +134,93 @@
             </div>
         </div>
 
+        {{-- Status Filter Tabs / Monitoring Pills --}}
+        <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
+            {{-- Semua Status --}}
+            <button type="button" onclick="selectStatus('')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ empty($status) ? 'bg-slate-900 text-white border-slate-900 shadow-sm shadow-slate-900/20 ring-2 ring-slate-900/10' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300' }}">
+                <span>Semua Status</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ empty($status) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700' }}">
+                    {{ $statusCounts['all'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Menunggu Kabag --}}
+            <button type="button" onclick="selectStatus('menunggu_kabag')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'menunggu_kabag' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-600/25 ring-2 ring-blue-600/20' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50/80 hover:border-blue-300' }}">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'menunggu_kabag' ? 'bg-white opacity-75' : 'bg-blue-400 opacity-75' }}"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'menunggu_kabag' ? 'bg-white' : 'bg-blue-600' }}"></span>
+                </span>
+                <span>Menunggu Kabag</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'menunggu_kabag' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
+                    {{ $statusCounts['menunggu_kabag'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Menunggu Ketua --}}
+            <button type="button" onclick="selectStatus('pending')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'pending' ? 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/25 ring-2 ring-amber-500/20' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50/80 hover:border-amber-300' }}">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'pending' ? 'bg-white opacity-75' : 'bg-amber-400 opacity-75' }}"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'pending' ? 'bg-white' : 'bg-amber-500' }}"></span>
+                </span>
+                <span>Menunggu Ketua</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }}">
+                    {{ $statusCounts['pending'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Disetujui --}}
+            <button type="button" onclick="selectStatus('approved')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'approved' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/25 ring-2 ring-emerald-600/20' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50/80 hover:border-emerald-300' }}">
+                <span class="h-2 w-2 rounded-full {{ $status === 'approved' ? 'bg-white' : 'bg-emerald-500' }}"></span>
+                <span>Disetujui</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
+                    {{ $statusCounts['approved'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Ditolak --}}
+            <button type="button" onclick="selectStatus('rejected')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'rejected' ? 'bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-600/25 ring-2 ring-rose-600/20' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50/80 hover:border-rose-300' }}">
+                <span class="h-2 w-2 rounded-full {{ $status === 'rejected' ? 'bg-white' : 'bg-rose-500' }}"></span>
+                <span>Ditolak</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
+                    {{ $statusCounts['rejected'] ?? 0 }}
+                </span>
+            </button>
+        </div>
+
         {{-- Tabel --}}
         <div class="w-full overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
             <table class="min-w-[1180px] lg:min-w-full table-auto">
                 <thead>
                     <tr class="bg-gray-100">
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tl-xl w-24">Tanggal</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tl-xl w-32">
+                            <div class="inline-flex items-center justify-center gap-1.5 w-full">
+                                <span>Tanggal</span>
+                                <div class="relative inline-block text-left">
+                                    <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                                        class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                        <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
+                                        <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                        <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Pegawai</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Jam Diajukan</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Jam Disetujui</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize">Uraian Kegiatan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-28">Ketua Tim</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-32">Nama Tim</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-20">Status</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-36">Tim & Ketua</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-32">Status</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-20">Catatan</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tr-xl w-24">Dokumentasi</th>
                     </tr>
@@ -221,21 +295,20 @@
                                 </div>
                             </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left">
-                                {{ $t->nama_ketua ?? '-' }}
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left">
-                                {{ $t->nama_tim ?? '-' }}
+                            <td class="px-2.5 py-2 text-xs text-gray-900 text-left">
+                                <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $t->nama_tim ?? '-' }}</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">Ketua: {{ $t->nama_ketua ?? '-' }}</div>
                             </td>
 
                             <td class="px-2 py-2 text-xs text-gray-900 text-center">
                                 @if($t->status === 'pending')
-                                    <span class="bg-amber-100 rounded-full px-2 text-xs text-amber-700 py-0.5">Diproses</span>
+                                    <span class="bg-amber-100 rounded-full px-2.5 text-xs text-amber-700 py-0.5 whitespace-nowrap font-medium">Menunggu Ketua</span>
+                                @elseif($t->status === 'menunggu_kabag')
+                                    <span class="bg-blue-100 rounded-full px-2.5 text-xs text-blue-700 py-0.5 whitespace-nowrap font-medium">Menunggu Kabag</span>
                                 @elseif($t->status === 'approved')
-                                    <span class="bg-green-100 rounded-full px-2 text-xs text-green-700 py-0.5">Disetujui</span>
+                                    <span class="bg-emerald-100 rounded-full px-2.5 text-xs text-emerald-700 py-0.5 whitespace-nowrap font-medium">Disetujui</span>
                                 @elseif($t->status === 'rejected')
-                                    <span class="bg-red-100 rounded-full px-2 text-xs text-red-600 py-0.5">Ditolak</span>
+                                    <span class="bg-rose-100 rounded-full px-2.5 text-xs text-rose-700 py-0.5 whitespace-nowrap font-medium">Ditolak</span>
                                 @else
                                     <span class="text-gray-400 text-xs">-</span>
                                 @endif
@@ -288,8 +361,18 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="px-3 py-8 text-center text-sm text-gray-400">
-                                Belum ada pengajuan lembur.
+                            <td colspan="9" class="px-3 py-10 text-center">
+                                <div class="flex flex-col items-center justify-center gap-1.5 text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-500">Tidak ada pengajuan lembur yang sesuai.</span>
+                                    @if(request()->hasAny(['tanggal', 'bulan', 'tim', 'nip', 'status']))
+                                        <a href="{{ route('admin.lembur') }}" class="text-xs text-[#faa938] hover:underline font-semibold mt-1">
+                                            Reset semua filter
+                                        </a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforelse
@@ -768,9 +851,11 @@
     // =====================
     // STATE FILTER
     // =====================
-    let selectedNip     = null;
-    let selectedTimId   = null;
-    let selectedTanggal = null;
+    let selectedNip     = @json(request('nip')) || null;
+    let selectedTimId   = @json(request('tim')) || null;
+    let selectedTanggal = @json(request('tanggal')) || null;
+    let selectedStatus  = @json(request('status')) || null;
+    let selectedSort    = @json(request('sort', 'priority')) || 'priority';
     let cachedTim       = [];
     let cachedPegawai   = [];
 
@@ -782,21 +867,35 @@
         if (selectedTimId)   params.set('tim',     selectedTimId);
         if (selectedNip)     params.set('nip',     selectedNip);
         if (selectedTanggal) params.set('tanggal', selectedTanggal);
+        if (selectedStatus)  params.set('status',  selectedStatus);
+        if (selectedSort && selectedSort !== 'priority') params.set('sort', selectedSort);
         window.location.href = '?' + params.toString();
     }
+
+    window.selectStatus = function (status) {
+        selectedStatus = status || null;
+        applyFilter();
+    };
+
+    window.onHeaderSortChange = function (sortVal) {
+        selectedSort = sortVal;
+        applyFilter();
+    };
 
     // =====================
     // UPDATE EXPORT LINK
     // =====================
     function updateExportLink() {
-        const tim   = selectedTimId   ?? '';
-        const nip   = selectedNip     ?? '';
-        const bulan = selectedTanggal
+        const tim    = selectedTimId   ?? '';
+        const nip    = selectedNip     ?? '';
+        const status = selectedStatus  ?? '';
+        const sort   = selectedSort    ?? 'priority';
+        const bulan  = selectedTanggal
             ? selectedTanggal.slice(0, 7)
             : `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
 
         document.getElementById('btnExport').href =
-            `/admin/lembur/export?bulan=${bulan}&tim=${tim}&nip=${nip}`;
+            `/admin/lembur/export?bulan=${bulan}&tim=${tim}&nip=${nip}&status=${status}&sort=${sort}`;
     }
 
     // =====================
@@ -1162,6 +1261,16 @@
         const timParam     = params.get('tim')     ?? '';
         const nipParam     = params.get('nip')     ?? '';
         const tanggalParam = params.get('tanggal') ?? '';
+        const statusParam  = params.get('status')  ?? '';
+        const sortParam    = params.get('sort')    ?? '';
+
+        if (statusParam) {
+            selectedStatus = statusParam;
+        }
+
+        if (sortParam) {
+            selectedSort = sortParam;
+        }
 
         if (timParam) {
             selectedTimId = timParam;

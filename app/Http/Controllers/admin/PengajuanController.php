@@ -9,9 +9,16 @@ use Carbon\Carbon;
 
 class PengajuanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pengajuan = DB::table('t_transaksi as t')
+        $bulan  = $request->get('bulan', now()->format('Y-m'));
+        $search = trim((string) $request->get('nip'));
+        $status = $request->get('status', 'all');
+        $sort   = in_array(strtolower($request->get('sort', 'priority')), ['priority', 'desc', 'asc'])
+            ? strtolower($request->get('sort', 'priority'))
+            : 'priority';
+
+        $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
             ->select([
@@ -20,18 +27,52 @@ class PengajuanController extends Controller
                 'p.nip as nip_pegawai',
                 'p.nip_lama',
                 'mt.nama_tim',
+                'mt.nama_ketua',
                 DB::raw('EXISTS(
                     SELECT 1 FROM t_presensi pr
                     WHERE pr.niplama = p.nip_lama
                     AND DATE(pr.tanggal) = t.date
                 ) as has_presensi')
-            ])
-            ->orderBy('t.date', 'desc')
-            ->paginate(10);
+            ]);
+
+        if ($bulan) {
+            try {
+                $periode = Carbon::parse($bulan . '-01');
+
+                $bulan = $periode->format('Y-m');
+
+                $query->whereYear('t.date', $periode->year)
+                    ->whereMonth('t.date', $periode->month);
+            } catch (\Exception $e) {
+                $bulan = now()->format('Y-m');
+            }
+        }
+
+        if ($search !== '') {
+            $query->where('p.nip', $search);
+        }
+
+        if ($status && $status !== 'all') {
+            $query->where('t.status', $status);
+        }
+
+        if ($sort === 'asc') {
+            $query->orderBy('t.date', 'asc')->orderBy('t.id_transaksi', 'asc');
+        } elseif ($sort === 'desc') {
+            $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
+        } else { // priority
+            $query->orderByRaw("CASE WHEN t.status = 'menunggu_kabag' THEN 0 WHEN t.status = 'pending' THEN 1 WHEN t.status = 'approved' THEN 2 ELSE 3 END")
+                ->orderBy('t.date', 'desc')
+                ->orderBy('t.id_transaksi', 'desc');
+        }
+
+        $pengajuan = $query
+            ->paginate(10)
+            ->withQueryString();
 
         $hariLibur = DB::table('m_hari_libur')->orderBy('tanggal', 'asc')->get();
 
-        return view('admin.pengajuan', compact('pengajuan', 'hariLibur'));
+        return view('admin.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'search', 'status', 'sort'));
     }
 
     public function approve(Request $request, $id)

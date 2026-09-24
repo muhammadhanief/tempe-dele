@@ -1,4 +1,3 @@
-// database/migrations/xxxx_add_jam_hari_to_t_transaksi.php
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -9,11 +8,21 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('t_transaksi', function (Blueprint $table) {
-            $table->time('jam_mulai')->nullable()->after('date');
-            $table->time('jam_selesai')->nullable()->after('jam_mulai');
-            $table->time('jam_mulai_disetujui')->nullable()->after('jam_selesai');
-            $table->time('jam_selesai_disetujui')->nullable()->after('jam_mulai_disetujui');
-            $table->tinyInteger('hari')->default(0)->after('jam_selesai_disetujui'); // 0=kerja, 1=libur
+            if (!Schema::hasColumn('t_transaksi', 'jam_mulai')) {
+                $table->time('jam_mulai')->nullable()->after('date');
+            }
+            if (!Schema::hasColumn('t_transaksi', 'jam_selesai')) {
+                $table->time('jam_selesai')->nullable()->after('jam_mulai');
+            }
+            if (!Schema::hasColumn('t_transaksi', 'jam_mulai_disetujui')) {
+                $table->time('jam_mulai_disetujui')->nullable()->after('jam_selesai');
+            }
+            if (!Schema::hasColumn('t_transaksi', 'jam_selesai_disetujui')) {
+                $table->time('jam_selesai_disetujui')->nullable()->after('jam_mulai_disetujui');
+            }
+            if (!Schema::hasColumn('t_transaksi', 'hari')) {
+                $table->tinyInteger('hari')->default(0)->after('jam_selesai_disetujui'); // 0=kerja, 1=libur
+            }
         });
     }
 

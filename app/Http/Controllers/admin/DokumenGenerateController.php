@@ -151,10 +151,14 @@ class DokumenGenerateController extends Controller
             ]);
             return redirect()->route('admin.dokumen')->with('success', 'SPKL XLSX berhasil digenerate.');
         }
+        
+        ini_set('memory_limit', '512M');
 
         $pdf = Pdf::loadView('dokumen.spkl', compact(
             'pegawai', 'ppk', 'kbu', 'nomorSurat', 'bulanLabel', 'tahun', 'tanggalTtd'
         ))->setPaper('a4', 'portrait');
+        
+        $pdf->getDomPDF()->add_info('Title', "SPKL_" . strtoupper($jenis) . "_" . $bulan);
 
         DB::table('t_dokumen')->insert([
             'type'         => $type,
@@ -236,6 +240,8 @@ class DokumenGenerateController extends Controller
             'pegawai', 'kbu', 'bulanLabel', 'tahun', 'jenis'
         ))->setPaper('a4', 'portrait');
 
+        $pdf->getDomPDF()->add_info('Title', "Laporan_" . strtoupper($jenis) . "_" . $bulan);
+        
         DB::table('t_dokumen')->insert([
             'type'         => $type,
             'periode'      => $bulan,

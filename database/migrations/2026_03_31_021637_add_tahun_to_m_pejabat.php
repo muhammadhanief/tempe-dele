@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('m_pejabat', function (Blueprint $table) {
-            $table->year('tahun')->nullable()->after('status');
+            if (!Schema::hasColumn('m_pejabat', 'tahun')) {
+                $table->year('tahun')->nullable()->after('status');
+            }
         });
     }
 

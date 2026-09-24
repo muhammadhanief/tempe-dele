@@ -14,80 +14,76 @@ class LemburController extends Controller
     {
         $nipUser  = session('user')['nip'];
         $namaUser = session('user')['nama'];
-        $bulan = $request->query('bulan', now()->format('Y-m'));
-
         $role = DB::table('m_pegawai')->where('nip', $nipUser)->value('role');
+
+        $perPage = in_array((int) $request->get('perPage', 10), [10, 25, 50, 100])
+            ? (int) $request->get('perPage', 10)
+            : 10;
+
+        // Filter bulan murni dari URL (bukan session) agar "Semua Bulan" bisa membersihkannya
+        $bulan = $request->query('bulan');
+        if ($bulan && !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $bulan)) {
+            $bulan = null;
+        }
 
         // Koreksi otomatis berdasarkan presensi setiap kali halaman dibuka
         $this->koreksiDariPresensi($nipUser);
 
-        $transaksi = DB::table('t_transaksi as t')
+        $query = DB::table('t_transaksi as t')
             ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
-            ->leftJoin('m_pegawai as kp', 't.approver_employee_id', '=', 'kp.nip')
             ->leftJoin('m_dokumentasi as md', 't.dokumentasi_id_dokumentasi', '=', 'md.id_dokumentasi')
             ->where('t.submitted_by_NIP', $nipUser)
-            ->select('t.*', 'mt.nama_tim', 'kp.nama as nama_ketua', 'md.file_path as file_dokumentasi')
-            ->orderBy('t.date', 'desc')
-            ->paginate(10);
+            ->select('t.*', 'mt.nama_tim', 'mt.nama_ketua', 'md.file_path as file_dokumentasi');
 
-        $responseTim = Http::withHeaders([
-            'Content-Type'  => 'application/json',
-            'Authorization' => 'Bearer ' . config('services.kipapp.token'),
-            'Origin'        => 'https://jateng.web.bps.go.id',
-        ])->post('https://kipapp.bps.go.id/api/v3/timkerja', [
-            'tahun' => '2025',
-            'type'  => '1',
-        ]);
-
-        $ketuaTim = [];
-        $semuaTim = [];
-
-        if ($responseTim->successful()) {
-            $semuaTim = $responseTim->json()['data'];
-
-            foreach ($semuaTim as $tim) {
-                foreach ($tim['anggota_tim'] as $anggota) {
-                    if ($anggota['nipbaru'] == $nipUser && $tim['nipbaru_ketua'] != $nipUser) {
-                        $ketuaTim[] = [
-                            'nip'      => $tim['nipbaru_ketua'],
-                            'nama'     => $tim['nama_ketua'],
-                            'tim'      => $tim['nama_tim'],
-                            'kode_tim' => $tim['kode_tim'],
-                        ];
-                        break;
-                    }
-                }
-            }
+        if ($bulan) {
+            $periode = Carbon::parse($bulan . '-01');
+            $query->whereBetween('t.date', [
+                $periode->copy()->startOfMonth()->toDateString(),
+                $periode->copy()->endOfMonth()->toDateString(),
+            ]);
         }
 
-        if ($role === 'ketua_tim') {
-            $foundInApi = false;
-            foreach ($semuaTim as $tim) {
-                if ($tim['nipbaru_ketua'] == $nipUser) {
-                    $ketuaTim[] = [
-                        'nip'      => $nipUser,
-                        'nama'     => $namaUser,
-                        'tim'      => $tim['nama_tim'],
-                        'kode_tim' => $tim['kode_tim'],
-                    ];
-                    $foundInApi = true;
-                    break;
-                }
-            }
+        $query->orderBy('t.date', 'desc')
+              ->orderBy('t.id_transaksi', 'desc');
 
-            if (!$foundInApi) {
+        $transaksi = $query->paginate($perPage)->withQueryString();
+
+        $idPegawai = session('id_pegawai');
+
+        $ketuaTim = DB::table('t_anggota_tim as at')
+            ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
+            ->where('at.pegawai_id_pegawai', $idPegawai)
+            ->where('mt.status', 'aktif')
+            ->whereNotNull('mt.nipbaru_ketua')
+            ->where('mt.nipbaru_ketua', '!=', $nipUser)
+            ->select(
+                'mt.nipbaru_ketua as nip',
+                'mt.nama_ketua as nama',
+                'mt.nama_tim as tim',
+                'mt.kode_tim'
+            )
+            ->get()
+            ->map(fn($item) => (array) $item)
+            ->toArray();
+
+           $timSendiri = DB::table('m_tim')
+                ->where('nipbaru_ketua', $nipUser)
+                ->where('status', 'aktif')
+                ->select('kode_tim', 'nama_tim')
+                ->first();
+
+            if ($timSendiri) {
                 $ketuaTim[] = [
                     'nip'      => $nipUser,
                     'nama'     => $namaUser,
-                    'tim'      => 'Tim Developer',
-                    'kode_tim' => 'DEV',
+                    'tim'      => $timSendiri->nama_tim,
+                    'kode_tim' => $timSendiri->kode_tim,
                 ];
             }
-        }
 
         $hariLibur = DB::table('m_hari_libur')->pluck('tanggal')->toArray();
         $view = $role === 'ketua_tim' ? 'ketua-tim.lembur' : 'lembur';
-        return view($view, compact('ketuaTim', 'transaksi', 'hariLibur', 'bulan'));
+        return view($view, compact('ketuaTim', 'transaksi', 'hariLibur', 'bulan', 'perPage'));
     }
 
     private function koreksiDariPresensi(string $nipUser): void
@@ -180,17 +176,18 @@ class LemburController extends Controller
         $validated = $request->validate([
             'approver_id' => 'required|string',
             'kode_tim'    => 'required|string',
-            'tanggal'     => 'required|date',
+            'tanggal'     => 'required|date_format:Y-m-d',
             'jam_mulai'   => 'required',
             'jam_selesai' => 'nullable',
             'uraian'      => 'required|string|max:255',
             'signature'   => 'required|string',
         ], [
             'uraian.required' => 'Uraian kegiatan wajib diisi.',
+            'tanggal.date_format' => 'Format tanggal tidak valid. Gunakan format YYYY-MM-DD.',
         ]);
 
         $nip     = session('user')['nip'];
-        $tanggal = Carbon::createFromFormat('Y-m-d', $validated['tanggal']);
+        $tanggal = Carbon::parse($validated['tanggal']);
 
         $tahun             = $tanggal->year;
         $isWeekend       = $tanggal->isWeekend();
@@ -221,6 +218,30 @@ class LemburController extends Controller
             }
         }
 
+        // Jika tidak ditolak otomatis dan merupakan Tim Bagian Umum atau approver adalah Kabag Umum,
+        // pengajuan langsung masuk ke antrean persetujuan Kabag Umum (status: menunggu_kabag)
+        if ($status !== 'rejected') {
+            $isTimBagianUmum = false;
+            if (!empty($validated['kode_tim'])) {
+                $tim = DB::table('m_tim')->where('kode_tim', $validated['kode_tim'])->first();
+                if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
+                    $isTimBagianUmum = true;
+                }
+            }
+
+            $isApproverKabag = DB::table('m_pejabat')
+                ->where('jabatan', 'Kepala Bagian Umum')
+                ->where('status', 'aktif')
+                ->where(function ($q) use ($validated) {
+                    $q->where('nip', $validated['approver_id'])
+                      ->orWhere('nip_lama', $validated['approver_id']);
+                })->exists();
+
+            if ($isTimBagianUmum || $isApproverKabag) {
+                $status = 'menunggu_kabag';
+            }
+        }
+
         $idTransaksi = DB::table('t_transaksi')->insertGetId([
             'submitted_by_NIP'      => $nip,
             'date'                  => $tanggal->toDateString(),
@@ -247,11 +268,51 @@ class LemburController extends Controller
             ->where('id_transaksi', $idTransaksi)
             ->update(['signature_path' => $fileName]);
 
+        $perPage = in_array((int) $request->get('perPage', 10), [10, 25, 50, 100])
+            ? (int) $request->get('perPage', 10)
+            : 10;
+
+        $bulanAktif = $request->get('bulan');
+        if ($bulanAktif && !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $bulanAktif)) {
+            $bulanAktif = null;
+        }
+
+        // Hitung halaman tempat record baru berada agar langsung terlihat setelah submit
+        $queryBaru = DB::table('t_transaksi')
+            ->where('submitted_by_NIP', $nip)
+            ->where(function ($q) use ($tanggal, $idTransaksi) {
+                $q->where('date', '>', $tanggal->toDateString())
+                  ->orWhere(function ($q2) use ($tanggal, $idTransaksi) {
+                      $q2->where('date', '=', $tanggal->toDateString())
+                         ->where('id_transaksi', '>', $idTransaksi);
+                  });
+            });
+
+        if ($bulanAktif) {
+            $periodeAktif = Carbon::parse($bulanAktif . '-01');
+            $queryBaru->whereBetween('date', [
+                $periodeAktif->copy()->startOfMonth()->toDateString(),
+                $periodeAktif->copy()->endOfMonth()->toDateString(),
+            ]);
+        }
+
+        $newerCount = $queryBaru->count();
+        $page       = (int) floor($newerCount / $perPage) + 1;
+
+        $params = ['page' => $page];
+        if ($bulanAktif) {
+            $params['bulan'] = $bulanAktif;
+        }
+        if ($perPage !== 10) {
+            $params['perPage'] = $perPage;
+        }
+
         $message = $status === 'rejected'
             ? 'Pengajuan tersimpan namun otomatis ditolak karena durasi lembur kurang dari 2 jam.'
             : 'Pengajuan lembur berhasil dikirim.';
 
-        return back()->with($status === 'rejected' ? 'error' : 'success', $message);
+        return redirect()->route('ketua-tim.lembur', $params)
+            ->with($status === 'rejected' ? 'error' : 'success', $message);
     }
 
     public function timPegawai()

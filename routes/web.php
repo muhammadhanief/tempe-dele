@@ -17,9 +17,48 @@ use App\Http\Controllers\admin\LemburController as AdminLemburController;
 use App\Http\Controllers\pegawai\DashboardController as PegawaiDashboardController;
 use App\Http\Controllers\admin\PengajuanController as AdminPengajuanController;
 use App\Http\Controllers\admin\DashboardController;
+use App\Http\Controllers\pimpinan\DashboardController as PimpinanDashboardController;
+use App\Http\Controllers\pimpinan\PengajuanController as PimpinanPengajuanController;
+use App\Http\Controllers\ketuatim\KabagUmumPengajuanController;
 
 // ─── Public ───────────────────────────────────────────────
 Route::get('/', fn() => view('welcome'));
+
+// ─── Khusus Local Development (Bypass Login & Debugging Pengujian) ───
+if (app()->environment('local')) {
+    Route::get('/debug-session', function () {
+        dd(session('user'));
+    })->middleware('checksession');
+
+    Route::get('/dev-login/{nip}', function ($nip) {
+        $pegawai = \DB::table('m_pegawai')->where('nip', $nip)->orWhere('id_pegawai', $nip)->orWhere('nip_lama', $nip)->first();
+        if (!$pegawai) {
+            return response("Pegawai dengan NIP/ID {$nip} tidak ditemukan di database m_pegawai.", 404);
+        }
+        session()->put('user', [
+            'nip'       => $pegawai->nip,
+            'nip_lama'  => $pegawai->nip_lama,
+            'nama'      => $pegawai->nama,
+            'email'     => $pegawai->email,
+            'role'      => $pegawai->role,
+            'satker'    => $pegawai->satker,
+            'kd_satker' => $pegawai->kd_satker,
+        ]);
+        session()->put('logged_in', true);
+        session()->put('id_pegawai', $pegawai->id_pegawai);
+        session()->put('role', $pegawai->role);
+
+        if ($pegawai->role === 'superadmin' || $pegawai->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($pegawai->role === 'ketua_tim') {
+            return redirect()->route('ketua-tim.dashboard');
+        } elseif ($pegawai->role === 'pimpinan') {
+            return redirect()->route('pimpinan.dashboard');
+        } else {
+            return redirect()->route('pegawai.dashboard');
+        }
+    })->name('dev.login');
+}
 
 Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.proses');
@@ -47,47 +86,50 @@ Route::middleware('checksession')->group(function () {
 });
 
     // ─── Ketua Tim ────────────────────────────────────────
-    Route::prefix('ketua-tim')->name('ketua-tim.')->group(function () {
-        Route::get('/dashboard',    fn() => view('ketua-tim.dashboard'))->name('dashboard');
-        Route::get('/pengajuan',    fn() => view('ketua-tim.pengajuan'))->name('pengajuan');
-        Route::get('/lembur', [LemburController::class, 'index'])->name('lembur')->middleware('checksession');
-        Route::post('/lembur', [LemburController::class, 'store'])->name('lembur.store')->middleware('checksession');
-        Route::get('/pengajuan', [\App\Http\Controllers\ketuatim\PengajuanController::class, 'index'])->name('pengajuan')->middleware('checksession');
-        Route::post('/pengajuan/{id}/approve', [LemburController::class, 'approve'])->name('ketua-tim.pengajuan.approve')->middleware('checksession');
-        Route::get('/pengajuan/{id}/presensi', [\App\Http\Controllers\ketuatim\PengajuanController::class, 'presensi'])->name('pengajuan.presensi')->middleware('checksession');
-        Route::get('/pengajuan/anggota', [\App\Http\Controllers\ketuatim\PengajuanController::class, 'anggotaTim'])->name('pengajuan.anggota')->middleware('checksession');
-        Route::get('/dashboard', [\App\Http\Controllers\ketuatim\DashboardController::class, 'index'])->name('dashboard')->middleware('checksession');
+    Route::prefix('ketua-tim')->name('ketua-tim.')->middleware(['checksession', 'role:ketua_tim,admin,superadmin'])->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\ketuatim\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/pending', [\App\Http\Controllers\ketuatim\DashboardController::class, 'getPending'])->name('dashboard.pending');
+        Route::post('/transaksi/{id}/approve', [\App\Http\Controllers\ketuatim\DashboardController::class, 'approve'])->name('transaksi.approve');
+        Route::get('/pengajuan', [\App\Http\Controllers\ketuatim\PengajuanController::class, 'index'])->name('pengajuan');
+        Route::post('/pengajuan/{id}/approve', [\App\Http\Controllers\ketuatim\PengajuanController::class, 'approve'])->name('pengajuan.approve');
+        Route::get('/pengajuan/{id}/presensi', [\App\Http\Controllers\ketuatim\PengajuanController::class, 'presensi'])->name('pengajuan.presensi');
+        Route::get('/pengajuan/anggota', [\App\Http\Controllers\ketuatim\PengajuanController::class, 'anggotaTim'])->name('pengajuan.anggota');
+        Route::get('/lembur', [\App\Http\Controllers\LemburController::class, 'index'])->name('lembur');
+        Route::post('/lembur', [\App\Http\Controllers\LemburController::class, 'store'])->name('lembur.store');
+    });
+
+    // ─── Kabag Umum (Persetujuan Tim Lain) ───────────────
+    Route::prefix('kabag-umum')->name('kabag-umum.')->middleware('checksession')->group(function () {
+        Route::get('/pengajuan', [KabagUmumPengajuanController::class, 'index'])->name('pengajuan');
+        Route::post('/pengajuan/{id}/approve', [KabagUmumPengajuanController::class, 'approve'])->name('pengajuan.approve');
+        Route::get('/pengajuan/{id}/presensi', [KabagUmumPengajuanController::class, 'presensi'])->name('pengajuan.presensi');
+        Route::get('/pengajuan/pegawai', [KabagUmumPengajuanController::class, 'semuaPegawai'])->name('pengajuan.pegawai');
     });
 
     // ─── Admin ────────────────────────────────────────────
-    Route::prefix('admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware(['checksession', 'role:admin,superadmin'])->group(function () {
 
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/transaksi/pending', [DashboardController::class, 'getPending'])->name('dashboard.pending');
         Route::post('/transaksi/{id}/approve', [AdminLemburController::class, 'quickApprove'])->name('dashboard.approve');
         Route::get('/pegawai/all', [PresensiController::class, 'getAllPegawai'])->name('pegawai.all')->middleware('checksession');
 
-        //Superadmin
-        Route::get('/master-pegawai', [\App\Http\Controllers\admin\MasterPegawaiController::class, 'index'])->name('master_pegawai');
-
-        //Rekapitulasi
+        // Rekapitulasi
         Route::get('/spkl', [\App\Http\Controllers\admin\RekapitulasiController::class, 'index'])->name('spkl');
         Route::get('/rekapitulasi', [\App\Http\Controllers\admin\RekapitulasiController::class, 'index'])->name('rekapitulasi');
-        Route::get('/rekapitulasi', [\App\Http\Controllers\pegawai\RekapitulasiController::class, 'index'])->name('rekapitulasi')->middleware('checksession');
         Route::get('/dokumen/download/{type}', [\App\Http\Controllers\admin\DokumenGenerateController::class, 'download'])->name('dokumen.download')->middleware('checksession');
         Route::get('/rekapitulasi/export', [\App\Http\Controllers\admin\RekapitulasiController::class, 'downloadExcel'])->name('rekapitulasi.export');
-        Route::get('admin/rekapitulasi', [RekapitulasiController::class, 'index']);
-        Route::get('/rekapitulasi/export-status', [RekapitulasiController::class, 'exportStatus'])->name('rekapitulasi.export.status');
+        Route::get('/rekapitulasi/export-status', [\App\Http\Controllers\admin\RekapitulasiController::class, 'exportStatus'])->name('rekapitulasi.export.status');
 
-        //Laporan
+        // Laporan
         Route::get('/laporan', [\App\Http\Controllers\admin\LaporanController::class, 'index'])->name('laporan');
         Route::get('/dokumen/download-excel/laporan/{jenis}', [DokumenGenerateController::class, 'downloadExcel'])->name('dokumen.download.excel')->middleware('checksession');
 
-        //Akumulasi
+        // Akumulasi
         Route::get('/akumulasi', [\App\Http\Controllers\admin\AkumulasiController::class, 'index'])->name('akumulasi');
         Route::get('/akumulasi/download', [\App\Http\Controllers\admin\AkumulasiController::class, 'download'])->name('akumulasi.download')->middleware('checksession');
 
-        //Pengajuan Lembur
+        // Pengajuan Lembur
         Route::get('/lembur', [AdminLemburController::class, 'index'])->name('lembur');
         Route::post('/lembur', [AdminLemburController::class, 'store'])->name('lembur.store');
         Route::get('/lembur/tim', [AdminLemburController::class, 'timPegawai'])->name('lembur.tim');
@@ -98,13 +140,13 @@ Route::middleware('checksession')->group(function () {
         Route::delete('/lembur/{id_transaksi}/dokumentasi', [AdminLemburController::class, 'destroyDoc'])->name('lembur.destroyDoc');
         Route::post('/lembur/{id}/uraian', [AdminLemburController::class, 'updateUraian'])->name('lembur.updateUraian');
 
-        // approve lembur
+        // Approve Lembur
         Route::get('/pengajuan', [AdminPengajuanController::class, 'index'])->name('pengajuan');
         Route::post('/pengajuan/{id}/approve', [AdminLemburController::class, 'approve'])->name('pengajuan.approve');
         Route::get('/pengajuan/{id}/presensi', [AdminPengajuanController::class, 'presensi'])->name('pengajuan.presensi');
         Route::get('/pengajuan/pegawai', [AdminPengajuanController::class, 'semuaPegawai'])->name('pengajuan.pegawai');
 
-        //Daftar Hadir
+        // Daftar Hadir
         Route::get('/daftar-hadir', [\App\Http\Controllers\admin\DaftarHadirController::class, 'index'])->name('daftar_hadir');
         Route::get('/daftar-hadir/download', [\App\Http\Controllers\admin\DaftarHadirController::class, 'download'])->name('daftar_hadir.download')->middleware('checksession');
 
@@ -120,11 +162,11 @@ Route::middleware('checksession')->group(function () {
         Route::post('hari-libur', [PresensiUploadController::class, 'hariLiburStore'])->name('hari-libur.store');
 
         // Tim
-        Route::get('/tim', [\App\Http\Controllers\admin\TimController::class, 'index'])->name('tim');
         Route::get('/tim',                [TimController::class, 'index'])->name('tim');
         Route::post('/tim',               [TimController::class, 'store'])->name('tim.store');
         Route::put('/tim/{kode_tim}',     [TimController::class, 'update'])->name('tim.update');
         Route::delete('/tim/{kode_tim}',  [TimController::class, 'destroy'])->name('tim.destroy');
+        Route::post('/tim/sync',          [TimController::class, 'sync'])->name('tim.sync');
 
         // Anggota Tim
         Route::get('/tim/{kode_tim}/anggota',           [AnggotaTimController::class, 'index'])->name('tim.anggota');
@@ -140,13 +182,6 @@ Route::middleware('checksession')->group(function () {
         Route::put('/pengguna/{id}/password',      [PenggunaController::class, 'updatePassword'])->name('pengguna.password');
         Route::delete('/pengguna/{id}',            [PenggunaController::class, 'destroy'])->name('pengguna.destroy');
         Route::post('/pengguna/sinkron',           [PenggunaController::class, 'sinkronPegawai'])->name('pengguna.sinkron');
-        Route::get('/pengguna',                    [PenggunaController::class, 'index'])->name('pengguna');
-        Route::get('/pengguna/all',                [PenggunaController::class, 'getAll'])->name('pengguna.all');
-        Route::post('/pengguna/sinkron',           [PenggunaController::class, 'sinkronPegawai'])->name('pengguna.sinkron'); // ← tambah ini
-        Route::post('/pengguna',                   [PenggunaController::class, 'store'])->name('pengguna.store');
-        Route::put('/pengguna/{id}',               [PenggunaController::class, 'update'])->name('pengguna.update');
-        Route::put('/pengguna/{id}/password',      [PenggunaController::class, 'updatePassword'])->name('pengguna.password');
-        Route::delete('/pengguna/{id}',            [PenggunaController::class, 'destroy'])->name('pengguna.destroy');
 
         // Tarif
         Route::get('/tarif',               [RateController::class, 'index'])->name('tarif');
@@ -160,11 +195,19 @@ Route::middleware('checksession')->group(function () {
         Route::get('/dokumen/generate/spkl', [\App\Http\Controllers\admin\DokumenGenerateController::class, 'spkl'])->name('dokumen.generate.spkl')->middleware('checksession');
         Route::get('/dokumen/generate/laporan/{jenis}', [\App\Http\Controllers\admin\DokumenGenerateController::class, 'laporan'])->name('dokumen.generate.laporan')->middleware('checksession');
 
-        //Pejabat
+        // Pejabat
         Route::get('/pejabat',           [\App\Http\Controllers\admin\PejabatController::class, 'index'])->name('pejabat');
         Route::post('/pejabat',          [\App\Http\Controllers\admin\PejabatController::class, 'store'])->name('pejabat.store');
         Route::get('/pejabat/{id}/data', [\App\Http\Controllers\admin\PejabatController::class, 'getData'])->name('pejabat.data');
         Route::put('/pejabat/{id}',      [\App\Http\Controllers\admin\PejabatController::class, 'update'])->name('pejabat.update');
         Route::delete('/pejabat/{id}', [\App\Http\Controllers\admin\PejabatController::class, 'destroy'])->name('pejabat.destroy');
+    });
+
+    // ─── Pimpinan ─────────────────────────────────────────
+    Route::prefix('pimpinan')->name('pimpinan.')->middleware(['checksession', 'role:pimpinan,admin,superadmin'])->group(function () {
+        Route::get('/dashboard', [PimpinanDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/pengajuan', [PimpinanPengajuanController::class, 'index'])->name('pengajuan');
+        Route::get('/pengajuan/pegawai', [PimpinanPengajuanController::class, 'semuaPegawai'])->name('pengajuan.pegawai');
+        Route::get('/pengajuan/{id}/presensi', [PimpinanPengajuanController::class, 'presensi'])->name('pengajuan.presensi');
     });
 });

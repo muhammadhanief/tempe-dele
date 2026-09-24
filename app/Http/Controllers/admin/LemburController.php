@@ -5,7 +5,6 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use App\Traits\KoreksiLembur;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
@@ -22,6 +21,8 @@ class LemburController extends Controller
         $tanggal = $request->query('tanggal');
         $tim     = $request->query('tim');
         $nip     = $request->query('nip');
+        $status  = $request->query('status');
+        $sort    = in_array(strtolower($request->query('sort', 'priority')), ['priority', 'desc', 'asc']) ? strtolower($request->query('sort', 'priority')) : 'priority';
         $nipUser = session('user')['nip'];
 
         // Koreksi otomatis presensi untuk akun admin sendiri saja
@@ -31,18 +32,42 @@ class LemburController extends Controller
             ? (int) $request->get('perPage', 10)
             : 10;
 
+        // Base query untuk hitung status badge
+        $baseCountQuery = DB::table('t_transaksi as t');
+        if ($tanggal) {
+            $baseCountQuery->whereDate('t.date', $tanggal);
+        } elseif ($bulan) {
+            $periode      = Carbon::parse($bulan . '-01');
+            $startOfMonth = $periode->copy()->startOfMonth()->toDateString();
+            $endOfMonth   = $periode->copy()->endOfMonth()->toDateString();
+            $baseCountQuery->whereBetween('t.date', [$startOfMonth, $endOfMonth]);
+        }
+        if ($tim) {
+            $baseCountQuery->where('t.tim_kode_tim', $tim);
+        }
+        if ($nip) {
+            $baseCountQuery->where('t.submitted_by_NIP', $nip);
+        }
+
+        $statusCounts = [
+            'all'            => (clone $baseCountQuery)->count(),
+            'pending'        => (clone $baseCountQuery)->where('t.status', 'pending')->count(),
+            'menunggu_kabag' => (clone $baseCountQuery)->where('t.status', 'menunggu_kabag')->count(),
+            'approved'       => (clone $baseCountQuery)->where('t.status', 'approved')->count(),
+            'rejected'       => (clone $baseCountQuery)->where('t.status', 'rejected')->count(),
+        ];
+
         $query = DB::table('t_transaksi as t')
-            ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
-            ->leftJoin('m_pegawai as kp', 't.approver_employee_id', '=', 'kp.nip')
-            ->leftJoin('m_pegawai as pg', 't.submitted_by_NIP', '=', 'pg.nip')
-            ->leftJoin('m_dokumentasi as md', 't.dokumentasi_id_dokumentasi', '=', 'md.id_dokumentasi')
-            ->select(
-                't.*',
-                'mt.nama_tim',
-                'kp.nama as nama_ketua',
-                'pg.nama as nama_pegawai',
-                'md.file_path as file_dokumentasi'
-            );
+        ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
+        ->leftJoin('m_pegawai as pg', 't.submitted_by_NIP', '=', 'pg.nip')
+        ->leftJoin('m_dokumentasi as md', 't.dokumentasi_id_dokumentasi', '=', 'md.id_dokumentasi')
+        ->select(
+            't.*',
+            'mt.nama_tim',
+            'mt.nama_ketua',
+            'pg.nama as nama_pegawai',
+            'md.file_path as file_dokumentasi'
+        );
 
         if ($tanggal) {
             $query->whereDate('t.date', $tanggal);
@@ -62,44 +87,53 @@ class LemburController extends Controller
             $query->where('t.submitted_by_NIP', $nip);
         }
 
-        $query->orderBy('t.date', 'desc');
+        if ($status && in_array($status, ['pending', 'menunggu_kabag', 'approved', 'rejected'])) {
+            $query->where('t.status', $status);
+        }
+
+        if ($sort === 'asc') {
+            $query->orderBy('t.date', 'asc')->orderBy('t.id_transaksi', 'asc');
+        } elseif ($sort === 'desc') {
+            $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
+        } else { // priority
+            $query->orderByRaw("CASE WHEN t.status = 'menunggu_kabag' THEN 0 WHEN t.status = 'pending' THEN 1 WHEN t.status = 'approved' THEN 2 ELSE 3 END")
+                  ->orderBy('t.date', 'desc')
+                  ->orderBy('t.id_transaksi', 'desc');
+        }
 
         $transaksi = $query->paginate($perPage)->appends($request->query());
 
-        $ketuaTim = [];
+        $idPegawai = session('id_pegawai');
 
-        $responseTim = Http::withHeaders([
-            'Content-Type'  => 'application/json',
-            'Authorization' => 'Bearer ' . config('services.kipapp.token'),
-            'Origin'        => 'https://jateng.web.bps.go.id',
-        ])->post('https://kipapp.bps.go.id/api/v3/timkerja', [
-            'tahun' => '2025',
-            'type'  => '1',
-        ]);
+        $ketuaTim = DB::table('t_anggota_tim as at')
+            ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
+            ->where('at.pegawai_id_pegawai', $idPegawai)
+            ->where('mt.status', 'aktif')
+            ->whereNotNull('mt.nipbaru_ketua')
+            ->where('mt.nipbaru_ketua', '!=', $nipUser)
+            ->select(
+                'mt.nipbaru_ketua as nip',
+                'mt.nama_ketua as nama',
+                'mt.nama_tim as tim',
+                'mt.kode_tim'
+            )
+            ->get()
+            ->map(fn($item) => (array) $item)
+            ->toArray();
 
-        \Log::info('api tim', [
-            'status'   => $responseTim->status(),
-            'sukses'   => $responseTim->successful(),
-            'response' => $responseTim->json(),
-        ]);
+        $timSendiri = DB::table('m_tim')
+            ->where('nipbaru_ketua', $nipUser)
+            ->where('status', 'aktif')
+            ->select('kode_tim', 'nama_tim')
+            ->first();
 
-        if ($responseTim->successful()) {
-            $semuaTim = $responseTim->json()['data'];
-
-            foreach ($semuaTim as $tim_item) {
-                foreach ($tim_item['anggota_tim'] as $anggota) {
-                    if ($anggota['nipbaru'] == $nipUser) {
-                        $ketuaTim[] = [
-                            'nip'      => $tim_item['nipbaru_ketua'],
-                            'nama'     => $tim_item['nama_ketua'],
-                            'tim'      => $tim_item['nama_tim'],
-                            'kode_tim' => $tim_item['kode_tim'],
-                        ];
-
-                        break;
-                    }
-                }
-            }
+        if ($timSendiri) {
+            $ketuaTim[] = [
+                'nip'      => $nipUser,
+                'nama'     => session('user')['nama'],
+                'tim'      => $timSendiri->nama_tim,
+                'kode_tim' => $timSendiri->kode_tim,
+            ];
         }
 
         $hariLibur = DB::table('m_hari_libur')
@@ -110,7 +144,10 @@ class LemburController extends Controller
             'transaksi',
             'ketuaTim',
             'bulan',
-            'hariLibur'
+            'hariLibur',
+            'status',
+            'statusCounts',
+            'sort'
         ));
     }
 
@@ -119,17 +156,18 @@ class LemburController extends Controller
         $validated = $request->validate([
             'approver_id' => 'required|string',
             'kode_tim'    => 'required|string',
-            'tanggal'     => 'required|date',
+            'tanggal'     => 'required|date_format:Y-m-d',
             'jam_mulai'   => 'required',
             'jam_selesai' => 'nullable',
             'uraian'      => 'required|string|max:255',
             'signature'   => 'required|string',
         ], [
             'uraian.required' => 'Uraian kegiatan wajib diisi.',
+            'tanggal.date_format' => 'Format tanggal tidak valid. Gunakan format YYYY-MM-DD.',
         ]);
 
         $nip     = session('user')['nip'];
-        $tanggal = Carbon::createFromFormat('Y-m-d', $validated['tanggal']);
+        $tanggal = Carbon::parse($validated['tanggal']);
 
         $isWeekend = $tanggal->isWeekend();
 
@@ -322,17 +360,19 @@ class LemburController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $bulan = $request->query('bulan');
-        $tim   = $request->query('tim') ?: null;
-        $nip   = $request->query('nip') ?: null;
+        $bulan  = $request->query('bulan');
+        $tim    = $request->query('tim') ?: null;
+        $nip    = $request->query('nip') ?: null;
+        $status = $request->query('status') ?: null;
 
         $namaBulan = Carbon::parse($bulan . '-01')
             ->translatedFormat('F_Y');
 
-        $filename = "Lembur_{$namaBulan}.xlsx";
+        $statusSuffix = $status ? "_{$status}" : "";
+        $filename = "Lembur_{$namaBulan}{$statusSuffix}.xlsx";
 
         return Excel::download(
-            new LemburExport($bulan, $tim, $nip),
+            new LemburExport($bulan, $tim, $nip, $status),
             $filename
         );
     }
