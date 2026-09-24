@@ -1,7 +1,7 @@
 <div align="center">
 
 # 📋 TEMPE DELE
-### Sistem Pengelolaan Dokumen Lembur Pegawai
+### sisTEM PEngelolaan DokumEn LEmbur Pegawai
 **Badan Pusat Statistik (BPS) Provinsi Jawa Tengah**
 
 [![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
@@ -16,55 +16,83 @@
 
 ## 📖 Tentang Aplikasi
 
-**TEMPE DELE** adalah sistem informasi berbasis web yang dirancang khusus untuk mengelola, memvalidasi, dan mengotomatisasi seluruh alur dokumen lembur pegawai di lingkungan **BPS Provinsi Jawa Tengah**.
+**TEMPE DELE** (*sisTEM PEngelolaan DokumEn LEmbur*) adalah aplikasi web terintegrasi yang dirancang khusus untuk memvalidasi, mengelola, dan mengotomatisasi seluruh siklus administrasi lembur pegawai di lingkungan **Badan Pusat Statistik (BPS) Provinsi Jawa Tengah**.
 
-Sistem ini mengintegrasikan otentikasi **Single Sign-On (SSO) BPS**, sinkronisasi struktur tim kerja **KIPAPP**, validasi data kehadiran presensi riil, tanda tangan digital, alur persetujuan bertingkat (*tiered approval*), serta penerbitan dokumen administrasi lembur resmi (SPKL, Daftar Hadir, Laporan Lembur, dan Rekapitulasi).
+Sistem ini mentransformasi birokrasi lembur konvensional menjadi ekosistem digital *paperless* yang menghubungkan otentikasi **Single Sign-On (SSO) BPS**, sinkronisasi keanggotaan tim kerja **KIPAPP**, validasi kehadiran presensi riil, pembubuhan tanda tangan elektronik, alur persetujuan bertingkat (*tiered approval*), serta penerbitan otomatis dokumen kedinasan (SPKL, Daftar Hadir, Laporan Pelaksanaan Lembur, dan Rekapitulasi Pembayaran Lembur).
 
 ---
 
-## ✨ Fitur-Fitur Utama
+## 🔄 Alur Persetujuan Bertingkat (*Tiered Approval Workflow*)
+
+Sistem menerapkan alur verifikasi berjenjang resmi sesuai tata kelola birokrasi BPS Jawa Tengah:
+
+```mermaid
+graph TD
+    A[👨‍💼 Pegawai Mengajukan Lembur] --> B{Asal Tim Pegawai}
+    
+    B -->|Tim Bagian Umum<br>Ketua Tim = Kabag Umum| C[🏛️ Menu Tunggal: Persetujuan Kabag Umum<br>Status: Menunggu Kabag]
+    
+    B -->|Tim Fungsional Lain<br>SID, Humas, Sosial, dll.| D[👥 Persetujuan Ketua Tim<br>Status: Diproses / Menunggu Ketua]
+    
+    D -->|Ditolak Ketua Tim| E[❌ Status: Ditolak Selesai<br>Catatan Ketua Tim Terekam]
+    D -->|Disetujui Ketua Tim| C
+    
+    C -->|Kabag Tolak| E
+    C -->|Kabag Setuju Final| F[✅ Status: Disetujui Final<br>Status Terkunci Permanen]
+    
+    F --> G[📑 Penerbitan Otomatis Dokumen Kedinasan<br>SPKL, Daftar Hadir, Laporan & Rekapitulasi]
+```
+
+---
+
+## ✨ Fitur-Fitur Unggulan
 
 ### 1. 🔐 Integrasi SSO & API Eksternal BPS
-- **SSO BPS Authentication**: Autentikasi terpusat pegawai BPS Jawa Tengah via API Connect.
-- **SSO Attribute Fetcher**: Penarikan golongan kepangkatan pegawai otomatis untuk perhitungan uang lembur dan makan.
-- **KIPAPP Tim Kerja Sync**: Penarikan struktur tim fungsional dan penugasan anggota secara periodik.
+- **SSO BPS API Connect**: Autentikasi terpusat seluruh pegawai BPS Jawa Tengah tanpa perlu mengelola kredensial password lokal.
+- **SSO Attribute Fetcher**: Penarikan golongan kepangkatan pegawai secara otomatis untuk menentukan besaran tarif uang lembur dan uang makan.
+- **KIPAPP Tim Kerja Sync**: Sinkronisasi struktur tim kerja fungsional dan penugasan anggota berkala langsung dari API KIPAPP BPS.
 
-### 2. ⚡ Alur Persetujuan Bertingkat (*Tiered Approval Workflow*)
-- **Tim Fungsional Lain (SID, Humas, Sosial, Distribusi, dll.)**:
-  - `Pegawai Mengajukan` $\rightarrow$ `Persetujuan Ketua Tim` $\rightarrow$ `Persetujuan Akhir Kabag Umum` $\rightarrow$ `Selesai (Disetujui Final)`.
-- **Tim Bagian Umum**:
-  - Pengajuan pegawai Bagian Umum langsung masuk ke antrean persetujuan **Kepala Bagian Umum** (menghindari duplikasi tahapan).
-- **Penolakan Transparan**: Ketua Tim maupun Kabag Umum dapat menolak pengajuan lembur dengan catatan alasan yang terdokumentasi terpisah.
+### 2. ⚡ Alur Persetujuan Bertingkat & Penguncian Status (*Status Locking*)
+- **Dua Jalur Persetujuan Proporsional**:
+  - *Tim Fungsional Lain*: Pegawai $\rightarrow$ Ketua Tim $\rightarrow$ Kepala Bagian Umum $\rightarrow$ Selesai.
+  - *Tim Bagian Umum*: Pegawai $\rightarrow$ Langsung ke antrean Kepala Bagian Umum (tanpa duplikasi tahapan).
+- **Penguncian Keputusan (*Status Locking*)**: Begitu Kabag Umum menyetujui final atau menolak, status keputusan terkunci permanen untuk menjaga integritas data (hanya jam disetujui atau catatan yang dapat dikoreksi).
+- **Catatan Evaluasi Dua Arah**: Kolom `note` (Ketua Tim) dan `note_kabag` (Kabag Umum) dicatat terpisah dan dapat dilihat transparan oleh pegawai.
 
-### 3. ⏱️ Koreksi Otomatis Presensi Riil
-- Sinkronisasi data presensi harian pegawai untuk memverifikasi jam pulang aktual.
-- Otomasi validasi durasi lembur (minimal 2 jam).
-- Pengecekan kepatuhan status kehadiran kantor (WFO/WFOL) serta jam kehadiran pagi.
+### 3. ⏱️ Koreksi Otomatis Presensi Riil (`KoreksiLembur`)
+- Pengecekan otomatis jam kepulangan aktual pegawai pada mesin presensi harian.
+- **Validasi Kepatuhan**: Pengecekan status kehadiran kantor (WFO/WFOL) serta batas jam kedatangan pagi ($\le$ 07:30 WIB).
+- **Otomasi Penolakan < 2 Jam**: Jika jam pulang aktual menghasilkan durasi lembur kurang dari 2 jam, sistem otomatis menolak pengajuan dengan catatan sistem.
+- **Flag Kelayakan Keuangan (`eligible`)**: Menentukan secara otomatis hak pencairan uang lembur dan uang makan sesuai ketentuan regulasi keuangan negara.
 
 ### 4. 📑 Generator Dokumen Resmi & Ekspor Laporan
-- **Surat Perintah Kerja Lembur (SPKL)**: PDF otomatis berstandar kedinasan.
-- **Daftar Hadir Lembur**: Rekap absensi lembur per penugasan tim.
-- **Laporan Pelaksanaan Lembur**: Uraian output hasil kerja pegawai lembur.
-- **Rekapitulasi Bulanan**: Ekspor rekapitulasi data lembur ke format Excel dan PDF.
+- **Surat Perintah Kerja Lembur (SPKL)**: PDF otomatis berstandar kedinasan dengan nomor dinas resmi.
+- **Daftar Hadir Lembur**: Rekap kehadiran lembur per tim lengkap dengan sematan tanda tangan digital.
+- **Laporan Pelaksanaan Lembur**: Uraian kegiatan hasil kerja lembur per penugasan tim.
+- **Rekapitulasi Bulanan**: Ekspor rekapitulasi data lembur ke format Excel (`.xlsx`) dan PDF (`.pdf`).
 
-### 5. 🖊️ Digital Signature & Upload Dokumentasi
-- Pembubuhan tanda tangan langsung secara digital pada saat pengajuan lembur.
-- Unggah berkas dokumentasi hasil lembur untuk pertanggungjawaban kegiatan.
+### 5. 🖊️ Digital Signature Pad & Unggah Dokumentasi
+- Pembubuhan tanda tangan langsung secara digital pada kanvas layar (*electronic signature*) saat membuat pengajuan.
+- Unggah berkas dokumen/foto bukti kegiatan lembur langsung ke penyimpanan server untuk pertanggungjawaban kegiatan.
 
 ### 6. 🏛️ Manajemen Pejabat Dinamis (Tanpa Hardcode)
 - Pengaturan pejabat struktural (Kepala BPS, Kepala Bagian Umum, PPK) dikelola dinamis melalui database (`m_pejabat`), sehingga pergantian atau mutasi pejabat tidak memerlukan perubahan kode aplikasi.
+
+### 7. 🛡️ Keamanan & Otorisasi Peran (RBAC Middleware)
+- Proteksi rute server berlapis menggunakan middleware `CheckRole` untuk mencegah eskalasi wewenang lintas peran (Error 403 Forbidden).
+- Rute pengujian otomatis dinonaktifkan di server produksi via pengkondisian environment (`APP_ENV=production`).
 
 ---
 
 ## 👥 Struktur Role & Hak Akses
 
-| Role | Cakupan Wewenang |
-|:---|:---|
-| **Pegawai (`user`)** | Mengajukan lembur, melihat status tahapan, tanda tangan digital, unggah dokumentasi, dan rekap lembur mandiri. |
-| **Ketua Tim (`ketua_tim`)** | Dashboard tim, meninjau presensi anggota, menyetujui pengajuan (naik ke Kabag), atau menolak pengajuan anggota timnya. |
-| **Kabag Umum (`ketua_tim` + Pejabat)** | Dashboard monitoring seluruh satker, menu tunggal **Persetujuan Kabag Umum** untuk persetujuan akhir seluruh lembur BPS. |
-| **Pimpinan (`pimpinan`)** | Dashboard eksekutif pemantauan lembur seluruh kantor BPS Provinsi Jawa Tengah (Kepala BPS). |
-| **Admin / Superadmin** | Manajemen data pegawai, sinkronisasi tim kerja, penetapan pejabat aktif, pengelolaan tarif lembur, dan rekapitulasi satker. |
+| Role | Kode Role | Cakupan Wewenang & Akses Menu |
+|:---|:---:|:---|
+| **Pegawai** | `user` | Mengajukan lembur mandiri, monitoring progres alur bertingkat, tanda tangan digital, unggah dokumentasi, dan rekap lembur pribadi. |
+| **Ketua Tim** | `ketua_tim` | Dashboard tim, memeriksa presensi riil anggota, persetujuan tahap 1 (naik ke Kabag Umum), menolak pengajuan, serta pengajuan lembur mandiri. |
+| **Kabag Umum** | `ketua_tim` + Pejabat | Dashboard pemantauan seluruh satker, menu eksklusif **Persetujuan Kabag Umum** untuk memberikan keputusan final seluruh pengajuan lembur BPS. |
+| **Pimpinan** | `pimpinan` | Dashboard eksekutif pemantauan makro aktivitas lembur seluruh kantor BPS Provinsi Jawa Tengah (Kepala BPS). |
+| **Admin / Superadmin** | `admin` / `superadmin` | Pengelolaan data pegawai, sinkronisasi tim kerja KIPAPP, penetapan pejabat aktif, pengelolaan tarif lembur, operasional presensi, dan generator dokumen resmi. |
 
 ---
 
@@ -81,10 +109,11 @@ Sistem ini mengintegrasikan otentikasi **Single Sign-On (SSO) BPS**, sinkronisas
 
 ## 💻 Panduan Instalasi Lokal (*Local Development Setup*)
 
-### 1. Clone Repositori
+### 1. Clone Repositori & Masuk ke Direktori
 ```bash
-git clone https://github.com/whoNann/tempe-dele-update.git
-cd tempe-dele-update
+git clone https://github.com/muhammadhanief/tempe-dele.git
+cd tempe-dele
+git checkout update-alur-lembur
 ```
 
 ### 2. Instalasi Dependency Backend & Frontend
@@ -119,13 +148,13 @@ Generate application key:
 php artisan key:generate
 ```
 
-### 4. Migrasi Database
+### 4. Migrasi Database & Storage Link
 Jalankan migrasi tabel aplikasi:
 ```bash
 php artisan migrate
 ```
 
-Buat symbolic link untuk storage upload berkas & tanda tangan:
+Buat symbolic link untuk storage upload berkas & tanda tangan digital:
 ```bash
 php artisan storage:link
 ```
@@ -135,11 +164,17 @@ Jalankan development server Laravel:
 ```bash
 php artisan serve
 ```
+
 Pada terminal terpisah, jalankan Vite compiler:
 ```bash
 npm run dev
 ```
+
 Akses aplikasi melalui browser di: **`http://127.0.0.1:8000`**
+
+> [!TIP]
+> **Pengujian Cepat (Auto-Login):**  
+> Pada lingkungan lokal (`APP_ENV=local`), Anda dapat memanfaatkan panel **Testing Auto-Login** di halaman login untuk beralih peran (Pegawai, Ketua Tim, Kabag Umum, Admin) secara instan tanpa perlu memasukkan password SSO BPS. Daftar lengkap akun pengujian dapat dilihat di [AKUN_TESTING.md](AKUN_TESTING.md).
 
 ---
 
@@ -147,8 +182,8 @@ Akses aplikasi melalui browser di: **`http://127.0.0.1:8000`**
 
 Informasi teknis dan panduan operasional lebih detail dapat dibaca pada dokumen berikut:
 
-* 📄 **[DOKUMENTASI_PERUBAHAN_ALUR_LEMBUR.md](DOKUMENTASI_PERUBAHAN_ALUR_LEMBUR.md)**: Rincian latar belakang, arsitektur alur bertingkat, serta daftar kode yang diubah.
-* 🚀 **[PANDUAN_DEPLOY_SERVER.md](PANDUAN_DEPLOY_SERVER.md)**: Panduan checklist teknis untuk proses deploy ke server produksi (cPanel / VPS).
+* 📄 **[DOKUMENTASI_PERUBAHAN_ALUR_LEMBUR.md](DOKUMENTASI_PERUBAHAN_ALUR_LEMBUR.md)**: Rincian latar belakang, arsitektur alur bertingkat, daftar kode yang diubah, komparasi panduan awal, dan roadmap UX masa depan.
+* 🚀 **[PANDUAN_DEPLOY_SERVER.md](PANDUAN_DEPLOY_SERVER.md)**: Panduan checklist teknis langkah demi langkah untuk proses deploy ke server produksi (cPanel / VPS).
 * 🔑 **[AKUN_TESTING.md](AKUN_TESTING.md)**: Daftar akun pengujian lokal dan panduan skenario testing step-by-step.
 
 ---
