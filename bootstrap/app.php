@@ -14,8 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'checksession' => \App\Http\Middleware\CheckSession::class,
+            'role'         => \App\Http\Middleware\CheckRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+    

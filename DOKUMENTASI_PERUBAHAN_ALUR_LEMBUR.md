@@ -4,6 +4,68 @@ Dokumen ini merangkum seluruh latar belakang, perubahan alur, daftar file yang d
 
 ---
 
+> [!TIP]
+> ### 🛑 Panduan Cepat: Cara Menghapus Total Bypass Login (Jika Ingin Opsi 2 Permanen)
+> Saat ini fitur bypass login dan panel testing auto-login sudah **otomatis non-aktif di server produksi** via kondisi `app()->environment('local')` (**Opsi 1**). Fitur ini tetap aktif di laptop Anda untuk mempermudah testing.
+> 
+> Namun, jika sewaktu-waktu Anda ingin **menghapus total fitur ini secara permanen dari source code** (**Opsi 2**), cukup hapus 2 blok kode di file berikut:
+> 
+> #### 1. File `routes/web.php` (Sekitar Baris 27 s.d. 61)
+> Hapus seluruh blok pembungkus dev login berikut:
+> ```php
+> if (app()->environment('local')) {
+>     Route::get('/debug-session', function () {
+>         dd(session('user'));
+>     })->middleware('checksession');
+> 
+>     Route::get('/dev-login/{nip}', function ($nip) {
+>         $pegawai = \DB::table('m_pegawai')->where('nip', $nip)->orWhere('id_pegawai', $nip)->orWhere('nip_lama', $nip)->first();
+>         if (!$pegawai) {
+>             return response("Pegawai dengan NIP/ID {$nip} tidak ditemukan di database m_pegawai.", 404);
+>         }
+>         session()->put('user', [
+>             'nip'       => $pegawai->nip,
+>             'nip_lama'  => $pegawai->nip_lama,
+>             'nama'      => $pegawai->nama,
+>             'email'     => $pegawai->email,
+>             'role'      => $pegawai->role,
+>             'satker'    => $pegawai->satker,
+>             'kd_satker' => $pegawai->kd_satker,
+>         ]);
+>         session()->put('logged_in', true);
+>         session()->put('id_pegawai', $pegawai->id_pegawai);
+>         session()->put('role', $pegawai->role);
+> 
+>         if ($pegawai->role === 'superadmin' || $pegawai->role === 'admin') {
+>             return redirect()->route('admin.dashboard');
+>         } elseif ($pegawai->role === 'ketua_tim') {
+>             return redirect()->route('ketua-tim.dashboard');
+>         } elseif ($pegawai->role === 'pimpinan') {
+>             return redirect()->route('pimpinan.dashboard');
+>         } else {
+>             return redirect()->route('pegawai.dashboard');
+>         }
+>     })->name('dev.login');
+> }
+> ```
+> 
+> #### 2. File `resources/views/login.blade.php` (Sekitar Baris 132 s.d. 213)
+> Hapus seluruh blok panel tombol testing auto-login berikut:
+> ```blade
+> @if (app()->isLocal())
+>     <div class="mt-6 pt-5 border-t border-slate-200">
+>         <div class="flex items-center justify-between mb-2.5">
+>             <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">⚡ Testing Auto-Login</span>
+>             <span class="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">Dev Mode</span>
+>         </div>
+>         ... (seluruh isi tombol cepat akun per peran) ...
+>     </div>
+> @endif
+> ```
+> *Setelah 2 blok di atas dihapus, sistem akan 100% murni hanya dapat diakses melalui login autentikasi resmi SSO BPS.*
+
+---
+
 ## 📌 1. Latar Belakang & Alur Baru
 
 ### Alur Lama:
@@ -61,6 +123,10 @@ Pegawai ──► Ketua Tim (Setujui / Tolak) ──► Selesai
 | 15 | **Ubah** | `resources/views/admin/lembur.blade.php` | Filter status dropdown & hierarki prioritas status admin. |
 | 16 | **Ubah** | `.gitignore` | Mengabaikan folder `__MACOSX/`. |
 | 17 | **Ubah** | `resources/views/ketua-tim/lembur.blade.php` | Perapihan UI/UX pengajuan lembur pribadi Ketua Tim/Kabag Umum: Card container berbingkai, empty state interaktif, penyelarasan tabel, dan modal dialog dengan docked header/footer. |
+| 18 | **Baru** | `app/Http/Middleware/CheckRole.php` | Middleware otorisasi hak akses peran (RBAC) untuk memblokir akses lintas peran yang tidak sah (Error 403). |
+| 19 | **Ubah** | `bootstrap/app.php` | Pendaftaran alias middleware `role` ke dalam pipeline middleware Laravel 11/12. |
+| 20 | **Ubah** | `routes/web.php` | Penerapan proteksi `role` pada grup rute Admin, Ketua Tim, & Pimpinan, penguncian rute dev-login hanya di local environment, serta eliminasi rute duplikat. |
+| 21 | **Ubah** | `.gitattributes` | Perbaikan urutan deteksi bahasa Blade agar tidak tertimpa oleh rule `*.php` pada GitHub Linguist. |
 
 ---
 
@@ -489,4 +555,260 @@ Struktur modal dialog "Ajukan Lembur" dirombak total menggunakan model *fixed he
 - **Footer Dialog (Docked/Fixed)**: Tombol **"Batal"** dan **"Kirim Pengajuan"** selalu menempel di bagian bawah dialog dan berada di dalam *viewport* layar di berbagai resolusi monitor pengguna.
 - **Body Formulir (Scrollable)**: Formulir, estimasi durasi lembur, dan kanvas tanda tangan dapat di-scroll secara mandiri di dalam kontainer (`max-h-[90vh] overflow-y-auto pr-5 scrollbar-thin`).
 - **Styling Input**: Seluruh kolom input dan dropdown menggunakan border lembut dengan sudut `rounded-xl` dan fokus ring khas Tempe Dele (`#faa938/20`).
+
+### 18. Middleware Otorisasi Hak Akses Peran: `app/Http/Middleware/CheckRole.php`
+Dibuat middleware mandiri untuk memvalidasi peran pengguna (*Role-Based Access Control*) pada setiap permintaan HTTP:
+- Memeriksa sesi aktif pengguna (`Session::get('role')` atau atribut `user.role`).
+- Menyediakan *fallback* kueri ke tabel `m_pegawai` berdasarkan NIP sesi jika data peran dalam sesi belum termuat.
+- Mengizinkan peran `superadmin` mengakses semua tingkatan rute (*superuser bypass*).
+- Memblokir pengguna dengan peran yang tidak berwenang dengan respon `403 Forbidden` (baik respon JSON untuk request AJAX/API maupun tampilan halaman error 403 resmi).
+
+```php
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\DB;
+
+class CheckRole
+{
+    public function handle(Request $request, Closure $next, ...$roles)
+    {
+        if (!Session::get('logged_in')) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+            return redirect()->route('login');
+        }
+
+        $userRole = Session::get('role') ?? (Session::get('user')['role'] ?? null);
+
+        if (!$userRole && Session::has('user.nip')) {
+            $userRole = DB::table('m_pegawai')->where('nip', Session::get('user')['nip'])->value('role');
+            if ($userRole) {
+                Session::put('role', $userRole);
+            }
+        }
+
+        if ($userRole === 'superadmin') {
+            return $next($request);
+        }
+
+        if (in_array($userRole, $roles)) {
+            return $next($request);
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk mengakses fitur ini.'
+            ], 403);
+        }
+
+        abort(403, 'Akses Ditolak: Anda tidak memiliki wewenang untuk mengakses halaman ini.');
+    }
+}
+```
+
+### 19. Pendaftaran Alias Middleware: `bootstrap/app.php`
+Mendaftarkan alias `role` ke konfigurasi pipeline middleware aplikasi (Laravel 11/12):
+```php
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: '*');
+
+        $middleware->alias([
+            'checksession' => \App\Http\Middleware\CheckSession::class,
+            'role'         => \App\Http\Middleware\CheckRole::class,
+        ]);
+    })
+```
+
+### 20. Pengamanan Rute & Restriksi RBAC: `routes/web.php`
+- **Kondisional Environment pada Rute Pengujian**: Rute `/dev-login/{nip}` dan `/debug-session` dibungkus dengan `if (app()->environment('local'))` sehingga tetap aktif di lingkungan pengembangan lokal pengembang, namun otomatis mati (*404 Not Found*) di server produksi.
+- **Pemasangan Middleware Role pada Grup Rute**:
+  - Grup Admin (`/admin/*`): `middleware(['checksession', 'role:admin,superadmin'])`
+  - Grup Ketua Tim (`/ketua-tim/*`): `middleware(['checksession', 'role:ketua_tim,admin,superadmin'])`
+  - Grup Pimpinan (`/pimpinan/*`): `middleware(['checksession', 'role:pimpinan,admin,superadmin'])`
+- **Pembersihan Rute Duplikat**: Menghapus deklarasi rute ganda pada `/admin/rekapitulasi`, `/admin/tim`, dan blok CRUD `/admin/pengguna`.
+
+### 21. Perbaikan Urutan Konfigurasi GitHub Linguist: `.gitattributes`
+Memperbaiki urutan aturan pemetaan bahasa pada file `.gitattributes` agar file template `.blade.php` tidak ditimpa (*overridden*) oleh aturan `*.php`:
+```gitattributes
+*.css diff=css
+*.html diff=html
+*.md diff=markdown
+*.php diff=php linguist-language=PHP
+*.blade.php diff=html linguist-language=Blade linguist-detectable=true
+```
+*(Dengan meletakkan `*.blade.php` di bawah `*.php`, GitHub Linguist mengidentifikasi file tampilan sebagai bahasa Blade secara terpisah dan memulihkan diagram persentase bahasa di repositori GitHub).*
+
+---
+
+## 📌 4. Komparasi Komprehensif: Dokumen Panduan Pengguna (`panduan_pengguna.pdf`) vs Sistem Saat Ini
+
+Bagian ini mendokumentasikan hasil komparasi antara spesifikasi fitur pada dokumen panduan awal (**`public/documents/panduan_pengguna.pdf`**) dengan implementasi sistem yang berjalan **saat ini**, serta menguraikan seluruh transformasi fitur, alur birokrasi, dan teknologi yang telah diterapkan.
+
+### A. Fitur per Role Menurut `panduan_pengguna.pdf` (Versi Awal)
+
+Pada buku panduan awal (34 halaman), sistem hanya dirancang dengan **3 peran (*role*)**, yaitu **Pegawai**, **Ketua Tim**, dan **Admin**:
+
+#### 1. Fitur Umum (Semua Role)
+* **Filter Data**: Filter Tanggal (*datepicker*), Filter Periode (*monthpicker*), Filter Pegawai (*dropdown text input*), dan Filter Tim.
+* **Elemen Navigasi & UX**: Pagination tabel, pop-up loading indikator proses, tombol download berkas (PDF / Excel).
+* **Profil Pegawai**: Tampilan informasi kepegawaian *read-only* (Nama, Email, NIP Lama, NIP Baru, Golongan Akhir, Bidang/Satker).
+
+#### 2. Role Pegawai (`user`)
+* **Dashboard Pegawai**:
+  * Sapaan nama pengguna.
+  * Ringkasan aktivitas pengajuan lembur (*Total*, *Diproses*, *Disetujui*, *Ditolak*).
+  * Daftar pengajuan lembur terbaru.
+  * Widget jadwal lembur mendatang yang telah disetujui.
+* **Pengajuan Lembur**:
+  * Tabel riwayat pengajuan lembur mandiri.
+  * Form modal tambah pengajuan lembur (Tanggal, Jam Mulai/Selesai, Uraian Tugas, Ketua Tim).
+  * **Dokumentasi Lembur**: Menginput tautan (*link*) Google Drive pada pengajuan yang telah disetujui.
+* **Rekapitulasi Lembur Pegawai**:
+  * Tabel matriks rekapitulasi lembur bulanan (klasifikasi hari biasa vs hari libur beserta durasi jam dan *tooltip* penjelas).
+
+#### 3. Role Ketua Tim (`ketua_tim`)
+* **Dashboard Ketua Tim**:
+  * Ringkasan status pengajuan lembur anggota tim (Total, Diproses, Disetujui, Ditolak).
+  * Daftar pengajuan terbaru anggota tim.
+  * Widget daftar pegawai tim yang lembur hari ini.
+* **Daftar Pengajuan Anggota Tim**:
+  * Tabel pengajuan lembur anggota tim kerja.
+  * **Modal Informasi Presensi**: Melihat jam masuk, jam pulang, dan status kehadiran aktual anggota tim.
+  * **Modal Keputusan Lembur**: Form persetujuan (Setujui / Tolak), koreksi jam mulai & selesai disetujui, serta catatan dari Ketua Tim.
+  * **Validasi Durasi**: Peringatan visual otomatis apabila durasi lembur melebihi batas ketentuan (maksimal 4 jam di hari kerja, 6 jam di hari libur).
+* **Pengajuan Lembur Mandiri Ketua Tim**:
+  * Pengajuan lembur untuk diri sendiri dengan mekanisme yang sama seperti pegawai biasa.
+
+#### 4. Role Admin (`admin`)
+* **Dashboard Admin**:
+  * Ringkasan statistik pengajuan satker per bulan berjalan.
+  * Monitoring pegawai yang lembur pada hari berjalan.
+  * Widget pemantauan ketersediaan dokumen dinas (SPKL & Laporan).
+  * Notifikasi peringatan sistem (presensi yang belum diinput atau laporan yang belum di-*generate*).
+  * Ringkasan status administrasi bulanan.
+* **Manajemen Presensi**:
+  * Unggah berkas presensi pegawai format Excel (`.xlsx`).
+  * Tabel riwayat unggah berkas presensi.
+  * Tampilan kalender *grid* presensi pegawai bulanan beserta pop-up detail jam masuk/pulang.
+* **Manajemen Dokumen Lembur**:
+  * Pembuatan (*generate*) SPKL dengan input nomor dinas resmi.
+  * Pembuatan (*generate*) Laporan Lembur (terpisah PNS dan PPPK).
+  * Pratinjau (*preview*) dokumen PDF dan aksi hapus dokumen.
+* **Monitoring & Rekapitulasi Satker**:
+  * Monitoring pengajuan lembur seluruh pegawai se-kantor BPS Jawa Tengah.
+  * Rekapitulasi Lembur Satker (tabel matriks bulanan & ekspor dokumen).
+  * Laporan Lembur Satker (rincian kegiatan dan ekspor format Excel/PDF).
+  * Akumulasi Lembur (perhitungan uang lembur, uang makan, potongan pajak PPh, dan total bersih).
+  * Daftar Hadir Lembur (daftar kehadiran lembur dengan kolom tanda tangan fisik manual & ekspor PDF).
+* **Master Data**:
+  * **Data Pengguna**: CRUD pegawai, pendaftaran akun lokal lengkap dengan password, dan modal ganti password manual.
+  * **Data Tim**: CRUD tim kerja, kelola anggota tim (tambah/hapus anggota), dan status aktif tim.
+  * **Tarif Lembur**: Pengaturan tarif uang lembur hari kerja, hari libur, uang makan, dan persentase pajak per golongan (I, II, III, IV).
+  * **Data Pejabat**: Penetapan pejabat struktural tahunan (PPK, Kepala BPS, Kepala Bagian Umum).
+
+---
+
+### B. Transformasi & Perluasan Fitur Saat Ini
+
+Dalam implementasi sistem saat ini, terjadi ekspansi besar pada arsitektur, alur otorisasi, dan integrasi data:
+
+#### 1. Perluasan Role Menjadi 5 Tingkat Wewenang
+Sistem saat ini tidak lagi hanya mengenal 3 peran, melainkan telah berkembang menjadi **5 peran/tingkat akses**:
+1. **Pegawai (`user`)**: Mengajukan lembur, memantau alur persetujuan bertingkat, tanda tangan digital, unggah dokumen hasil kegiatan, dan rekap mandiri.
+2. **Ketua Tim (`ketua_tim`)**: Meninjau presensi riil, menyetujui tahap 1 (naik ke Kabag Umum), atau menolak pengajuan anggota tim.
+3. **Kepala Bagian Umum (`ketua_tim` + Pejabat Aktif Kabag Umum)**: Memiliki hak istimewa dan menu eksklusif **Persetujuan Kabag Umum** (`/kabag-umum/pengajuan`) untuk memverifikasi dan memberikan persetujuan final (*final approval*) seluruh lembur di BPS Provinsi Jawa Tengah.
+4. **Pimpinan (`pimpinan` / Kepala BPS)**: Dashboard eksekutif pemantauan makro seluruh lembur satker Jawa Tengah.
+5. **Admin / Superadmin**: Operasional presensi, sinkronisasi KIPAPP, generator dokumen kedinasan, pengelolaan pejabat aktif, dan tarif.
+
+#### 2. Alur Persetujuan Bertingkat (*Tiered Approval Workflow*)
+* **Tim Fungsional Biasa (SID, Humas, Sosial, Distribusi, dll.)**:
+  $$\text{Pegawai Mengajukan} \longrightarrow \text{Persetujuan Ketua Tim (Status: Menunggu Kabag)} \longrightarrow \text{Persetujuan Kabag Umum (Status: Approved Final)}$$
+* **Tim Bagian Umum**:
+  Pengajuan anggota Tim Bagian Umum **langsung masuk ke antrean Persetujuan Kabag Umum** (status otomatis `menunggu_kabag`), menghindari duplikasi persetujuan karena Ketua Tim Bagian Umum dijabat langsung oleh Kepala Bagian Umum.
+* **Penguncian Status (*Status Locking*)**:
+  Begitu Kabag Umum memutuskan persetujuan (status menjadi `approved` atau `rejected`), status terkunci secara permanen dan tidak dapat diubah sembarangan; hanya jam yang disetujui atau catatan yang dapat dikoreksi.
+
+#### 3. Catatan Evaluasi Transparan Dua Arah
+Sistem memisahkan catatan persetujuan menjadi 2 entitas kolom terpisah:
+* `note`: Catatan evaluasi / alasan penolakan dari Ketua Tim.
+* `note_kabag`: Catatan evaluasi / arahan penolakan dari Kepala Bagian Umum.
+Kedua catatan ini ditampilkan secara transparan di dashboard pegawai agar pegawai mengetahui alasan detail jika lembur disesuaikan atau ditolak.
+
+#### 4. Digital Signature Pad & Bukti Dokumentasi Berkas Nyata
+* **Tanda Tangan Digital**: Pada panduan awal, dokumen dicetak kosong untuk ditandatangani pena basah secara manual. Pada sistem saat ini, pegawai membubuhkan tanda tangan digital langsung pada layar/kanvas (`signature_pad.umd.min.js`) saat mengajukan lembur, yang otomatis tersemat di formulir dan Daftar Hadir resmi.
+* **Unggah Berkas Langsung**: Pada panduan awal hanya berupa input link Google Drive, sedangkan sekarang sistem mendukung **unggah berkas gambar/dokumen langsung** (`storeDoc`) yang disimpan aman di storage server.
+
+#### 5. Integrasi SSO BPS & Sinkronisasi Otomatis KIPAPP
+* **SSO BPS & API Connect**: Menghilangkan kebutuhan manajemen akun dan password manual lokal. Pegawai melakukan otentikasi terpusat dengan akun SSO BPS Jawa Tengah.
+* **Penarikan Golongan Otomatis**: Golongan kepangkatan pegawai diambil otomatis melalui API Atribut SSO BPS untuk menentukan tarif uang lembur dan makan.
+* **Sinkronisasi KIPAPP**: Struktur tim kerja dan anggota tim fungsional ditarik secara dinamis dari API KIPAPP BPS tanpa perlu input manual satu per satu oleh Admin.
+
+#### 6. Otomasi Validasi Presensi Riil (`KoreksiLembur`)
+Sistem saat ini menyematkan modul logika otomatisasi kelayakan lembur berdasarkan data presensi aktual:
+* **Durasi Minimal 2 Jam**: Jika jam pulang aktual pada mesin presensi menghasilkan durasi lembur kurang dari 2 jam, sistem otomatis menolak (*reject*) pengajuan dengan catatan sistem.
+* **Kepatuhan WFO / WFOL**: Hanya presensi dengan status WFO (*Work from Office*) atau WFOL (*Work from Office Lembur*) yang diperhitungkan.
+* **Deteksi Keterlambatan Masuk Kantor**: Hari kerja biasa mensyaratkan jam kedatangan sebelum pukul 07:31 WIB.
+* **Flag Kelayakan Bisnis (`eligible`)**: Menandai secara otomatis pengajuan yang sah untuk dibayarkan uang lembur dan uang makannya sesuai regulasi keuangan negara.
+
+---
+
+### C. Matriks Komparasi Rinci: Panduan Awal vs Sistem Saat Ini
+
+| Dimensi Evaluasi | Spesifikasi di Panduan PDF (Awal) | Implementasi Sistem Saat Ini |
+| :--- | :--- | :--- |
+| **Hierarki Role** | 3 Role: Pegawai, Ketua Tim, Admin. | **5 Tingkat Role**: Pegawai, Ketua Tim, Kabag Umum, Pimpinan, Admin/Superadmin. |
+| **Alur Approval** | 1 Tingkat: Pegawai $\rightarrow$ Ketua Tim $\rightarrow$ Selesai. | **Bertingkat (*Tiered*)**: Pegawai $\rightarrow$ Ketua Tim $\rightarrow$ Kabag Umum $\rightarrow$ Final (dengan *bypass* khusus Tim Bagian Umum). |
+| **Variasi Status** | 3 Status: `Diproses`, `Disetujui`, `Ditolak`. | **4 Status Dinamis**: `pending`, `menunggu_kabag`, `approved` (Final), dan `rejected`. |
+| **Integritas Keputusan** | Belum ada penguncian (keputusan dapat dibolak-balik). | **Status Locking**: Keputusan final Kabag Umum terkunci dari perubahan status sepihak. |
+| **Pencatatan Evaluasi** | 1 kolom catatan tunggal (`note`). | **Dua Kolom Catatan Terpisah**: `note` (Ketua Tim) dan `note_kabag` (Kabag Umum). |
+| **Format Dokumentasi** | Hanya tautan teks (*link Google Drive*). | **Unggah Berkas Langsung** ke penyimpanan server + manajemen dokumentasi. |
+| **Tanda Tangan Kehadiran**| Cetak dokumen kosong untuk tanda tangan basah. | **Digital Signature Pad**: Pembubuhan tanda tangan elektronik langsung via kanvas digital. |
+| **Mekanisme Login** | Form login lokal dengan manajemen password manual. | **Integrasi SSO BPS & API Connect**: Single Sign-On terpusat seluruh pegawai BPS Jawa Tengah. |
+| **Manajemen Tim Kerja** | Input manual tim dan anggota oleh admin. | **Sinkronisasi Otomatis KIPAPP API**: Penarikan struktur tim kerja berkala via API KIPAPP. |
+| **Koreksi Presensi** | Verifikasi visual manual oleh Ketua Tim. | **Otomasi `KoreksiLembur`**: Otomatisasi reject < 2 jam, cek WFO/WFOL, dan status keterlambatan. |
+| **Perhitungan Hak Keuangan** | Berdasarkan jam yang disetujui manual. | Terhubung dengan flag kelayakan `eligible` hasil sinkronisasi presensi riil. |
+| **Desain Antarmuka (UI)** | Tema gelap klasik (*dark navy sidebar*). | **Modern Enterprise UI**: Tailwind CSS bertema cerah, palet warna resmi BPS (`#fd9a10`), lencana status multi-tahap, dan modal interaktif dengan *docked header/footer*. |
+
+---
+
+## 📌 5. Rekomendasi Roadmap Peningkatan Sistem & UX di Masa Depan
+
+Sebagai kelanjutan dari pengembangan alur persetujuan bertingkat dan penguatan keamanan sistem, berikut adalah rekomendasi strategis yang dapat diusulkan untuk tahap pengembangan selanjutnya (maupun dicantumkan sebagai **Bab Saran pada Laporan Magang**):
+
+### A. Pengalaman Persetujuan Pejabat (*Approval Velocity UX*)
+1. **Lencana Angka Pending (*Badge Counter*) pada Menu Sidebar**:
+   Menampilkan indikator jumlah pengajuan yang menunggu tindakan (*pending review*) langsung di samping label menu sidebar (misalnya: `Persetujuan Kabag (5)` atau `Pengajuan Anggota (2)`). Fitur ini memudahkan pejabat memantau adanya tugas verifikasi tanpa harus membuka tabel pengajuan terlebih dahulu.
+2. **Fitur Persetujuan Masal (*Batch / Bulk Approval*)**:
+   Menambahkan kotak centang (*checkbox*) pilihan pada tabel pengajuan Kabag Umum dan Ketua Tim beserta tombol utama **"Setujui yang Dipilih"**. Fitur ini memangkas waktu operasional peninjauan pengajuan lembur dalam volume besar pada akhir periode pelaporan.
+3. **Indikator Lampu Presensi Otomatis (🟢 / 🟡 / 🔴)**:
+   Menyematkan lencana status visual kehadiran riil langsung pada baris tabel approval tanpa mengharuskan pejabat membuka modal popup presensi satu per satu:
+   - 🟢 **Hijau**: Kehadiran WFO/WFOL valid dan jam pulang aktual $\ge 2$ jam lembur.
+   - 🟡 **Kuning**: Kehadiran valid namun terdapat keterlambatan kedatangan kantor (> 07:30 WIB).
+   - 🔴 **Merah**: Belum ada data presensi pulang atau durasi aktual $< 2$ jam.
+
+### B. Transparansi & Kemudahan Pegawai (*Employee Experience*)
+1. **Pelacak Progres Alur Bertingkat (*Visual Stepper Tracker*)**:
+   Menyediakan komponen garis waktu interaktif (*timeline stepper*) pada modal detail pengajuan pegawai:
+   $$\text{[Diajukan]} \longrightarrow \text{[Persetujuan Ketua Tim]} \longrightarrow \text{[Persetujuan Kabag Umum]} \longrightarrow \text{[Selesai (Disetujui Final)]}$$
+   Memberikan visibilitas penuh kepada pegawai mengenai posisi terkini berkas pengajuan dan menampilkan catatan evaluasi secara kontekstual di tiap tahapan.
+2. **Kalkulator Estimasi Hak Keuangan Real-Time pada Formulir Pengajuan**:
+   Memberikan umpan balik instan saat pegawai memilih jam mulai dan selesai lembur: menampilkan durasi bersih, estimasi perolehan uang lembur sesuai tarif golongan, estimasi uang makan, serta peringatan interaktif jika durasi kurang dari batas minimum 2 jam.
+
+### C. Tata Kelola Keuangan, Akuntabilitas & Kinerja Sistem
+1. **Pencatatan Jejak Audit (*Audit Trail / Activity Log*)**:
+   Mencatat setiap tindakan administratif penting (perubahan jam disetujui, penolakan pengajuan, pengubahan tarif uang lembur, dan penetapan pejabat) ke dalam tabel log khusus lengkap dengan identitas pengguna, cap waktu (*timestamp*), serta alamat IP untuk keperluan audit internal (Irwil BPS / BPK).
+2. **Validasi Batas Maksimal Lembur Bulanan (Pagu / Regulasi SBM)**:
+   Mengintegrasikan validasi kuota akumulasi jam lembur per pegawai dalam satu bulan kalender sesuai Standar Biaya Masukan (SBM) Kementerian Keuangan untuk mencegah kelebihan alokasi anggaran satker.
+3. **Optimasi Kinerja & Caching Sinkronisasi API Eksternal**:
+   Menerapkan *caching* pada data struktur tim KIPAPP dan atribut SSO BPS atau memindahkannya ke tugas terjadwal malam hari (*scheduled cron task*), sehingga proses login pegawai tetap responsif dan terbebas dari risiko *timeout* saat server API eksternal sedang mengalami beban tinggi.
+4. **Tampilan Kartu Responsif (*Responsive Card View*) untuk Smartphone**:
+   Mengadaptasi tata letak tabel lebar menjadi kartu informasi ringkas (*thumb-friendly card view*) pada layar ponsel di bawah lebar 640px, mendukung fleksibilitas pejabat dalam memberikan persetujuan saat sedang melakukan dinas luar.
+
 
