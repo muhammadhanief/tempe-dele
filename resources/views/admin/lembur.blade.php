@@ -277,8 +277,9 @@
                                 <div class="hidden" id="edit-{{ $t->id_transaksi }}">
                                     <textarea
                                         id="textarea-{{ $t->id_transaksi }}"
-                                        rows="3"
-                                        class="w-full text-xs border border-[#faa938] rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#faa938] resize-none text-gray-800"
+                                        rows="4"
+                                        maxlength="2000"
+                                        class="w-full text-xs border border-[#faa938] rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#faa938] resize-y text-gray-800"
                                         placeholder="Isi uraian kegiatan...">{{ $t->uraian }}</textarea>
                                     <div class="flex gap-1.5 mt-1 justify-end">
                                         <button type="button"
@@ -606,13 +607,16 @@
 
                     {{-- Uraian --}}
                     <div>
-                        <label for="uraian" class="block text-sm font-medium text-gray-700 mb-2">
-                            Uraian Kegiatan
-                        </label>
+                        <div class="mb-2 flex items-center justify-between">
+                            <label for="uraian" class="block text-sm font-medium text-gray-700">
+                                Uraian Kegiatan
+                            </label>
+                            <span id="uraianCount" class="text-xs text-gray-400">0 / 2000</span>
+                        </div>
 
-                        <textarea id="uraian" name="uraian" rows="3" required
+                        <textarea id="uraian" name="uraian" rows="4" maxlength="2000" required
                             placeholder="Contoh: Penyusunan laporan bulanan..."
-                            class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"></textarea>
+                            class="w-full resize-y rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"></textarea>
                     </div>
 
                     {{-- Tanda Tangan --}}
@@ -1318,6 +1322,11 @@
         });
     });
 })();
+
+    document.getElementById('uraian')?.addEventListener('input', function () {
+        const elCount = document.getElementById('uraianCount');
+        if (elCount) elCount.textContent = `${this.value.length} / 2000`;
+    });
 
     //Ubah Uraian Lembur
     window.startEditUraian = function (id) {

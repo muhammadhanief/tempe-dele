@@ -121,9 +121,19 @@ class LemburController extends Controller
                 $jamSelesaiPresensi->addDay();
             }
 
-            $jamSelesaiFinal = $jamSelesaiPresensi->lessThan($batasMaksimal)
-                ? $jamSelesaiPresensi
+            // Jam lembur disetujui tidak boleh melebihi jam yang diajukan
+            $jamSelesaiPengajuan = Carbon::parse($transaksi->date . ' ' . $transaksi->jam_selesai);
+            if ($jamSelesaiPengajuan->lessThan($jamMulaiPengajuan)) {
+                $jamSelesaiPengajuan->addDay();
+            }
+
+            $batasAtas = $jamSelesaiPengajuan->lessThan($batasMaksimal)
+                ? $jamSelesaiPengajuan
                 : $batasMaksimal;
+
+            $jamSelesaiFinal = $jamSelesaiPresensi->lessThan($batasAtas)
+                ? $jamSelesaiPresensi
+                : $batasAtas;
 
             $durasi = $jamMulaiPengajuan->diffInHours($jamSelesaiFinal);
             if ($durasi < 2) {
@@ -179,10 +189,11 @@ class LemburController extends Controller
             'tanggal'     => 'required|date_format:Y-m-d',
             'jam_mulai'   => 'required',
             'jam_selesai' => 'nullable',
-            'uraian'      => 'required|string|max:255',
+            'uraian'      => 'required|string|max:2000',
             'signature'   => 'required|string',
         ], [
             'uraian.required' => 'Uraian kegiatan wajib diisi.',
+            'uraian.max'      => 'Uraian kegiatan maksimal 2000 karakter.',
             'tanggal.date_format' => 'Format tanggal tidak valid. Gunakan format YYYY-MM-DD.',
         ]);
 
@@ -311,7 +322,11 @@ class LemburController extends Controller
             ? 'Pengajuan tersimpan namun otomatis ditolak karena durasi lembur kurang dari 2 jam.'
             : 'Pengajuan lembur berhasil dikirim.';
 
-        return redirect()->route('ketua-tim.lembur', $params)
+        $targetRoute = (request()->routeIs('ketua-tim.*') || (session('user')['role'] ?? '') === 'ketua_tim')
+            ? 'ketua-tim.lembur'
+            : 'lembur';
+
+        return redirect()->route($targetRoute, $params)
             ->with($status === 'rejected' ? 'error' : 'success', $message);
     }
 
@@ -397,11 +412,11 @@ class LemburController extends Controller
             'kode_tim'    => 'nullable|string',
             'jam_mulai'   => 'required',
             'jam_selesai' => 'nullable',
-            'uraian'      => 'required|string|max:255',
+            'uraian'      => 'required|string|max:2000',
         ], [
             'jam_mulai.required' => 'Jam mulai wajib diisi.',
             'uraian.required'    => 'Uraian kegiatan wajib diisi.',
-            'uraian.max'         => 'Uraian kegiatan maksimal 255 karakter.',
+            'uraian.max'         => 'Uraian kegiatan maksimal 2000 karakter.',
         ]);
 
         $jamMulai   = Carbon::parse($validated['jam_mulai']);
@@ -421,9 +436,11 @@ class LemburController extends Controller
         }
 
         $updateData = [
-            'jam_mulai'   => $jamMulai->format('H:i:s'),
-            'jam_selesai' => $jamSelesai?->format('H:i:s'),
-            'uraian'      => $validated['uraian'],
+            'jam_mulai'      => $jamMulai->format('H:i:s'),
+            'jam_selesai'    => $jamSelesai?->format('H:i:s'),
+            'uraian'         => $validated['uraian'],
+            'user_edited'    => session('user')['nama'] ?? $nipUser,
+            'tanggal_edited' => now(),
         ];
 
         // Jika ada perubahan Ketua Tim / Tim

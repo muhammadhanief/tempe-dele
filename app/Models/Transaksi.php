@@ -27,6 +27,8 @@ class Transaksi extends Model
         'note_kabag',
         'approved_at',
         'approved_kabag_at',
+        'user_edited',
+        'tanggal_edited',
     ];
 
     // Hitung durasi dalam jam (floor ke bawah)

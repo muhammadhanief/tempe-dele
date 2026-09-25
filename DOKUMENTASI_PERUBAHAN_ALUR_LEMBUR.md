@@ -811,4 +811,364 @@ Sebagai kelanjutan dari pengembangan alur persetujuan bertingkat dan penguatan k
 4. **Tampilan Kartu Responsif (*Responsive Card View*) untuk Smartphone**:
    Mengadaptasi tata letak tabel lebar menjadi kartu informasi ringkas (*thumb-friendly card view*) pada layar ponsel di bawah lebar 640px, mendukung fleksibilitas pejabat dalam memberikan persetujuan saat sedang melakukan dinas luar.
 
+---
+
+## 📝 6. Fitur Audit Trail & Koreksi Uraian Kegiatan Bersyarat Presensi
+
+Fitur ini melengkapi akuntabilitas pengelolaan lembur pegawai dan memfasilitasi Ketua Tim, Admin, serta Kabag Umum untuk mengoreksi uraian kegiatan secara fleksibel namun tetap terkontrol.
+
+### A. Latar Belakang & Wewenang
+1. **Pencatatan Audit Trail Kolom Baru:**
+   - `user_edited`: Menyimpan nama/NIP pihak yang melakukan pengeditan data lembur.
+   - `tanggal_edited`: Menyimpan waktu (*timestamp*) saat data lembur terakhir diedit.
+2. **Koreksi Uraian Kegiatan Bersyarat Presensi:**
+   - Input textarea **Uraian Kegiatan** ditambahkan tepat di atas kotak **Catatan (Opsional)** pada modal aksi Ketua Tim, Admin, dan Kabag Umum.
+   - **Syarat Validasi Presensi:** Hanya dapat diedit apabila **data presensi pegawai pada tanggal lembur tersebut sudah ada** di tabel `t_presensi` (`has_presensi == true`). Jika presensi belum ada, kotak uraian terkunci (*read-only*) dengan badge kuning peringatan.
+3. **Pemisahan Wewenang Antar-Peran:**
+   - **Pegawai (User):** Dapat mengedit pengajuan mandirinya (jam mulai/selesai, uraian kegiatan, dan tim tujuan) selama status pengajuan masih *pending* (menunggu persetujuan ketua tim).
+   - **Ketua Tim:** Dapat mengoreksi uraian kegiatan pengajuan anggota timnya jika data presensi sudah tersedia.
+   - **Admin:** Memiliki wewenang mengoreksi uraian kegiatan seluruh pengajuan jika data presensi sudah tersedia.
+   - **Kabag Umum:** Dapat mengoreksi uraian kegiatan khusus untuk anggota **Tim Bagian Umum** (tim yang diketuainya langsung) jika data presensi tersedia. Untuk tim lain, uraian bersifat *read-only* agar tidak mengganggu alur persetujuan akhir.
+
+### B. Daftar Berkas yang Terlibat
+| No | Tipe | File | Keterangan |
+|:---:|:---:|:---|:---|
+| 1 | **Baru** | `database/migrations/2026_09_25_000001_add_user_edited_to_t_transaksi.php` | Migrasi penambahan kolom `user_edited` (`VARCHAR(100)`) dan `tanggal_edited` (`DATETIME`) pada `t_transaksi`. |
+| 2 | **Ubah** | `app/Models/Transaksi.php` | Menambahkan kolom `user_edited` dan `tanggal_edited` ke properti `$fillable`. |
+| 3 | **Ubah** | `app/Http/Controllers/ketuatim/PengajuanController.php` | Validasi input `uraian`, verifikasi presensi, dan pencatatan audit trail pada persetujuan Ketua Tim. |
+| 4 | **Ubah** | `resources/views/ketua-tim/pengajuan.blade.php` | Textarea Uraian di atas Catatan (Opsional), badge presensi, dan update DOM realtime. |
+| 5 | **Ubah** | `app/Http/Controllers/admin/PengajuanController.php` | Validasi input `uraian`, verifikasi presensi, dan pencatatan audit trail pada Admin. |
+| 6 | **Ubah** | `resources/views/admin/pengajuan.blade.php` | Textarea Uraian di atas Catatan pada modal Admin dan update DOM realtime. |
+| 7 | **Ubah** | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Deteksi Tim Bagian Umum, verifikasi presensi, dan update uraian tanpa mengganggu approval tim lain. |
+| 8 | **Ubah** | `resources/views/kabag-umum/pengajuan.blade.php` | Textarea Uraian di atas Catatan Kabag Umum (editable untuk Bagian Umum jika presensi ada, readonly untuk tim lain). |
+| 9 | **Ubah** | `app/Http/Controllers/LemburController.php` | Fitur koreksi pengajuan mandiri pegawai sebelum approval ketua tim + pencatatan audit trail `user_edited` & `tanggal_edited`. |
+| 10 | **Ubah** | `resources/views/lembur.blade.php` | Modal dan tombol koreksi pengajuan mandiri pegawai. |
+| 11 | **Ubah** | `app/Http/Controllers/admin/LemburController.php` | Pencatatan audit trail `user_edited` dan `tanggal_edited` pada method `updateUraian`. |
+
+---
+
+## 🚀 7. Panduan Deployment ke Server Produksi (*Production SOP*)
+
+Panduan langkah demi langkah untuk menerapkan (*deploy*) pembaruan sistem ke server produksi BPS Jawa Tengah.
+
+### A. Persiapan Sebelum Deploy (Komputer Lokal)
+Pastikan semua perubahan pada branch kerja telah di-commit dan di-push ke remote repository:
+```bash
+git add .
+git commit -m "feat: implementasi audit trail, koreksi uraian bersyarat presensi, dan panduan deploy"
+git push origin <nama-branch>
+```
+
+### B. Prosedur Deploy di Server Produksi (Akses SSH)
+
+1. **Masuk ke Direktori Aplikasi di Server:**
+   ```bash
+   cd /var/www/tempe-dele   # Sesuaikan dengan path direktori proyek di server
+   ```
+
+2. **Aktifkan Mode Pemeliharaan (*Maintenance Mode*) - Disarankan:**
+   ```bash
+   php artisan down --message="Sedang ada pembaruan sistem. Silakan coba beberapa saat lagi." --retry=60
+   ```
+
+3. **Tarik Kode Terbaru dari Git:**
+   ```bash
+   git fetch --all
+   git pull origin <nama-branch>   # Misal: origin/main atau origin/update-alur-lembur
+   ```
+
+4. **Jalankan Migrasi Database:**
+   ```bash
+   php artisan migrate --force
+   ```
+   > **Catatan:** Flag `--force` wajib disertakan di environment production agar migrasi berjalan otomatis tanpa konfirmasi interaktif.
+
+5. **Kompilasi Aset Frontend (Vite) - Jika Diperlukan:**
+   ```bash
+   npm run build
+   ```
+
+6. **Segarkan & Optimasi Cache Laravel:**
+   ```bash
+   php artisan optimize:clear
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
+
+7. **Pastikan Izin Folder (*Permissions*) Tetap Aman:**
+   ```bash
+   sudo chown -R www-data:www-data storage bootstrap/cache
+   sudo chmod -R 775 storage bootstrap/cache
+   ```
+
+8. **Nyalakan Kembali Aplikasi (*Live Mode*):**
+   ```bash
+   php artisan up
+   ```
+
+### C. Rencana Pembatalan (*Rollback Plan*) Jika Terjadi Kendala
+Apabila terjadi kendala tak terduga di server setelah deployment:
+```bash
+# Rollback migrasi database (menghapus kolom user_edited dan tanggal_edited)
+php artisan migrate:rollback --step=1 --force
+
+# Kembalikan commit kode ke commit sebelumnya
+git checkout HEAD~1
+
+# Segarkan cache dan nyalakan aplikasi kembali
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan up
+```
+
+---
+
+## 8. Pembaruan Kapasitas Uraian Kegiatan (*Widen Column to TEXT & Max 2.000 Karakter*)
+
+### A. Latar Belakang Masalah
+* Sebelumnya, kolom `uraian` pada tabel `t_transaksi` bertipe `VARCHAR(255)`.
+* Di controller `LemburController`, validasi membatasi `'uraian' => 'required|string|max:255'`.
+* Ketika pegawai menuliskan rincian tugas lembur dalam format poin-poin bernomor atau narasi detail, sistem menolak atau memotong input teks karena melebihi 255 karakter.
+
+### B. Solusi 3 Lapisan (*Three-Layer Solution*)
+1. **Lapisan Database (`t_transaksi`):**
+   * Mengubah tipe kolom `uraian` dari `VARCHAR(255)` menjadi **`TEXT`** (kapasitas hingga 65.535 karakter).
+   * File migrasi: `database/migrations/2026_09_25_000002_widen_uraian_column_in_t_transaksi.php`.
+   * Kueri SQL:
+     ```sql
+     ALTER TABLE t_transaksi MODIFY COLUMN uraian TEXT NULL;
+     ```
+
+2. **Lapisan Backend (Validasi Laravel):**
+   * Memasang batas keamanan dan kerapian dokumen cetak SPKL sebesar **2.000 karakter** (`max:2000`).
+   * Controller yang disesuaikan:
+     * `app/Http/Controllers/LemburController.php` (Pengajuan baru & ubah pengajuan).
+     * `app/Http/Controllers/admin/LemburController.php` (Pengajuan admin & update uraian).
+     * `app/Http/Controllers/ketuatim/PengajuanController.php` (Koreksi uraian Ketua Tim).
+     * `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` (Koreksi uraian Kabag).
+     * `app/Http/Controllers/admin/PengajuanController.php` (Koreksi uraian Admin).
+
+3. **Lapisan Frontend & UX (Tampilan Form):**
+   * **Perluasan Visual:** Textarea dinaikkan dari `rows="3"` ke `rows="4"` dengan kemampuan tarik vertikal (`resize-y`).
+   * **Live Character Counter:** Ditambahkan indikator jumlah karakter aktif (misal: `0 / 2000`) di atas textarea sehingga pengguna mengetahui batas maksimal dan panjang tulisan secara real-time.
+   * Views yang disesuaikan:
+     * `resources/views/lembur.blade.php` (Modal pengajuan & modal edit lembur).
+     * `resources/views/ketua-tim/lembur.blade.php`.
+     * `resources/views/admin/lembur.blade.php`.
+     * `resources/views/ketua-tim/pengajuan.blade.php` (Modal aksi Ketua Tim).
+     * `resources/views/admin/pengajuan.blade.php` (Modal aksi Admin).
+     * `resources/views/kabag-umum/pengajuan.blade.php` (Modal aksi Kabag Umum).
+
+---
+
+## 9. Perbaikan Bug Otorisasi Form Pengajuan Lembur Pegawai (*403 Forbidden Fix*)
+
+### A. Gejala Bug
+* Ketika pegawai biasa (role: `user`/`pegawai`) mengajukan lembur pada halaman `/lembur`, setelah tombol simpan diklik, sistem langsung memunculkan halaman error **403 | AKSES DITOLAK: ANDA TIDAK MEMILIKI WEWENANG UNTUK MENGAKSES HALAMAN INI.** di URL `/ketua-tim/lembur`, dan data pengajuan tidak tersimpan.
+
+### B. Akar Penyebab Masalah (*Root Cause*)
+1. Pada file view pegawai [resources/views/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/lembur.blade.php), atribut action formulir pengajuan tertulis:
+   `<form id="formAjukan" action="{{ route('ketua-tim.lembur.store') }}" method="POST">`
+   yang mengarahkan kiriman POST ke URL `/ketua-tim/lembur`.
+2. Di [routes/web.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/routes/web.php), grup rute dengan prefix `ketua-tim` dilindungi oleh middleware:
+   `middleware(['checksession', 'role:ketua_tim,admin,superadmin'])`.
+   Akibatnya, permohonan POST dari pegawai biasa ditolak oleh middleware sebelum kode controller dijalankan.
+3. Di [app/Http/Controllers/LemburController.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/LemburController.php), baris redirect setelah penyimpanan di-hardcode ke:
+   `return redirect()->route('ketua-tim.lembur', $params)`.
+
+### C. Solusi & Perbaikan
+1. Mengubah atribut action form pada [resources/views/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/lembur.blade.php) menjadi:
+   `<form id="formAjukan" action="{{ route('lembur.store') }}" method="POST">`
+   sehingga data dikirimkan melalui rute publik pegawai yang sah.
+2. Memperbarui logika redirect di [app/Http/Controllers/LemburController.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/LemburController.php) agar dinamis:
+   * Jika yang mengajukan adalah **Ketua Tim**: me-redirect ke `route('ketua-tim.lembur')`.
+   * Jika yang mengajukan adalah **Pegawai Biasa**: me-redirect ke `route('lembur')`.
+   * Memastikan pesan notifikasi `$message` terkirim dengan benar ke session flash message.
+
+---
+
+## 10. Validasi & Pembatasan Jam Selesai Lembur Berdasarkan Presensi Pulang Pegawai
+
+### A. Latar Belakang & Urgensi
+1. Berdasarkan regulasi kedinasan BPS dan pertanggungjawaban audit BPK/Inspektorat, hak uang lembur pegawai dibayarkan murni atas dasar **kehadiran fisik riil** di kantor yang dibuktikan melalui data presensi (*fingerprint/mesin presensi*).
+2. Jika seorang pegawai tercatat presensi kepulangan (*clock-out*) pada pukul **18:30**, maka secara logika kedinasan pegawai tersebut sudah tidak berada di tempat kerja setelah pukul 18:30.
+3. Menyetujui lembur melebihi jam kepulangan fisik (misal disetujui sampai pukul 19:00 atau 20:00) berpotensi menjadi **temuan lembur fiktif** saat audit.
+4. Meskipun sistem telah memiliki pemotongan otomatis di background saat unggah berkas presensi via `app/Traits/KoreksiLembur.php`, antarmuka modal aksi sebelumnya masih memperbolehkan pejabat memasukkan jam bebas tanpa batas.
+
+### B. Solusi & Implementasi Proteksi Ganda (Frontend & Backend)
+1. **Lapisan Database Query (Mengambil Jam Pulang Presensi):**
+   * Menambahkan subquery `jam_selesai_presensi` pada query `index` controller agar jam kepulangan fisik pegawai langsung tersedia di baris tabel:
+     ```php
+     DB::raw('(
+         SELECT DATE_FORMAT(pr.jam_selesai, "%H:%i") FROM t_presensi pr
+         WHERE pr.niplama = p.nip_lama
+         AND DATE(pr.tanggal) = t.date
+         LIMIT 1
+     ) as jam_selesai_presensi')
+     ```
+   * Berkas:
+     * `app/Http/Controllers/ketuatim/PengajuanController.php`
+     * `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`
+     * `app/Http/Controllers/admin/PengajuanController.php`
+
+2. **Lapisan Validasi Backend (Pencegahan Mutlak di Sisi Server):**
+   * Pada saat persetujuan/koreksi jam lembur, controller mengecek rekaman `t_presensi` pegawai pada tanggal terkait.
+   * Jika data presensi tersedia dan `jam_selesai_disetujui > presensi->jam_selesai`, permohonan ditolak dengan HTTP Status 422:
+     > *"Jam selesai disetujui (19:00) tidak boleh melebihi jam kepulangan presensi pegawai (18:30)."*
+   * Berkas:
+     * `app/Http/Controllers/ketuatim/PengajuanController.php` (method `approve`)
+     * `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` (method `approve`)
+     * `app/Http/Controllers/admin/PengajuanController.php` (method `approve`)
+
+3. **Lapisan Frontend & User Experience (Modal Aksi Keputusan):**
+   * Nilai `jam_selesai_presensi` dioper ke dalam fungsi JavaScript pembuka modal (`openModalKeputusan` / `openModalKabag`).
+   * Jika data presensi ada:
+     * Input `<input type="time">` jam selesai otomatis diberikan atribut batas: `max="HH:mm"` sesuai jam kepulangan presensi.
+     * Ditampilkan teks bantuan informatif di bawah input jam:
+       *📌 "Maksimal jam selesai: 18:30 (sesuai presensi pulang)"*.
+   * Validasi JavaScript di sisi klien (`simpanKeputusan` / `simpanKeputusanKabag`) mendeteksi dan mencegah submit form jika pengguna memaksakan nilai di atas jam pulang presensi.
+   * Berkas:
+     * `resources/views/ketua-tim/pengajuan.blade.php`
+     * `resources/views/kabag-umum/pengajuan.blade.php`
+     * `resources/views/admin/pengajuan.blade.php`
+
+---
+
+## 11. Penyesuaian Nilai Default Jam Disetujui Pada Modal Persetujuan (Default Mengikuti Jam Pengajuan, Presensi Sebagai Batas Maksimal)
+
+### A. Latar Belakang Masalah
+1. Sebelumnya pada modal aksi persetujuan lembur (*"Keputusan Lembur"*), input **Jam Selesai Disetujui** sempat otomatis terisi default dengan jam kepulangan presensi pegawai (misalnya: `20:30`), meskipun pegawai bersangkutan hanya mengajukan lembur sampai pukul `20:00`.
+2. Hal ini disebabkan oleh dua faktor:
+   - Logika background pada `app/Traits/KoreksiLembur.php` dan `app/Http/Controllers/LemburController.php` method `koreksiDariPresensi()` sebelumnya langsung mengisi `jam_selesai_disetujui = min(jam_selesai_presensi, batas_maksimal_4_atau_6_jam)` tanpa mempertimbangkan jam selesai yang diajukan oleh pegawai (`jam_selesai`).
+   - Tampilan modal persetujuan pada Blade mengutamakan nilai kolom `jam_selesai_disetujui` jika tidak kosong, sehingga nilai hasil presensi otomatis tersebut masuk ke dalam input form persetujuan.
+3. Dampak Masalah:
+   - Jam lembur yang disetujui tidak boleh memperluas jam yang diajukan oleh pegawai sendiri. Jika pegawai hanya mengajukan sampai pukul 20:00, maka persetujuan tidak boleh otomatis dinaikkan ke 20:30 hanya karena pegawai pulang jam 20:30.
+   - Jam kepulangan fisik presensi (`20:30`) secara aturan hanya berfungsi sebagai **batas atas/maksimal (*upper bound/ceiling limit*)**, bukan sebagai nilai bawaan (*default value*).
+
+### B. Solusi & Perbaikan
+1. **Frontend Modal Persetujuan (`resources/views/ketua-tim/pengajuan.blade.php` & `resources/views/kabag-umum/pengajuan.blade.php`):**
+   * Untuk transaksi yang berstatus `pending` atau belum memiliki jam persetujuan manual, nilai default input form `Jam Mulai Disetujui` dan `Jam Selesai Disetujui` **wajib** mengambil murni dari jam yang diajukan pegawai (`jam_mulai` dan `jam_selesai`).
+   * Jam presensi kepulangan (`jam_selesai_presensi`, misal `20:30`) tetap dikirimkan ke JavaScript modal untuk:
+     - Mengisi atribut pembatas: `max="20:30"`.
+     - Menampilkan teks petunjuk informasi di bawah input: *📌 "Maksimal jam selesai: 20:30 (sesuai presensi pulang)"*.
+   * Input value tidak lagi tertimpa oleh jam kepulangan presensi. Pejabat yang menyetujui akan melihat default jam sesuai pengajuan pegawai (`20:00`), dan hanya dapat menggeser/mengurangi waktu atau maksimal mentok di `20:30`.
+
+2. **Backend Logic & Perhitungan Koreksi Presensi (`app/Traits/KoreksiLembur.php` & `app/Http/Controllers/LemburController.php`):**
+   * Menambahkan pembatasan `$batasAtas` yang memperhitungkan jam selesai pengajuan pegawai:
+     ```php
+     $jamSelesaiPengajuan = Carbon::parse($transaksi->date . ' ' . $transaksi->jam_selesai);
+     if ($jamSelesaiPengajuan->lessThan($jamMulaiPengajuan)) {
+         $jamSelesaiPengajuan->addDay();
+     }
+
+     // Batas atas adalah nilai terkecil antara batas maksimal durasi (4/6 jam) dan jam selesai pengajuan
+     $batasAtas = $jamSelesaiPengajuan->lessThan($batasMaksimal)
+         ? $jamSelesaiPengajuan
+         : $batasMaksimal;
+
+     // Jam selesai final dibatasi oleh batasAtas dan jam kepulangan fisik presensi
+     $jamSelesaiFinal = $jamSelesaiPresensi->lessThan($batasAtas)
+         ? $jamSelesaiPresensi
+         : $batasAtas;
+     ```
+   * Dengan logika ini, sistem di background tidak akan pernah mendongkrak jam selesai disetujui melebihi waktu yang diajukan pegawai.
+
+---
+
+## 12. Audit & Perbaikan Sinkronisasi Dashboard Ketua Tim Terhadap Alur Persetujuan Bertingkat
+
+### A. Latar Belakang Masalah
+1. Setelah diterapkannya alur persetujuan bertingkat (*multi-tier approval*), pengajuan anggota tim yang disetujui oleh Ketua Tim memiliki status antara `menunggu_kabag` sebelum nantinya menjadi `approved` (Disetujui Final oleh Kabag Umum).
+2. Pada halaman Dashboard Ketua Tim sebelumnya terdapat inkonsistensi:
+   - **Badge Kosong pada Tabel Pengajuan:** Pada tabel ringkasan pengajuan terbaru di `resources/views/ketua-tim/dashboard.blade.php`, kondisi status hanya membaca `pending`, `approved`, dan `rejected`. Pengajuan dengan status `menunggu_kabag` tampil tanpa badge (kosong).
+   - **Metrik Card Disetujui Tidak Akurat:** Pada `DashboardController.php`, kartu metrik "Disetujui" hanya menghitung `where('status', 'approved')`. Akibatnya, pengajuan yang baru saja disetujui oleh ketua tim hilang dari kartu "Diproses" namun belum muncul di kartu "Disetujui" (karena masih berstatus `menunggu_kabag`).
+   - **Pencegahan Jam pada Quick Approve Dashboard:** Fungsi quick-approve dari modal dashboard (`DashboardController@approve`) belum memiliki pembatasan terhadap jam kepulangan presensi fisik pegawai.
+
+### B. Solusi & Perbaikan
+1. **Pembaruan Tampilan Dashboard (`resources/views/ketua-tim/dashboard.blade.php`):**
+   * Menambahkan badge biru **Menunggu Kabag** pada tabel pengajuan:
+     ```blade
+     @elseif ($p->status === 'menunggu_kabag')
+         <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600">Menunggu Kabag</span>
+     ```
+2. **Pembaruan Metrik & Query (`app/Http/Controllers/ketuatim/DashboardController.php`):**
+   * Metrik "Disetujui" kini menghitung seluruh pengajuan yang telah disetujui oleh ketua tim maupun kabag (`whereIn('status', ['approved', 'menunggu_kabag'])`), sehingga total pengajuan bulan berjalan selalu sinkron dengan rincian kartu.
+   * Query widget "Lembur Hari Ini" menampilkan pegawai yang lemburnya telah disetujui oleh ketua tim (`whereIn('t.status', ['approved', 'menunggu_kabag'])`).
+
+---
+
+## 13. Audit & Penyempurnaan Alur Persetujuan Kepala Bagian Umum (*Kabag Umum Approval*)
+
+### A. Latar Belakang Masalah
+1. Pada proses persetujuan dan penolakan oleh Kepala Bagian Umum di `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`:
+   - Jika permohonan lembur ditolak oleh Kabag Umum (`status = 'rejected'`), kolom `jam_mulai_disetujui` dan `jam_selesai_disetujui` bawaan dari persetujuan Ketua Tim sebelumnya belum otomatis di-reset menjadi `NULL`. Akibatnya, pada tampilan baris tabel masih memunculkan jam disetujui padahal statusnya telah berubah menjadi Ditolak.
+   - Pada `resources/views/kabag-umum/pengajuan.blade.php`, setelah Kabag Umum menyimpan keputusan via AJAX, tombol aksi pada baris tabel bersangkutan masih berlabel *"Proses"* (tombol oranye) dan parameter modal belum diperbarui. Jika pengguna mengklik kembali tanpa me-refresh halaman, modal akan terbuka dengan status lama bukannya status terkunci (*locked state*).
+
+### B. Solusi & Perbaikan
+1. **Pembersihan Jam Lembur Saat Ditolak (`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`):**
+   * Jika status keputusan akhir adalah `rejected`, sistem secara otomatis mengosongkan nilai `jam_mulai_disetujui` dan `jam_selesai_disetujui` menjadi `NULL`.
+   * Respon JSON diperkaya dengan atribut `status`, `jam_mulai_disetujui`, `jam_selesai_disetujui`, dan `note_kabag` agar frontend dapat memperbarui DOM secara presisi.
+2. **Pembaruan DOM Realtime Tanpa Reload (`resources/views/kabag-umum/pengajuan.blade.php`):**
+   * Menambahkan identitas elemen `id="aksi-kabag-{{ $p->id_transaksi }}"` pada kolom aksi tabel.
+   * Pada fungsi JavaScript `simpanKeputusanKabag`:
+     - Kolom **Jam Disetujui** otomatis berubah menjadi tanda strip (`-`) jika ditolak, atau menampilkan rentang jam disetujui jika disetujui.
+     - Tombol aksi otomatis bertransformasi dari tombol *"Proses"* menjadi tombol *"Koreksi"* dengan parameter status dan nilai terbaru, sehingga klik berikutnya akan langsung membuka modal dalam kondisi status terkunci (*locked state*).
+     - Catatan Kabag Umum dan uraian kegiatan langsung ter-update di layar tanpa perlu melakukan muat ulang (*reload*) halaman.
+
+---
+
+## 14. Audit Menyeluruh & Penyempurnaan Integrasi Fitur Admin (Dashboard, Quick Approval, & Pengajuan Satker-Wide)
+
+### A. Latar Belakang & Analisis Bug Tersembunyi
+1. **Misrouting Rute Admin Approval:**
+   - Sebelumnya, rute `POST /admin/pengajuan/{id}/approve` salah mengarah ke `AdminLemburController::approve`. Controller tersebut merupakan *legacy stub* yang tidak memiliki validasi presensi, tidak mendukung pengubahan uraian kegiatan, dan tidak mencatat audit trail `user_edited` / `tanggal_edited`.
+   - Seharusnya rute tersebut mengarah ke `AdminPengajuanController::approve` yang memiliki logika validasi presensi dan audit trail yang lengkap.
+2. **Crash Potensial pada Quick-Approve Dashboard Admin:**
+   - Rute `POST /admin/transaksi/{id}/approve` di `routes/web.php` sebelumnya diarahkan ke `AdminLemburController::quickApprove`.
+   - Namun, method `quickApprove` sama sekali tidak didefinisikan pada `app/Http/Controllers/admin/LemburController.php`, melainkan method `approve` sudah ada di `app/Http/Controllers/admin/DashboardController.php`. Jika admin menekan tombol *"✓ Setujui"* pada modal quick-approve di dashboard, sistem akan mengalami *fatal error*: `Method App\Http\Controllers\admin\LemburController::quickApprove does not exist`.
+3. **Inkonsistensi Status & Metrik Dashboard:**
+   - Kartu metrik "Diproses" di Admin Dashboard sebelumnya hanya menghitung `status = 'pending'`. Dalam alur bertingkat, pengajuan yang berstatus `menunggu_kabag` adalah pengajuan yang sedang dalam proses berjalan (menunggu persetujuan akhir Kabag), sehingga harus dihitung ke dalam metrik "Diproses".
+   - Pada tabel "Lembur Hari Ini" di Dashboard Admin, penanganan badge untuk `status = 'menunggu_kabag'` belum tersedia sehingga kolom status tampil kosong tanpa badge.
+   - Pada modal daftar pengajuan pending di dashboard (`getPending()`), pengajuan berstatus `menunggu_kabag` sebelumnya belum terangkum.
+4. **Alur Persetujuan & Penolakan pada Admin Pengajuan (`AdminPengajuanController`):**
+   - Ketika Admin menolak pengajuan (`status = 'rejected'`), kolom `jam_mulai_disetujui` dan `jam_selesai_disetujui` belum di-reset ke `NULL`.
+   - Ketika Admin menyetujui pengajuan, status menjadi `approved` (Disetujui Final), sehingga cap waktu `approved_kabag_at` wajib diisi bersamaan dengan `approved_at` agar konsisten dengan status persetujuan akhir satker.
+   - Pada tabel pengajuan Admin (`resources/views/admin/pengajuan.blade.php`), baris dengan status `menunggu_kabag`, `approved`, dan `rejected` sebelumnya tidak memiliki tombol aksi/koreksi, sehingga Admin tidak dapat melakukan koreksi jam atau menyetujui pengajuan yang sedang menunggu Kabag.
+
+### B. Solusi & Perbaikan Komprehensif
+1. **Perbaikan Pemetaan Rute (`routes/web.php`):**
+   - Rute `admin.pengajuan.approve`: diarahkan ke `[AdminPengajuanController::class, 'approve']`.
+   - Rute `admin.dashboard.approve`: diarahkan ke `[AdminDashboardController::class, 'approve']`.
+2. **Penyempurnaan Dashboard Controller (`app/Http/Controllers/admin/DashboardController.php`):**
+   - Metrik `diproses` pada kartu statistik menghitung `whereIn('status', ['pending', 'menunggu_kabag'])`.
+   - Method `getPending()` menyertakan transaksi berstatus `pending` dan `menunggu_kabag`.
+   - Method `approve($id)` dilengkapi dengan:
+     - Pembatasan jam kepulangan fisik berdasarkan data presensi pegawai di `t_presensi`.
+     - Pengisian `approved_kabag_at = now()` dan `approved_at = now()->toDateString()`.
+     - Pencatatan jejak audit: `user_edited` dan `tanggal_edited`.
+3. **Penyempurnaan Tampilan Dashboard Admin (`resources/views/admin/dashboard.blade.php`):**
+   - Menambahkan badge biru **Menunggu Kabag** pada tabel "Lembur Hari Ini".
+   - Menambahkan tag indikator `(Menunggu Kabag)` pada daftar modal quick-approve agar Admin mengetahui posisi persetujuan pengajuan.
+4. **Penyempurnaan Admin Pengajuan Controller (`app/Http/Controllers/admin/PengajuanController.php`):**
+   - Validasi `jam_mulai_disetujui` dan `jam_selesai_disetujui` bersifat `nullable` saat penolakan (`rejected`), dan wajib diisi saat persetujuan (`approved`).
+   - Saat status `rejected`: `jam_mulai_disetujui = null`, `jam_selesai_disetujui = null`, `approved_kabag_at = null`.
+   - Saat status `approved`: jam lembur divalidasi tidak boleh melebihi jam kepulangan presensi riil pegawai (`t_presensi`), serta mengisi `approved_kabag_at = now()`.
+   - Pencatatan jejak audit `user_edited` dan `tanggal_edited` terintegrasi pada setiap tindakan persetujuan dan pengubahan uraian.
+5. **Penyempurnaan View Pengajuan Admin (`resources/views/admin/pengajuan.blade.php`):**
+   - Menambahkan tombol aksi/koreksi pada semua status (`pending`, `menunggu_kabag`, `approved`, dan `rejected`).
+   - Admin dapat langsung menyetujui atau mengoreksi pengajuan yang berstatus `menunggu_kabag`.
+   - Fungsi JavaScript `openModalKeputusan` mendukung parameter `initialStatus` untuk mempermudah pemilihan keputusan.
+   - Fungsi JavaScript `simpanKeputusan` memperbarui baris tabel, badge status, dan teks jam disetujui (menjadi `-` jika ditolak) secara realtime tanpa perlu reload halaman.
+
+
+
+
+
+
+
+
+
 

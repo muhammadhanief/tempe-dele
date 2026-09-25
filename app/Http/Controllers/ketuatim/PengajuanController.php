@@ -61,7 +61,13 @@ class PengajuanController extends Controller
                     SELECT 1 FROM t_presensi pr
                     WHERE pr.niplama = p.nip_lama
                     AND DATE(pr.tanggal) = t.date
-                ) as has_presensi')
+                ) as has_presensi'),
+                DB::raw('(
+                    SELECT DATE_FORMAT(pr.jam_selesai, "%H:%i") FROM t_presensi pr
+                    WHERE pr.niplama = p.nip_lama
+                    AND DATE(pr.tanggal) = t.date
+                    LIMIT 1
+                ) as jam_selesai_presensi')
             ])
             ->whereYear('t.date', $periode->year)
             ->whereMonth('t.date', $periode->month);
@@ -102,10 +108,13 @@ class PengajuanController extends Controller
             'jam_selesai_disetujui' => 'nullable',
             'status'                => 'required|in:approved,rejected,menunggu_kabag',
             'note'                  => 'nullable|string',
+            'uraian'                => 'nullable|string|max:2000',
         ]);
 
-        $transaksi = DB::table('t_transaksi')
-            ->where('id_transaksi', $id)
+        $transaksi = DB::table('t_transaksi as t')
+            ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
+            ->where('t.id_transaksi', $id)
+            ->select('t.*', 'p.nip_lama')
             ->first();
 
         if (!$transaksi) {
@@ -187,6 +196,25 @@ class PengajuanController extends Controller
                     $jamSelesaiDisetujui->addDay();
                 }
 
+                // Validasi: Jam selesai disetujui tidak boleh melebihi jam kepulangan presensi (jika data presensi tersedia)
+                $presensi = DB::table('t_presensi')
+                    ->where('niplama', $transaksi->nip_lama)
+                    ->whereDate('tanggal', $transaksi->date)
+                    ->first();
+
+                if ($presensi && $presensi->jam_selesai) {
+                    $jamSelesaiPresensi = Carbon::parse($transaksi->date . ' ' . Carbon::parse($presensi->jam_selesai)->format('H:i:s'));
+                    if ($jamSelesaiPresensi->lessThan($jamMulaiDisetujui)) {
+                        $jamSelesaiPresensi->addDay();
+                    }
+                    if ($jamSelesaiDisetujui->greaterThan($jamSelesaiPresensi)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Jam selesai disetujui (' . $jamSelesaiDisetujui->format('H:i') . ') tidak boleh melebihi jam kepulangan presensi pegawai (' . $jamSelesaiPresensi->format('H:i') . ').'
+                        ], 422);
+                    }
+                }
+
                 $updateData['jam_mulai_disetujui']   = $jamMulaiDisetujui->format('H:i:s');
                 $updateData['jam_selesai_disetujui'] = $jamSelesaiDisetujui->format('H:i:s');
             }
@@ -200,6 +228,25 @@ class PengajuanController extends Controller
             } elseif ($finalStatus === 'approved' && ($isTimBagianUmum || $isApproverKabag) && empty($transaksi->approved_kabag_at)) {
                 $updateData['approved_kabag_at'] = now();
             }
+        }
+
+        // Cek pengubahan uraian kegiatan (syarat: presensi sudah ada)
+        if ($request->filled('uraian') && trim($request->uraian) !== trim($transaksi->uraian ?? '')) {
+            $hasPresensi = DB::table('t_presensi')
+                ->where('niplama', $transaksi->nip_lama)
+                ->whereDate('tanggal', $transaksi->date)
+                ->exists();
+
+            if (!$hasPresensi) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Uraian kegiatan hanya dapat diubah jika data presensi pegawai sudah tersedia.'
+                ], 422);
+            }
+
+            $updateData['uraian'] = trim($request->uraian);
+            $updateData['user_edited'] = session('user')['nama'] ?? session('user')['nip'];
+            $updateData['tanggal_edited'] = now();
         }
 
         DB::table('t_transaksi')->where('id_transaksi', $id)->update($updateData);
@@ -218,6 +265,7 @@ class PengajuanController extends Controller
             'jam_mulai_disetujui'   => $jamMulaiResp,
             'jam_selesai_disetujui' => $jamSelesaiResp,
             'note'                  => $noteKetua,
+            'uraian'                => $updateData['uraian'] ?? $transaksi->uraian,
             'message'               => $finalStatus === 'menunggu_kabag' 
                 ? 'Pengajuan berhasil disetujui Ketua Tim dan diteruskan ke Kabag Umum' 
                 : ($finalStatus === 'approved' ? 'Pengajuan berhasil disetujui' : 'Pengajuan berhasil ditolak')

@@ -43,8 +43,15 @@ trait KoreksiLembur
 
             if ($jamSelesaiPresensi->lessThan($jamMulai)) $jamSelesaiPresensi->addDay();
 
-            $jamSelesaiFinal = $jamSelesaiPresensi->lessThan($batasMaksimal)
-                ? $jamSelesaiPresensi : $batasMaksimal;
+            // Jam lembur disetujui tidak boleh melebihi jam yang diajukan
+            $jamSelesaiPengajuan = Carbon::parse($transaksi->date . ' ' . $transaksi->jam_selesai);
+            if ($jamSelesaiPengajuan->lessThan($jamMulai)) $jamSelesaiPengajuan->addDay();
+
+            $batasAtas = $jamSelesaiPengajuan->lessThan($batasMaksimal)
+                ? $jamSelesaiPengajuan : $batasMaksimal;
+
+            $jamSelesaiFinal = $jamSelesaiPresensi->lessThan($batasAtas)
+                ? $jamSelesaiPresensi : $batasAtas;
 
             $durasi = $jamMulai->diffInHours($jamSelesaiFinal);
 

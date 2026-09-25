@@ -84,7 +84,13 @@ class KabagUmumPengajuanController extends Controller
                     SELECT 1 FROM t_presensi pr
                     WHERE pr.niplama = p.nip_lama
                     AND DATE(pr.tanggal) = t.date
-                ) as has_presensi')
+                ) as has_presensi'),
+                DB::raw('(
+                    SELECT DATE_FORMAT(pr.jam_selesai, "%H:%i") FROM t_presensi pr
+                    WHERE pr.niplama = p.nip_lama
+                    AND DATE(pr.tanggal) = t.date
+                    LIMIT 1
+                ) as jam_selesai_presensi')
             ])
             ->whereYear('t.date', $periode->year)
             ->whereMonth('t.date', $periode->month);
@@ -141,9 +147,15 @@ class KabagUmumPengajuanController extends Controller
             'jam_mulai_disetujui'   => 'nullable',
             'jam_selesai_disetujui' => 'nullable',
             'note_kabag'            => 'nullable|string',
+            'uraian'                => 'nullable|string|max:2000',
         ]);
 
-        $transaksi = DB::table('t_transaksi')->where('id_transaksi', $id)->first();
+        $transaksi = DB::table('t_transaksi as t')
+            ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
+            ->where('t.id_transaksi', $id)
+            ->select('t.*', 'p.nip_lama')
+            ->first();
+
         if (!$transaksi) {
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
         }
@@ -196,15 +208,79 @@ class KabagUmumPengajuanController extends Controller
                 if (isset($dtMulai) && $dtSelesai->lessThan($dtMulai)) {
                     $dtSelesai->addDay();
                 }
+
+                // Validasi: Jam selesai disetujui tidak boleh melebihi jam kepulangan presensi (jika data presensi tersedia)
+                $presensi = DB::table('t_presensi')
+                    ->where('niplama', $transaksi->nip_lama)
+                    ->whereDate('tanggal', $transaksi->date)
+                    ->first();
+
+                if ($presensi && $presensi->jam_selesai) {
+                    $jamSelesaiPresensi = Carbon::parse($transaksi->date . ' ' . Carbon::parse($presensi->jam_selesai)->format('H:i:s'));
+                    if (isset($dtMulai) && $jamSelesaiPresensi->lessThan($dtMulai)) {
+                        $jamSelesaiPresensi->addDay();
+                    }
+                    if ($dtSelesai->greaterThan($jamSelesaiPresensi)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Jam selesai disetujui (' . $dtSelesai->format('H:i') . ') tidak boleh melebihi jam kepulangan presensi pegawai (' . $jamSelesaiPresensi->format('H:i') . ').'
+                        ], 422);
+                    }
+                }
+
                 $updateData['jam_selesai_disetujui'] = $dtSelesai->format('H:i:s');
+            }
+        } else {
+            $updateData['jam_mulai_disetujui']   = null;
+            $updateData['jam_selesai_disetujui'] = null;
+        }
+
+        // Cek apakah pengajuan dari Tim Bagian Umum
+        $isTimBagianUmum = false;
+        if (!empty($transaksi->tim_kode_tim)) {
+            $tim = DB::table('m_tim')->where('kode_tim', $transaksi->tim_kode_tim)->first();
+            if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
+                $isTimBagianUmum = true;
+            }
+        }
+
+        // Cek pengubahan uraian kegiatan (khusus untuk tim Bagian Umum & syarat presensi sudah ada)
+        if ($request->filled('uraian') && trim($request->uraian) !== trim($transaksi->uraian ?? '')) {
+            $hasPresensi = DB::table('t_presensi')
+                ->where('niplama', $transaksi->nip_lama)
+                ->whereDate('tanggal', $transaksi->date)
+                ->exists();
+
+            if ($isTimBagianUmum && $hasPresensi) {
+                $updateData['uraian'] = trim($request->uraian);
+                $updateData['user_edited'] = session('user')['nama'] ?? session('user')['nip'];
+                $updateData['tanggal_edited'] = now();
             }
         }
 
         DB::table('t_transaksi')->where('id_transaksi', $id)->update($updateData);
 
+        $jamMulaiResp = isset($updateData['jam_mulai_disetujui']) && $updateData['jam_mulai_disetujui']
+            ? substr($updateData['jam_mulai_disetujui'], 0, 5)
+            : ($transaksi->jam_mulai_disetujui ? substr($transaksi->jam_mulai_disetujui, 0, 5) : null);
+
+        $jamSelesaiResp = isset($updateData['jam_selesai_disetujui']) && $updateData['jam_selesai_disetujui']
+            ? substr($updateData['jam_selesai_disetujui'], 0, 5)
+            : ($transaksi->jam_selesai_disetujui ? substr($transaksi->jam_selesai_disetujui, 0, 5) : null);
+
+        if ($finalStatus === 'rejected') {
+            $jamMulaiResp = null;
+            $jamSelesaiResp = null;
+        }
+
         return response()->json([
-            'success' => true,
-            'message' => $request->status === 'approved' 
+            'success'               => true,
+            'status'                => $finalStatus,
+            'jam_mulai_disetujui'   => $jamMulaiResp,
+            'jam_selesai_disetujui' => $jamSelesaiResp,
+            'note_kabag'            => $noteKabag,
+            'uraian'                => $updateData['uraian'] ?? $transaksi->uraian,
+            'message'               => $finalStatus === 'approved' 
                 ? 'Pengajuan lembur berhasil disetujui (Final).' 
                 : 'Pengajuan lembur berhasil ditolak.'
         ]);

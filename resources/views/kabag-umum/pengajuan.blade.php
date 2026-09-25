@@ -172,8 +172,22 @@
             <tbody class="divide-y divide-gray-100" id="tabelPengajuan">
                 @forelse($pengajuan as $i => $p)
                     @php
-                        $jamMulaiDef = $p->jam_mulai_disetujui ? substr($p->jam_mulai_disetujui, 0, 5) : ($p->jam_mulai ? substr($p->jam_mulai, 0, 5) : '16:00');
-                        $jamSelesaiDef = $p->jam_selesai_disetujui ? substr($p->jam_selesai_disetujui, 0, 5) : ($p->jam_selesai ? substr($p->jam_selesai, 0, 5) : '18:00');
+                        $jamPengajuanMulai = $p->jam_mulai ? substr($p->jam_mulai, 0, 5) : '16:00';
+                        $jamPengajuanSelesai = $p->jam_selesai ? substr($p->jam_selesai, 0, 5) : '18:00';
+
+                        $jamMulaiDef = ($p->status === 'pending' || empty($p->jam_mulai_disetujui))
+                            ? $jamPengajuanMulai
+                            : substr($p->jam_mulai_disetujui, 0, 5);
+
+                        $jamSelesaiDef = ($p->status === 'pending' || empty($p->jam_selesai_disetujui))
+                            ? $jamPengajuanSelesai
+                            : substr($p->jam_selesai_disetujui, 0, 5);
+
+                        if ($p->jam_selesai && $jamSelesaiDef > $jamPengajuanSelesai) {
+                            $jamSelesaiDef = $jamPengajuanSelesai;
+                        }
+
+                        $isBagianUmum = !empty($p->nama_tim) && (str_contains(strtolower($p->nama_tim), 'bagian umum') || ($p->tim_kode_tim ?? '') === 'QrBzgE3O3lEqVPjy');
                     @endphp
                     <tr class="bg-white transition-colors hover:bg-slate-50/80"
                         data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . $p->nama_tim) }}">
@@ -201,7 +215,7 @@
                         </td>
 
                         <td class="px-1.5 py-2.5 text-center text-xs text-gray-900 whitespace-nowrap font-mono font-semibold" id="jam-disetujui-{{ $p->id_transaksi }}">
-                            @if($p->jam_mulai_disetujui && $p->jam_selesai_disetujui)
+                            @if($p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')
                                 {{ substr($p->jam_mulai_disetujui, 0, 5) }} - {{ substr($p->jam_selesai_disetujui, 0, 5) }}
                             @else
                                 <span class="text-gray-400 font-normal">-</span>
@@ -209,7 +223,7 @@
                         </td>
 
                         <td class="px-2.5 py-2.5 text-xs text-gray-700">
-                            <div class="max-w-[170px] break-words line-clamp-2" title="{{ $p->uraian ?? '' }}">
+                            <div class="max-w-[170px] break-words line-clamp-2" title="{{ $p->uraian ?? '' }}" id="uraian-display-{{ $p->id_transaksi }}">
                                 {{ $p->uraian ?? '-' }}
                             </div>
                         </td>
@@ -218,7 +232,7 @@
                             <div class="space-y-1 max-w-[150px]">
                                 @if(!empty($p->note))
                                     <div>
-                                        <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-slate-500">Ketua Tim:</span>
+                                         <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-slate-500">Ketua Tim:</span>
                                         <div class="text-[11px] text-slate-700 break-words italic">{{ $p->note }}</div>
                                     </div>
                                 @endif
@@ -256,10 +270,10 @@
                             @endif
                         </td>
 
-                        <td class="px-2 py-2.5 text-center">
+                        <td class="px-2 py-2.5 text-center" id="aksi-kabag-{{ $p->id_transaksi }}">
                             @if($p->status === 'menunggu_kabag')
                                 <button type="button"
-                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', '{{ addslashes($p->note ?? '') }}', '{{ addslashes($p->note_kabag ?? '') }}', '{{ $p->status }}')"
+                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->note_kabag ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $isBagianUmum ? 1 : 0 }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}')"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -268,7 +282,7 @@
                                 </button>
                             @elseif(in_array($p->status, ['approved', 'rejected']))
                                 <button type="button"
-                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', '{{ addslashes($p->note ?? '') }}', '{{ addslashes($p->note_kabag ?? '') }}', '{{ $p->status }}')"
+                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->note_kabag ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $isBagianUmum ? 1 : 0 }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}')"
                                     class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
@@ -370,7 +384,35 @@
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Jam Selesai Disetujui</label>
                         <input id="mJamSelesai" type="time"
                             class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none">
+                        <p id="mJamSelesaiPresensiHint" class="mt-1 hidden flex items-center gap-1 text-[11px] text-blue-700 font-medium">
+                            <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Maksimal jam selesai: <strong id="mJamSelesaiPresensiVal">-</strong> (sesuai presensi pulang)</span>
+                        </p>
                     </div>
+                </div>
+
+                {{-- Uraian Kegiatan (Di atas Catatan Kabag Umum) --}}
+                <div>
+                    <div class="mb-1 flex items-center justify-between">
+                        <label class="block text-xs font-semibold text-gray-700">
+                            Uraian Kegiatan
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <span id="mUraianCount" class="text-[10px] text-gray-400">0 / 2000</span>
+                            <span id="mUraianBadge" class="rounded-full px-2 py-0.5 text-[10px] font-medium"></span>
+                        </div>
+                    </div>
+                    <textarea id="mUraian" rows="4" maxlength="2000"
+                        class="w-full resize-y rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none transition-all"
+                        placeholder="Uraian kegiatan lembur..."></textarea>
+                    <p id="mUraianHint" class="mt-1 hidden flex items-center gap-1 text-[11px] text-amber-700">
+                        <svg class="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="mUraianHintText"></span>
+                    </p>
                 </div>
 
                 {{-- Catatan Kabag Umum --}}
@@ -446,18 +488,77 @@
 let currentKabagId = null;
 let selectedKeputusanKabag = 'approved';
 let isStatusLocked = false;
+let currentUraianKabag = '';
+let currentIsBagianUmum = false;
+let currentHasPresensiKabag = false;
+let currentJamSelesaiPresensiKabag = '';
 
 // =====================
 // MODAL KEPUTUSAN KABAG
 // =====================
-window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua, noteKabag, currentStatus) {
+window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua, noteKabag, currentStatus, uraian, isBagianUmum, hasPresensi, jamSelesaiPresensi) {
     currentKabagId = id;
+    currentUraianKabag = (uraian !== undefined && uraian !== null) ? uraian : '';
+    currentIsBagianUmum = Boolean(isBagianUmum);
+    currentHasPresensiKabag = Boolean(hasPresensi);
+    currentJamSelesaiPresensiKabag = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
+
+    const elJamMulai = document.getElementById('mJamMulai');
+    const elJamSelesai = document.getElementById('mJamSelesai');
+    const elPresensiHint = document.getElementById('mJamSelesaiPresensiHint');
+    const elPresensiVal = document.getElementById('mJamSelesaiPresensiVal');
 
     document.getElementById('mNamaPegawai').textContent = nama;
     document.getElementById('mNamaTim').textContent = tim;
-    document.getElementById('mJamMulai').value = jamMulai || '';
-    document.getElementById('mJamSelesai').value = jamSelesai || '';
+    elJamMulai.value = jamMulai || '';
+    elJamSelesai.value = jamSelesai || '';
     document.getElementById('mNoteKabag').value = noteKabag || '';
+
+    if (currentJamSelesaiPresensiKabag) {
+        elJamSelesai.setAttribute('max', currentJamSelesaiPresensiKabag);
+        if (elPresensiHint && elPresensiVal) {
+            elPresensiVal.textContent = currentJamSelesaiPresensiKabag;
+            elPresensiHint.classList.remove('hidden');
+        }
+    } else {
+        elJamSelesai.removeAttribute('max');
+        if (elPresensiHint) {
+            elPresensiHint.classList.add('hidden');
+        }
+    }
+
+    const elUraian = document.getElementById('mUraian');
+    const elUraianBadge = document.getElementById('mUraianBadge');
+    const elUraianHint = document.getElementById('mUraianHint');
+    const elUraianHintText = document.getElementById('mUraianHintText');
+
+    elUraian.value = currentUraianKabag;
+    const elUraianCount = document.getElementById('mUraianCount');
+    if (elUraianCount) elUraianCount.textContent = `${currentUraianKabag.length} / 2000`;
+
+    if (currentIsBagianUmum) {
+        if (currentHasPresensiKabag) {
+            elUraian.readOnly = false;
+            elUraian.className = 'w-full resize-y rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none transition-all';
+            elUraianBadge.textContent = 'Tim Bagian Umum (Dapat Diedit)';
+            elUraianBadge.className = 'rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 border border-emerald-200';
+            elUraianHint.classList.add('hidden');
+        } else {
+            elUraian.readOnly = true;
+            elUraian.className = 'w-full resize-y rounded-xl border border-gray-200 bg-gray-50 text-gray-500 px-3 py-2 text-sm outline-none cursor-not-allowed';
+            elUraianBadge.textContent = 'Presensi Belum Ada';
+            elUraianBadge.className = 'rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 border border-amber-200';
+            elUraianHintText.textContent = 'Uraian tidak dapat diedit karena data presensi belum tersedia.';
+            elUraianHint.classList.remove('hidden');
+        }
+    } else {
+        elUraian.readOnly = true;
+        elUraian.className = 'w-full resize-y rounded-xl border border-gray-200 bg-gray-50 text-gray-500 px-3 py-2 text-sm outline-none cursor-not-allowed';
+        elUraianBadge.textContent = 'Hanya Baca (Tim Lain)';
+        elUraianBadge.className = 'rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 border border-slate-200';
+        elUraianHintText.textContent = 'Uraian kegiatan tim lain hanya dapat diubah oleh Ketua Tim terkait.';
+        elUraianHint.classList.remove('hidden');
+    }
 
     const noteKetuaEl = document.getElementById('mNoteKetua');
     const wrapperKetua = document.getElementById('mWrapperNoteKetua');
@@ -525,6 +626,10 @@ window.closeModalKabag = function() {
     document.body.classList.remove('overflow-hidden');
     currentKabagId = null;
     isStatusLocked = false;
+    currentUraianKabag = '';
+    currentIsBagianUmum = false;
+    currentHasPresensiKabag = false;
+    currentJamSelesaiPresensiKabag = '';
 };
 
 window.setKeputusanKabag = function(val) {
@@ -546,12 +651,24 @@ window.setKeputusanKabag = function(val) {
     }
 };
 
+document.getElementById('mUraian')?.addEventListener('input', function() {
+    const elCount = document.getElementById('mUraianCount');
+    if (elCount) elCount.textContent = `${this.value.length} / 2000`;
+});
+
 window.simpanKeputusanKabag = function() {
     if (!currentKabagId) return;
 
     const jamMulai = document.getElementById('mJamMulai').value;
     const jamSelesai = document.getElementById('mJamSelesai').value;
     const noteKabag = document.getElementById('mNoteKabag').value;
+    const uraian = document.getElementById('mUraian').value;
+
+    if (selectedKeputusanKabag === 'approved' && currentJamSelesaiPresensiKabag && jamSelesai > currentJamSelesaiPresensiKabag) {
+        alert(`Jam selesai disetujui (${jamSelesai}) tidak boleh melebihi jam kepulangan presensi pegawai (${currentJamSelesaiPresensiKabag}).`);
+        document.getElementById('mJamSelesai').focus();
+        return;
+    }
 
     if (selectedKeputusanKabag === 'rejected' && (!noteKabag || noteKabag.trim() === '')) {
         alert('Mohon tuliskan alasan penolakan pada kolom Catatan Kabag Umum.');
@@ -575,6 +692,7 @@ window.simpanKeputusanKabag = function() {
             jam_mulai_disetujui: jamMulai,
             jam_selesai_disetujui: jamSelesai,
             note_kabag: noteKabag,
+            uraian: uraian,
         })
     })
     .then(r => r.json())
@@ -584,20 +702,37 @@ window.simpanKeputusanKabag = function() {
             return;
         }
 
+        const finalStatus = data.status || selectedKeputusanKabag;
+        const approvedMulai = data.jam_mulai_disetujui || (finalStatus !== 'rejected' && jamMulai ? jamMulai.substring(0, 5) : '');
+        const approvedSelesai = data.jam_selesai_disetujui || (finalStatus !== 'rejected' && jamSelesai ? jamSelesai.substring(0, 5) : '');
+
         // Update status badge di tabel
         const statusEl = document.getElementById(`status-${currentKabagId}`);
         if (statusEl) {
-            if (selectedKeputusanKabag === 'approved') {
+            if (finalStatus === 'approved') {
                 statusEl.innerHTML = `<span class="whitespace-nowrap rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">Disetujui Final</span>`;
             } else {
                 statusEl.innerHTML = `<span class="whitespace-nowrap rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-800 border border-rose-200">Ditolak</span>`;
             }
         }
 
-        // Update jam disetujui
+        // Update jam disetujui di tabel
         const jamEl = document.getElementById(`jam-disetujui-${currentKabagId}`);
-        if (jamEl && jamMulai && jamSelesai) {
-            jamEl.textContent = `${jamMulai.substring(0, 5)} - ${jamSelesai.substring(0, 5)}`;
+        if (jamEl) {
+            if (finalStatus === 'rejected' || !approvedMulai || !approvedSelesai) {
+                jamEl.innerHTML = `<span class="text-gray-400 font-normal">-</span>`;
+            } else {
+                jamEl.textContent = `${approvedMulai} - ${approvedSelesai}`;
+            }
+        }
+
+        // Update uraian di tabel jika ada
+        if (data.uraian !== undefined) {
+            currentUraianKabag = data.uraian;
+            const uraianEl = document.getElementById(`uraian-display-${currentKabagId}`);
+            if (uraianEl) {
+                uraianEl.textContent = data.uraian || '-';
+            }
         }
 
         // Update catatan Kabag di tabel
@@ -609,6 +744,31 @@ window.simpanKeputusanKabag = function() {
             `;
         }
 
+        // Update tombol aksi di tabel menjadi Koreksi
+        const aksiEl = document.getElementById(`aksi-kabag-${currentKabagId}`);
+        if (aksiEl) {
+            const namaPegawai = document.getElementById('mNamaPegawai')?.textContent || '';
+            const namaTim = document.getElementById('mNamaTim')?.textContent || '';
+            const safeNama = JSON.stringify(namaPegawai);
+            const safeTim = JSON.stringify(namaTim);
+            const safeNoteKetua = JSON.stringify(document.getElementById('mNoteKetua')?.textContent || '');
+            const safeNoteKabag = JSON.stringify(noteKabag);
+            const safeUraian = JSON.stringify(currentUraianKabag);
+            const isBagianUmumFlag = currentIsBagianUmum ? 1 : 0;
+            const presensiFlag = currentHasPresensiKabag ? 1 : 0;
+
+            aksiEl.innerHTML = `
+                <button type="button"
+                    onclick='openModalKabag(${currentKabagId}, ${safeNama}, ${safeTim}, "${approvedMulai}", "${approvedSelesai}", ${safeNoteKetua}, ${safeNoteKabag}, "${finalStatus}", ${safeUraian}, ${isBagianUmumFlag}, ${presensiFlag}, "${currentJamSelesaiPresensiKabag}")'
+                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                    </svg>
+                    <span>Koreksi</span>
+                </button>
+            `;
+        }
+
         closeModalKabag();
     })
     .catch(err => {
@@ -617,7 +777,7 @@ window.simpanKeputusanKabag = function() {
     })
     .finally(() => {
         btn.disabled = false;
-        btn.textContent = 'Simpan Keputusan';
+        btn.textContent = isStatusLocked ? 'Simpan Koreksi' : 'Simpan Keputusan';
     });
 };
 

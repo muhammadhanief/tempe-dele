@@ -106,6 +106,8 @@
                                 <td class="px-3 py-3 sm:px-5 sm:py-4">
                                     @if ($p->status === 'pending')
                                         <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-600">Menunggu</span>
+                                    @elseif ($p->status === 'menunggu_kabag')
+                                        <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600">Menunggu Kabag</span>
                                     @elseif ($p->status === 'approved')
                                         <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">Disetujui</span>
                                     @elseif ($p->status === 'rejected')

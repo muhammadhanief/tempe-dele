@@ -17,7 +17,7 @@ class DashboardController extends Controller
         // --- Statistik pengajuan tim bulan ini ---
         $stats = [
             'total'     => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->count(),
-            'disetujui' => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'approved')->count(),
+            'disetujui' => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->whereIn('status', ['approved', 'menunggu_kabag'])->count(),
             'diproses'  => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'pending')->count(),
             'ditolak'   => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
         ];
@@ -32,12 +32,12 @@ class DashboardController extends Controller
             ->orderBy('t.submitted_at', 'desc')
             ->get();
 
-        // --- Lembur hari ini yang approved ---
+        // --- Lembur hari ini yang sudah disetujui ketua / kabag ---
         $lemburHariIni = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->where('t.approver_employee_id', $nipKetua)
             ->whereDate('t.date', today())
-            ->where('t.status', 'approved')
+            ->whereIn('t.status', ['approved', 'menunggu_kabag'])
             ->select('p.nama as nama_pegawai', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui')
             ->get();
 
@@ -88,6 +88,25 @@ class DashboardController extends Controller
 
         if ($jamSelesai && $jamSelesai->lessThan($jamMulai)) {
             $jamSelesai->addDay();
+        }
+
+        // Batasi jam selesai agar tidak melebihi jam kepulangan fisik presensi jika data presensi sudah ada
+        if ($jamSelesai) {
+            $pegawaiNipLama = DB::table('m_pegawai')->where('nip', $transaksi->submitted_by_NIP)->value('nip_lama');
+            $presensi = DB::table('t_presensi')
+                ->where('niplama', $pegawaiNipLama)
+                ->whereDate('tanggal', $transaksi->date)
+                ->first();
+
+            if ($presensi && $presensi->jam_selesai) {
+                $jamPulangPresensi = Carbon::parse($transaksi->date . ' ' . $presensi->jam_selesai);
+                if ($jamPulangPresensi->lessThan($jamMulai)) {
+                    $jamPulangPresensi->addDay();
+                }
+                if ($jamSelesai->greaterThan($jamPulangPresensi)) {
+                    $jamSelesai = $jamPulangPresensi;
+                }
+            }
         }
 
         // Cek apakah tim adalah Tim Bagian Umum atau approver adalah Kabag Umum

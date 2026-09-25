@@ -460,10 +460,13 @@
                     </div>
 
                     <div>
-                        <label for="uraian" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Uraian Kegiatan</label>
-                        <textarea id="uraian" name="uraian" rows="3" required
+                        <div class="mb-1.5 flex items-center justify-between">
+                            <label for="uraian" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Uraian Kegiatan</label>
+                            <span id="uraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
+                        </div>
+                        <textarea id="uraian" name="uraian" rows="4" maxlength="2000" required
                             placeholder="Contoh: Penyusunan laporan bulanan..."
-                            class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"></textarea>
+                            class="w-full resize-y rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"></textarea>
                     </div>
 
                     <div>
@@ -571,6 +574,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('btnClearSignature')?.addEventListener('click', function () {
         signaturePad?.clear();
+    });
+
+    document.getElementById('uraian')?.addEventListener('input', function () {
+        const elCount = document.getElementById('uraianCount');
+        if (elCount) elCount.textContent = `${this.value.length} / 2000`;
     });
 
     document.getElementById('formAjukan')?.addEventListener('submit', function (event) {

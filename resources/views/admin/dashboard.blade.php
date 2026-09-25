@@ -93,6 +93,8 @@
               <div class="flex items-center gap-3">
                 @if ($item->status === 'approved')
                   <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">Disetujui</span>
+                @elseif ($item->status === 'menunggu_kabag')
+                  <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">Menunggu Kabag</span>
                 @elseif ($item->status === 'pending')
                   <span class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800">Diproses</span>
                 @elseif ($item->status === 'rejected')
@@ -289,7 +291,10 @@
       modalBody.innerHTML = data.map(item => `
         <div class="flex items-center justify-between py-3 border-b last:border-0" id="row-${item.id_transaksi}">
           <div>
-            <p class="text-sm font-medium text-gray-800">${item.nama}</p>
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-medium text-gray-800">${item.nama}</p>
+              ${item.status === 'menunggu_kabag' ? '<span class="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-medium">Menunggu Kabag</span>' : ''}
+            </div>
             <p class="text-xs text-gray-400">${formatTanggal(item.date)}</p>
           </div>
           <button onclick="approveSatu(${item.id_transaksi})"

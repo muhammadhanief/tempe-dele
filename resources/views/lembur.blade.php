@@ -480,10 +480,13 @@
 
                     {{-- Form Uraian Kegiatan --}}
                     <div>
-                        <label for="edit_uraian" class="mb-1.5 block text-xs font-semibold text-gray-700">Uraian Kegiatan</label>
-                        <textarea id="edit_uraian" name="uraian" rows="3" required
+                        <div class="mb-1.5 flex items-center justify-between">
+                            <label for="edit_uraian" class="block text-xs font-semibold text-gray-700">Uraian Kegiatan</label>
+                            <span id="editUraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
+                        </div>
+                        <textarea id="edit_uraian" name="uraian" rows="4" maxlength="2000" required
                             placeholder="Contoh: Menyelesaikan rekonsiliasi data..."
-                            class="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"></textarea>
+                            class="w-full resize-y rounded-lg border border-gray-300 px-3.5 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"></textarea>
                     </div>
 
                     <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
@@ -520,7 +523,7 @@
                     </button>
                 </div>
 
-                <form id="formAjukan" action="{{ route('ketua-tim.lembur.store') }}" method="POST"
+                <form id="formAjukan" action="{{ route('lembur.store') }}" method="POST"
                     class="space-y-5 px-5 py-5 sm:px-6">
                     @csrf
 
@@ -571,10 +574,13 @@
                     </p>
 
                     <div>
-                        <label for="uraian" class="mb-2 block text-sm font-medium text-gray-700">Uraian Kegiatan</label>
-                        <textarea id="uraian" name="uraian" rows="3" required
+                        <div class="mb-2 flex items-center justify-between">
+                            <label for="uraian" class="block text-sm font-medium text-gray-700">Uraian Kegiatan</label>
+                            <span id="uraianCount" class="text-xs text-gray-400">0 / 2000</span>
+                        </div>
+                        <textarea id="uraian" name="uraian" rows="4" maxlength="2000" required
                             placeholder="Contoh: Penyusunan laporan bulanan..."
-                            class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"></textarea>
+                            class="w-full resize-y rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"></textarea>
                     </div>
 
                     <div>
@@ -1117,7 +1123,10 @@
 
         document.getElementById('edit_jam_mulai').value = el.getAttribute('data-jam-mulai') || '';
         document.getElementById('edit_jam_selesai').value = el.getAttribute('data-jam-selesai') || '';
-        document.getElementById('edit_uraian').value = el.getAttribute('data-uraian') || '';
+        const uraianVal = el.getAttribute('data-uraian') || '';
+        document.getElementById('edit_uraian').value = uraianVal;
+        const elEditUraianCount = document.getElementById('editUraianCount');
+        if (elEditUraianCount) elEditUraianCount.textContent = `${uraianVal.length} / 2000`;
 
         hitungEditDurasi();
 
@@ -1229,6 +1238,8 @@
         document.getElementById('jam_mulai').value = '';
         document.getElementById('jam_selesai').value = '';
         document.getElementById('uraian').value = '';
+        const elUraianCount = document.getElementById('uraianCount');
+        if (elUraianCount) elUraianCount.textContent = '0 / 2000';
 
         document.getElementById('infoHari').classList.add('hidden');
         document.getElementById('infoJamMulai').classList.add('hidden');
@@ -1269,6 +1280,16 @@
 
     document.getElementById('btnClearSignature')?.addEventListener('click', () => {
         signaturePad?.clear();
+    });
+
+    document.getElementById('uraian')?.addEventListener('input', function () {
+        const elCount = document.getElementById('uraianCount');
+        if (elCount) elCount.textContent = `${this.value.length} / 2000`;
+    });
+
+    document.getElementById('edit_uraian')?.addEventListener('input', function () {
+        const elCount = document.getElementById('editUraianCount');
+        if (elCount) elCount.textContent = `${this.value.length} / 2000`;
     });
 
     document.getElementById('approver_id')?.addEventListener('change', function () {

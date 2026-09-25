@@ -147,13 +147,14 @@
             <tbody class="divide-y divide-gray-300" id="tabelPengajuan">
                 @forelse($pengajuan as $i => $p)
                     @php
-                        $jamMulaiDefault = $p->jam_mulai_disetujui
-                            ? substr($p->jam_mulai_disetujui, 0, 5)
-                            : ($p->jam_mulai ? substr($p->jam_mulai, 0, 5) : '');
+                        // Untuk pengajuan baru/pending, jam persetujuan SELALU default ke jam yang diajukan pegawai
+                        $jamMulaiDefault = ($p->status === 'pending' || empty($p->jam_mulai_disetujui))
+                            ? ($p->jam_mulai ? substr($p->jam_mulai, 0, 5) : '')
+                            : substr($p->jam_mulai_disetujui, 0, 5);
 
-                        $jamSelesaiDefault = $p->jam_selesai_disetujui
-                            ? substr($p->jam_selesai_disetujui, 0, 5)
-                            : ($p->jam_selesai ? substr($p->jam_selesai, 0, 5) : '');
+                        $jamSelesaiDefault = ($p->status === 'pending' || empty($p->jam_selesai_disetujui))
+                            ? ($p->jam_selesai ? substr($p->jam_selesai, 0, 5) : '')
+                            : substr($p->jam_selesai_disetujui, 0, 5);
                     @endphp
 
                     <tr class="bg-white transition-all duration-200 hover:bg-gray-50"
@@ -191,7 +192,7 @@
                         </td>
 
                         <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[280px] whitespace-normal break-words">
+                            <div class="max-w-[280px] whitespace-normal break-words" id="uraian-display-{{ $p->id_transaksi }}">
                                 {{ $p->uraian ?? '-' }}
                             </div>
                         </td>
@@ -222,7 +223,7 @@
                         <td class="px-3 py-3 text-center" id="aksi-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
                                 <button type="button"
-                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending')"
+                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}')"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -231,7 +232,7 @@
                                 </button>
                             @else
                                 <button type="button"
-                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}')"
+                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}')"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
@@ -369,7 +370,35 @@
                         <label class="mb-2 block text-sm font-medium text-gray-700">Jam Selesai Disetujui</label>
                         <input id="kJamSelesai" type="time"
                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20">
+                        <p id="kJamSelesaiPresensiHint" class="mt-1.5 hidden flex items-center gap-1 text-xs text-blue-700 font-medium">
+                            <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Maksimal jam selesai: <strong id="kJamSelesaiPresensiVal">-</strong> (sesuai presensi pulang)</span>
+                        </p>
                     </div>
+                </div>
+
+                {{-- Uraian Kegiatan (Di atas kotak Catatan (Opsional)) --}}
+                <div>
+                    <div class="mb-2 flex items-center justify-between">
+                        <label class="block text-sm font-medium text-gray-700">
+                            Uraian Kegiatan
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <span id="kUraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
+                            <span id="kUraianBadge" class="rounded-full px-2 py-0.5 text-[11px] font-medium"></span>
+                        </div>
+                    </div>
+                    <textarea id="kUraian" rows="4" maxlength="2000"
+                        class="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition-all focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20"
+                        placeholder="Uraian kegiatan lembur..."></textarea>
+                    <p id="kUraianLockedHint" class="mt-1.5 hidden flex items-center gap-1.5 text-xs text-amber-700">
+                        <svg class="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Uraian tidak dapat diedit karena data presensi belum tersedia.</span>
+                    </p>
                 </div>
 
                 <div>
@@ -790,16 +819,62 @@ window.closeModalPresensi = function() {
 let currentId = null;
 let keputusan = null;
 let isStatusLocked = false;
+let currentUraian = '';
+let currentHasPresensi = false;
+let currentJamSelesaiPresensi = '';
 
-window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status) {
+window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, uraian, hasPresensi, jamSelesaiPresensi) {
     currentId = id;
     const currentStatus = status || 'pending';
     isStatusLocked = (currentStatus !== 'pending');
     keputusan = isStatusLocked ? currentStatus : null;
+    currentUraian = (uraian !== undefined && uraian !== null) ? uraian : '';
+    currentHasPresensi = Boolean(hasPresensi);
+    currentJamSelesaiPresensi = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
 
-    document.getElementById('kJamMulai').value = jamMulai || '';
-    document.getElementById('kJamSelesai').value = jamSelesai || '';
+    const elJamMulai = document.getElementById('kJamMulai');
+    const elJamSelesai = document.getElementById('kJamSelesai');
+    const elPresensiHint = document.getElementById('kJamSelesaiPresensiHint');
+    const elPresensiVal = document.getElementById('kJamSelesaiPresensiVal');
+
+    elJamMulai.value = jamMulai || '';
+    elJamSelesai.value = jamSelesai || '';
     document.getElementById('kCatatan').value = catatan || '';
+
+    if (currentJamSelesaiPresensi) {
+        elJamSelesai.setAttribute('max', currentJamSelesaiPresensi);
+        if (elPresensiHint && elPresensiVal) {
+            elPresensiVal.textContent = currentJamSelesaiPresensi;
+            elPresensiHint.classList.remove('hidden');
+        }
+    } else {
+        elJamSelesai.removeAttribute('max');
+        if (elPresensiHint) {
+            elPresensiHint.classList.add('hidden');
+        }
+    }
+
+    const elUraian = document.getElementById('kUraian');
+    const elUraianBadge = document.getElementById('kUraianBadge');
+    const elUraianHint = document.getElementById('kUraianLockedHint');
+
+    elUraian.value = currentUraian;
+    const elUraianCount = document.getElementById('kUraianCount');
+    if (elUraianCount) elUraianCount.textContent = `${currentUraian.length} / 2000`;
+
+    if (currentHasPresensi) {
+        elUraian.readOnly = false;
+        elUraian.className = 'w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition-all focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20';
+        elUraianBadge.textContent = 'Presensi Ada (Dapat Diedit)';
+        elUraianBadge.className = 'rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200';
+        elUraianHint.classList.add('hidden');
+    } else {
+        elUraian.readOnly = true;
+        elUraian.className = 'w-full resize-y rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 outline-none cursor-not-allowed';
+        elUraianBadge.textContent = 'Presensi Belum Ada';
+        elUraianBadge.className = 'rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200';
+        elUraianHint.classList.remove('hidden');
+    }
 
     const modalTitle = document.getElementById('modalTitle');
     const modalSubtitle = document.getElementById('modalSubtitle');
@@ -867,6 +942,8 @@ window.closeModalKeputusan = function() {
     currentId = null;
     keputusan = null;
     isStatusLocked = false;
+    currentUraian = '';
+    currentHasPresensi = false;
 };
 
 window.setKeputusan = function(value) {
@@ -929,6 +1006,10 @@ function cekWarningDurasi() {
 
 document.getElementById('kJamMulai')?.addEventListener('change', cekWarningDurasi);
 document.getElementById('kJamSelesai')?.addEventListener('change', cekWarningDurasi);
+document.getElementById('kUraian')?.addEventListener('input', function() {
+    const elCount = document.getElementById('kUraianCount');
+    if (elCount) elCount.textContent = `${this.value.length} / 2000`;
+});
 
 window.simpanKeputusan = function() {
     if (!keputusan) {
@@ -939,9 +1020,16 @@ window.simpanKeputusan = function() {
     const jamMulai = document.getElementById('kJamMulai').value;
     const jamSelesai = document.getElementById('kJamSelesai').value;
     const catatan = document.getElementById('kCatatan').value;
+    const uraian = document.getElementById('kUraian').value;
 
     if (keputusan !== 'rejected' && (!jamMulai || !jamSelesai)) {
         alert('Jam mulai dan jam selesai wajib diisi.');
+        return;
+    }
+
+    if (keputusan !== 'rejected' && currentJamSelesaiPresensi && jamSelesai > currentJamSelesaiPresensi) {
+        alert(`Jam selesai disetujui (${jamSelesai}) tidak boleh melebihi jam kepulangan presensi pegawai (${currentJamSelesaiPresensi}).`);
+        document.getElementById('kJamSelesai').focus();
         return;
     }
 
@@ -966,6 +1054,7 @@ window.simpanKeputusan = function() {
             jam_mulai_disetujui: jamMulai || null,
             jam_selesai_disetujui: jamSelesai || null,
             note: catatan,
+            uraian: uraian,
         })
     })
     .then(async response => {
@@ -999,11 +1088,21 @@ window.simpanKeputusan = function() {
             statusElement.innerHTML = `<span class="${badgeClass} whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium">${badgeText}</span>`;
         }
 
+        if (data.uraian !== undefined) {
+            currentUraian = data.uraian;
+            const uraianElement = document.getElementById(`uraian-display-${currentId}`);
+            if (uraianElement) {
+                uraianElement.textContent = data.uraian || '-';
+            }
+        }
+
         const aksiElement = document.getElementById(`aksi-${currentId}`);
         if (aksiElement) {
             const safeNote = JSON.stringify(data.note || catatan || '');
+            const safeUraian = JSON.stringify(currentUraian);
+            const presensiFlag = currentHasPresensi ? 1 : 0;
             aksiElement.innerHTML = `
-                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}")'
+                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}")'
                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>

@@ -159,10 +159,11 @@ class LemburController extends Controller
             'tanggal'     => 'required|date_format:Y-m-d',
             'jam_mulai'   => 'required',
             'jam_selesai' => 'nullable',
-            'uraian'      => 'required|string|max:255',
+            'uraian'      => 'required|string|max:2000',
             'signature'   => 'required|string',
         ], [
             'uraian.required' => 'Uraian kegiatan wajib diisi.',
+            'uraian.max'      => 'Uraian kegiatan maksimal 2000 karakter.',
             'tanggal.date_format' => 'Format tanggal tidak valid. Gunakan format YYYY-MM-DD.',
         ]);
 
@@ -261,6 +262,25 @@ class LemburController extends Controller
             $jamSelesaiDisetujui->addDay();
         }
 
+        // Batasi jam selesai agar tidak melebihi jam kepulangan fisik presensi jika data presensi sudah ada
+        if ($jamSelesaiDisetujui) {
+            $nipLama = DB::table('m_pegawai')->where('nip', $transaksi->submitted_by_NIP)->value('nip_lama');
+            $presensi = DB::table('t_presensi')
+                ->where('niplama', $nipLama)
+                ->whereDate('tanggal', $transaksi->date)
+                ->first();
+
+            if ($presensi && $presensi->jam_selesai) {
+                $jamPulangPresensi = Carbon::parse($transaksi->date . ' ' . $presensi->jam_selesai);
+                if ($jamPulangPresensi->lessThan($jamMulaiDisetujui)) {
+                    $jamPulangPresensi->addDay();
+                }
+                if ($jamSelesaiDisetujui->greaterThan($jamPulangPresensi)) {
+                    $jamSelesaiDisetujui = $jamPulangPresensi;
+                }
+            }
+        }
+
         DB::table('t_transaksi')
             ->where('id_transaksi', $id)
             ->update([
@@ -270,6 +290,7 @@ class LemburController extends Controller
                 'note'                  => null,
                 'eligible'              => null,
                 'approved_at'           => now()->toDateString(),
+                'approved_kabag_at'     => now(),
             ]);
 
         return response()->json(['success' => true]);
@@ -439,13 +460,18 @@ class LemburController extends Controller
     public function updateUraian(Request $request, $id)
     {
         $request->validate([
-            'uraian' => 'required|string|max:500',
+            'uraian' => 'required|string|max:2000',
+        ], [
+            'uraian.required' => 'Uraian kegiatan wajib diisi.',
+            'uraian.max'      => 'Uraian kegiatan maksimal 2000 karakter.',
         ]);
 
         DB::table('t_transaksi')
             ->where('id_transaksi', $id)
             ->update([
-                'uraian' => $request->uraian,
+                'uraian'         => $request->uraian,
+                'user_edited'    => session('user')['nama'] ?? session('user')['nip'],
+                'tanggal_edited' => now(),
             ]);
 
         return back()->with(

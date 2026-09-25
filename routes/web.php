@@ -112,7 +112,7 @@ Route::middleware('checksession')->group(function () {
 
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/transaksi/pending', [DashboardController::class, 'getPending'])->name('dashboard.pending');
-        Route::post('/transaksi/{id}/approve', [AdminLemburController::class, 'quickApprove'])->name('dashboard.approve');
+        Route::post('/transaksi/{id}/approve', [AdminDashboardController::class, 'approve'])->name('dashboard.approve');
         Route::get('/pegawai/all', [PresensiController::class, 'getAllPegawai'])->name('pegawai.all')->middleware('checksession');
 
         // Rekapitulasi
@@ -143,7 +143,7 @@ Route::middleware('checksession')->group(function () {
 
         // Approve Lembur
         Route::get('/pengajuan', [AdminPengajuanController::class, 'index'])->name('pengajuan');
-        Route::post('/pengajuan/{id}/approve', [AdminLemburController::class, 'approve'])->name('pengajuan.approve');
+        Route::post('/pengajuan/{id}/approve', [AdminPengajuanController::class, 'approve'])->name('pengajuan.approve');
         Route::get('/pengajuan/{id}/presensi', [AdminPengajuanController::class, 'presensi'])->name('pengajuan.presensi');
         Route::get('/pengajuan/pegawai', [AdminPengajuanController::class, 'semuaPegawai'])->name('pengajuan.pegawai');
 
