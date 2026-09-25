@@ -6,10 +6,15 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-5">
 
-    {{-- Flash success --}}
+    {{-- Flash success / error --}}
     @if(session('success'))
         <div class="mb-4 rounded-lg bg-green-100 px-4 py-3 text-sm text-green-700">
             {{ session('success') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="mb-4 rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -145,7 +150,8 @@
                     <th class="w-36 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Nama Tim</th>
                     <th class="w-24 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Status</th>
                     <th class="w-32 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Catatan</th>
-                    <th class="w-28 rounded-tr-xl px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Dokumentasi</th>
+                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Dokumentasi</th>
+                    <th class="w-24 rounded-tr-xl px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Aksi</th>
                 </tr>
             </thead>
 
@@ -258,6 +264,34 @@
                                 <span class="text-gray-300">-</span>
                             @endif
                         </td>
+
+                        <td class="px-3 py-3 text-center text-xs whitespace-nowrap">
+                            @php
+                                $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && empty($t->approved_at));
+                            @endphp
+                            @if($canEdit)
+                                <button type="button"
+                                    onclick="openModalEdit(this)"
+                                    data-action="{{ route('pegawai.lembur.update', $t->id_transaksi) }}"
+                                    data-tanggal="{{ \Carbon\Carbon::parse($t->date)->translatedFormat('l, d F Y') }}"
+                                    data-jam-mulai="{{ $t->jam_mulai ? substr($t->jam_mulai, 0, 5) : '' }}"
+                                    data-jam-selesai="{{ $t->jam_selesai ? substr($t->jam_selesai, 0, 5) : '' }}"
+                                    data-uraian="{{ $t->uraian ?? '' }}"
+                                    data-approver="{{ $t->approver_employee_id ?? '' }}"
+                                    data-kode-tim="{{ $t->tim_kode_tim ?? '' }}"
+                                    data-ketua="{{ $t->nama_ketua ?? '-' }}"
+                                    data-tim="{{ $t->nama_tim ?? '-' }}"
+                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-all shadow-2xs cursor-pointer"
+                                    title="Ubah ketua tim, jam, atau uraian kegiatan">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                                    </svg>
+                                    <span>Ubah</span>
+                                </button>
+                            @else
+                                <span class="text-gray-300 font-medium select-none" title="Sudah diproses / terkunci">-</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
@@ -365,6 +399,107 @@
                 </div>
             </form>
 
+        </div>
+    </div>
+</div>
+
+{{-- Modal Edit Lembur (Hanya Jam & Uraian) --}}
+<div id="modalEditLembur" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalEdit()"></div>
+
+    <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-start justify-center px-4 py-6 sm:py-8">
+            <div class="relative w-full max-w-xl rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
+
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-6">
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-semibold text-gray-900">Ubah Pengajuan Lembur</h2>
+                            <p class="text-xs text-gray-500">Perbarui ketua tim, jam, atau uraian kegiatan sebelum disetujui</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeModalEdit()"
+                        class="text-xl leading-none text-gray-400 hover:text-gray-600 transition-colors">
+                        &times;
+                    </button>
+                </div>
+
+                <form id="formEditLembur" method="POST" class="space-y-4 px-5 py-5 sm:px-6">
+                    @csrf
+                    @method('PUT')
+
+                    {{-- Info Ringkas Tanggal Lembur (Read-Only) --}}
+                    <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3 text-xs text-gray-600">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-gray-500">Tanggal Lembur:</span>
+                            <span id="editTanggalLabel" class="font-semibold text-gray-800"></span>
+                        </div>
+                    </div>
+
+                    {{-- Pilihan Ketua Tim & Tim --}}
+                    <div>
+                        <label for="edit_approver_id" class="mb-1.5 block text-xs font-semibold text-gray-700">Ketua Tim / Tim</label>
+                        <input type="hidden" name="kode_tim" id="edit_kode_tim">
+                        <select id="edit_approver_id" name="approver_id" required
+                            class="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
+                            <option value="">Pilih Ketua Tim</option>
+                            @forelse($ketuaTim as $ketua)
+                                <option value="{{ $ketua['nip'] }}" data-kode="{{ $ketua['kode_tim'] }}">
+                                    {{ $ketua['nama'] }} ({{ $ketua['tim'] }})
+                                </option>
+                            @empty
+                                <option disabled>Kamu tidak terdaftar di tim manapun</option>
+                            @endforelse
+                        </select>
+                    </div>
+
+                    {{-- Form Jam Mulai & Jam Selesai --}}
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="edit_jam_mulai" class="mb-1.5 block text-xs font-semibold text-gray-700">Jam Mulai</label>
+                            <input type="time" id="edit_jam_mulai" name="jam_mulai" required
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
+                        </div>
+
+                        <div>
+                            <label for="edit_jam_selesai" class="mb-1.5 block text-xs font-semibold text-gray-700">Jam Selesai</label>
+                            <input type="time" id="edit_jam_selesai" name="jam_selesai" required
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
+                        </div>
+                    </div>
+
+                    {{-- Preview Durasi --}}
+                    <p id="editPreviewDurasi" class="hidden text-xs text-gray-500">
+                        Estimasi: <span id="editDurasiLabel" class="font-semibold text-gray-800"></span>
+                    </p>
+
+                    {{-- Form Uraian Kegiatan --}}
+                    <div>
+                        <label for="edit_uraian" class="mb-1.5 block text-xs font-semibold text-gray-700">Uraian Kegiatan</label>
+                        <textarea id="edit_uraian" name="uraian" rows="3" required
+                            placeholder="Contoh: Menyelesaikan rekonsiliasi data..."
+                            class="w-full rounded-lg border border-gray-300 px-3.5 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"></textarea>
+                    </div>
+
+                    <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+                        <button type="button" onclick="closeModalEdit()"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 sm:w-auto">
+                            Batal
+                        </button>
+
+                        <button type="submit"
+                            class="w-full rounded-lg bg-[#faa938] px-4 py-2 text-sm font-semibold text-black hover:bg-[#fd9a10] hover:text-white transition-all shadow-sm sm:w-auto">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+
+            </div>
         </div>
     </div>
 </div>
@@ -943,6 +1078,115 @@
     @if ($errors->has('file_path'))
         window.openModalDok(document.querySelector('#tabelLembur [data-action]') ?? document.querySelector('[data-action]'));
     @endif
+
+    // =====================
+    // MODAL EDIT LEMBUR
+    // =====================
+    window.openModalEdit = function (el) {
+        const modal = document.getElementById('modalEditLembur');
+        const form = document.getElementById('formEditLembur');
+
+        if (!modal || !form || !el) return;
+
+        form.action = el.getAttribute('data-action') || '';
+        document.getElementById('editTanggalLabel').textContent = el.getAttribute('data-tanggal') || '-';
+
+        const approver = el.getAttribute('data-approver') || '';
+        const kodeTim = el.getAttribute('data-kode-tim') || '';
+        const selectApprover = document.getElementById('edit_approver_id');
+        const inputKodeTim = document.getElementById('edit_kode_tim');
+
+        if (inputKodeTim) {
+            inputKodeTim.value = kodeTim;
+        }
+
+        if (selectApprover) {
+            selectApprover.value = approver;
+            if (!selectApprover.value && kodeTim) {
+                for (let i = 0; i < selectApprover.options.length; i++) {
+                    if (selectApprover.options[i].dataset.kode === kodeTim) {
+                        selectApprover.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            if (selectApprover.selectedIndex > 0 && inputKodeTim) {
+                inputKodeTim.value = selectApprover.options[selectApprover.selectedIndex].dataset.kode || kodeTim;
+            }
+        }
+
+        document.getElementById('edit_jam_mulai').value = el.getAttribute('data-jam-mulai') || '';
+        document.getElementById('edit_jam_selesai').value = el.getAttribute('data-jam-selesai') || '';
+        document.getElementById('edit_uraian').value = el.getAttribute('data-uraian') || '';
+
+        hitungEditDurasi();
+
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    };
+
+    window.closeModalEdit = function () {
+        document.getElementById('modalEditLembur')?.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    document.getElementById('edit_approver_id')?.addEventListener('change', function () {
+        const selected = this.options[this.selectedIndex];
+        const inputKodeTim = document.getElementById('edit_kode_tim');
+        if (inputKodeTim) {
+            inputKodeTim.value = selected?.dataset.kode || '';
+        }
+    });
+
+    function hitungEditDurasi() {
+        const mulai = document.getElementById('edit_jam_mulai')?.value;
+        const selesai = document.getElementById('edit_jam_selesai')?.value;
+        const preview = document.getElementById('editPreviewDurasi');
+        const label = document.getElementById('editDurasiLabel');
+
+        if (!preview || !label) return;
+
+        if (!mulai || !selesai) {
+            preview.classList.add('hidden');
+            return;
+        }
+
+        const [jm, mm] = mulai.split(':').map(Number);
+        const [js, ms] = selesai.split(':').map(Number);
+
+        let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+        if (totalMenit < 0) {
+            totalMenit += 24 * 60;
+        }
+
+        if (totalMenit <= 0) {
+            preview.classList.add('hidden');
+            return;
+        }
+
+        const jam = Math.floor(totalMenit / 60);
+        const menit = totalMenit % 60;
+
+        let info = `${jam} jam ${menit > 0 ? menit + ' menit' : ''} (dihitung ${jam} jam)`;
+        let warna = 'text-gray-500';
+
+        if (jam < 2) {
+            info += ' — ⚠️ Pengajuan jam lembur minimal 2 jam';
+            warna = 'text-amber-600';
+        } else if (jam > 6) {
+            info += ' — ⚠️ Maksimal lembur 6 jam';
+            warna = 'text-amber-600';
+        }
+
+        label.textContent = info;
+        preview.className = `text-xs ${warna}`;
+        preview.classList.remove('hidden');
+    }
+
+    document.getElementById('edit_jam_mulai')?.addEventListener('input', hitungEditDurasi);
+    document.getElementById('edit_jam_mulai')?.addEventListener('change', hitungEditDurasi);
+    document.getElementById('edit_jam_selesai')?.addEventListener('input', hitungEditDurasi);
+    document.getElementById('edit_jam_selesai')?.addEventListener('change', hitungEditDurasi);
 
     // =====================
     // MODAL AJUKAN

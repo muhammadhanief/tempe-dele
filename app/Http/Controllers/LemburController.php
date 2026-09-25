@@ -373,6 +373,93 @@ class LemburController extends Controller
         return back()->with('success', 'Dokumentasi berhasil dihapus.');
     }
 
+    public function update(Request $request, $id_transaksi)
+    {
+        $nipUser = session('user')['nip'];
+
+        $transaksi = DB::table('t_transaksi')
+            ->where('id_transaksi', $id_transaksi)
+            ->where('submitted_by_NIP', $nipUser)
+            ->first();
+
+        if (!$transaksi) {
+            return back()->with('error', 'Data pengajuan lembur tidak ditemukan.');
+        }
+
+        // Kunci edit: hanya boleh diubah sebelum disetujui oleh ketua tim
+        $canEdit = ($transaksi->status === 'pending') || ($transaksi->status === 'menunggu_kabag' && empty($transaksi->approved_at));
+        if (!$canEdit) {
+            return back()->with('error', 'Pengajuan lembur tidak dapat diubah karena sudah diproses atau disetujui oleh Ketua Tim.');
+        }
+
+        $validated = $request->validate([
+            'approver_id' => 'nullable|string',
+            'kode_tim'    => 'nullable|string',
+            'jam_mulai'   => 'required',
+            'jam_selesai' => 'nullable',
+            'uraian'      => 'required|string|max:255',
+        ], [
+            'jam_mulai.required' => 'Jam mulai wajib diisi.',
+            'uraian.required'    => 'Uraian kegiatan wajib diisi.',
+            'uraian.max'         => 'Uraian kegiatan maksimal 255 karakter.',
+        ]);
+
+        $jamMulai   = Carbon::parse($validated['jam_mulai']);
+        $jamSelesai = !empty($validated['jam_selesai'])
+            ? Carbon::parse($validated['jam_selesai'])
+            : null;
+
+        if ($jamSelesai) {
+            if ($jamSelesai->lessThan($jamMulai)) {
+                $jamSelesai->addDay();
+            }
+
+            $durasi = $jamMulai->diffInHours($jamSelesai);
+            if ($durasi < 2) {
+                return back()->with('error', 'Durasi lembur minimal 2 jam.');
+            }
+        }
+
+        $updateData = [
+            'jam_mulai'   => $jamMulai->format('H:i:s'),
+            'jam_selesai' => $jamSelesai?->format('H:i:s'),
+            'uraian'      => $validated['uraian'],
+        ];
+
+        // Jika ada perubahan Ketua Tim / Tim
+        if (!empty($validated['approver_id']) && !empty($validated['kode_tim'])) {
+            $updateData['approver_employee_id'] = $validated['approver_id'];
+            $updateData['tim_kode_tim']         = $validated['kode_tim'];
+
+            // Evaluasi status jika tujuan merupakan Tim Bagian Umum / approver adalah Kabag Umum
+            $isTimBagianUmum = false;
+            $tim = DB::table('m_tim')->where('kode_tim', $validated['kode_tim'])->first();
+            if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
+                $isTimBagianUmum = true;
+            }
+
+            $isApproverKabag = DB::table('m_pejabat')
+                ->where('jabatan', 'Kepala Bagian Umum')
+                ->where('status', 'aktif')
+                ->where(function ($q) use ($validated) {
+                    $q->where('nip', $validated['approver_id'])
+                      ->orWhere('nip_lama', $validated['approver_id']);
+                })->exists();
+
+            if ($isTimBagianUmum || $isApproverKabag) {
+                $updateData['status'] = 'menunggu_kabag';
+            } else {
+                $updateData['status'] = 'pending';
+            }
+        }
+
+        DB::table('t_transaksi')
+            ->where('id_transaksi', $id_transaksi)
+            ->update($updateData);
+
+        return back()->with('success', 'Pengajuan lembur berhasil diperbarui.');
+    }
+
     public function approve(Request $request, $id)
     {
         $request->validate([
