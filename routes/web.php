@@ -82,8 +82,9 @@ Route::middleware('checksession')->group(function () {
     Route::prefix('pegawai')->name('pegawai.')->group(function () {
         Route::post('/lembur/{id_transaksi}/dokumentasi', [LemburController::class, 'storeDoc'])->name('lembur.storeDoc');
         Route::delete('/lembur/{id_transaksi}/dokumentasi', [LemburController::class, 'destroyDoc'])->name('lembur.destroyDoc');
+        Route::match(['put', 'patch', 'post'], '/lembur/{id_transaksi}', [LemburController::class, 'update'])->name('lembur.update');
         Route::get('/dashboard', [PegawaiDashboardController::class, 'index'])->name('dashboard');
-});
+    });
 
     // ─── Ketua Tim ────────────────────────────────────────
     Route::prefix('ketua-tim')->name('ketua-tim.')->middleware(['checksession', 'role:ketua_tim,admin,superadmin'])->group(function () {
