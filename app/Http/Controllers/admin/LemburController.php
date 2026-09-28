@@ -55,6 +55,7 @@ class LemburController extends Controller
             'menunggu_kabag' => (clone $baseCountQuery)->where('t.status', 'menunggu_kabag')->count(),
             'approved'       => (clone $baseCountQuery)->where('t.status', 'approved')->count(),
             'rejected'       => (clone $baseCountQuery)->where('t.status', 'rejected')->count(),
+            'cancelled'      => (clone $baseCountQuery)->where('t.status', 'cancelled')->count(),
         ];
 
         $query = DB::table('t_transaksi as t')
@@ -66,7 +67,25 @@ class LemburController extends Controller
             'mt.nama_tim',
             'mt.nama_ketua',
             'pg.nama as nama_pegawai',
-            'md.file_path as file_dokumentasi'
+            'pg.nip_lama as nip_lama_pegawai',
+            'md.file_path as file_dokumentasi',
+            DB::raw('EXISTS(
+                SELECT 1 FROM t_presensi pr
+                WHERE pr.niplama = pg.nip_lama
+                AND DATE(pr.tanggal) = t.date
+            ) as has_presensi'),
+            DB::raw('(
+                SELECT DATE_FORMAT(pr.jam_selesai, "%H:%i") FROM t_presensi pr
+                WHERE pr.niplama = pg.nip_lama
+                AND DATE(pr.tanggal) = t.date
+                LIMIT 1
+            ) as jam_selesai_presensi'),
+            DB::raw('(
+                SELECT DATE_FORMAT(pr.jam_mulai, "%H:%i") FROM t_presensi pr
+                WHERE pr.niplama = pg.nip_lama
+                AND DATE(pr.tanggal) = t.date
+                LIMIT 1
+            ) as jam_masuk_presensi')
         );
 
         if ($tanggal) {
@@ -478,5 +497,59 @@ class LemburController extends Controller
             'success',
             'Uraian berhasil diperbarui.'
         );
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        $alasanRaw = $request->alasan ?? $request->alasan_batal ?? $request->note ?? '';
+        $alasan = trim((string) $alasanRaw);
+
+        if ($alasan === '') {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Alasan pembatalan wajib diisi.'], 422);
+            }
+            return back()->with('error', 'Alasan pembatalan wajib diisi.');
+        }
+
+        if (mb_strlen($alasan) > 500) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Alasan pembatalan maksimal 500 karakter.'], 422);
+            }
+            return back()->with('error', 'Alasan pembatalan maksimal 500 karakter.');
+        }
+
+        $transaksi = DB::table('t_transaksi')->where('id_transaksi', $id)->first();
+        if (!$transaksi) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan.'], 404);
+            }
+            return back()->with('error', 'Data tidak ditemukan.');
+        }
+
+        $userActor = session('user')['nama'] ?? session('user')['nip'];
+        $catatanFinal = str_starts_with($alasan, '[Dibatalkan Admin]') ? $alasan : '[Dibatalkan Admin] ' . $alasan;
+
+        DB::table('t_transaksi')->where('id_transaksi', $id)->update([
+            'status'                => 'cancelled',
+            'note'                  => $catatanFinal,
+            'jam_mulai_disetujui'   => null,
+            'jam_selesai_disetujui' => null,
+            'eligible'              => null,
+            'approved_at'           => null,
+            'approved_kabag_at'     => null,
+            'user_edited'           => $userActor,
+            'tanggal_edited'        => now(),
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'status'  => 'cancelled',
+                'note'    => $catatanFinal,
+                'message' => 'Pengajuan lembur berhasil dibatalkan.'
+            ]);
+        }
+
+        return back()->with('success', 'Pengajuan lembur berhasil dibatalkan.');
     }
 }

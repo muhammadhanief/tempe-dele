@@ -190,6 +190,16 @@
                     {{ $statusCounts['rejected'] ?? 0 }}
                 </span>
             </button>
+
+            {{-- Dibatalkan --}}
+            <button type="button" onclick="selectStatus('cancelled')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'cancelled' ? 'bg-gray-600 text-white border-gray-600 shadow-sm shadow-gray-600/25 ring-2 ring-gray-600/20' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50/80 hover:border-gray-300' }}">
+                <span class="h-2 w-2 rounded-full {{ $status === 'cancelled' ? 'bg-white' : 'bg-gray-500' }}"></span>
+                <span>Dibatalkan</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'cancelled' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800' }}">
+                    {{ $statusCounts['cancelled'] ?? 0 }}
+                </span>
+            </button>
         </div>
 
         {{-- Tabel --}}
@@ -222,7 +232,8 @@
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-36">Tim & Ketua</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-32">Status</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-20">Catatan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tr-xl w-24">Dokumentasi</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Dokumentasi</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tr-xl w-24">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-300" id="tabelLembur">
@@ -237,7 +248,24 @@
                             </td>
 
                             <td class="px-2 py-2 text-xs text-gray-900 text-left">
-                                {{ $t->nama_pegawai ?? '-' }}
+                                <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $t->nama_pegawai ?? '-' }}</div>
+                                <div class="mt-0.5">
+                                    @if($t->has_presensi)
+                                        <button type="button"
+                                            onclick="openModalPresensiAdmin({{ $t->id_transaksi }})"
+                                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
+                                            title="Klik untuk melihat detail presensi pegawai">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span>Presensi: {{ $t->jam_selesai_presensi ? 'Pulang ' . $t->jam_selesai_presensi : 'Ada' }}</span>
+                                        </button>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-gray-50 text-gray-400 border border-gray-200"
+                                            title="Data presensi pegawai pada tanggal ini belum tersedia di sistem">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                                            <span>Belum Presensi</span>
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
 
                             <td class="px-2 py-2 text-xs text-gray-900 text-center">
@@ -301,7 +329,7 @@
                                 <div class="text-[11px] text-gray-500 mt-0.5">Ketua: {{ $t->nama_ketua ?? '-' }}</div>
                             </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-center">
+                            <td class="px-2 py-2 text-xs text-gray-900 text-center" id="status-cell-{{ $t->id_transaksi }}">
                                 @if($t->status === 'pending')
                                     <span class="bg-amber-100 rounded-full px-2.5 text-xs text-amber-700 py-0.5 whitespace-nowrap font-medium">Menunggu Ketua</span>
                                 @elseif($t->status === 'menunggu_kabag')
@@ -310,12 +338,14 @@
                                     <span class="bg-emerald-100 rounded-full px-2.5 text-xs text-emerald-700 py-0.5 whitespace-nowrap font-medium">Disetujui</span>
                                 @elseif($t->status === 'rejected')
                                     <span class="bg-rose-100 rounded-full px-2.5 text-xs text-rose-700 py-0.5 whitespace-nowrap font-medium">Ditolak</span>
+                                @elseif($t->status === 'cancelled')
+                                    <span class="bg-gray-100 rounded-full px-2.5 text-xs text-gray-700 py-0.5 whitespace-nowrap font-medium border border-gray-300">Dibatalkan</span>
                                 @else
                                     <span class="text-gray-400 text-xs">-</span>
                                 @endif
                             </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left">
+                            <td class="px-2 py-2 text-xs text-gray-900 text-left" id="note-cell-{{ $t->id_transaksi }}">
                                 {{ $t->note ?? '-' }}
                             </td>
 
@@ -359,10 +389,26 @@
                                     <span class="text-gray-300">-</span>
                                 @endif
                             </td>
+
+                            <td class="px-2 py-2 text-center text-xs whitespace-nowrap" id="aksi-cell-{{ $t->id_transaksi }}">
+                                @if($t->status !== 'cancelled')
+                                    <button type="button"
+                                        onclick="openModalBatalAdmin({{ $t->id_transaksi }}, {{ json_encode($t->nama_pegawai ?? '-') }}, '{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}')"
+                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer"
+                                        title="Batalkan pengajuan ini">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        <span>Batal</span>
+                                    </button>
+                                @else
+                                    <span class="text-gray-400 text-xs italic">Dibatalkan</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-3 py-10 text-center">
+                            <td colspan="10" class="px-3 py-10 text-center">
                                 <div class="flex flex-col items-center justify-center gap-1.5 text-gray-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -492,6 +538,107 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL BATALKAN PENGAJUAN (ADMIN) --}}
+<div id="modalBatalAdmin" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalBatalAdmin()"></div>
+
+    <div class="relative flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] overflow-y-auto">
+
+            <div class="flex justify-center pt-3 pb-1 sm:hidden">
+                <div class="w-10 h-1 rounded-full bg-gray-200"></div>
+            </div>
+
+            <div class="flex items-center justify-between border-b px-4 sm:px-6 py-4 sticky top-0 bg-white z-10">
+                <div class="flex items-center gap-2 text-rose-600">
+                    <div class="p-1.5 bg-rose-100 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-base font-bold text-gray-900">Batalkan Pengajuan Lembur</h2>
+                </div>
+                <button type="button" onclick="closeModalBatalAdmin()"
+                    class="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                    &times;
+                </button>
+            </div>
+
+            <form id="formBatalAdmin" onsubmit="submitBatalAdmin(event)" class="px-4 sm:px-6 py-5 space-y-4">
+                @csrf
+                <input type="hidden" id="batalIdTransaksi" value="">
+
+                <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-xs text-rose-900">
+                    <p class="font-medium text-rose-800">
+                        Anda akan membatalkan pengajuan lembur:
+                    </p>
+                    <div class="grid grid-cols-3 gap-1 pt-1 text-gray-700">
+                        <span class="text-gray-500">Pegawai:</span>
+                        <span class="col-span-2 font-semibold text-gray-900" id="batalNamaPegawai">-</span>
+                        <span class="text-gray-500">Tanggal:</span>
+                        <span class="col-span-2 font-semibold text-gray-900" id="batalTanggal">-</span>
+                    </div>
+                    <p class="text-[11px] text-rose-700/90 pt-1 leading-relaxed">
+                        Pengajuan ini akan diubah statusnya menjadi <b>Dibatalkan</b> dan jam lembur tidak akan dihitung pada rekapitulasi/uang lembur. Data tetap tersimpan rapi untuk histori audit.
+                    </p>
+                </div>
+
+                <div>
+                    <label for="batalAlasan" class="block text-xs font-semibold text-gray-800 mb-1.5">
+                        Alasan Pembatalan <span class="text-rose-500">*</span>
+                    </label>
+                    <textarea id="batalAlasan" name="alasan" rows="3" required
+                        placeholder="Contoh: Dobel input pengajuan lembur / Salah input tanggal pengajuan"
+                        class="w-full rounded-xl border border-gray-300 p-3 text-xs text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"></textarea>
+                    <p id="batalAlasanError" class="text-xs text-rose-600 mt-1 hidden"></p>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 border-t">
+                    <button type="button" onclick="closeModalBatalAdmin()"
+                        class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all">
+                        Tutup
+                    </button>
+
+                    <button type="submit" id="btnSubmitBatalAdmin"
+                        class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-rose-600/20">
+                        <span>Ya, Batalkan Pengajuan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL PRESENSI ADMIN --}}
+<div id="modalPresensiAdmin" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalPresensiAdmin()"></div>
+
+    <div class="relative flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] overflow-y-auto sm:overflow-hidden">
+
+            <div class="flex justify-center pt-3 pb-1 sm:hidden">
+                <div class="h-1 w-10 rounded-full bg-gray-200"></div>
+            </div>
+
+            <div class="sticky sm:static top-0 z-10 flex items-center justify-between border-b bg-white px-4 sm:px-6 py-4 rounded-t-2xl">
+                <div>
+                    <h2 class="text-sm font-bold text-gray-900">Informasi Presensi Pegawai</h2>
+                    <p class="text-xs text-gray-400 mt-0.5" id="presensiSubtitleAdmin">-</p>
+                </div>
+
+                <button type="button" onclick="closeModalPresensiAdmin()"
+                    class="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                    &times;
+                </button>
+            </div>
+
+            <div class="px-4 sm:px-6 py-5 space-y-4" id="presensiBodyAdmin">
+                <p class="text-sm text-gray-400 text-center py-4">Memuat data presensi...</p>
+            </div>
         </div>
     </div>
 </div>
@@ -1249,6 +1396,188 @@
 
     window.closeModalDok = function () {
         document.getElementById('modalDok').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    // =====================
+    // MODAL BATALKAN PENGAJUAN (ADMIN)
+    // =====================
+    window.openModalBatalAdmin = function (idTransaksi, namaPegawai, tanggal) {
+        document.getElementById('batalIdTransaksi').value = idTransaksi;
+        document.getElementById('batalNamaPegawai').textContent = namaPegawai || '-';
+        document.getElementById('batalTanggal').textContent = tanggal || '-';
+        document.getElementById('batalAlasan').value = '';
+        document.getElementById('batalAlasanError').classList.add('hidden');
+        document.getElementById('batalAlasanError').textContent = '';
+        
+        const btnSubmit = document.getElementById('btnSubmitBatalAdmin');
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<span>Ya, Batalkan Pengajuan</span>';
+
+        document.getElementById('modalBatalAdmin').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        setTimeout(() => document.getElementById('batalAlasan').focus(), 100);
+    };
+
+    window.closeModalBatalAdmin = function () {
+        document.getElementById('modalBatalAdmin').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    window.submitBatalAdmin = async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('batalIdTransaksi').value;
+        const alasan = document.getElementById('batalAlasan').value.trim();
+        const errorEl = document.getElementById('batalAlasanError');
+        const btnSubmit = document.getElementById('btnSubmitBatalAdmin');
+
+        if (!alasan) {
+            errorEl.textContent = 'Alasan pembatalan wajib diisi.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        errorEl.classList.add('hidden');
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `
+            <svg class="animate-spin h-3.5 w-3.5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Memproses...</span>
+        `;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                || document.querySelector('#formBatalAdmin input[name="_token"]')?.value;
+
+            const res = await fetch(`/admin/lembur/${id}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ alasan: alasan, alasan_batal: alasan })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Gagal membatalkan pengajuan');
+            }
+
+            const statusCell = document.getElementById(`status-cell-${id}`);
+            if (statusCell) {
+                statusCell.innerHTML = `<span class="bg-gray-100 rounded-full px-2.5 text-xs text-gray-700 py-0.5 whitespace-nowrap font-medium border border-gray-300">Dibatalkan</span>`;
+            }
+
+            const noteCell = document.getElementById(`note-cell-${id}`);
+            if (noteCell) {
+                noteCell.textContent = data.note || `[Dibatalkan Admin] ${alasan}`;
+            }
+
+            const aksiCell = document.getElementById(`aksi-cell-${id}`);
+            if (aksiCell) {
+                aksiCell.innerHTML = `<span class="text-gray-400 text-xs italic">Dibatalkan</span>`;
+            }
+
+            closeModalBatalAdmin();
+
+            const alertBox = document.createElement('div');
+            alertBox.className = 'fixed bottom-5 right-5 z-50 bg-emerald-600 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all duration-300';
+            alertBox.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>${data.message || 'Pengajuan lembur berhasil dibatalkan.'}</span>
+            `;
+            document.body.appendChild(alertBox);
+            setTimeout(() => {
+                alertBox.style.opacity = '0';
+                setTimeout(() => alertBox.remove(), 300);
+            }, 3000);
+
+        } catch (err) {
+            errorEl.textContent = err.message || 'Terjadi kesalahan sistem.';
+            errorEl.classList.remove('hidden');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<span>Ya, Batalkan Pengajuan</span>';
+        }
+    };
+
+    // =====================
+    // MODAL PRESENSI (ADMIN)
+    // =====================
+    window.openModalPresensiAdmin = function (idTransaksi) {
+        const modal = document.getElementById('modalPresensiAdmin');
+        const subtitle = document.getElementById('presensiSubtitleAdmin');
+        const body = document.getElementById('presensiBodyAdmin');
+
+        subtitle.textContent = 'Memuat data...';
+        body.innerHTML = `
+            <div class="flex items-center justify-center py-6 text-gray-400 gap-2">
+                <svg class="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-xs">Memuat informasi presensi...</span>
+            </div>
+        `;
+
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+
+        fetch(`/admin/pengajuan/${idTransaksi}/presensi`)
+            .then(res => res.json())
+            .then(data => {
+                subtitle.textContent = `${data.nama} — ${data.nip}`;
+
+                if (!data.status && !data.jam_masuk && !data.jam_pulang) {
+                    body.innerHTML = `
+                        <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                            <p class="text-xs font-semibold text-amber-800">Tidak ada data presensi</p>
+                            <p class="text-[11px] text-amber-600 mt-0.5">Pegawai belum tercatat hadir pada tanggal ${data.tanggal ?? '-'}.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                body.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs space-y-1">
+                            <div class="flex justify-between text-gray-500">
+                                <span>Tanggal Presensi:</span>
+                                <span class="font-semibold text-gray-900">${data.tanggal ?? '-'}</span>
+                            </div>
+                            <div class="flex justify-between text-gray-500">
+                                <span>Status Kehadiran:</span>
+                                <span class="font-semibold uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px]">${data.status ?? '-'}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3 border border-gray-200 rounded-xl bg-white text-center">
+                                <span class="text-[11px] text-gray-400 font-medium">Jam Masuk</span>
+                                <div class="text-base font-bold text-gray-900 mt-0.5 font-mono">${data.jam_masuk ?? '-'}</div>
+                            </div>
+                            <div class="p-3 border border-gray-200 rounded-xl bg-white text-center">
+                                <span class="text-[11px] text-gray-400 font-medium">Jam Pulang</span>
+                                <div class="text-base font-bold text-gray-900 mt-0.5 font-mono">${data.jam_pulang ?? '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(() => {
+                body.innerHTML = `
+                    <p class="text-xs text-rose-500 text-center py-4">Gagal memuat data presensi.</p>
+                `;
+            });
+    };
+
+    window.closeModalPresensiAdmin = function () {
+        document.getElementById('modalPresensiAdmin').classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
 

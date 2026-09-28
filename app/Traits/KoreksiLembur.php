@@ -7,7 +7,31 @@ use Carbon\Carbon;
 
 trait KoreksiLembur
 {
-    private function koreksiUntukTanggal(array $tanggalList): void
+    public function koreksiUntukTransaksi(int $idTransaksi): void
+    {
+        $transaksi = DB::table('t_transaksi')->where('id_transaksi', $idTransaksi)->first();
+        if ($transaksi && $transaksi->date) {
+            $this->koreksiUntukTanggal([$transaksi->date]);
+        }
+    }
+
+    public function koreksiUntukBulan(int $tahun, int $bulan): void
+    {
+        $tanggalList = DB::table('t_transaksi')
+            ->where('status', 'approved')
+            ->whereNull('eligible')
+            ->whereYear('date', $tahun)
+            ->whereMonth('date', $bulan)
+            ->distinct()
+            ->pluck('date')
+            ->toArray();
+
+        if (!empty($tanggalList)) {
+            $this->koreksiUntukTanggal($tanggalList);
+        }
+    }
+
+    public function koreksiUntukTanggal(array $tanggalList): void
     {
         if (empty($tanggalList)) return;
 
@@ -25,7 +49,7 @@ trait KoreksiLembur
                 ->where('niplama', $transaksi->nip_lama)
                 ->first();
 
-            // Presensi belum ada → skip, akan dihitung saat upload
+            // Presensi belum ada → skip, akan dihitung saat upload presensi
             if (!$presensi || !$presensi->jam_selesai) continue;
 
             $tanggalCarbon   = Carbon::parse($transaksi->date);
@@ -37,14 +61,16 @@ trait KoreksiLembur
             $isHariLibur = $isWeekend || $isLiburNasional;
             $maxJam      = $isHariLibur ? 6 : 4;
 
-            $jamMulai           = Carbon::parse($transaksi->date . ' ' . $transaksi->jam_mulai);
+            $jamMulaiStr        = $transaksi->jam_mulai_disetujui ?: $transaksi->jam_mulai;
+            $jamMulai           = Carbon::parse($transaksi->date . ' ' . $jamMulaiStr);
             $batasMaksimal      = $jamMulai->copy()->addHours($maxJam);
             $jamSelesaiPresensi = Carbon::parse($presensi->jam_selesai);
 
             if ($jamSelesaiPresensi->lessThan($jamMulai)) $jamSelesaiPresensi->addDay();
 
-            // Jam lembur disetujui tidak boleh melebihi jam yang diajukan
-            $jamSelesaiPengajuan = Carbon::parse($transaksi->date . ' ' . $transaksi->jam_selesai);
+            // Jam lembur disetujui tidak boleh melebihi jam yang disetujui/diajukan
+            $jamSelesaiAcuan     = $transaksi->jam_selesai_disetujui ?: $transaksi->jam_selesai;
+            $jamSelesaiPengajuan = Carbon::parse($transaksi->date . ' ' . $jamSelesaiAcuan);
             if ($jamSelesaiPengajuan->lessThan($jamMulai)) $jamSelesaiPengajuan->addDay();
 
             $batasAtas = $jamSelesaiPengajuan->lessThan($batasMaksimal)
@@ -57,10 +83,9 @@ trait KoreksiLembur
 
             if ($durasi < 2) {
                 DB::table('t_transaksi')->where('id_transaksi', $transaksi->id_transaksi)->update([
-                    'status'                => 'rejected',
                     'jam_selesai_disetujui' => $jamSelesaiFinal->format('H:i:s'),
-                    'note'                  => 'Durasi lembur kurang dari 2 jam berdasarkan data presensi.',
-                    'eligible'              => null,
+                    'eligible'              => 0,
+                    'note'                  => ($transaksi->note ? $transaksi->note . ' — ' : '') . 'Durasi lembur presensi kurang dari 2 jam.',
                 ]);
                 continue;
             }

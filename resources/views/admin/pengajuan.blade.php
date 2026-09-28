@@ -249,6 +249,17 @@
                                         </svg>
                                     </button>
                                 </div>
+                            @elseif($p->status === 'cancelled')
+                                <div class="inline-flex items-center gap-1.5 justify-center">
+                                    <span class="bg-gray-100 rounded-full px-2 text-xs text-gray-700 py-0.5 border border-gray-300">Dibatalkan</span>
+                                    <button type="button"
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'cancelled')"
+                                        class="text-gray-400 cursor-pointer hover:text-gray-600" title="Lihat / Ubah Keputusan">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             @else
                                 <div class="inline-flex items-center gap-2">
                                     <span class="bg-amber-100 rounded-full px-2 text-xs text-amber-700 py-0.5">Menunggu Ketua</span>
@@ -374,7 +385,7 @@
             </div>
 
             <div class="px-4 sm:px-6 py-5 space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div id="wrapperJamDisetujui" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Jam Mulai Disetujui</label>
                         <input id="kJamMulai" type="time"
@@ -417,7 +428,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
+                    <label id="labelCatatan" class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
                     <textarea id="kCatatan" rows="3"
                         class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-300 focus:ring-1 focus:ring-gray-400 resize-none"
                         placeholder="Tambahkan catatan jika diperlukan..."></textarea>
@@ -426,14 +437,20 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Keputusan</label>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-2">
                         <button type="button" onclick="setKeputusan('rejected')" id="kBtnTolak"
-                            class="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all">
+                            class="px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all">
                             Tolak
                         </button>
 
+                        <button type="button" onclick="setKeputusan('cancelled')" id="kBtnBatal"
+                            class="px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-rose-50 hover:border-rose-400 hover:text-rose-700 transition-all"
+                            title="Batalkan pengajuan (duplikat / salah tanggal)">
+                            Batalkan
+                        </button>
+
                         <button type="button" onclick="setKeputusan('approved')" id="kBtnSetujui"
-                            class="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all">
+                            class="px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all">
                             Setujui
                         </button>
                     </div>
@@ -931,7 +948,7 @@ let currentJamSelesaiPresensi = '';
 
 window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, uraian, hasPresensi, jamSelesaiPresensi, initialStatus) {
     currentId = id;
-    keputusan = initialStatus === 'approved' ? 'approved' : (initialStatus === 'rejected' ? 'rejected' : null);
+    keputusan = (initialStatus === 'approved' || initialStatus === 'rejected' || initialStatus === 'cancelled') ? initialStatus : null;
     currentUraian = (uraian !== undefined && uraian !== null) ? uraian : '';
     currentHasPresensi = Boolean(hasPresensi);
     currentJamSelesaiPresensi = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
@@ -984,6 +1001,8 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, uraian, 
         setKeputusan('approved');
     } else if (initialStatus === 'rejected') {
         setKeputusan('rejected');
+    } else if (initialStatus === 'cancelled') {
+        setKeputusan('cancelled');
     } else {
         resetBtnKeputusan();
     }
@@ -1008,16 +1027,32 @@ window.setKeputusan = function(val) {
     keputusan = val;
     resetBtnKeputusan();
 
+    const wrapperJam = document.getElementById('wrapperJamDisetujui');
+    const labelCatatan = document.getElementById('labelCatatan');
+
     if (val === 'rejected') {
-        document.getElementById('kBtnTolak').className = 'px-4 py-2 text-sm font-semibold rounded-lg border border-red-400 bg-red-50 text-red-600 transition-all';
+        document.getElementById('kBtnTolak').className = 'px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-red-400 bg-red-50 text-red-600 transition-all';
+        if (wrapperJam) wrapperJam.classList.remove('hidden');
+        if (labelCatatan) labelCatatan.textContent = 'Catatan / Alasan Penolakan';
+    } else if (val === 'cancelled') {
+        document.getElementById('kBtnBatal').className = 'px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-rose-400 bg-rose-50 text-rose-700 transition-all';
+        if (wrapperJam) wrapperJam.classList.add('hidden');
+        if (labelCatatan) labelCatatan.innerHTML = 'Catatan / Alasan Pembatalan <span class="text-rose-500 font-semibold">*wajib</span>';
     } else {
-        document.getElementById('kBtnSetujui').className = 'px-4 py-2 text-sm font-semibold rounded-lg border border-green-400 bg-green-50 text-green-700 transition-all';
+        document.getElementById('kBtnSetujui').className = 'px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-green-400 bg-green-50 text-green-700 transition-all';
+        if (wrapperJam) wrapperJam.classList.remove('hidden');
+        if (labelCatatan) labelCatatan.textContent = 'Catatan (Opsional)';
     }
 };
 
 function resetBtnKeputusan() {
-    document.getElementById('kBtnTolak').className = 'px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all';
-    document.getElementById('kBtnSetujui').className = 'px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all';
+    document.getElementById('kBtnTolak').className = 'px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all';
+    document.getElementById('kBtnBatal').className = 'px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition-all';
+    document.getElementById('kBtnSetujui').className = 'px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all';
+    const wrapperJam = document.getElementById('wrapperJamDisetujui');
+    if (wrapperJam) wrapperJam.classList.remove('hidden');
+    const labelCatatan = document.getElementById('labelCatatan');
+    if (labelCatatan) labelCatatan.textContent = 'Catatan';
 }
 
 function cekWarningDurasi() {
@@ -1064,15 +1099,22 @@ window.simpanKeputusan = function() {
     const catatan = document.getElementById('kCatatan').value;
     const uraian = document.getElementById('kUraian').value;
 
-    if (keputusan !== 'rejected' && (!jamMulai || !jamSelesai)) {
-        alert('Jam mulai dan jam selesai wajib diisi.');
-        return;
-    }
-
-    if (keputusan !== 'rejected' && currentJamSelesaiPresensi && jamSelesai > currentJamSelesaiPresensi) {
-        alert(`Jam selesai disetujui (${jamSelesai}) tidak boleh melebihi jam kepulangan presensi pegawai (${currentJamSelesaiPresensi}).`);
-        document.getElementById('kJamSelesai').focus();
-        return;
+    if (keputusan === 'cancelled') {
+        if (!catatan.trim()) {
+            alert('Alasan pembatalan wajib diisi pada kotak catatan.');
+            document.getElementById('kCatatan').focus();
+            return;
+        }
+    } else if (keputusan !== 'rejected') {
+        if (!jamMulai || !jamSelesai) {
+            alert('Jam mulai dan jam selesai wajib diisi.');
+            return;
+        }
+        if (currentJamSelesaiPresensi && jamSelesai > currentJamSelesaiPresensi) {
+            alert(`Jam selesai disetujui (${jamSelesai}) tidak boleh melebihi jam kepulangan presensi pegawai (${currentJamSelesaiPresensi}).`);
+            document.getElementById('kJamSelesai').focus();
+            return;
+        }
     }
 
     const btn = document.getElementById('btnSimpan');
@@ -1105,10 +1147,22 @@ window.simpanKeputusan = function() {
         const statusEl = document.querySelector(`#status-${currentId}`);
 
         if (statusEl) {
-            const badgeClass = keputusan === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-            const badgeText = keputusan === 'approved' ? 'Disetujui' : 'Ditolak';
-            const btnTitle = keputusan === 'approved' ? 'Koreksi' : 'Lihat / Koreksi';
-            const actionStatus = keputusan === 'approved' ? 'approved' : 'rejected';
+            let badgeClass = 'bg-green-100 text-green-700';
+            let badgeText = 'Disetujui';
+            let btnTitle = 'Koreksi';
+            let actionStatus = 'approved';
+
+            if (keputusan === 'rejected') {
+                badgeClass = 'bg-red-100 text-red-700';
+                badgeText = 'Ditolak';
+                btnTitle = 'Lihat / Koreksi';
+                actionStatus = 'rejected';
+            } else if (keputusan === 'cancelled') {
+                badgeClass = 'bg-gray-100 text-gray-700 border border-gray-300';
+                badgeText = 'Dibatalkan';
+                btnTitle = 'Lihat / Ubah Keputusan';
+                actionStatus = 'cancelled';
+            }
 
             statusEl.innerHTML = `
                 <div class="inline-flex items-center gap-1.5 justify-center">
@@ -1125,7 +1179,7 @@ window.simpanKeputusan = function() {
 
         const jamEl = document.querySelector(`#jam-disetujui-${currentId}`);
         if (jamEl) {
-            jamEl.textContent = keputusan === 'rejected' ? '-' : `${jamMulai} - ${jamSelesai}`;
+            jamEl.textContent = (keputusan === 'rejected' || keputusan === 'cancelled') ? '-' : `${jamMulai} - ${jamSelesai}`;
         }
 
         if (data.uraian !== undefined) {

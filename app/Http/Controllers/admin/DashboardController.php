@@ -5,9 +5,12 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Traits\KoreksiLembur;
 
 class DashboardController extends Controller
 {
+    use KoreksiLembur;
+
     public function index()
     {
         $bulanIni  = Carbon::now()->month;
@@ -195,6 +198,8 @@ class DashboardController extends Controller
                 'user_edited'           => session('user')['nama'] ?? session('user')['nip'],
                 'tanggal_edited'        => now(),
             ]);
+
+        $this->koreksiUntukTransaksi($id);
 
         return response()->json(['success' => true]);
     }

@@ -161,10 +161,14 @@
                         <td class="px-3 py-3 text-center">
                             @if($p->status === 'pending')
                                 <span class="whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Menunggu</span>
+                            @elseif($p->status === 'menunggu_kabag')
+                                <span class="whitespace-nowrap rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">Menunggu Kabag</span>
                             @elseif($p->status === 'approved')
                                 <span class="whitespace-nowrap rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">Disetujui</span>
                             @elseif($p->status === 'rejected')
-                                <span class="whitespace-nowrap rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">Ditolak</span>
+                                <span class="whitespace-nowrap rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">Ditolak</span>
+                            @elseif($p->status === 'cancelled')
+                                <span class="whitespace-nowrap rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 border border-gray-300">Dibatalkan</span>
                             @endif
                         </td>
                     </tr>

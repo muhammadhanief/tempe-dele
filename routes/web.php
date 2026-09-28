@@ -140,10 +140,12 @@ Route::middleware('checksession')->group(function () {
         Route::post('/lembur/{id_transaksi}/dokumentasi', [AdminLemburController::class, 'storeDoc'])->name('lembur.storeDoc');
         Route::delete('/lembur/{id_transaksi}/dokumentasi', [AdminLemburController::class, 'destroyDoc'])->name('lembur.destroyDoc');
         Route::post('/lembur/{id}/uraian', [AdminLemburController::class, 'updateUraian'])->name('lembur.updateUraian');
+        Route::post('/lembur/{id}/cancel', [AdminLemburController::class, 'cancel'])->name('lembur.cancel');
 
         // Approve Lembur
         Route::get('/pengajuan', [AdminPengajuanController::class, 'index'])->name('pengajuan');
         Route::post('/pengajuan/{id}/approve', [AdminPengajuanController::class, 'approve'])->name('pengajuan.approve');
+        Route::post('/pengajuan/{id}/cancel', [AdminPengajuanController::class, 'cancel'])->name('pengajuan.cancel');
         Route::get('/pengajuan/{id}/presensi', [AdminPengajuanController::class, 'presensi'])->name('pengajuan.presensi');
         Route::get('/pengajuan/pegawai', [AdminPengajuanController::class, 'semuaPegawai'])->name('pengajuan.pegawai');
 

@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Traits\KoreksiLembur;
 
 class PengajuanController extends Controller
 {
+    use KoreksiLembur;
+
     public function index(Request $request)
     {
         $bulan  = $request->get('bulan', now()->format('Y-m'));
@@ -86,7 +89,7 @@ class PengajuanController extends Controller
         $request->validate([
             'jam_mulai_disetujui'   => 'nullable',
             'jam_selesai_disetujui' => 'nullable',
-            'status'                => 'required|in:approved,rejected',
+            'status'                => 'required|in:approved,rejected,cancelled',
             'note'                  => 'nullable|string',
             'uraian'                => 'nullable|string|max:2000',
         ]);
@@ -103,7 +106,28 @@ class PengajuanController extends Controller
 
         $noteKetua = trim($request->note ?? '');
 
-        if ($request->status === 'approved') {
+        if ($request->status === 'cancelled') {
+            if (empty($noteKetua)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Alasan pembatalan wajib diisi pada kolom catatan.'
+                ], 422);
+            }
+
+            $catatanFinal = str_starts_with($noteKetua, '[Dibatalkan Admin]') ? $noteKetua : '[Dibatalkan Admin] ' . $noteKetua;
+
+            $updateData = [
+                'status'                => 'cancelled',
+                'jam_mulai_disetujui'   => null,
+                'jam_selesai_disetujui' => null,
+                'note'                  => $catatanFinal,
+                'eligible'              => null,
+                'approved_at'           => null,
+                'approved_kabag_at'     => null,
+                'user_edited'           => session('user')['nama'] ?? session('user')['nip'],
+                'tanggal_edited'        => now(),
+            ];
+        } elseif ($request->status === 'approved') {
             $jamMulaiInput = $request->jam_mulai_disetujui ?? ($transaksi->jam_mulai_disetujui ? substr($transaksi->jam_mulai_disetujui, 0, 5) : substr($transaksi->jam_mulai, 0, 5));
             $jamSelesaiInput = $request->jam_selesai_disetujui ?? ($transaksi->jam_selesai_disetujui ? substr($transaksi->jam_selesai_disetujui, 0, 5) : substr($transaksi->jam_selesai, 0, 5));
 
@@ -184,6 +208,10 @@ class PengajuanController extends Controller
 
         DB::table('t_transaksi')->where('id_transaksi', $id)->update($updateData);
 
+        if ($request->status === 'approved') {
+            $this->koreksiUntukTransaksi($id);
+        }
+
         return response()->json([
             'success' => true,
             'uraian'  => $updateData['uraian'] ?? $transaksi->uraian,
@@ -227,4 +255,59 @@ class PengajuanController extends Controller
         return response()->json($pegawai);
     }
 
+    public function cancel(Request $request, $id)
+    {
+        $alasanRaw = $request->alasan ?? $request->alasan_batal ?? $request->note ?? '';
+        $alasan = trim((string) $alasanRaw);
+
+        if ($alasan === '') {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Alasan pembatalan wajib diisi.'], 422);
+            }
+            return back()->with('error', 'Alasan pembatalan wajib diisi.');
+        }
+
+        if (mb_strlen($alasan) > 500) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Alasan pembatalan maksimal 500 karakter.'], 422);
+            }
+            return back()->with('error', 'Alasan pembatalan maksimal 500 karakter.');
+        }
+
+        $transaksi = DB::table('t_transaksi')->where('id_transaksi', $id)->first();
+        if (!$transaksi) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan.'], 404);
+            }
+            return back()->with('error', 'Data tidak ditemukan.');
+        }
+
+        $userActor = session('user')['nama'] ?? session('user')['nip'];
+        $catatanFinal = str_starts_with($alasan, '[Dibatalkan Admin]') ? $alasan : '[Dibatalkan Admin] ' . $alasan;
+
+        DB::table('t_transaksi')->where('id_transaksi', $id)->update([
+            'status'                => 'cancelled',
+            'note'                  => $catatanFinal,
+            'jam_mulai_disetujui'   => null,
+            'jam_selesai_disetujui' => null,
+            'eligible'              => null,
+            'approved_at'           => null,
+            'approved_kabag_at'     => null,
+            'user_edited'           => $userActor,
+            'tanggal_edited'        => now(),
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'status'  => 'cancelled',
+                'note'    => $catatanFinal,
+                'message' => 'Pengajuan lembur berhasil dibatalkan.'
+            ]);
+        }
+
+        return back()->with('success', 'Pengajuan lembur berhasil dibatalkan.');
+    }
+
 }
+

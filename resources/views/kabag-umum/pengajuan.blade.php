@@ -111,6 +111,10 @@
                     class="inline-flex items-center h-8 rounded-lg px-3 transition-all whitespace-nowrap {{ ($statusFilter === 'rejected') ? 'bg-white text-rose-600 shadow-xs' : 'text-gray-600 hover:text-gray-900' }}">
                     Ditolak ({{ $stats['rejected'] ?? 0 }})
                 </a>
+                <a href="{{ request()->fullUrlWithQuery(['status' => 'cancelled', 'page' => 1]) }}"
+                    class="inline-flex items-center h-8 rounded-lg px-3 transition-all whitespace-nowrap {{ ($statusFilter === 'cancelled') ? 'bg-white text-gray-700 shadow-xs' : 'text-gray-600 hover:text-gray-900' }}">
+                    Dibatalkan ({{ $stats['cancelled'] ?? 0 }})
+                </a>
             </div>
         </div>
 
@@ -267,6 +271,10 @@
                                 <span class="whitespace-nowrap rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-800 border border-rose-200">
                                     Ditolak
                                 </span>
+                            @elseif($p->status === 'cancelled')
+                                <span class="whitespace-nowrap rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 border border-gray-300">
+                                    Dibatalkan
+                                </span>
                             @endif
                         </td>
 
@@ -289,6 +297,8 @@
                                     </svg>
                                     <span>Koreksi</span>
                                 </button>
+                            @elseif($p->status === 'cancelled')
+                                <span class="text-gray-400 text-xs italic">Dibatalkan</span>
                             @else
                                 <span class="text-xs text-gray-400">-</span>
                             @endif

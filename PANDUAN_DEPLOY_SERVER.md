@@ -64,25 +64,29 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 1. 📄 **`database/migrations/2026_09_25_000001_add_user_edited_to_t_transaksi.php`** *(File migrasi audit edit)*.
 2. 📄 **`database/migrations/2026_09_25_000002_widen_uraian_column_in_t_transaksi.php`** *(File migrasi kapasitas uraian TEXT)*.
 3. 📄 **`app/Models/Transaksi.php`** *(Update $fillable: user_edited, tanggal_edited)*.
-4. 📄 **`app/Traits/KoreksiLembur.php`** *(Pencegahan kalkulasi lembur presensi melebihi jam pengajuan)*.
-5. 📄 **`app/Http/Middleware/CheckRole.php`** *(Wajib ada, jika tertinggal aplikasi akan error Class Not Found)*.
-6. 📄 **`bootstrap/app.php`** *(Memuat pendaftaran alias middleware `role`)*.
-7. 📄 **`routes/web.php`** *(Memuat proteksi rute RBAC dan penguncian dev-login)*.
-8. 📄 **`app/Http/Controllers/LemburController.php`** *(Form pegawai + validasi max:2000 + batas pengajuan presensi)*.
-9. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`** *(Controller persetujuan Kabag + edit uraian + validasi presensi)*.
-10. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`** *(Controller persetujuan Ketua Tim + edit uraian + validasi presensi)*.
-11. 📄 **`app/Http/Controllers/admin/PengajuanController.php`** *(Controller Admin + validasi presensi + reset jam rejected + approved_kabag_at + edit uraian)*.
-12. 📄 **`app/Http/Controllers/admin/DashboardController.php`** *(Controller dashboard Admin + metrik diproses multi-status + quick approve presensi cap)*.
-13. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Controller Admin lembur)*.
-14. 📄 **`resources/views/lembur.blade.php`** *(View lembur pegawai + live counter)*.
-15. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(View persetujuan Kabag + default jam pengajuan)*.
-16. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(View persetujuan Ketua Tim + default jam pengajuan)*.
-17. 📄 **`resources/views/ketua-tim/dashboard.blade.php`** *(View dashboard Ketua Tim + badge status menunggu_kabag)*.
-18. 📄 **`app/Http/Controllers/ketuatim/DashboardController.php`** *(Controller dashboard Ketua Tim + sinkronisasi status disetujui & presensi)*.
-19. 📄 **`resources/views/admin/dashboard.blade.php`** *(View dashboard Admin + badge menunggu_kabag + tag modal pending)*.
-20. 📄 **`resources/views/admin/pengajuan.blade.php`** *(View persetujuan Admin + tombol aksi semua status + update realtime)*.
-21. 📄 **`resources/views/partials/sidebar.blade.php`** *(Navigasi menu Kabag)*.
-22. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
+4. 📄 **`app/Traits/KoreksiLembur.php`** *(Kalkulasi lembur presisi, penambahan method `koreksiUntukTransaksi` & `koreksiUntukBulan` untuk otomatisasi status `eligible=1`)*.
+5. 📄 **`app/Exports/RekapitulasiExport.php`** *(Ekspor Excel rekapitulasi + auto-sweep evaluasi eligible lembur bulan berjalan)*.
+6. 📄 **`app/Http/Controllers/admin/RekapitulasiController.php`** *(Tampilan rekapitulasi admin + auto-sweep evaluasi eligible lembur bulan berjalan)*.
+7. 📄 **`app/Http/Middleware/CheckRole.php`** *(Wajib ada, jika tertinggal aplikasi akan error Class Not Found)*.
+8. 📄 **`bootstrap/app.php`** *(Memuat pendaftaran alias middleware `role`)*.
+9. 📄 **`routes/web.php`** *(Memuat rute pembatalan lembur admin: `/admin/lembur/{id}/cancel` dan `/admin/pengajuan/{id}/cancel`)*.
+10. 📄 **`app/Http/Controllers/LemburController.php`** *(Form pegawai + validasi max:2000 + batas pengajuan presensi)*.
+11. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`** *(Persetujuan Kabag + auto-trigger `koreksiUntukTransaksi` saat approved)*.
+12. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`** *(Controller persetujuan Ketua Tim + edit uraian + validasi presensi)*.
+13. 📄 **`app/Http/Controllers/admin/PengajuanController.php`** *(Controller Admin + pembatalan + auto-trigger `koreksiUntukTransaksi` saat approved)*.
+14. 📄 **`app/Http/Controllers/admin/DashboardController.php`** *(Dashboard Admin + quick-approve + auto-trigger `koreksiUntukTransaksi`)*.
+15. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Monitoring lembur Admin + subquery indikator presensi pulang + pembatalan pengajuan)*.
+16. 📄 **`resources/views/lembur.blade.php`** *(View lembur pegawai + badge Dibatalkan Admin)*.
+17. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(View persetujuan Kabag + badge & tab filter Dibatalkan)*.
+18. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(View persetujuan Ketua Tim + badge Dibatalkan + proteksi aksi)*.
+19. 📄 **`resources/views/ketua-tim/dashboard.blade.php`** *(View dashboard Ketua Tim + badge status menunggu_kabag)*.
+20. 📄 **`app/Http/Controllers/ketuatim/DashboardController.php`** *(Controller dashboard Ketua Tim + sinkronisasi status disetujui & presensi)*.
+21. 📄 **`resources/views/admin/dashboard.blade.php`** *(View dashboard Admin + badge menunggu_kabag + tag modal pending)*.
+22. 📄 **`resources/views/admin/pengajuan.blade.php`** *(View persetujuan Admin + tombol keputusan Batalkan + badge Dibatalkan)*.
+23. 📄 **`resources/views/admin/lembur.blade.php`** *(View lembur Admin + badge indikator presensi + modal detail presensi + modal konfirmasi pembatalan + tombol Aksi Batal + filter tab Dibatalkan)*.
+24. 📄 **`resources/views/pimpinan/pengajuan.blade.php`** *(View persetujuan Pimpinan + badge Menunggu Kabag & Dibatalkan)*.
+25. 📄 **`resources/views/partials/sidebar.blade.php`** *(Navigasi menu Kabag)*.
+26. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
 
 ---
 
@@ -231,5 +235,45 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Jika Admin menolak pengajuan (`rejected`), jam disetujui di-reset menjadi `-` dan disimpan `NULL` di database.
   - Data uraian dan jam lembur yang diedit oleh Admin tercatat rapi di kolom `user_edited` dan `tanggal_edited`.
 
+### H. Uji Fitur Pembatalan Pengajuan oleh Admin (Fase 1 No. 1 - Anti Dobel Input / Salah Tanggal)
+- [ ] **Pembatalan dari Menu Lembur Admin (`/admin/lembur`)**:
+  - Buka menu **Lembur Admin**: periksa kolom baru **"Aksi"** pada setiap baris pengajuan.
+  - Klik tombol **"Batal"** pada pengajuan yang ingin dibatalkan (misal: pengajuan dobel atau salah input tanggal).
+  - Modal **"Batalkan Pengajuan Lembur"** muncul: periksa nama pegawai, tanggal lembur, dan kotak isian wajib **"Alasan Pembatalan"**.
+  - Jika alasan dibiarkan kosong, form memunculkan pesan validasi error.
+  - Masukkan alasan pembatalan (misal: *"Dobel input pengajuan lembur tanggal 28 September"*) lalu klik **"Ya, Batalkan Pengajuan"**.
+  - Sistem memproses via AJAX: modal tertutup, toast sukses muncul, baris tabel langsung berubah:
+    - Status menjadi badge abu-abu: **`Dibatalkan`**.
+    - Catatan terisi: **`[Dibatalkan Admin] Dobel input pengajuan lembur...`**.
+    - Kolom aksi berubah menjadi teks miring abu-abu: *Dibatalkan*.
+  - Klik tab filter status **Dibatalkan**: pengajuan yang baru dibatalkan muncul dalam tab tersebut dengan jumlah counter yang sesuai.
+- [ ] **Pembatalan dari Menu Persetujuan Admin (`/admin/pengajuan`)**:
+  - Buka menu **Persetujuan Admin**: klik ikon koreksi/aksi pada baris lembur.
+  - Pada modal keputusan, kini tersedia tombol ke-3: **"Batalkan"**.
+  - Klik tombol **"Batalkan"**: input jam disetujui otomatis disembunyikan dan label catatan berubah menjadi *"Alasan Pembatalan (Wajib)"*.
+  - Masukkan alasan dan simpan: status langsung ter-update menjadi **`Dibatalkan`** secara realtime.
+- [ ] **Verifikasi Dampak & Keamanan Rekapitulasi (Audit & Keuangan)**:
+  - Periksa database tabel `t_transaksi`: pastikan `status = 'cancelled'`, `jam_mulai_disetujui = NULL`, `jam_selesai_disetujui = NULL`, `eligible = NULL`, `approved_at = NULL`, `approved_kabag_at = NULL`, `user_edited` terisi nama Admin, dan `tanggal_edited` terisi timestamp.
+  - Buka menu **Rekapitulasi / SPKL** (`/admin/rekapitulasi`): pastikan transaksi yang berstatus `cancelled` **sama sekali tidak masuk ke dalam perhitungan jam uang lembur maupun ekspor Excel/PDF**.
+  - Buka tampilan **Pegawai** (`/lembur`): status tampil sebagai **`Dibatalkan Admin`** dan tombol edit terkunci.
+  - Buka tampilan **Ketua Tim** & **Kabag Umum**: status tampil sebagai **`Dibatalkan`** dan tombol aksi terkunci (*disabled*).
 
+### I. Uji Otomatisasi Nilai Eligible & Indikator Presensi Monitoring Admin (Fase 1 No. 2 & No. 3)
+- [ ] **Otomatisasi Nilai `eligible` Saat Pengajuan Disetujui (Admin & Kabag Umum)**:
+  - Cari pengajuan lembur yang sudah memiliki data presensi masuk & pulang, namun belum disetujui (misal status `menunggu_kabag` atau `pending`).
+  - Lakukan persetujuan (baik melalui menu Admin `/admin/pengajuan`, Dashboard Admin quick-approve, ataupun menu Kabag Umum `/kabag-umum/pengajuan`).
+  - Periksa database tabel `t_transaksi`: pastikan kolom `status = 'approved'` dan `eligible = 1` langsung terisi secara instan tanpa perlu menunggu pegawai/admin membuka halaman `/lembur`.
+  - Cek kolom `jam_mulai_disetujui` dan `jam_selesai_disetujui`: durasi lembur dihitung presisi sesuai batasan jam persetujuan dan aturan bisnis lembur (hari kerja minimal 1 jam setelah jam kepulangan resmi, hari libur minimal durasi berlaku).
+- [ ] **Auto-Sweep Rekapitulasi Keuangan & Ekspor Excel/PDF**:
+  - Buka menu **Admin $\rightarrow$ Rekapitulasi** (`/admin/rekapitulasi`) untuk bulan terkait atau klik **Download Excel Rekapitulasi**.
+  - Sistem secara otomatis menjalankan *sweep* batch (`koreksiUntukBulan`) untuk memastikan semua pengajuan `approved` yang belum memiliki nilai `eligible` langsung dihitung dan diperbarui menjadi `eligible = 1`.
+  - Pastikan nominal uang lembur dan uang makan pada tabel rekapitulasi serta file Excel terhitung lengkap tanpa ada pengajuan sah yang tertinggal.
+- [ ] **Indikator Presensi pada Tabel Monitoring Lembur Admin (`/admin/lembur`)**:
+  - Buka halaman **Admin $\rightarrow$ Lembur** (`/admin/lembur`).
+  - Periksa kolom **Pegawai**:
+    - Untuk pengajuan yang **sudah ada presensi**: muncul badge interaktif berwarna hijau 🟢 **`Presensi: Pulang HH:MM`** (contoh: `Presensi: Pulang 18:30`).
+    - Untuk pengajuan yang **belum ada presensi**: muncul badge abu-abu ⚪ **`Belum Presensi`**.
+  - Klik badge hijau 🟢 **`Presensi: Pulang HH:MM`**:
+    - Modal popup **"Detail Presensi Pegawai"** muncul menampilkan NIP, Nama, Tanggal, Jam Masuk, Jam Pulang, Total Jam Kerja, serta Status Hari (Hari Kerja / Hari Libur).
+    - Klik tombol Tutup atau klik di luar modal untuk menutup popup.
 

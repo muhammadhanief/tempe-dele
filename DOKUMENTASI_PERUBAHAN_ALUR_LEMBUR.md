@@ -1163,6 +1163,100 @@ php artisan up
    - Fungsi JavaScript `openModalKeputusan` mendukung parameter `initialStatus` untuk mempermudah pemilihan keputusan.
    - Fungsi JavaScript `simpanKeputusan` memperbarui baris tabel, badge status, dan teks jam disetujui (menjadi `-` jika ditolak) secara realtime tanpa perlu reload halaman.
 
+---
+
+## 15. Implementasi Fitur Pembatalan Pengajuan Lembur oleh Admin (*Admin Cancel Submission / Fase 1 No. 1*)
+
+### A. Latar Belakang & Kebutuhan Fitur
+1. **Pencegahan Data Duplikat & Salah Tanggal**:
+   - Pegawai atau ketua tim terkadang mengalami kesalahan input, seperti pengajuan ganda (*double input*) atau salah memilih tanggal lembur.
+   - Sebelumnya, belum tersedia mekanisme pembatalan pengajuan oleh Admin. Satu-satunya opsi adalah "Ditolak", padahal penolakan memiliki konotasi verifikasi yang tidak memenuhi syarat tugas kedinasan, bukan karena kesalahan input teknis atau dobel data.
+   - Melakukan *hard delete* (penghapusan baris data dari database) sangat berisiko merusak integritas audit BPK/Inspektorat serta menghilangkan riwayat pengajuan dan tanda tangan digital pegawai.
+2. **Kepatuhan Audit & Non-Destructive Soft Cancellation**:
+   - Solusi terbaik adalah menerapkan status khusus `cancelled` (*Dibatalkan*).
+   - Pengajuan yang berstatus `cancelled` tetap tersimpan di database dengan jejak audit lengkap (`user_edited`, `tanggal_edited`, dan alasan pembatalan di kolom `note`), namun seluruh hak kalkulasi uang lembur (`eligible`, `jam_mulai_disetujui`, `jam_selesai_disetujui`, `approved_at`, `approved_kabag_at`) secara tegas di-reset ke `NULL`.
+   - Modul pelaporan dan rekapitulasi keuangan (`RekapitulasiController`) yang memfilter secara ketat `status = 'approved'` dan `eligible = 1` dijamin 100% aman dan bersih dari data yang dibatalkan.
+
+### B. Rincian Implementasi & Perubahan Teknis
+1. **Rute Baru (`routes/web.php`)**:
+   - `POST /admin/lembur/{id}/cancel` ➔ `AdminLemburController@cancel` (nama rute: `admin.lembur.cancel`).
+   - `POST /admin/pengajuan/{id}/cancel` ➔ `AdminPengajuanController@cancel` (nama rute: `admin.pengajuan.cancel`).
+2. **Pembaruan Controller Admin**:
+   - **`app/Http/Controllers/admin/LemburController.php`**:
+     - Menambahkan hitungan `'cancelled' => ...->where('t.status', 'cancelled')->count()` pada `$statusCounts`.
+     - Menambahkan method `cancel(Request $request, $id)`:
+       - Memvalidasi alasan pembatalan wajib diisi (maksimal 500 karakter).
+       - Menulis alasan ke dalam kolom `note` dengan prefix standar `[Dibatalkan Admin] ...`.
+       - Mengosongkan `jam_mulai_disetujui = null`, `jam_selesai_disetujui = null`, `eligible = null`, `approved_at = null`, `approved_kabag_at = null`.
+       - Mencatat jejak audit: `user_edited = session('user')['nama']` dan `tanggal_edited = now()`.
+       - Mengembalikan respon JSON untuk AJAX maupun redirect back dengan flash message.
+   - **`app/Http/Controllers/admin/PengajuanController.php`**:
+     - Memperbarui validasi status pada method `approve`: mendukung `in:approved,rejected,cancelled`.
+     - Menambahkan penanganan status `cancelled`: mengosongkan jam disetujui, mencatat alasan pembatalan pada `note`, serta mencatat jejak audit.
+     - Menambahkan method dedicated `cancel(Request $request, $id)` serupa dengan `LemburController`.
+   - **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**:
+     - Menambahkan `'cancelled'` pada array `$stats` agar Kepala Bagian Umum dapat memantau pengajuan yang telah dibatalkan oleh Admin.
+3. **Pembaruan Tampilan UI/UX**:
+   - **Tampilan Lembur Admin (`resources/views/admin/lembur.blade.php`)**:
+     - Menambahkan tombol filter tab **Dibatalkan** dengan indikator counter dinamis.
+     - Menambahkan kolom **Aksi** pada tabel lembur dengan tombol **"Batal"** (bergaya soft rose border).
+     - Menambahkan modal konfirmasi pembatalan `#modalBatalAdmin`: menampilkan informasi pegawai, tanggal lembur, formulir alasan pembatalan wajib, dan tombol konfirmasi dengan indikator loading state.
+     - Integrasi fungsi JavaScript `openModalBatalAdmin`, `closeModalBatalAdmin`, dan `submitBatalAdmin` via AJAX yang langsung memperbarui badge status, teks catatan, dan kolom aksi di tabel tanpa reload halaman.
+   - **Tampilan Pengajuan Admin (`resources/views/admin/pengajuan.blade.php`)**:
+     - Menambahkan opsi tombol keputusan ke-3: **"Batalkan"** (`#kBtnBatal`) pada modal keputusan `#modalKeputusan`.
+     - Saat opsi "Batalkan" dipilih: input jam disetujui otomatis disembunyikan dan label catatan berubah menjadi "Alasan Pembatalan (Wajib)".
+     - Menampilkan badge abu-abu border halus `Dibatalkan` pada tabel pengajuan.
+   - **Tampilan Lembur Pegawai (`resources/views/lembur.blade.php`)**:
+     - Menambahkan badge status abu-abu berlabel **`Dibatalkan Admin`**.
+     - Kolom aksi otomatis tidak mengizinkan pengeditan pengajuan yang telah dibatalkan.
+   - **Tampilan Pengajuan Ketua Tim (`resources/views/ketua-tim/pengajuan.blade.php`)**:
+     - Menambahkan badge status `Dibatalkan`.
+     - Kolom aksi menampilkan teks non-interaktif `Dibatalkan` untuk mencegah ketua tim memproses atau menyetujui transaksi yang telah dibatalkan Admin.
+   - **Tampilan Pengajuan Kabag Umum (`resources/views/kabag-umum/pengajuan.blade.php`)**:
+     - Menambahkan tab filter **Dibatalkan (n)** di navigasi status.
+     - Menambahkan badge status `Dibatalkan` dan teks non-interaktif `Dibatalkan` pada kolom aksi.
+   - **Tampilan Pengajuan Pimpinan (`resources/views/pimpinan/pengajuan.blade.php`)**:
+     - Menambahkan penanganan badge status `Menunggu Kabag` dan `Dibatalkan`.
+
+---
+
+## 16. Otomatisasi Nilai Kelayakan (`eligible`) & Indikator Presensi Cepat pada Monitoring Admin (*Fase 1 No. 2 & No. 3*)
+
+### A. Latar Belakang & Identifikasi Masalah
+1. **Ketergantungan Eksekusi Kelayakan Bisnis (`eligible`)**:
+   - Nilai kelayakan `eligible = 1` adalah syarat mutlak agar data pengajuan yang disetujui (`status = 'approved'`) masuk ke dalam perhitungan uang lembur dan tabel rekapitulasi pada `RekapitulasiController` dan ekspor `RekapitulasiExport`.
+   - Sebelumnya, pengecekan kelayakan lembur (`koreksiDariPresensi` / `koreksiUntukTanggal`) hanya dipicu ketika:
+     1. Pegawai membuka halaman pengajuannya sendiri (`/lembur`).
+     2. Admin membuka halaman pemantauan (`/admin/lembur`).
+     3. Admin mengunggah berkas presensi baru (`/admin/presensi`).
+   - Akibatnya, jika Admin atau Kabag Umum menyetujui pengajuan lembur yang berkas presensinya sudah pernah diunggah sebelumnya, kolom `eligible` tetap bernilai `NULL`. Jika Admin langsung mengunduh rekapitulasi/SPKL di menu `/admin/rekapitulasi`, lembur yang baru disetujui tersebut tidak muncul di laporan keuangan sebelum ada yang memicu halaman lembur.
+2. **Ketiadaan Indikator Presensi pada Monitoring Satker Admin (`/admin/lembur`)**:
+   - Pada halaman pemantauan lembur seluruh satker (`/admin/lembur`), Admin sebelumnya hanya melihat nama pegawai dan NIP tanpa mengetahui apakah pegawai yang bersangkutan telah memiliki rekaman presensi fisik (jam masuk & jam pulang) pada tanggal lembur tersebut.
+   - Admin harus membuka menu atau tab lain hanya untuk memeriksa kehadiran pegawai.
+
+### B. Solusi & Rincian Implementasi
+1. **Penyempurnaan Trait `App\Traits\KoreksiLembur` (`app/Traits/KoreksiLembur.php`)**:
+   - Mengubah visibilitas `koreksiUntukTanggal` menjadi `public`.
+   - Menambahkan method `koreksiUntukTransaksi(int $idTransaksi)`: mengevaluasi kelayakan satu transaksi secara instan berdasarkan tanggal dan presensi pegawai.
+   - Menambahkan method `koreksiUntukBulan(int $tahun, int $bulan)`: menyapu (*sweep*) seluruh transaksi berstatus `approved` yang `eligible`-nya masih `NULL` pada bulan bersangkutan.
+   - Menyempurnakan acuan jam selesai: menggunakan jam selesai yang disetujui (`jam_selesai_disetujui`) jika telah ditetapkan oleh pejabat penyetujui, sehingga jam yang disetujui tidak tertimpa jam pengajuan awal.
+2. **Otomatisasi Pemicu `eligible` pada Seluruh Titik Persetujuan**:
+   - **`app/Http/Controllers/admin/PengajuanController.php`**: memanggil `$this->koreksiUntukTransaksi($id)` sesaat setelah Admin menyetujui pengajuan.
+   - **`app/Http/Controllers/admin/DashboardController.php`**: memanggil `$this->koreksiUntukTransaksi($id)` pada tombol *quick-approve* dashboard Admin.
+   - **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**: memanggil `$this->koreksiUntukTransaksi($id)` sesaat setelah Kabag Umum menyetujui pengajuan.
+   - **`app/Http/Controllers/admin/RekapitulasiController.php`**: memanggil `$this->koreksiUntukBulan((int)$tahun, (int)$bln)` sebelum mengeksekusi kueri rekapitulasi maupun sebelum mengunduh Excel.
+   - **`app/Exports/RekapitulasiExport.php`**: memanggil `$this->koreksiUntukBulan((int)$tahun, (int)$bln)` sebelum membangun koleksi data laporan ekspor.
+   - *Hasil*: Begitu pengajuan disetujui dan data presensi sudah ada di sistem, `eligible = 1` langsung tercap seketika secara otomatis tanpa memerlukan intervensi pembukaan halaman oleh pegawai.
+3. **Indikator Presensi Realtime pada Tabel Monitoring Admin (`/admin/lembur`)**:
+   - **Kueri Controller (`app/Http/Controllers/admin/LemburController.php`)**:
+     - Menambahkan subquery SQL `EXISTS` untuk mendeteksi ketersediaan presensi (`has_presensi`), serta memformat jam kepulangan (`jam_selesai_presensi`) dan jam masuk (`jam_masuk_presensi`).
+   - **Tampilan Blade (`resources/views/admin/lembur.blade.php`)**:
+     - Pada kolom **Pegawai**, ditambahkan badge indikator kehadiran:
+       - 🟢 **Presensi Ada (Pulang HH:MM)**: Badge hijau dengan titik berdenyut (*pulsing dot*).
+       - ⚪ **Belum Presensi**: Badge abu-abu lembut jika data presensi tanggal tersebut belum diunggah.
+     - **Modal Presensi Terintegrasi (`#modalPresensiAdmin`)**:
+       - Mengklik badge hijau presensi akan langsung membuka modal informasi presensi pegawai tanpa berpindah halaman, menampilkan status kehadiran (WFO/WFOL), jam masuk, dan jam pulang secara instan via endpoint `/admin/pengajuan/{id}/presensi`.
+
 
 
 

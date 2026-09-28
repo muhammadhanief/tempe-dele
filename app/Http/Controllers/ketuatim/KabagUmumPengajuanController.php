@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Traits\KoreksiLembur;
 
 class KabagUmumPengajuanController extends Controller
 {
+    use KoreksiLembur;
     /**
      * Memastikan user yang mengakses adalah Kabag Umum, Ketua Tim Bagian Umum, atau Admin.
      */
@@ -103,6 +105,7 @@ class KabagUmumPengajuanController extends Controller
             'menunggu_kabag' => $allTransactions->where('status', 'menunggu_kabag')->count(),
             'approved'       => $allTransactions->where('status', 'approved')->count(),
             'rejected'       => $allTransactions->where('status', 'rejected')->count(),
+            'cancelled'      => $allTransactions->where('status', 'cancelled')->count(),
         ];
 
         // Terapkan filter status jika dipilih
@@ -259,6 +262,10 @@ class KabagUmumPengajuanController extends Controller
         }
 
         DB::table('t_transaksi')->where('id_transaksi', $id)->update($updateData);
+
+        if ($finalStatus === 'approved') {
+            $this->koreksiUntukTransaksi($id);
+        }
 
         $jamMulaiResp = isset($updateData['jam_mulai_disetujui']) && $updateData['jam_mulai_disetujui']
             ? substr($updateData['jam_mulai_disetujui'], 0, 5)

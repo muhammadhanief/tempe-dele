@@ -202,6 +202,8 @@
                                 <span class="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">Disetujui</span>
                             @elseif($t->status === 'rejected')
                                 <span class="whitespace-nowrap rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-600">Ditolak</span>
+                            @elseif($t->status === 'cancelled')
+                                <span class="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-300">Dibatalkan Admin</span>
                             @else
                                 <span class="text-xs text-gray-400">-</span>
                             @endif

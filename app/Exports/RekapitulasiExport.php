@@ -12,6 +12,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class RekapitulasiExport implements FromCollection, WithHeadings, WithTitle, WithStyles, ShouldAutoSize
 {
+    use \App\Traits\KoreksiLembur;
+
     protected $params;
 
     public function __construct(array $params)
@@ -23,6 +25,8 @@ class RekapitulasiExport implements FromCollection, WithHeadings, WithTitle, Wit
     {
         $bulan = $this->params['bulan'] ?? now()->format('Y-m');
         [$tahun, $bln] = explode('-', $bulan);
+
+        $this->koreksiUntukBulan((int) $tahun, (int) $bln);
 
         $transaksi = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
