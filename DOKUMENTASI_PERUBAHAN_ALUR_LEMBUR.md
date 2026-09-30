@@ -1591,4 +1591,52 @@ Menerapkan standar desain dialog enterprise responsif:
 | 15 | `resources/views/pimpinan/pengajuan.blade.php` | Penambahan petunjuk geser mobile pada tabel persetujuan Pimpinan. |
 | 16 | `resources/views/admin/akumulasi.blade.php` | Penambahan petunjuk geser mobile pada tabel akumulasi Admin. |
 
+---
+
+## 25. Penyeragaman Desain Header & Toolbar Halaman Lembur (Pegawai & Admin Mengikuti Pola Ketua Tim, Perbaikan Text-Wrapping "Semua Tanggal")
+
+### A. Latar Belakang & Identifikasi Masalah
+1. **Pemotongan Teks / Awkward Text-Wrapping pada Tombol Tanggal**:
+   - Pada halaman **Pengajuan Lembur Pegawai** (`resources/views/lembur.blade.php`), tombol filter tanggal (`#dateBtn`) sebelumnya tidak memiliki kelas `whitespace-nowrap`.
+   - Ketika halaman dibuka pada layar perangkat mobile, layar laptop beresolusi sedang, atau saat kontainer flexbox menyempit, teks label **"Semua Tanggal"** terpotong/terbungkus secara canggung ke 2 baris vertikal (*"Semua"* di baris atas dan *"Tanggal"* di baris bawah), merusak kerapian antarmuka.
+2. **Inkonsistensi Pola Tata Letak Antar Peran (*Design Pattern Discrepancy*)**:
+   - Pada halaman **Ketua Tim** (`resources/views/ketua-tim/lembur.blade.php`), telah diterapkan struktur **Page Header modern**: judul `<h1>` semantik + subjudul deskriptif + tombol aksi primer `+ Ajukan Lembur` di kanan atas header, serta tombol filter toolbar berbentuk kartu modern `rounded-xl` dengan bayangan lembut `shadow-2xs`.
+   - Sebaliknya pada halaman **Pegawai** (`lembur.blade.php`) dan **Admin** (`admin/lembur.blade.php`), antarmuka masih menggunakan pola lawas: tombol filter berbentuk pil lonjong `rounded-full` dan tombol aksi utama (*"Ajukan Lembur"* dan *"Unduh Excel"*) diletakkan berdesakan di ujung kanan toolbar filter.
+3. **Kebutuhan Pengguna**:
+   - Memperbaiki teks tanggal agar tidak terpotong ke 2 baris.
+   - Menyeragamkan desain antarmuka Pegawai dan Admin agar mengikuti pola modern Ketua Tim, menciptakan *single unified design system* di seluruh aplikasi.
+
+### B. Rincian Implementasi & Perbaikan Teknis
+
+1. **Halaman Pengajuan Lembur Pegawai (`resources/views/lembur.blade.php`)**:
+   - **Page Header Terstruktur**:
+     - Menambahkan judul `<h1>` semantik *"Pengajuan Lembur Pribadi"* dan subjudul *"Kelola dan pantau riwayat pengajuan kegiatan lembur mandiri Anda."*.
+     - Menempatkan tombol utama **"+ Ajukan Lembur"** (`#btnAjukan`) di sisi kanan header dengan gaya oranye amber BPS (`bg-[#faa938] hover:bg-[#fd9a10] rounded-xl font-semibold shadow-xs`).
+   - **Modernisasi Toolbar Filter**:
+     - Mengubah seluruh elemen tombol kontrol (Date Picker, Filter Bulan, Per Halaman, Search Tim, dan Reset Filter) dari bentuk pil lonjong (`rounded-full`) menjadi kartu modern bersudut halus (`rounded-xl border border-gray-200 bg-white shadow-2xs`).
+     - Menyematkan kelas `whitespace-nowrap` pada tombol `#dateBtn` dan elemen `<span id="dateLabel">`, menjamin teks *"Semua Tanggal"* atau tanggal spesifik yang dipilih selalu berada dalam 1 baris utuh di semua ukuran layar.
+   - **Integritas Selektor & Fungsionalitas**:
+     - Seluruh ID elemen DOM (`datePicker`, `dateBtn`, `dateLabel`, `dateValue`, `datePanel`, `filterBulan`, `perHalaman`, `searchTim`, `dropdownTim`, `listTim`, `btnResetFilter`, `btnAjukan`) dipertahankan 100% tanpa mengubah alur JavaScript maupun AJAX modal pengajuan.
+
+2. **Halaman Monitoring & Pengajuan Lembur Admin (`resources/views/admin/lembur.blade.php`)**:
+   - **Page Header Terstruktur**:
+     - Menambahkan judul `<h1>` semantik *"Monitoring & Pengajuan Lembur"* dan subjudul *"Kelola, monitor status verifikasi, dan rekapitulasi data lembur seluruh pegawai."*.
+     - Menyematkan sekelompok tombol aksi (*Action Buttons*) di kanan atas header:
+       - **Unduh Excel** (`#btnExport`): tombol netral berkelas (`border border-gray-200 bg-white text-gray-700 hover:border-[#faa938] hover:text-[#faa938] rounded-xl shadow-2xs`).
+       - **Ajukan Lembur** (`#btnAjukan`): tombol primer oranye amber BPS (`bg-[#faa938] rounded-xl shadow-xs`).
+   - **Modernisasi Toolbar Filter**:
+     - Mengubah Date Picker dan input pencarian Pegawai serta Tim menjadi `rounded-xl shadow-2xs` yang selaras.
+     - Menyematkan `whitespace-nowrap` pada tombol `#dateBtn` dan `<span id="dateLabel">`.
+
+3. **Halaman Pengajuan Lembur Ketua Tim (`resources/views/ketua-tim/lembur.blade.php`)**:
+   - Menyematkan pengaman `whitespace-nowrap` pada tombol `#dateBtn` dan `<span id="dateLabel">` agar kebal terhadap pemotongan teks di layar mobile/responsif ultra-sempit.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Page Header semantik (H1 + subjudul + tombol Ajukan Lembur), modernisasi filter `rounded-xl`, dan perbaikan text-wrap `whitespace-nowrap` pada `dateBtn`/`dateLabel`. |
+| 2 | `resources/views/admin/lembur.blade.php` | Page Header semantik (H1 + subjudul + tombol Unduh Excel & Ajukan Lembur), modernisasi filter `rounded-xl`, dan perbaikan text-wrap `whitespace-nowrap`. |
+| 3 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan `whitespace-nowrap` pada `dateBtn` dan `dateLabel` untuk proteksi konsisten di layar kecil. |
+
+
 

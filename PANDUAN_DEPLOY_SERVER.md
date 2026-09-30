@@ -107,6 +107,10 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 43. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Penambahan `min-w-[1100px]` dan petunjuk visual geser tabel mobile)*.
 44. 📄 Seluruh file blade tabel lainnya (`ketua-tim`, `lembur`, `admin`, `akumulasi`, `rekapitulasi`, `daftar_hadir`, `pimpinan`) yang dilengkapi petunjuk geser mobile.
 45. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
+46. 📄 **`resources/views/lembur.blade.php`** *(Page Header terstruktur H1 + subjudul + tombol Ajukan Lembur, modernisasi filter rounded-xl, dan perbaikan text-wrap whitespace-nowrap pada dateBtn/dateLabel)*.
+47. 📄 **`resources/views/admin/lembur.blade.php`** *(Page Header terstruktur H1 + subjudul + tombol Unduh Excel & Ajukan Lembur, modernisasi filter rounded-xl, dan perbaikan text-wrap whitespace-nowrap)*.
+48. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penambahan whitespace-nowrap pada dateBtn dan dateLabel untuk proteksi konsisten di layar kecil)*.
+49. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil npm run build: manifest.json, CSS, JS)*.
 
 ---
 
@@ -345,5 +349,12 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Kolom-kolom lebar (Nama, Tanggal, Jam, Uraian, Presensi Pulang, Status, dan Tombol Aksi) tersaji proporsional dan tidak saling menghimpit.
   - Pada browser desktop, pengguna dapat menahan klik kiri mouse pada ruang kosong tabel lalu menariknya (*drag-to-scroll*) untuk menggeser kolom secara instan.
 
-
-
+### N. Uji Penyeragaman Header & Toolbar Halaman Lembur (Pegawai, Ketua Tim, & Admin)
+- [ ] **Tampilan Page Header & Tombol Aksi**:
+  - Akses menu Pengajuan Lembur Pegawai (`/lembur`), Ketua Tim (`/ketua-tim/lembur`), dan Admin (`/admin/lembur`).
+  - Pastikan seluruh halaman memiliki Page Header terstruktur (`<h1>` semantik + subjudul deskriptif).
+  - Tombol aksi utama (*Ajukan Lembur* dan *Unduh Excel*) berada rapi di pojok kanan atas header, bukan lagi terdesak di dalam baris toolbar filter.
+- [ ] **Uji Tombol Tanggal Bebas Text-Wrapping**:
+  - Periksa tombol filter tanggal pada toolbar: teks label **"Semua Tanggal"** tampil rapi dalam 1 baris utuh dan tidak terpotong ke 2 baris vertikal.
+  - Uji pada tampilan layar sempit / mobile: tombol tanggal tetap mempertahankan teks 1 baris berkat kelas `whitespace-nowrap`.
+  - Semua kontrol toolbar (Date Picker, Filter Bulan, Per Halaman, Search) seragam dalam bentuk kartu modern `rounded-xl shadow-2xs`.

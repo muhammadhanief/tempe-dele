@@ -40,12 +40,12 @@
         {{-- Filter Periode --}}
         <div class="relative" id="datePicker">
             <button type="button" id="dateBtn"
-                class="inline-flex h-10 items-center justify-between gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                class="inline-flex h-10 items-center justify-between gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all whitespace-nowrap">
                 <span class="inline-flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3.5 w-3.5 fill-current text-[#faa938]">
                         <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
                     </svg>
-                    <span id="dateLabel" class="truncate leading-none">Semua Tanggal</span>
+                    <span id="dateLabel" class="whitespace-nowrap truncate leading-none">Semua Tanggal</span>
                 </span>
 
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-3 w-3 fill-current opacity-40 shrink-0">
