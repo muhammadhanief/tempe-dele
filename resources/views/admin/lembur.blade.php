@@ -111,7 +111,7 @@
 
                     {{-- Unduh Rekapitulasi --}}
                     <a id="btnExport"
-                        href="{{ route('admin.lembur.export', ['bulan' => now()->format('Y-m'), 'tim' => request('tim'), 'nip' => request('nip')]) }}"
+                        href="{{ route('admin.lembur.export', ['bulan' => now()->format('Y-m'), 'tim' => request('tim'), 'nip' => request('nip'), 'status' => request('status'), 'sort' => request('sort')]) }}"
                         title="Unduh Rekapitulasi"
                         class="inline-flex h-10 flex-1 lg:flex-none lg:w-10 items-center justify-center gap-2 rounded-xl lg:rounded-full border border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -134,21 +134,106 @@
             </div>
         </div>
 
+        {{-- Status Filter Tabs / Monitoring Pills --}}
+        <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
+            {{-- Semua Status --}}
+            <button type="button" onclick="selectStatus('')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ empty($status) ? 'bg-slate-900 text-white border-slate-900 shadow-sm shadow-slate-900/20 ring-2 ring-slate-900/10' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300' }}">
+                <span>Semua Status</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ empty($status) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700' }}">
+                    {{ $statusCounts['all'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Menunggu Kabag --}}
+            <button type="button" onclick="selectStatus('menunggu_kabag')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'menunggu_kabag' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-600/25 ring-2 ring-blue-600/20' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50/80 hover:border-blue-300' }}">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'menunggu_kabag' ? 'bg-white opacity-75' : 'bg-blue-400 opacity-75' }}"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'menunggu_kabag' ? 'bg-white' : 'bg-blue-600' }}"></span>
+                </span>
+                <span>Menunggu Kabag</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'menunggu_kabag' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
+                    {{ $statusCounts['menunggu_kabag'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Menunggu Ketua --}}
+            <button type="button" onclick="selectStatus('pending')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'pending' ? 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/25 ring-2 ring-amber-500/20' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50/80 hover:border-amber-300' }}">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'pending' ? 'bg-white opacity-75' : 'bg-amber-400 opacity-75' }}"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'pending' ? 'bg-white' : 'bg-amber-500' }}"></span>
+                </span>
+                <span>Menunggu Ketua</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }}">
+                    {{ $statusCounts['pending'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Disetujui --}}
+            <button type="button" onclick="selectStatus('approved')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'approved' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/25 ring-2 ring-emerald-600/20' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50/80 hover:border-emerald-300' }}">
+                <span class="h-2 w-2 rounded-full {{ $status === 'approved' ? 'bg-white' : 'bg-emerald-500' }}"></span>
+                <span>Disetujui</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
+                    {{ $statusCounts['approved'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Ditolak --}}
+            <button type="button" onclick="selectStatus('rejected')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'rejected' ? 'bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-600/25 ring-2 ring-rose-600/20' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50/80 hover:border-rose-300' }}">
+                <span class="h-2 w-2 rounded-full {{ $status === 'rejected' ? 'bg-white' : 'bg-rose-500' }}"></span>
+                <span>Ditolak</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
+                    {{ $statusCounts['rejected'] ?? 0 }}
+                </span>
+            </button>
+
+            {{-- Dibatalkan --}}
+            <button type="button" onclick="selectStatus('cancelled')"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'cancelled' ? 'bg-gray-600 text-white border-gray-600 shadow-sm shadow-gray-600/25 ring-2 ring-gray-600/20' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50/80 hover:border-gray-300' }}">
+                <span class="h-2 w-2 rounded-full {{ $status === 'cancelled' ? 'bg-white' : 'bg-gray-500' }}"></span>
+                <span>Dibatalkan</span>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'cancelled' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800' }}">
+                    {{ $statusCounts['cancelled'] ?? 0 }}
+                </span>
+            </button>
+        </div>
+
         {{-- Tabel --}}
         <div class="w-full overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
             <table class="min-w-[1180px] lg:min-w-full table-auto">
                 <thead>
                     <tr class="bg-gray-100">
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tl-xl w-24">Tanggal</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tl-xl w-32">
+                            <div class="inline-flex items-center justify-center gap-1.5 w-full">
+                                <span>Tanggal</span>
+                                <div class="relative inline-block text-left">
+                                    <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                                        class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                        <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
+                                        <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                        <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Pegawai</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Jam Diajukan</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Jam Disetujui</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize">Uraian Kegiatan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-28">Ketua Tim</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-32">Nama Tim</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-20">Status</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-36">Tim & Ketua</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-32">Status</th>
                         <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-20">Catatan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tr-xl w-24">Dokumentasi</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Dokumentasi</th>
+                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tr-xl w-24">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-300" id="tabelLembur">
@@ -163,7 +248,24 @@
                             </td>
 
                             <td class="px-2 py-2 text-xs text-gray-900 text-left">
-                                {{ $t->nama_pegawai ?? '-' }}
+                                <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $t->nama_pegawai ?? '-' }}</div>
+                                <div class="mt-0.5">
+                                    @if($t->has_presensi)
+                                        <button type="button"
+                                            onclick="openModalPresensiAdmin({{ $t->id_transaksi }})"
+                                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
+                                            title="Klik untuk melihat detail presensi pegawai">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span>Presensi: {{ $t->jam_selesai_presensi ? 'Pulang ' . $t->jam_selesai_presensi : 'Ada' }}</span>
+                                        </button>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-gray-50 text-gray-400 border border-gray-200"
+                                            title="Data presensi pegawai pada tanggal ini belum tersedia di sistem">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                                            <span>Belum Presensi</span>
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
 
                             <td class="px-2 py-2 text-xs text-gray-900 text-center">
@@ -203,8 +305,9 @@
                                 <div class="hidden" id="edit-{{ $t->id_transaksi }}">
                                     <textarea
                                         id="textarea-{{ $t->id_transaksi }}"
-                                        rows="3"
-                                        class="w-full text-xs border border-[#faa938] rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#faa938] resize-none text-gray-800"
+                                        rows="4"
+                                        maxlength="2000"
+                                        class="w-full text-xs border border-[#faa938] rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#faa938] resize-y text-gray-800"
                                         placeholder="Isi uraian kegiatan...">{{ $t->uraian }}</textarea>
                                     <div class="flex gap-1.5 mt-1 justify-end">
                                         <button type="button"
@@ -221,27 +324,28 @@
                                 </div>
                             </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left">
-                                {{ $t->nama_ketua ?? '-' }}
+                            <td class="px-2.5 py-2 text-xs text-gray-900 text-left">
+                                <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $t->nama_tim ?? '-' }}</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">Ketua: {{ $t->nama_ketua ?? '-' }}</div>
                             </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left">
-                                {{ $t->nama_tim ?? '-' }}
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 text-center">
+                            <td class="px-2 py-2 text-xs text-gray-900 text-center" id="status-cell-{{ $t->id_transaksi }}">
                                 @if($t->status === 'pending')
-                                    <span class="bg-amber-100 rounded-full px-2 text-xs text-amber-700 py-0.5">Diproses</span>
+                                    <span class="bg-amber-100 rounded-full px-2.5 text-xs text-amber-700 py-0.5 whitespace-nowrap font-medium">Menunggu Ketua</span>
+                                @elseif($t->status === 'menunggu_kabag')
+                                    <span class="bg-blue-100 rounded-full px-2.5 text-xs text-blue-700 py-0.5 whitespace-nowrap font-medium">Menunggu Kabag</span>
                                 @elseif($t->status === 'approved')
-                                    <span class="bg-green-100 rounded-full px-2 text-xs text-green-700 py-0.5">Disetujui</span>
+                                    <span class="bg-emerald-100 rounded-full px-2.5 text-xs text-emerald-700 py-0.5 whitespace-nowrap font-medium">Disetujui</span>
                                 @elseif($t->status === 'rejected')
-                                    <span class="bg-red-100 rounded-full px-2 text-xs text-red-600 py-0.5">Ditolak</span>
+                                    <span class="bg-rose-100 rounded-full px-2.5 text-xs text-rose-700 py-0.5 whitespace-nowrap font-medium">Ditolak</span>
+                                @elseif($t->status === 'cancelled')
+                                    <span class="bg-gray-100 rounded-full px-2.5 text-xs text-gray-700 py-0.5 whitespace-nowrap font-medium border border-gray-300">Dibatalkan</span>
                                 @else
                                     <span class="text-gray-400 text-xs">-</span>
                                 @endif
                             </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left">
+                            <td class="px-2 py-2 text-xs text-gray-900 text-left" id="note-cell-{{ $t->id_transaksi }}">
                                 {{ $t->note ?? '-' }}
                             </td>
 
@@ -285,11 +389,37 @@
                                     <span class="text-gray-300">-</span>
                                 @endif
                             </td>
+
+                            <td class="px-2 py-2 text-center text-xs whitespace-nowrap" id="aksi-cell-{{ $t->id_transaksi }}">
+                                @if($t->status !== 'cancelled')
+                                    <button type="button"
+                                        onclick="openModalBatalAdmin({{ $t->id_transaksi }}, {{ json_encode($t->nama_pegawai ?? '-') }}, '{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}')"
+                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer"
+                                        title="Batalkan pengajuan ini">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        <span>Batal</span>
+                                    </button>
+                                @else
+                                    <span class="text-gray-400 text-xs italic">Dibatalkan</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="px-3 py-8 text-center text-sm text-gray-400">
-                                Belum ada pengajuan lembur.
+                            <td colspan="10" class="px-3 py-10 text-center">
+                                <div class="flex flex-col items-center justify-center gap-1.5 text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-500">Tidak ada pengajuan lembur yang sesuai.</span>
+                                    @if(request()->hasAny(['tanggal', 'bulan', 'tim', 'nip', 'status']))
+                                        <a href="{{ route('admin.lembur') }}" class="text-xs text-[#faa938] hover:underline font-semibold mt-1">
+                                            Reset semua filter
+                                        </a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforelse
@@ -412,6 +542,107 @@
     </div>
 </div>
 
+{{-- MODAL BATALKAN PENGAJUAN (ADMIN) --}}
+<div id="modalBatalAdmin" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalBatalAdmin()"></div>
+
+    <div class="relative flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] overflow-y-auto">
+
+            <div class="flex justify-center pt-3 pb-1 sm:hidden">
+                <div class="w-10 h-1 rounded-full bg-gray-200"></div>
+            </div>
+
+            <div class="flex items-center justify-between border-b px-4 sm:px-6 py-4 sticky top-0 bg-white z-10">
+                <div class="flex items-center gap-2 text-rose-600">
+                    <div class="p-1.5 bg-rose-100 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-base font-bold text-gray-900">Batalkan Pengajuan Lembur</h2>
+                </div>
+                <button type="button" onclick="closeModalBatalAdmin()"
+                    class="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                    &times;
+                </button>
+            </div>
+
+            <form id="formBatalAdmin" onsubmit="submitBatalAdmin(event)" class="px-4 sm:px-6 py-5 space-y-4">
+                @csrf
+                <input type="hidden" id="batalIdTransaksi" value="">
+
+                <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-xs text-rose-900">
+                    <p class="font-medium text-rose-800">
+                        Anda akan membatalkan pengajuan lembur:
+                    </p>
+                    <div class="grid grid-cols-3 gap-1 pt-1 text-gray-700">
+                        <span class="text-gray-500">Pegawai:</span>
+                        <span class="col-span-2 font-semibold text-gray-900" id="batalNamaPegawai">-</span>
+                        <span class="text-gray-500">Tanggal:</span>
+                        <span class="col-span-2 font-semibold text-gray-900" id="batalTanggal">-</span>
+                    </div>
+                    <p class="text-[11px] text-rose-700/90 pt-1 leading-relaxed">
+                        Pengajuan ini akan diubah statusnya menjadi <b>Dibatalkan</b> dan jam lembur tidak akan dihitung pada rekapitulasi/uang lembur. Data tetap tersimpan rapi untuk histori audit.
+                    </p>
+                </div>
+
+                <div>
+                    <label for="batalAlasan" class="block text-xs font-semibold text-gray-800 mb-1.5">
+                        Alasan Pembatalan <span class="text-rose-500">*</span>
+                    </label>
+                    <textarea id="batalAlasan" name="alasan" rows="3" required
+                        placeholder="Contoh: Dobel input pengajuan lembur / Salah input tanggal pengajuan"
+                        class="w-full rounded-xl border border-gray-300 p-3 text-xs text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"></textarea>
+                    <p id="batalAlasanError" class="text-xs text-rose-600 mt-1 hidden"></p>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 border-t">
+                    <button type="button" onclick="closeModalBatalAdmin()"
+                        class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all">
+                        Tutup
+                    </button>
+
+                    <button type="submit" id="btnSubmitBatalAdmin"
+                        class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-rose-600/20">
+                        <span>Ya, Batalkan Pengajuan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL PRESENSI ADMIN --}}
+<div id="modalPresensiAdmin" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalPresensiAdmin()"></div>
+
+    <div class="relative flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] overflow-y-auto sm:overflow-hidden">
+
+            <div class="flex justify-center pt-3 pb-1 sm:hidden">
+                <div class="h-1 w-10 rounded-full bg-gray-200"></div>
+            </div>
+
+            <div class="sticky sm:static top-0 z-10 flex items-center justify-between border-b bg-white px-4 sm:px-6 py-4 rounded-t-2xl">
+                <div>
+                    <h2 class="text-sm font-bold text-gray-900">Informasi Presensi Pegawai</h2>
+                    <p class="text-xs text-gray-400 mt-0.5" id="presensiSubtitleAdmin">-</p>
+                </div>
+
+                <button type="button" onclick="closeModalPresensiAdmin()"
+                    class="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                    &times;
+                </button>
+            </div>
+
+            <div class="px-4 sm:px-6 py-5 space-y-4" id="presensiBodyAdmin">
+                <p class="text-sm text-gray-400 text-center py-4">Memuat data presensi...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- MODAL AJUKAN LEMBUR --}}
 <div id="modalAjukan" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div id="modalOverlay" class="absolute inset-0 bg-black/40"></div>
@@ -523,13 +754,16 @@
 
                     {{-- Uraian --}}
                     <div>
-                        <label for="uraian" class="block text-sm font-medium text-gray-700 mb-2">
-                            Uraian Kegiatan
-                        </label>
+                        <div class="mb-2 flex items-center justify-between">
+                            <label for="uraian" class="block text-sm font-medium text-gray-700">
+                                Uraian Kegiatan
+                            </label>
+                            <span id="uraianCount" class="text-xs text-gray-400">0 / 2000</span>
+                        </div>
 
-                        <textarea id="uraian" name="uraian" rows="3" required
+                        <textarea id="uraian" name="uraian" rows="4" maxlength="2000" required
                             placeholder="Contoh: Penyusunan laporan bulanan..."
-                            class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"></textarea>
+                            class="w-full resize-y rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"></textarea>
                     </div>
 
                     {{-- Tanda Tangan --}}
@@ -768,9 +1002,11 @@
     // =====================
     // STATE FILTER
     // =====================
-    let selectedNip     = null;
-    let selectedTimId   = null;
-    let selectedTanggal = null;
+    let selectedNip     = @json(request('nip')) || null;
+    let selectedTimId   = @json(request('tim')) || null;
+    let selectedTanggal = @json(request('tanggal')) || null;
+    let selectedStatus  = @json(request('status')) || null;
+    let selectedSort    = @json(request('sort', 'priority')) || 'priority';
     let cachedTim       = [];
     let cachedPegawai   = [];
 
@@ -782,21 +1018,35 @@
         if (selectedTimId)   params.set('tim',     selectedTimId);
         if (selectedNip)     params.set('nip',     selectedNip);
         if (selectedTanggal) params.set('tanggal', selectedTanggal);
+        if (selectedStatus)  params.set('status',  selectedStatus);
+        if (selectedSort && selectedSort !== 'priority') params.set('sort', selectedSort);
         window.location.href = '?' + params.toString();
     }
+
+    window.selectStatus = function (status) {
+        selectedStatus = status || null;
+        applyFilter();
+    };
+
+    window.onHeaderSortChange = function (sortVal) {
+        selectedSort = sortVal;
+        applyFilter();
+    };
 
     // =====================
     // UPDATE EXPORT LINK
     // =====================
     function updateExportLink() {
-        const tim   = selectedTimId   ?? '';
-        const nip   = selectedNip     ?? '';
-        const bulan = selectedTanggal
+        const tim    = selectedTimId   ?? '';
+        const nip    = selectedNip     ?? '';
+        const status = selectedStatus  ?? '';
+        const sort   = selectedSort    ?? 'priority';
+        const bulan  = selectedTanggal
             ? selectedTanggal.slice(0, 7)
             : `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
 
         document.getElementById('btnExport').href =
-            `/admin/lembur/export?bulan=${bulan}&tim=${tim}&nip=${nip}`;
+            `/admin/lembur/export?bulan=${bulan}&tim=${tim}&nip=${nip}&status=${status}&sort=${sort}`;
     }
 
     // =====================
@@ -1150,6 +1400,188 @@
     };
 
     // =====================
+    // MODAL BATALKAN PENGAJUAN (ADMIN)
+    // =====================
+    window.openModalBatalAdmin = function (idTransaksi, namaPegawai, tanggal) {
+        document.getElementById('batalIdTransaksi').value = idTransaksi;
+        document.getElementById('batalNamaPegawai').textContent = namaPegawai || '-';
+        document.getElementById('batalTanggal').textContent = tanggal || '-';
+        document.getElementById('batalAlasan').value = '';
+        document.getElementById('batalAlasanError').classList.add('hidden');
+        document.getElementById('batalAlasanError').textContent = '';
+        
+        const btnSubmit = document.getElementById('btnSubmitBatalAdmin');
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<span>Ya, Batalkan Pengajuan</span>';
+
+        document.getElementById('modalBatalAdmin').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        setTimeout(() => document.getElementById('batalAlasan').focus(), 100);
+    };
+
+    window.closeModalBatalAdmin = function () {
+        document.getElementById('modalBatalAdmin').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    window.submitBatalAdmin = async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('batalIdTransaksi').value;
+        const alasan = document.getElementById('batalAlasan').value.trim();
+        const errorEl = document.getElementById('batalAlasanError');
+        const btnSubmit = document.getElementById('btnSubmitBatalAdmin');
+
+        if (!alasan) {
+            errorEl.textContent = 'Alasan pembatalan wajib diisi.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        errorEl.classList.add('hidden');
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `
+            <svg class="animate-spin h-3.5 w-3.5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Memproses...</span>
+        `;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                || document.querySelector('#formBatalAdmin input[name="_token"]')?.value;
+
+            const res = await fetch(`/admin/lembur/${id}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ alasan: alasan, alasan_batal: alasan })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Gagal membatalkan pengajuan');
+            }
+
+            const statusCell = document.getElementById(`status-cell-${id}`);
+            if (statusCell) {
+                statusCell.innerHTML = `<span class="bg-gray-100 rounded-full px-2.5 text-xs text-gray-700 py-0.5 whitespace-nowrap font-medium border border-gray-300">Dibatalkan</span>`;
+            }
+
+            const noteCell = document.getElementById(`note-cell-${id}`);
+            if (noteCell) {
+                noteCell.textContent = data.note || `[Dibatalkan Admin] ${alasan}`;
+            }
+
+            const aksiCell = document.getElementById(`aksi-cell-${id}`);
+            if (aksiCell) {
+                aksiCell.innerHTML = `<span class="text-gray-400 text-xs italic">Dibatalkan</span>`;
+            }
+
+            closeModalBatalAdmin();
+
+            const alertBox = document.createElement('div');
+            alertBox.className = 'fixed bottom-5 right-5 z-50 bg-emerald-600 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all duration-300';
+            alertBox.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>${data.message || 'Pengajuan lembur berhasil dibatalkan.'}</span>
+            `;
+            document.body.appendChild(alertBox);
+            setTimeout(() => {
+                alertBox.style.opacity = '0';
+                setTimeout(() => alertBox.remove(), 300);
+            }, 3000);
+
+        } catch (err) {
+            errorEl.textContent = err.message || 'Terjadi kesalahan sistem.';
+            errorEl.classList.remove('hidden');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<span>Ya, Batalkan Pengajuan</span>';
+        }
+    };
+
+    // =====================
+    // MODAL PRESENSI (ADMIN)
+    // =====================
+    window.openModalPresensiAdmin = function (idTransaksi) {
+        const modal = document.getElementById('modalPresensiAdmin');
+        const subtitle = document.getElementById('presensiSubtitleAdmin');
+        const body = document.getElementById('presensiBodyAdmin');
+
+        subtitle.textContent = 'Memuat data...';
+        body.innerHTML = `
+            <div class="flex items-center justify-center py-6 text-gray-400 gap-2">
+                <svg class="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-xs">Memuat informasi presensi...</span>
+            </div>
+        `;
+
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+
+        fetch(`/admin/pengajuan/${idTransaksi}/presensi`)
+            .then(res => res.json())
+            .then(data => {
+                subtitle.textContent = `${data.nama} — ${data.nip}`;
+
+                if (!data.status && !data.jam_masuk && !data.jam_pulang) {
+                    body.innerHTML = `
+                        <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                            <p class="text-xs font-semibold text-amber-800">Tidak ada data presensi</p>
+                            <p class="text-[11px] text-amber-600 mt-0.5">Pegawai belum tercatat hadir pada tanggal ${data.tanggal ?? '-'}.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                body.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs space-y-1">
+                            <div class="flex justify-between text-gray-500">
+                                <span>Tanggal Presensi:</span>
+                                <span class="font-semibold text-gray-900">${data.tanggal ?? '-'}</span>
+                            </div>
+                            <div class="flex justify-between text-gray-500">
+                                <span>Status Kehadiran:</span>
+                                <span class="font-semibold uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px]">${data.status ?? '-'}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3 border border-gray-200 rounded-xl bg-white text-center">
+                                <span class="text-[11px] text-gray-400 font-medium">Jam Masuk</span>
+                                <div class="text-base font-bold text-gray-900 mt-0.5 font-mono">${data.jam_masuk ?? '-'}</div>
+                            </div>
+                            <div class="p-3 border border-gray-200 rounded-xl bg-white text-center">
+                                <span class="text-[11px] text-gray-400 font-medium">Jam Pulang</span>
+                                <div class="text-base font-bold text-gray-900 mt-0.5 font-mono">${data.jam_pulang ?? '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(() => {
+                body.innerHTML = `
+                    <p class="text-xs text-rose-500 text-center py-4">Gagal memuat data presensi.</p>
+                `;
+            });
+    };
+
+    window.closeModalPresensiAdmin = function () {
+        document.getElementById('modalPresensiAdmin').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    // =====================
     // INIT
     // =====================
     document.addEventListener('DOMContentLoaded', function () {
@@ -1162,6 +1594,16 @@
         const timParam     = params.get('tim')     ?? '';
         const nipParam     = params.get('nip')     ?? '';
         const tanggalParam = params.get('tanggal') ?? '';
+        const statusParam  = params.get('status')  ?? '';
+        const sortParam    = params.get('sort')    ?? '';
+
+        if (statusParam) {
+            selectedStatus = statusParam;
+        }
+
+        if (sortParam) {
+            selectedSort = sortParam;
+        }
 
         if (timParam) {
             selectedTimId = timParam;
@@ -1209,6 +1651,11 @@
         });
     });
 })();
+
+    document.getElementById('uraian')?.addEventListener('input', function () {
+        const elCount = document.getElementById('uraianCount');
+        if (elCount) elCount.textContent = `${this.value.length} / 2000`;
+    });
 
     //Ubah Uraian Lembur
     window.startEditUraian = function (id) {

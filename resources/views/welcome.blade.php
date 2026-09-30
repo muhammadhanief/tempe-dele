@@ -69,7 +69,7 @@
         </p>
 
         <div class="animate-fade-up animation-delay-600 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a href="{{ asset('documents/panduan-pengguna.pdf') }}" target="_blank"
+            <a href="{{ asset('documents/panduan_pengguna.pdf') }}" target="_blank"
                class="group inline-flex items-center justify-center gap-2 rounded-full bg-[#fd9a10] px-5 py-2.5 text-sm font-semibold text-white
                       shadow-[0_4px_14px_rgba(253,154,16,0.35)]
                       transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#f6960f] hover:shadow-[0_6px_20px_rgba(253,154,16,0.45)]">

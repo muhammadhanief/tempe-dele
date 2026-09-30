@@ -37,8 +37,9 @@
             class="mt-6 w-full max-w-[230px] object-contain drop-shadow-xl
             sm:max-w-[280px]
             md:max-w-[340px]
-            lg:absolute lg:-right-6 lg:-top-10 lg:mt-0 lg:max-w-[450px]
+            lg:absolute lg:-right-6 lg:mt-0 lg:max-w-[450px]
             xl:max-w-[500px]"
+            style="top: -48px"
             src="{{ asset('images/2.svg') }}"
             alt="Hero"
         />

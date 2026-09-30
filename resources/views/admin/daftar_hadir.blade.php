@@ -5,28 +5,71 @@
 
 @section('content')
 
-<div class="flex flex-col min-h-screen">
+<div class="max-w-7xl mx-auto w-full px-2 sm:px-4 lg:px-6 space-y-4 my-2">
 
-    {{-- ===================== FILTER BAR ===================== --}}
-    <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 my-4 sm:my-5">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+    {{-- ===================== HEADER PAGE ===================== --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs">
+        <div>
+            <div class="flex items-center gap-2.5">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-amber-50 text-[#faa938] border border-amber-200/60 shadow-2xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </span>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Daftar Hadir Lembur</h1>
+                    <p class="text-xs text-gray-500 mt-0.5">Rekapitulasi tanda tangan dan waktu kehadiran pegawai lembur harian.</p>
+                </div>
+            </div>
+        </div>
 
+        {{-- Tombol Download PDF --}}
+        <div class="relative shrink-0" id="downloadPicker">
+            <button type="button" id="downloadBtn"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow transition-all"
+                title="Unduh Daftar Hadir">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                <span>Unduh PDF</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-2.5 h-2.5 fill-current opacity-70">
+                    <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                </svg>
+            </button>
+
+            <div id="downloadPanel"
+                class="hidden absolute right-0 mt-2 w-52 rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden z-50 p-1.5">
+                <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 mb-1">
+                    Pilih Kategori Pegawai
+                </div>
+                <a href="{{ route('admin.daftar_hadir.download', ['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pns']) }}"
+                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-amber-50 hover:text-[#faa938] transition-colors">
+                    <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                    <span>Daftar Hadir (PNS)</span>
+                </a>
+                <a href="{{ route('admin.daftar_hadir.download', ['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pppk']) }}"
+                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-amber-50 hover:text-[#faa938] transition-colors">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span>Daftar Hadir (PPPK)</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{-- ===================== TOOLBAR FILTER & PENCARIAN ===================== --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 sm:p-3.5 rounded-2xl border border-gray-200/80 shadow-xs">
+        <div class="flex flex-wrap items-center gap-2.5">
             {{-- Filter Tanggal --}}
-            <div class="relative w-full sm:w-auto shrink-0" id="datePicker">
+            <div class="relative shrink-0" id="datePicker">
                 <button type="button" id="dateBtn"
-                    class="inline-flex w-full sm:w-auto items-center justify-between sm:justify-start h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors">
-
-                    <span class="inline-flex items-center gap-2 min-w-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current shrink-0">
-                            <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
-                        </svg>
-
-                        <span id="dateLabel" class="leading-none truncate">
-                            {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d M Y') }}
-                        </span>
+                    class="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span id="dateLabel" class="font-semibold text-gray-900">
+                        {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d M Y') }}
                     </span>
-
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-50 shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-2.5 h-2.5 fill-current opacity-40 shrink-0">
                         <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
                     </svg>
                 </button>
@@ -34,22 +77,21 @@
                 <input type="hidden" id="dateValue" name="date" value="{{ $tanggal }}">
 
                 <div id="datePanel"
-                    class="hidden absolute z-50 mt-2 left-0 w-full sm:w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white shadow-lg p-3">
-
+                    class="hidden absolute z-50 mt-2 left-0 w-72 rounded-2xl border border-gray-200 bg-white shadow-xl p-3.5">
                     <div class="flex items-center justify-between mb-3">
                         <button type="button" id="datePrev"
-                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                                 <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
                             </svg>
                         </button>
 
                         <span id="dateNavLabel"
-                            class="text-sm font-medium text-gray-900 cursor-pointer hover:text-[#faa938] select-none">
+                            class="text-sm font-bold text-gray-900 cursor-pointer hover:text-[#faa938] select-none">
                         </span>
 
                         <button type="button" id="dateNext"
-                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                                 <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
                             </svg>
@@ -58,144 +100,175 @@
 
                     <div id="dateGrid"></div>
 
-                    <div class="flex items-center justify-between mt-3">
+                    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100">
                         <button type="button" id="btnToday"
-                            class="text-sm font-medium text-gray-500 hover:text-[#faa938]">
+                            class="text-xs font-semibold text-gray-600 hover:text-[#faa938] transition-colors">
                             Hari ini
                         </button>
-
                         <button type="button" id="btnDateClose"
-                            class="px-3 py-1 text-sm font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">
+                            class="px-3 py-1 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
                             Tutup
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="hidden sm:block flex-1"></div>
-
-            {{-- Tombol Download --}}
-            <div class="relative w-full sm:w-auto" id="downloadPicker">
-                <button type="button" id="downloadBtn"
-                    class="inline-flex h-10 w-full sm:w-10 items-center justify-center gap-2 rounded-xl sm:rounded-full bg-[#faa938] text-white hover:brightness-95 transition-all"
-                    title="Unduh Daftar Hadir">
-
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+            {{-- Filter Tim --}}
+            <div class="relative shrink-0">
+                <select id="timFilter" onchange="onTimFilterChange(this.value)"
+                    class="h-10 appearance-none rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
+                    <option value="">Semua Tim ({{ count($daftarHadir) }})</option>
+                    @foreach($tim as $t)
+                        <option value="{{ $t->kode_tim }}" {{ request('tim') === $t->kode_tim ? 'selected' : '' }}>
+                            {{ $t->nama_tim }}
+                        </option>
+                    @endforeach
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-
-                    <span class="sm:hidden text-sm font-medium">
-                        Unduh Daftar Hadir
-                    </span>
-                </button>
-
-                <div id="downloadPanel"
-                    class="hidden absolute right-0 mt-2 w-full sm:w-36 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden z-50">
-
-                    <a href="{{ route('admin.daftar_hadir.download', ['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pns']) }}"
-                        class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                        PNS
-                    </a>
-
-                    <a href="{{ route('admin.daftar_hadir.download', ['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pppk']) }}"
-                        class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                        PPPK
-                    </a>
                 </div>
             </div>
+        </div>
 
+        {{-- Live Search Box --}}
+        <div class="relative w-full sm:w-64 lg:w-72 shrink-0">
+            <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+            <input type="text" id="searchPegawai" placeholder="Cari nama pegawai / NIP..."
+                oninput="filterRows()" autocomplete="off"
+                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-8 text-xs text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all placeholder:text-gray-400">
+            <button type="button" id="clearSearchBtn" onclick="clearSearch()"
+                class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                title="Hapus pencarian">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
     </div>
 
-    {{-- ===================== TABEL ===================== --}}
-    <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-        <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-            <table class="min-w-[760px] lg:min-w-full border-separate border-spacing-0">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th rowspan="2"
-                            class="px-2 py-2 text-center text-xs sm:text-sm font-semibold text-gray-900 border border-gray-100 rounded-tl-xl whitespace-nowrap">
-                            Tanggal
-                        </th>
-                        <th rowspan="2"
-                            class="px-2 py-2 text-center text-xs sm:text-sm font-semibold text-gray-900 border border-gray-100 whitespace-nowrap">
-                            No
-                        </th>
-                        <th rowspan="2"
-                            class="px-2 py-2 text-center text-xs sm:text-sm font-semibold text-gray-900 border border-gray-100 whitespace-nowrap">
-                            Nama / NIP
-                        </th>
-                        <th colspan="2"
-                            class="px-2 py-2 text-center text-xs sm:text-sm font-semibold text-gray-900 border border-gray-100 whitespace-nowrap">
-                            Jam
-                        </th>
-                        <th rowspan="2"
-                            class="px-2 py-2 text-center text-xs sm:text-sm font-semibold text-gray-900 border border-gray-100 rounded-tr-xl whitespace-nowrap">
-                            Tanda Tangan
-                        </th>
-                    </tr>
+    {{-- ===================== TABEL DAFTAR HADIR ===================== --}}
+    <div class="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-xs">
+        <table class="w-full table-auto border-collapse" id="tabelDaftarHadir">
+            <thead>
+                <tr class="bg-gray-50/90 text-gray-700 text-xs font-semibold border-b border-gray-200">
+                    <th rowspan="2" class="w-28 px-3 py-3 text-center align-middle border-r border-gray-200 whitespace-nowrap">
+                        Tanggal
+                    </th>
+                    <th rowspan="2" class="w-12 px-2 py-3 text-center align-middle border-r border-gray-200 whitespace-nowrap">
+                        No
+                    </th>
+                    <th rowspan="2" class="px-4 py-3 text-left align-middle border-r border-gray-200 min-w-[220px]">
+                        Nama / NIP
+                    </th>
+                    <th colspan="2" class="w-48 px-3 py-2 text-center border-b border-r border-gray-200 bg-gray-100/60 font-semibold tracking-wide">
+                        Jam Lembur
+                    </th>
+                    <th rowspan="2" class="w-44 px-3 py-3 text-center align-middle whitespace-nowrap">
+                        Tanda Tangan
+                    </th>
+                </tr>
+                <tr class="bg-gray-50/60 text-[11px] font-semibold text-gray-600 border-b border-gray-200">
+                    <th class="w-24 px-3 py-2 text-center border-r border-gray-200 whitespace-nowrap">
+                        Datang
+                    </th>
+                    <th class="w-24 px-3 py-2 text-center border-r border-gray-200 whitespace-nowrap">
+                        Pulang
+                    </th>
+                </tr>
+            </thead>
 
-                    <tr class="bg-gray-100">
-                        <th class="p-2 text-center text-xs sm:text-sm font-semibold text-gray-900 border border-gray-100 whitespace-nowrap">
-                            Datang
-                        </th>
-                        <th class="p-2 text-center text-xs sm:text-sm font-semibold text-gray-900 border border-gray-100 whitespace-nowrap">
-                            Pulang
-                        </th>
-                    </tr>
-                </thead>
+            <tbody class="divide-y divide-gray-100 text-xs text-gray-700">
+                @forelse($daftarHadir as $i => $d)
+                    <tr class="bg-white transition-colors hover:bg-slate-50/80"
+                        data-search="{{ strtolower($d->nama . ' ' . $d->nip . ' ' . ($d->nama_tim ?? '')) }}"
+                        data-tim="{{ $d->kode_tim ?? '' }}">
+                        <td class="px-3 py-3 text-center border-r border-gray-100 align-middle whitespace-nowrap">
+                            @if($i == 0 || $d->date != $daftarHadir[$i-1]->date)
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/80 font-medium">
+                                    {{ \Carbon\Carbon::parse($d->date)->translatedFormat('d M Y') }}
+                                </span>
+                            @else
+                                <span class="text-gray-300 font-mono">- &quot; -</span>
+                            @endif
+                        </td>
 
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($daftarHadir as $i => $d)
-                        <tr class="bg-white hover:bg-gray-50">
-                            <td class="p-3 sm:p-4 text-xs sm:text-sm text-gray-900 text-center border border-gray-100 whitespace-nowrap">
-                                @if($i == 0 || $d->date != $daftarHadir[$i-1]->date)
-                                    {{ \Carbon\Carbon::parse($d->date)->translatedFormat('d/m/Y') }}
-                                @endif
-                            </td>
+                        <td class="px-2 py-3 text-center text-gray-500 font-medium border-r border-gray-100 align-middle">
+                            {{ $i + 1 }}
+                        </td>
 
-                            <td class="p-3 sm:p-4 text-xs sm:text-sm text-gray-900 text-center border border-gray-100 whitespace-nowrap">
-                                {{ $i + 1 }}
-                            </td>
+                        <td class="px-4 py-3 border-r border-gray-100 align-middle">
+                            <div class="font-semibold text-gray-900">{{ $d->nama }}</div>
+                            <div class="text-[11px] text-gray-400 font-mono mt-0.5">{{ $d->nip }}</div>
+                            @if(!empty($d->nama_tim))
+                                <span class="inline-block mt-1 text-[10px] font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                                    {{ $d->nama_tim }}
+                                </span>
+                            @endif
+                        </td>
 
-                            <td class="p-3 sm:p-4 text-xs sm:text-sm text-gray-900 border border-gray-100">
-                                <div class="font-medium whitespace-nowrap">
-                                    {{ $d->nama }}
-                                </div>
-                                <div class="text-xs text-gray-400 whitespace-nowrap">
-                                    {{ $d->nip }}
-                                </div>
-                            </td>
+                        <td class="px-3 py-3 text-center border-r border-gray-100 align-middle font-mono font-medium text-emerald-700 whitespace-nowrap">
+                            {{ $d->jam_mulai_disetujui ? substr($d->jam_mulai_disetujui, 0, 5) : '-' }}
+                        </td>
 
-                            <td class="p-3 sm:p-4 text-xs sm:text-sm text-gray-900 text-center border border-gray-100 whitespace-nowrap">
-                                {{ $d->jam_mulai_disetujui ? substr($d->jam_mulai_disetujui, 0, 5) : '-' }}
-                            </td>
+                        <td class="px-3 py-3 text-center border-r border-gray-100 align-middle font-mono font-medium text-blue-700 whitespace-nowrap">
+                            {{ $d->jam_selesai_disetujui ? substr($d->jam_selesai_disetujui, 0, 5) : '-' }}
+                        </td>
 
-                            <td class="p-3 sm:p-4 text-xs sm:text-sm text-gray-900 text-center border border-gray-100 whitespace-nowrap">
-                                {{ $d->jam_selesai_disetujui ? substr($d->jam_selesai_disetujui, 0, 5) : '-' }}
-                            </td>
-
-                            <td class="p-3 sm:p-4 border border-gray-100 h-12 text-center">
-                                @if($d->signature_path)
-                                    <img src="{{ asset('storage/' . $d->signature_path) }}"
+                        <td class="px-3 py-3 text-center align-middle">
+                            @if($d->signature_path)
+                                <div class="inline-block p-1 bg-gray-50 rounded-lg border border-gray-200 shadow-2xs">
+                                    <img src="{{ Storage::url($d->signature_path) }}"
                                         alt="TTD {{ $d->nama }}"
                                         class="h-10 w-auto mx-auto object-contain">
-                                @else
-                                    <span class="text-xs text-gray-300">-</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="p-8 text-center text-sm text-gray-400">
-                                Tidak ada data untuk periode ini.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                                </div>
+                            @else
+                                <span class="text-xs text-gray-300 italic">-</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr id="emptyRow">
+                        <td colspan="6" class="px-4 py-16 text-center">
+                            <div class="mx-auto max-w-sm flex flex-col items-center justify-center">
+                                <div class="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-[#faa938] mb-3.5 shadow-2xs">
+                                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-bold text-gray-900">Tidak Ada Daftar Hadir</h3>
+                                <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+                                    Belum ada pengajuan lembur yang disetujui pada tanggal <span class="font-semibold text-gray-700">{{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}</span>.
+                                </p>
+                                <button type="button" onclick="setToday()"
+                                    class="mt-4 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span>Lihat Hari Ini</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+
+                <tr id="noMatchRow" class="hidden">
+                    <td colspan="6" class="px-4 py-12 text-center text-xs text-gray-500">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <p class="font-medium text-gray-700">Tidak ada pegawai yang sesuai dengan pencarian.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
 </div>
@@ -221,6 +294,67 @@ function applyFilter() {
 
     window.location.href = '?' + params.toString();
 }
+
+window.onTimFilterChange = function(kodeTim) {
+    const params = new URLSearchParams(window.location.search);
+    if (kodeTim) {
+        params.set('tim', kodeTim);
+    } else {
+        params.delete('tim');
+    }
+    window.location.href = '?' + params.toString();
+};
+
+window.setToday = function() {
+    const params = new URLSearchParams(window.location.search);
+    const today = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+    params.set('tanggal', today);
+    window.location.href = '?' + params.toString();
+};
+
+// =====================
+// LIVE SEARCH FILTER
+// =====================
+window.filterRows = function() {
+    const input = document.getElementById('searchPegawai');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const query = input ? input.value.toLowerCase().trim() : '';
+
+    if (clearBtn) {
+        if (query.length > 0) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+    }
+
+    const rows = document.querySelectorAll('#tabelDaftarHadir tbody tr[data-search]');
+    let matchCount = 0;
+    rows.forEach(r => {
+        const text = r.getAttribute('data-search') || '';
+        if (text.includes(query)) {
+            r.classList.remove('hidden');
+            matchCount++;
+        } else {
+            r.classList.add('hidden');
+        }
+    });
+
+    const noMatchRow = document.getElementById('noMatchRow');
+    if (noMatchRow) {
+        if (matchCount === 0 && query.length > 0 && rows.length > 0) {
+            noMatchRow.classList.remove('hidden');
+        } else {
+            noMatchRow.classList.add('hidden');
+        }
+    }
+};
+
+window.clearSearch = function() {
+    const input = document.getElementById('searchPegawai');
+    if (input) {
+        input.value = '';
+        filterRows();
+        input.focus();
+    }
+};
 
 // =====================
 // DATE PICKER

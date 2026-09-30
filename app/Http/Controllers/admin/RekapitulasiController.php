@@ -7,9 +7,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\Cookie;
+use App\Traits\KoreksiLembur;
 
 class RekapitulasiController extends Controller
 {
+    use KoreksiLembur;
+
     public function index(Request $request)
     {
         $bulan = $request->get('bulan', now()->format('Y-m'));
@@ -17,6 +20,9 @@ class RekapitulasiController extends Controller
 
         [$tahun, $bln] = explode('-', $bulan);
         $monthDate = $tahun . '-' . $bln . '-01';
+
+        // 0. Sinkronisasi otomatis kelayakan (eligible) untuk seluruh pengajuan approved di bulan ini
+        $this->koreksiUntukBulan((int) $tahun, (int) $bln);
 
         // 1. Ambil transaksi approved + eligible di bulan tsb
         $transaksi = DB::table('t_transaksi as t')
@@ -161,6 +167,9 @@ class RekapitulasiController extends Controller
     public function downloadExcel(Request $request)
     {
         $bulan    = $request->get('bulan', now()->format('Y-m'));
+        [$tahun, $bln] = explode('-', $bulan);
+        $this->koreksiUntukBulan((int) $tahun, (int) $bln);
+
         $filename = 'Rekapitulasi_Lembur_' . $bulan . '.xlsx';
 
         $response = Excel::download(

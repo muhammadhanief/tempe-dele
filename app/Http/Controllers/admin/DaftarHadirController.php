@@ -5,19 +5,21 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DaftarHadirController extends Controller
 {
     public function index(Request $request)
     {
         $tanggal = $request->get('tanggal', now()->format('Y-m-d'));
-        $jenis   = $request->get('jenis', 'pns');
 
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
             ->where('t.status', 'approved')
-            ->where('eligible', 1)
+            ->where(function ($q) {
+                $q->where('t.eligible', 1)->orWhereNull('t.eligible');
+            })
             ->whereDate('t.date', $tanggal)
             ->select(
                 't.date', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui',
@@ -26,12 +28,6 @@ class DaftarHadirController extends Controller
                 't.signature_path'
             )
             ->orderBy('p.nama');
-
-        if ($jenis === 'pns') {
-            $query->where('p.email', 'not like', '%-pppk@bps.go.id');
-        } else {
-            $query->where('p.email', 'like', '%-pppk@bps.go.id');
-        }
 
         if ($request->filled('tim')) {
             $query->where('t.tim_kode_tim', $request->tim);
@@ -44,7 +40,7 @@ class DaftarHadirController extends Controller
         $daftarHadir = $query->get();
         $tim = DB::table('m_tim')->select('kode_tim', 'nama_tim')->get();
 
-        return view('admin.daftar_hadir', compact('daftarHadir', 'tanggal', 'tim', 'jenis'));
+        return view('admin.daftar_hadir', compact('daftarHadir', 'tanggal', 'tim'));
     }
 
     public function download(Request $request)
@@ -56,7 +52,9 @@ class DaftarHadirController extends Controller
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->leftJoin('m_tim as mt', 't.tim_kode_tim', '=', 'mt.kode_tim')
             ->where('t.status', 'approved')
-            ->where('t.eligible', 1)
+            ->where(function ($q) {
+                $q->where('t.eligible', 1)->orWhereNull('t.eligible');
+            })
             ->whereDate('t.date', $tanggal)
             ->select(
                 't.date', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui',
@@ -64,9 +62,7 @@ class DaftarHadirController extends Controller
                 'mt.kode_tim', 'mt.nama_tim',
                 't.signature_path'
             )
-             ->where('t.status', 'approved')
-             ->whereDate('t.date', $tanggal)
-             ->orderBy('p.nama');
+            ->orderBy('p.nama');
 
         if ($jenis === 'pns') {
             $query->where('p.email', 'not like', '%-pppk@bps.go.id');

@@ -5,9 +5,12 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Traits\KoreksiLembur;
 
 class DashboardController extends Controller
 {
+    use KoreksiLembur;
+
     public function index()
     {
         $bulanIni  = Carbon::now()->month;
@@ -18,7 +21,7 @@ class DashboardController extends Controller
         $stats = [
             'total'     => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->count(),
             'disetujui' => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'approved')->count(),
-            'diproses'  => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'pending')->count(),
+            'diproses'  => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->whereIn('status', ['pending', 'menunggu_kabag'])->count(),
             'ditolak'   => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
         ];
 
@@ -130,12 +133,13 @@ class DashboardController extends Controller
             ->join('m_pegawai', 't_transaksi.submitted_by_NIP', '=', 'm_pegawai.nip')
             ->whereMonth('t_transaksi.date', $bulanIni)
             ->whereYear('t_transaksi.date', $tahunIni)
-            ->where('t_transaksi.status', 'pending')
+            ->whereIn('t_transaksi.status', ['pending', 'menunggu_kabag'])
             ->select(
                 't_transaksi.id_transaksi',
                 'm_pegawai.nama',
                 't_transaksi.date',
-                't_transaksi.deskripsi'
+                't_transaksi.deskripsi',
+                't_transaksi.status'
             )
             ->orderBy('t_transaksi.date', 'asc')
             ->get();
@@ -149,13 +153,36 @@ class DashboardController extends Controller
             ->where('id_transaksi', $id)
             ->first();
 
-        $jamMulaiDisetujui   = Carbon::parse($transaksi->date . ' ' . $transaksi->jam_mulai);
-        $jamSelesaiDisetujui = $transaksi->jam_selesai
-            ? Carbon::parse($transaksi->date . ' ' . $transaksi->jam_selesai)
+        if (!$transaksi) {
+            return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
+        }
+
+        $jamMulaiDisetujui   = Carbon::parse($transaksi->date . ' ' . ($transaksi->jam_mulai_disetujui ?? $transaksi->jam_mulai));
+        $jamSelesaiDisetujui = ($transaksi->jam_selesai_disetujui ?? $transaksi->jam_selesai)
+            ? Carbon::parse($transaksi->date . ' ' . ($transaksi->jam_selesai_disetujui ?? $transaksi->jam_selesai))
             : null;
 
         if ($jamSelesaiDisetujui && $jamSelesaiDisetujui->lessThan($jamMulaiDisetujui)) {
             $jamSelesaiDisetujui->addDay();
+        }
+
+        // Batasi jam selesai agar tidak melebihi jam kepulangan fisik presensi jika data presensi sudah ada
+        if ($jamSelesaiDisetujui) {
+            $pegawaiNipLama = DB::table('m_pegawai')->where('nip', $transaksi->submitted_by_NIP)->value('nip_lama');
+            $presensi = DB::table('t_presensi')
+                ->where('niplama', $pegawaiNipLama)
+                ->whereDate('tanggal', $transaksi->date)
+                ->first();
+
+            if ($presensi && $presensi->jam_selesai) {
+                $jamPulangPresensi = Carbon::parse($transaksi->date . ' ' . Carbon::parse($presensi->jam_selesai)->format('H:i:s'));
+                if ($jamPulangPresensi->lessThan($jamMulaiDisetujui)) {
+                    $jamPulangPresensi->addDay();
+                }
+                if ($jamSelesaiDisetujui->greaterThan($jamPulangPresensi)) {
+                    $jamSelesaiDisetujui = $jamPulangPresensi;
+                }
+            }
         }
 
         DB::table('t_transaksi')
@@ -167,7 +194,12 @@ class DashboardController extends Controller
                 'note'                  => null,
                 'eligible'              => null,
                 'approved_at'           => now()->toDateString(),
+                'approved_kabag_at'     => now(),
+                'user_edited'           => session('user')['nama'] ?? session('user')['nip'],
+                'tanggal_edited'        => now(),
             ]);
+
+        $this->koreksiUntukTransaksi($id);
 
         return response()->json(['success' => true]);
     }

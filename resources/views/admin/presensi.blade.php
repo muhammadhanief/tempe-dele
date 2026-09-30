@@ -236,33 +236,49 @@
             </div>
 
             {{-- Daftar Hari Libur --}}
-            <div class="px-4 sm:px-6 py-4 max-h-48 sm:max-h-60 overflow-y-auto space-y-1">
+            <div id="hlList" class="px-4 sm:px-6 py-4 max-h-48 sm:max-h-60 overflow-y-auto space-y-1">
                 @php $grouped = $hariLibur->groupBy('grup_id'); @endphp
+            
                 @forelse($grouped as $grupId => $items)
-                <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                    <div class="min-w-0 mr-3">
-                        @if($items->count() > 1)
-                            <div class="text-sm text-gray-800 truncate">
-                                {{ \Carbon\Carbon::parse($items->first()->tanggal)->translatedFormat('d F Y') }}
-                                —
-                                {{ \Carbon\Carbon::parse($items->last()->tanggal)->translatedFormat('d F Y') }}
+                    <div
+                        class="hl-list-item flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                        data-dates="{{ $items->pluck('tanggal')->implode(',') }}"
+                    >
+                        <div class="min-w-0 mr-3">
+                            @if($items->count() > 1)
+                                <div class="text-sm text-gray-800 truncate">
+                                    {{ \Carbon\Carbon::parse($items->first()->tanggal)->translatedFormat('d F Y') }}
+                                    —
+                                    {{ \Carbon\Carbon::parse($items->last()->tanggal)->translatedFormat('d F Y') }}
+                                </div>
+                            @else
+                                <div class="text-sm text-gray-800 truncate">
+                                    {{ \Carbon\Carbon::parse($items->first()->tanggal)->translatedFormat('d F Y') }}
+                                </div>
+                            @endif
+            
+                            <div class="text-xs text-gray-400 truncate">
+                                {{ $items->first()->keterangan ?? '-' }}
                             </div>
-                        @else
-                            <div class="text-sm text-gray-800 truncate">
-                                {{ \Carbon\Carbon::parse($items->first()->tanggal)->translatedFormat('d F Y') }}
-                            </div>
-                        @endif
-                        <div class="text-xs text-gray-400 truncate">{{ $items->first()->keterangan ?? '-' }}</div>
+                        </div>
+            
+                        <form method="POST" action="{{ route('admin.hari-libur.destroy', $items->first()->id) }}" class="shrink-0">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-xs text-red-400 hover:text-red-600 transition-colors">
+                                Hapus
+                            </button>
+                        </form>
                     </div>
-                    <form method="POST" action="{{ route('admin.hari-libur.destroy', $items->first()->id) }}" class="shrink-0">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-xs text-red-400 hover:text-red-600 transition-colors">Hapus</button>
-                    </form>
-                </div>
                 @empty
-                <p class="text-sm text-gray-400 text-center py-4">Belum ada hari libur yang ditambahkan.</p>
+                    <p class="hl-empty-default text-sm text-gray-400 text-center py-4">
+                        Belum ada hari libur yang ditambahkan.
+                    </p>
                 @endforelse
+            
+                <p id="hlEmptyByMonth" class="hidden text-sm text-gray-400 text-center py-4">
+                    Belum ada hari libur pada bulan ini.
+                </p>
             </div>
         </div>
     </div>
@@ -856,21 +872,67 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     document.getElementById('hlPrev')?.addEventListener('click', () => {
-        viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } renderHlGrid();
+        viewMonth--;
+    
+        if (viewMonth < 0) {
+            viewMonth = 11;
+            viewYear--;
+        }
+    
+        renderHlGrid();
+        filterHariLiburListByMonth();
     });
+    
     document.getElementById('hlNext')?.addEventListener('click', () => {
-        viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } renderHlGrid();
+        viewMonth++;
+    
+        if (viewMonth > 11) {
+            viewMonth = 0;
+            viewYear++;
+        }
+    
+        renderHlGrid();
+        filterHariLiburListByMonth();
     });
 
     window.openModalHariLibur = function () {
         state = { start: null, end: null };
         updateRangeInfo();
         renderHlGrid();
+        filterHariLiburListByMonth();
         document.getElementById('modalHariLibur').classList.remove('hidden');
     };
     window.closeModalHariLibur = function () {
         document.getElementById('modalHariLibur').classList.add('hidden');
     };
+    
+    function filterHariLiburListByMonth() {
+        const items = document.querySelectorAll('.hl-list-item');
+        const empty = document.getElementById('hlEmptyByMonth');
+    
+        if (!items.length) return;
+    
+        const activeMonth = `${viewYear}-${pad2(viewMonth + 1)}`;
+        let visibleCount = 0;
+    
+        items.forEach(item => {
+            const dates = (item.dataset.dates || '').split(',');
+    
+            const belongsToActiveMonth = dates.some(date => {
+                return date.startsWith(activeMonth);
+            });
+    
+            item.classList.toggle('hidden', !belongsToActiveMonth);
+    
+            if (belongsToActiveMonth) {
+                visibleCount++;
+            }
+        });
+    
+        if (empty) {
+            empty.classList.toggle('hidden', visibleCount > 0);
+        }
+    }
 })();
 </script>
 @endpush

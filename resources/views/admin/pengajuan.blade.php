@@ -10,9 +10,9 @@
     <div class="w-full my-4 sm:my-5">
         <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
 
-            {{-- Datepicker --}}
-            <div class="relative w-full sm:w-auto shrink-0" id="datePicker">
-                <button type="button" id="dateBtn"
+            {{-- Period Picker --}}
+            <div class="relative w-full sm:w-auto shrink-0" id="periodPicker">
+                <button type="button" id="periodBtn"
                     class="inline-flex w-full sm:w-auto items-center justify-between sm:justify-start h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors">
 
                     <span class="inline-flex items-center gap-2 min-w-0">
@@ -20,7 +20,9 @@
                             <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
                         </svg>
 
-                        <span id="dateLabel" class="leading-none truncate">Semua Tanggal</span>
+                        <span id="periodLabel" class="leading-none truncate">
+                            {{ \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('M Y') }}
+                        </span>
                     </span>
 
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-50 shrink-0">
@@ -28,24 +30,22 @@
                     </svg>
                 </button>
 
-                <input type="hidden" id="dateValue" value="">
+                <input type="hidden" id="periodValue" name="period" value="">
 
-                <div id="datePanel"
+                <div id="periodPanel"
                     class="hidden absolute z-50 mt-2 left-0 w-full sm:w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white shadow-lg p-3">
 
                     <div class="flex items-center justify-between mb-3">
-                        <button type="button" id="datePrev"
+                        <button type="button" id="yearPrev"
                             class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                                 <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
                             </svg>
                         </button>
 
-                        <span id="dateNavLabel"
-                            class="text-sm font-medium text-gray-900 cursor-pointer hover:text-[#faa938] select-none">
-                        </span>
+                        <span id="yearLabel" class="text-sm font-medium text-gray-900">2026</span>
 
-                        <button type="button" id="dateNext"
+                        <button type="button" id="yearNext"
                             class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                                 <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
@@ -53,15 +53,15 @@
                         </button>
                     </div>
 
-                    <div id="dateGrid"></div>
+                    <div class="grid grid-cols-3 gap-2" id="monthGrid"></div>
 
                     <div class="flex items-center justify-between mt-3">
-                        <button type="button" id="btnResetDate"
+                        <button type="button" id="btnThisMonth"
                             class="text-sm font-medium text-gray-500 hover:text-[#faa938]">
-                            Hari ini
+                            Bulan ini
                         </button>
 
-                        <button type="button" id="btnDateClose"
+                        <button type="button" id="btnClosePanel"
                             class="px-3 py-1 text-sm font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">
                             Tutup
                         </button>
@@ -84,6 +84,23 @@
                 <div id="dropdownPegawai"
                     class="hidden absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
                     <ul id="listPegawai"></ul>
+                </div>
+            </div>
+
+            {{-- Filter Status --}}
+            <div class="relative w-full sm:w-48 shrink-0">
+                <select id="filterStatus" onchange="onFilterStatusChange(this.value)"
+                    class="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-sm font-medium text-gray-700 shadow-2xs hover:border-[#faa938] focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
+                    <option value="all" {{ (($status ?? 'all') === 'all') ? 'selected' : '' }}>Semua Status</option>
+                    <option value="menunggu_kabag" {{ (($status ?? '') === 'menunggu_kabag') ? 'selected' : '' }}>Menunggu Kabag</option>
+                    <option value="pending" {{ (($status ?? '') === 'pending') ? 'selected' : '' }}>Menunggu Ketua</option>
+                    <option value="approved" {{ (($status ?? '') === 'approved') ? 'selected' : '' }}>Disetujui Final</option>
+                    <option value="rejected" {{ (($status ?? '') === 'rejected') ? 'selected' : '' }}>Ditolak</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </div>
             </div>
 
@@ -116,7 +133,25 @@
                 <tr class="bg-gray-100">
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 rounded-tl-xl w-8">No</th>
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Nama Pegawai</th>
-                    <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Tanggal Lembur</th>
+                    <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Tim & Ketua</th>
+                    <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">
+                        <div class="inline-flex items-center justify-center gap-1.5 w-full">
+                            <span>Tanggal Lembur</span>
+                            <div class="relative inline-block text-left">
+                                <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                                    class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                    <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
+                                    <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                    <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Jam Diajukan</th>
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Jam Disetujui</th>
                     <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900">Uraian Kegiatan</th>
@@ -141,6 +176,11 @@
                             <div class="text-xs text-gray-400">{{ $p->nip_pegawai }}</div>
                         </td>
 
+                        <td class="px-2 py-2 text-xs text-gray-900 text-left">
+                            <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $p->nama_tim ?? '-' }}</div>
+                            <div class="text-[11px] text-gray-500 mt-0.5">Ketua: {{ $p->nama_ketua ?? '-' }}</div>
+                        </td>
+
                         <td class="px-2 py-2 text-xs text-gray-900 text-left whitespace-nowrap">
                             {{ \Carbon\Carbon::parse($p->date)->translatedFormat('d F Y') }}
                         </td>
@@ -158,7 +198,7 @@
                         </td>
 
                         <td class="px-2 py-2 text-xs text-gray-900">
-                            <div class="max-w-[260px]">
+                            <div class="max-w-[260px]" id="uraian-display-{{ $p->id_transaksi }}">
                                 {{ $p->uraian ?? '-' }}
                             </div>
                         </td>
@@ -177,16 +217,56 @@
 
                         <td class="px-2 py-2 text-center" id="status-{{ $p->id_transaksi }}">
                             @if($p->status === 'approved')
-                                <span class="bg-green-100 rounded-full px-2 text-xs text-green-700 py-0.5">Disetujui</span>
+                                <div class="inline-flex items-center gap-1.5 justify-center">
+                                    <span class="bg-green-100 rounded-full px-2 text-xs text-green-700 py-0.5">Disetujui</span>
+                                    <button type="button"
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'approved')"
+                                        class="text-gray-400 cursor-pointer hover:text-gray-600" title="Koreksi">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            @elseif($p->status === 'menunggu_kabag')
+                                <div class="inline-flex items-center gap-1.5 justify-center">
+                                    <span class="bg-blue-100 rounded-full px-2 text-xs text-blue-700 py-0.5">Menunggu Kabag</span>
+                                    <button type="button"
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'approved')"
+                                        class="text-blue-500 cursor-pointer hover:text-blue-700" title="Proses / Setujui">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             @elseif($p->status === 'rejected')
-                                <span class="bg-red-100 rounded-full px-2 text-xs text-red-700 py-0.5">Ditolak</span>
+                                <div class="inline-flex items-center gap-1.5 justify-center">
+                                    <span class="bg-red-100 rounded-full px-2 text-xs text-red-700 py-0.5">Ditolak</span>
+                                    <button type="button"
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'rejected')"
+                                        class="text-gray-400 cursor-pointer hover:text-gray-600" title="Lihat / Koreksi">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            @elseif($p->status === 'cancelled')
+                                <div class="inline-flex items-center gap-1.5 justify-center">
+                                    <span class="bg-gray-100 rounded-full px-2 text-xs text-gray-700 py-0.5 border border-gray-300">Dibatalkan</span>
+                                    <button type="button"
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'cancelled')"
+                                        class="text-gray-400 cursor-pointer hover:text-gray-600" title="Lihat / Ubah Keputusan">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             @else
                                 <div class="inline-flex items-center gap-2">
-                                    <span class="bg-amber-100 rounded-full px-2 text-xs text-amber-700 py-0.5">Menunggu</span>
+                                    <span class="bg-amber-100 rounded-full px-2 text-xs text-amber-700 py-0.5">Menunggu Ketua</span>
 
                                     <button type="button"
-                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai,0,5) }}')"
-                                        class="text-amber-400 cursor-pointer hover:text-amber-500">
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'pending')"
+                                        class="text-amber-400 cursor-pointer hover:text-amber-500" title="Proses">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
@@ -197,7 +277,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-3 py-8 text-center text-sm text-gray-400">
+                        <td colspan="9" class="px-3 py-8 text-center text-sm text-gray-400">
                             Tidak ada pengajuan lembur yang menunggu keputusan.
                         </td>
                     </tr>
@@ -305,7 +385,7 @@
             </div>
 
             <div class="px-4 sm:px-6 py-5 space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div id="wrapperJamDisetujui" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Jam Mulai Disetujui</label>
                         <input id="kJamMulai" type="time"
@@ -316,11 +396,39 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Jam Selesai Disetujui</label>
                         <input id="kJamSelesai" type="time"
                             class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-300 focus:ring-1 focus:ring-gray-400" />
+                        <p id="kJamSelesaiPresensiHint" class="mt-1.5 hidden flex items-center gap-1 text-xs text-blue-700 font-medium">
+                            <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Maksimal jam selesai: <strong id="kJamSelesaiPresensiVal">-</strong> (sesuai presensi pulang)</span>
+                        </p>
                     </div>
                 </div>
 
+                {{-- Uraian Kegiatan (Di atas kotak Catatan) --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-medium text-gray-700">
+                            Uraian Kegiatan
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <span id="kUraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
+                            <span id="kUraianBadge" class="rounded-full px-2 py-0.5 text-[11px] font-medium"></span>
+                        </div>
+                    </div>
+                    <textarea id="kUraian" rows="4" maxlength="2000"
+                        class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-300 focus:ring-1 focus:ring-gray-400 resize-y transition-all"
+                        placeholder="Uraian kegiatan lembur..."></textarea>
+                    <p id="kUraianLockedHint" class="mt-1.5 hidden flex items-center gap-1.5 text-xs text-amber-700">
+                        <svg class="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Uraian tidak dapat diedit karena data presensi belum tersedia.</span>
+                    </p>
+                </div>
+
+                <div>
+                    <label id="labelCatatan" class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
                     <textarea id="kCatatan" rows="3"
                         class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-300 focus:ring-1 focus:ring-gray-400 resize-none"
                         placeholder="Tambahkan catatan jika diperlukan..."></textarea>
@@ -329,14 +437,20 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Keputusan</label>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-2">
                         <button type="button" onclick="setKeputusan('rejected')" id="kBtnTolak"
-                            class="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all">
+                            class="px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all">
                             Tolak
                         </button>
 
+                        <button type="button" onclick="setKeputusan('cancelled')" id="kBtnBatal"
+                            class="px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-rose-50 hover:border-rose-400 hover:text-rose-700 transition-all"
+                            title="Batalkan pengajuan (duplikat / salah tanggal)">
+                            Batalkan
+                        </button>
+
                         <button type="button" onclick="setKeputusan('approved')" id="kBtnSetujui"
-                            class="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all">
+                            class="px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all">
                             Setujui
                         </button>
                     </div>
@@ -490,8 +604,10 @@ function makeBtn(text, cls, onClick) {
 // =====================
 // STATE FILTER
 // =====================
-let selectedDate = null;
-let selectedNip = null;
+const urlParams = new URLSearchParams(window.location.search);
+const activeNip = urlParams.get('nip') || '';
+const activeStatus = urlParams.get('status') || '';
+const activeSort = urlParams.get('sort') || '';
 let cachedPegawai = [];
 
 // =====================
@@ -501,6 +617,16 @@ fetch('/admin/pengajuan/pegawai')
     .then(r => r.json())
     .then(data => {
         cachedPegawai = data;
+
+        if (activeNip) {
+            const emp = cachedPegawai.find(e => e.nip === activeNip);
+
+            if (emp) {
+                document.getElementById('searchPegawai').value = `${emp.nama} — ${emp.nip}`;
+            }
+        }
+
+        updateResetBtn();
         renderDropdownPegawai('');
     });
 
@@ -537,333 +663,224 @@ window.filterDropdownPegawai = function () {
 };
 
 function pilihPegawai(emp) {
-    selectedNip = emp ? emp.nip : null;
-    document.getElementById('searchPegawai').value = emp ? `${emp.nama} — ${emp.nip}` : '';
-    document.getElementById('dropdownPegawai').classList.add('hidden');
-    filterTabel();
-    updateResetBtn();
+    const params = new URLSearchParams(window.location.search);
+    params.set('bulan', document.getElementById('periodValue').value);
+
+    if (emp) {
+        params.set('nip', emp.nip);
+    } else {
+        params.delete('nip');
+    }
+    params.delete('page');
+
+    window.location.href = `?${params.toString()}`;
 }
 
 // =====================
-// DATE PICKER
+// FILTER STATUS & SORT TANGGAL
 // =====================
-(function () {
-    const el = (id) => document.getElementById(id);
-
-    const picker = el('datePicker');
-    const btn = el('dateBtn');
-    const panel = el('datePanel');
-    const grid = el('dateGrid');
-    const navLabel = el('dateNavLabel');
-    const dateLabel = el('dateLabel');
-    const dateValue = el('dateValue');
-    const btnPrev = el('datePrev');
-    const btnNext = el('dateNext');
-    const btnToday = el('btnResetDate');
-    const btnClose = el('btnDateClose');
-
-    if (!picker || !btn || !panel) return;
-
-    const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    const monthShort = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-    const dayNames = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
-    const now = new Date();
-
-    let view = 'day';
-    let viewYear = now.getFullYear();
-    let viewMonth = now.getMonth();
-    let selYear = null;
-    let selMonth = null;
-    let selDay = null;
-
-    function pad2(n) {
-        return String(n).padStart(2, '0');
+window.onFilterStatusChange = function(statusVal) {
+    const params = new URLSearchParams(window.location.search);
+    if (statusVal && statusVal !== 'all') {
+        params.set('status', statusVal);
+    } else {
+        params.delete('status');
     }
+    params.delete('page');
+    window.location.href = `?${params.toString()}`;
+};
 
-    function setDate(y, m, d) {
-        selYear = y;
-        selMonth = m;
-        selDay = d;
-
-        selectedDate = `${y}-${pad2(m + 1)}-${pad2(d)}`;
-        dateLabel.textContent = `${d} ${monthShort[m]} ${y}`;
-        dateValue.value = selectedDate;
-
-        filterTabel();
-        updateResetBtn();
+window.onHeaderSortChange = function(sortVal) {
+    const params = new URLSearchParams(window.location.search);
+    if (sortVal && sortVal !== 'priority') {
+        params.set('sort', sortVal);
+    } else {
+        params.delete('sort');
     }
+    params.delete('page');
+    window.location.href = `?${params.toString()}`;
+};
 
-    function openPanel() {
-        viewYear = now.getFullYear();
-        viewMonth = now.getMonth();
-        renderDay();
-        panel.classList.remove('hidden');
-    }
+    // =====================
+    // PERIOD PICKER
+    // =====================
+    (function () {
+        const el = (id) => document.getElementById(id);
 
-    function closePanel() {
-        panel.classList.add('hidden');
-    }
+        const now = new Date();
+        function pad2(n) { return String(n).padStart(2, '0'); }
 
-    function renderDay() {
-        view = 'day';
-        navLabel.textContent = `${monthNames[viewMonth]} ${viewYear}`;
-        navLabel.className = 'text-sm font-medium text-gray-900 cursor-pointer hover:text-[#faa938] select-none';
-        grid.innerHTML = '';
+        const picker = el('periodPicker');
+        const btn = el('periodBtn');
+        const panel = el('periodPanel');
+        const grid = el('monthGrid');
+        const navLabel = el('yearLabel');
+        const periodLabel = el('periodLabel');
+        const periodValue = el('periodValue');
+        const btnPrev = el('yearPrev');
+        const btnNext = el('yearNext');
+        const btnThisMonth = el('btnThisMonth');
+        const btnClose = el('btnClosePanel');
 
-        const header = document.createElement('div');
-        header.className = 'grid grid-cols-7 mb-1';
+        if (!picker || !btn || !panel) return;
 
-        dayNames.forEach(d => {
-            const span = document.createElement('span');
-            span.className = 'text-center text-xs text-gray-400 py-1';
-            span.textContent = d;
-            header.appendChild(span);
-        });
+        const monthShort = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-        grid.appendChild(header);
+        let view = 'month';
+        let selYear  = {{ \Carbon\Carbon::parse($bulan . '-01')->year }};
+        let selMonth = {{ \Carbon\Carbon::parse($bulan . '-01')->month - 1 }};
+        let viewYear = selYear;
 
-        const dayGrid = document.createElement('div');
-        dayGrid.className = 'grid grid-cols-7 gap-y-1';
-
-        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-        const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-        const daysInPrev = new Date(viewYear, viewMonth, 0).getDate();
-        const base = 'text-sm rounded-lg py-1 transition border ';
-
-        for (let i = firstDay - 1; i >= 0; i--) {
-            const d = daysInPrev - i;
-
-            dayGrid.appendChild(makeBtn(d, base + 'border-transparent text-gray-300', () => {
-                let m = viewMonth - 1;
-                let y = viewYear;
-
-                if (m < 0) {
-                    m = 11;
-                    y--;
-                }
-
-                setDate(y, m, d);
-                viewYear = y;
-                viewMonth = m;
-                renderDay();
-            }));
+        function updateDisplayOnly(y, m) {
+            periodLabel.textContent = `${monthShort[m]} ${y}`;
+            periodValue.value = `${y}-${pad2(m + 1)}`;
         }
 
-        for (let d = 1; d <= daysInMonth; d++) {
-            const isSelected = (selDay === d && selMonth === viewMonth && selYear === viewYear);
-            const isToday = (d === now.getDate() && viewMonth === now.getMonth() && viewYear === now.getFullYear());
+        function setPeriod(y, m) {
+            selYear = y;
+            selMonth = m;
+            updateDisplayOnly(y, m);
 
-            const cls = isSelected
-                ? 'bg-[#faa938] text-white border-[#faa938]'
-                : isToday
-                    ? 'bg-[#faa938]/20 text-[#faa938] border-transparent'
-                    : 'border-transparent text-gray-700 hover:border-[#faa938] hover:text-[#faa938]';
+            const params = new URLSearchParams(window.location.search);
+            params.set('bulan', `${y}-${pad2(m + 1)}`);
+            params.delete('page');
 
-            const _d = d;
-
-            dayGrid.appendChild(makeBtn(_d, base + cls, () => {
-                setDate(viewYear, viewMonth, _d);
-                closePanel();
-            }));
+            window.location.href = `?${params.toString()}`;
         }
 
-        const total = firstDay + daysInMonth;
-        const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
-
-        for (let d = 1; d <= remaining; d++) {
-            const _d = d;
-
-            dayGrid.appendChild(makeBtn(_d, base + 'border-transparent text-gray-300', () => {
-                let m = viewMonth + 1;
-                let y = viewYear;
-
-                if (m > 11) {
-                    m = 0;
-                    y++;
-                }
-
-                setDate(y, m, _d);
-                viewYear = y;
-                viewMonth = m;
-                renderDay();
-            }));
+        function openPanel() {
+            viewYear = selYear;
+            renderMonth();
+            panel.classList.remove('hidden');
         }
 
-        grid.appendChild(dayGrid);
-    }
+        function closePanel() {
+            panel.classList.add('hidden');
+        }
 
-    function renderMonth() {
-        view = 'month';
-        navLabel.textContent = String(viewYear);
-        navLabel.className = 'text-sm font-medium text-gray-900 cursor-pointer hover:text-[#faa938] select-none';
-        grid.innerHTML = '';
+        function renderMonth() {
+            view = 'month';
+            navLabel.textContent = String(viewYear);
+            navLabel.className = 'text-sm font-medium text-gray-900 cursor-pointer hover:text-[#faa938] select-none';
+            grid.innerHTML = '';
 
-        const g = document.createElement('div');
-        g.className = 'grid grid-cols-3 gap-2';
+            monthNames.forEach((name, m) => {
+                const isSel = (m === selMonth && viewYear === selYear);
+                const isNow = (m === now.getMonth() && viewYear === now.getFullYear());
 
-        monthNames.forEach((name, m) => {
-            const isSelected = (m === selMonth && viewYear === selYear);
-            const isNow = (m === now.getMonth() && viewYear === now.getFullYear());
+                const cls = 'px-2 py-2 text-sm rounded-lg border transition ' + (
+                    isSel
+                        ? 'bg-[#faa938] text-white border-[#faa938]'
+                        : isNow
+                            ? 'border-[#faa938] text-[#faa938] bg-white'
+                            : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]'
+                );
 
-            const cls = isSelected
-                ? 'bg-[#faa938] text-white border-[#faa938]'
-                : isNow
-                    ? 'border-[#faa938] text-[#faa938] bg-white'
-                    : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]';
+                grid.appendChild(makeBtn(name.slice(0, 3), cls, () => {
+                    setPeriod(viewYear, m);
+                    closePanel();
+                }));
+            });
+        }
 
-            g.appendChild(makeBtn(name.slice(0, 3), 'px-2 py-2 text-sm rounded-lg border transition ' + cls, () => {
-                viewMonth = m;
-                renderDay();
-            }));
-        });
+        function renderYear() {
+            view = 'year';
 
-        grid.appendChild(g);
-    }
+            const startYear = Math.floor(viewYear / 12) * 12;
 
-    function renderYear() {
-        view = 'year';
+            navLabel.textContent = `${startYear} - ${startYear + 11}`;
+            navLabel.className = 'text-sm font-medium text-gray-400 select-none cursor-default';
+            grid.innerHTML = '';
 
-        const startYear = Math.floor(viewYear / 12) * 12;
+            for (let y = startYear; y < startYear + 12; y++) {
+                const isSel = (y === selYear);
+                const isNow = (y === now.getFullYear());
+                const _y = y;
 
-        navLabel.textContent = `${startYear} - ${startYear + 11}`;
-        navLabel.className = 'text-sm font-medium text-gray-400 select-none cursor-default';
-        grid.innerHTML = '';
+                const cls = 'px-2 py-2 text-sm rounded-lg border transition ' + (
+                    isSel
+                        ? 'bg-[#faa938] text-white border-[#faa938]'
+                        : isNow
+                            ? 'border-[#faa938] text-[#faa938] bg-white'
+                            : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]'
+                );
 
-        const g = document.createElement('div');
-        g.className = 'grid grid-cols-3 gap-2';
+                grid.appendChild(makeBtn(String(_y), cls, () => {
+                    viewYear = _y;
+                    renderMonth();
+                }));
+            }
+        }
 
-        for (let y = startYear; y < startYear + 12; y++) {
-            const isSelected = (y === selYear);
-            const isNow = (y === now.getFullYear());
-
-            const cls = isSelected
-                ? 'bg-[#faa938] text-white border-[#faa938]'
-                : isNow
-                    ? 'border-[#faa938] text-[#faa938] bg-white'
-                    : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]';
-
-            const _y = y;
-
-            g.appendChild(makeBtn(_y, 'px-2 py-2 text-sm rounded-lg border transition ' + cls, () => {
-                viewYear = _y;
+        function navigate(dir) {
+            if (view === 'month') {
+                viewYear += dir;
                 renderMonth();
-            }));
-        }
-
-        grid.appendChild(g);
-    }
-
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        panel.classList.contains('hidden') ? openPanel() : closePanel();
-    });
-
-    navLabel.addEventListener('click', (e) => {
-        e.stopPropagation();
-
-        if (view === 'day') renderMonth();
-        else if (view === 'month') renderYear();
-    });
-
-    btnPrev?.addEventListener('click', (e) => {
-        e.stopPropagation();
-
-        if (view === 'day') {
-            viewMonth--;
-
-            if (viewMonth < 0) {
-                viewMonth = 11;
-                viewYear--;
+            } else {
+                viewYear += dir * 12;
+                renderYear();
             }
-
-            renderDay();
-        } else if (view === 'month') {
-            viewYear--;
-            renderMonth();
-        } else if (view === 'year') {
-            viewYear -= 12;
-            renderYear();
         }
-    });
 
-    btnNext?.addEventListener('click', (e) => {
-        e.stopPropagation();
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            panel.classList.contains('hidden') ? openPanel() : closePanel();
+        });
 
-        if (view === 'day') {
-            viewMonth++;
+        navLabel.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (view === 'month') renderYear();
+        });
 
-            if (viewMonth > 11) {
-                viewMonth = 0;
-                viewYear++;
-            }
+        btnPrev?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigate(-1);
+        });
 
-            renderDay();
-        } else if (view === 'month') {
-            viewYear++;
-            renderMonth();
-        } else if (view === 'year') {
-            viewYear += 12;
-            renderYear();
-        }
-    });
+        btnNext?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigate(1);
+        });
 
-    btnToday?.addEventListener('click', (e) => {
-        e.stopPropagation();
+        btnThisMonth?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setPeriod(now.getFullYear(), now.getMonth());
+            closePanel();
+        });
 
-        viewYear = now.getFullYear();
-        viewMonth = now.getMonth();
+        btnClose?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closePanel();
+        });
 
-        setDate(now.getFullYear(), now.getMonth(), now.getDate());
-        closePanel();
-    });
+        document.addEventListener('click', (e) => {
+            if (!picker.contains(e.target)) closePanel();
+        });
 
-    btnClose?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closePanel();
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!picker.contains(e.target)) closePanel();
-
-        if (!document.getElementById('dropdownPegawai')?.contains(e.target) &&
-            !document.getElementById('searchPegawai')?.contains(e.target)) {
-            document.getElementById('dropdownPegawai')?.classList.add('hidden');
-        }
-    });
-})();
+        updateDisplayOnly(selYear, selMonth);
+    })();
 
 // =====================
-// FILTER TABEL
+// RESET FILTER
 // =====================
-function filterTabel() {
-    document.querySelectorAll('#tabelPengajuan tr').forEach(row => {
-        const cocokTanggal = !selectedDate || row.dataset.tanggal === selectedDate;
-        const cocokNip = !selectedNip || row.dataset.nip === selectedNip;
-
-        row.style.display = (cocokTanggal && cocokNip) ? '' : 'none';
-    });
-}
-
 function updateResetBtn() {
     const btn = document.getElementById('btnResetFilter');
 
     if (!btn) return;
 
-    (selectedDate || selectedNip)
+    (activeNip || (activeStatus && activeStatus !== 'all') || (activeSort && activeSort !== 'priority'))
         ? btn.classList.remove('hidden')
         : btn.classList.add('hidden');
 }
 
+updateResetBtn();
+
 document.getElementById('btnResetFilter')?.addEventListener('click', () => {
-    selectedDate = null;
-    selectedNip = null;
+    const params = new URLSearchParams();
+    params.set('bulan', document.getElementById('periodValue').value);
 
-    document.getElementById('dateLabel').textContent = 'Semua Tanggal';
-    document.getElementById('dateValue').value = '';
-    document.getElementById('searchPegawai').value = '';
-
-    filterTabel();
-    updateResetBtn();
+    window.location.href = `?${params.toString()}`;
 });
 
 // =====================
@@ -925,16 +942,70 @@ window.closeModalPresensi = function() {
 // =====================
 let currentId = null;
 let keputusan = null;
+let currentUraian = '';
+let currentHasPresensi = false;
+let currentJamSelesaiPresensi = '';
 
-window.openModalKeputusan = function(id, jamMulai, jamSelesai) {
+window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, uraian, hasPresensi, jamSelesaiPresensi, initialStatus) {
     currentId = id;
-    keputusan = null;
+    keputusan = (initialStatus === 'approved' || initialStatus === 'rejected' || initialStatus === 'cancelled') ? initialStatus : null;
+    currentUraian = (uraian !== undefined && uraian !== null) ? uraian : '';
+    currentHasPresensi = Boolean(hasPresensi);
+    currentJamSelesaiPresensi = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
 
-    document.getElementById('kJamMulai').value = jamMulai || '';
-    document.getElementById('kJamSelesai').value = jamSelesai || '';
-    document.getElementById('kCatatan').value = '';
+    const elJamMulai = document.getElementById('kJamMulai');
+    const elJamSelesai = document.getElementById('kJamSelesai');
+    const elPresensiHint = document.getElementById('kJamSelesaiPresensiHint');
+    const elPresensiVal = document.getElementById('kJamSelesaiPresensiVal');
 
-    resetBtnKeputusan();
+    elJamMulai.value = jamMulai || '';
+    elJamSelesai.value = jamSelesai || '';
+    document.getElementById('kCatatan').value = catatan || '';
+
+    if (currentJamSelesaiPresensi) {
+        elJamSelesai.setAttribute('max', currentJamSelesaiPresensi);
+        if (elPresensiHint && elPresensiVal) {
+            elPresensiVal.textContent = currentJamSelesaiPresensi;
+            elPresensiHint.classList.remove('hidden');
+        }
+    } else {
+        elJamSelesai.removeAttribute('max');
+        if (elPresensiHint) {
+            elPresensiHint.classList.add('hidden');
+        }
+    }
+
+    const elUraian = document.getElementById('kUraian');
+    const elUraianBadge = document.getElementById('kUraianBadge');
+    const elUraianHint = document.getElementById('kUraianLockedHint');
+
+    elUraian.value = currentUraian;
+    const elUraianCount = document.getElementById('kUraianCount');
+    if (elUraianCount) elUraianCount.textContent = `${currentUraian.length} / 2000`;
+
+    if (currentHasPresensi) {
+        elUraian.readOnly = false;
+        elUraian.className = 'border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-300 focus:ring-1 focus:ring-gray-400 resize-y transition-all bg-white';
+        elUraianBadge.textContent = 'Presensi Ada (Dapat Diedit)';
+        elUraianBadge.className = 'rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 border border-emerald-200';
+        elUraianHint.classList.add('hidden');
+    } else {
+        elUraian.readOnly = true;
+        elUraian.className = 'border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-200 bg-gray-50 text-gray-500 resize-y cursor-not-allowed';
+        elUraianBadge.textContent = 'Presensi Belum Ada';
+        elUraianBadge.className = 'rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200';
+        elUraianHint.classList.remove('hidden');
+    }
+
+    if (initialStatus === 'approved') {
+        setKeputusan('approved');
+    } else if (initialStatus === 'rejected') {
+        setKeputusan('rejected');
+    } else if (initialStatus === 'cancelled') {
+        setKeputusan('cancelled');
+    } else {
+        resetBtnKeputusan();
+    }
     cekWarningDurasi();
 
     document.getElementById('modalKeputusan').classList.remove('hidden');
@@ -947,22 +1018,41 @@ window.closeModalKeputusan = function() {
 
     currentId = null;
     keputusan = null;
+    currentUraian = '';
+    currentHasPresensi = false;
+    currentJamSelesaiPresensi = '';
 };
 
 window.setKeputusan = function(val) {
     keputusan = val;
     resetBtnKeputusan();
 
+    const wrapperJam = document.getElementById('wrapperJamDisetujui');
+    const labelCatatan = document.getElementById('labelCatatan');
+
     if (val === 'rejected') {
-        document.getElementById('kBtnTolak').className = 'px-4 py-2 text-sm font-semibold rounded-lg border border-red-400 bg-red-50 text-red-600 transition-all';
+        document.getElementById('kBtnTolak').className = 'px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-red-400 bg-red-50 text-red-600 transition-all';
+        if (wrapperJam) wrapperJam.classList.remove('hidden');
+        if (labelCatatan) labelCatatan.textContent = 'Catatan / Alasan Penolakan';
+    } else if (val === 'cancelled') {
+        document.getElementById('kBtnBatal').className = 'px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-rose-400 bg-rose-50 text-rose-700 transition-all';
+        if (wrapperJam) wrapperJam.classList.add('hidden');
+        if (labelCatatan) labelCatatan.innerHTML = 'Catatan / Alasan Pembatalan <span class="text-rose-500 font-semibold">*wajib</span>';
     } else {
-        document.getElementById('kBtnSetujui').className = 'px-4 py-2 text-sm font-semibold rounded-lg border border-green-400 bg-green-50 text-green-700 transition-all';
+        document.getElementById('kBtnSetujui').className = 'px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-green-400 bg-green-50 text-green-700 transition-all';
+        if (wrapperJam) wrapperJam.classList.remove('hidden');
+        if (labelCatatan) labelCatatan.textContent = 'Catatan (Opsional)';
     }
 };
 
 function resetBtnKeputusan() {
-    document.getElementById('kBtnTolak').className = 'px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all';
-    document.getElementById('kBtnSetujui').className = 'px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all';
+    document.getElementById('kBtnTolak').className = 'px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all';
+    document.getElementById('kBtnBatal').className = 'px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition-all';
+    document.getElementById('kBtnSetujui').className = 'px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all';
+    const wrapperJam = document.getElementById('wrapperJamDisetujui');
+    if (wrapperJam) wrapperJam.classList.remove('hidden');
+    const labelCatatan = document.getElementById('labelCatatan');
+    if (labelCatatan) labelCatatan.textContent = 'Catatan';
 }
 
 function cekWarningDurasi() {
@@ -993,6 +1083,10 @@ function cekWarningDurasi() {
 
 document.getElementById('kJamMulai')?.addEventListener('change', cekWarningDurasi);
 document.getElementById('kJamSelesai')?.addEventListener('change', cekWarningDurasi);
+document.getElementById('kUraian')?.addEventListener('input', function() {
+    const elCount = document.getElementById('kUraianCount');
+    if (elCount) elCount.textContent = `${this.value.length} / 2000`;
+});
 
 window.simpanKeputusan = function() {
     if (!keputusan) {
@@ -1003,10 +1097,24 @@ window.simpanKeputusan = function() {
     const jamMulai = document.getElementById('kJamMulai').value;
     const jamSelesai = document.getElementById('kJamSelesai').value;
     const catatan = document.getElementById('kCatatan').value;
+    const uraian = document.getElementById('kUraian').value;
 
-    if (!jamMulai || !jamSelesai) {
-        alert('Jam mulai dan jam selesai wajib diisi.');
-        return;
+    if (keputusan === 'cancelled') {
+        if (!catatan.trim()) {
+            alert('Alasan pembatalan wajib diisi pada kotak catatan.');
+            document.getElementById('kCatatan').focus();
+            return;
+        }
+    } else if (keputusan !== 'rejected') {
+        if (!jamMulai || !jamSelesai) {
+            alert('Jam mulai dan jam selesai wajib diisi.');
+            return;
+        }
+        if (currentJamSelesaiPresensi && jamSelesai > currentJamSelesaiPresensi) {
+            alert(`Jam selesai disetujui (${jamSelesai}) tidak boleh melebihi jam kepulangan presensi pegawai (${currentJamSelesaiPresensi}).`);
+            document.getElementById('kJamSelesai').focus();
+            return;
+        }
     }
 
     const btn = document.getElementById('btnSimpan');
@@ -1018,37 +1126,73 @@ window.simpanKeputusan = function() {
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
         },
         body: JSON.stringify({
             status: keputusan,
             jam_mulai_disetujui: jamMulai,
             jam_selesai_disetujui: jamSelesai,
             note: catatan,
+            uraian: uraian,
         })
     })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            const statusEl = document.querySelector(`#status-${currentId}`);
-
-            if (statusEl) {
-                if (keputusan === 'approved') {
-                    statusEl.innerHTML = '<span class="bg-green-100 rounded-full px-2 text-xs text-green-700 py-0.5">Disetujui</span>';
-                } else {
-                    statusEl.innerHTML = '<span class="bg-red-100 rounded-full px-2 text-xs text-red-700 py-0.5">Ditolak</span>';
-                }
-            }
-
-            const jamEl = document.querySelector(`#jam-disetujui-${currentId}`);
-
-            if (jamEl) {
-                jamEl.textContent = `${jamMulai} - ${jamSelesai}`;
-            }
-
-            closeModalKeputusan();
+    .then(async response => {
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Gagal menyimpan, coba lagi.');
         }
+        return data;
     })
-    .catch(() => alert('Gagal menyimpan, coba lagi.'))
+    .then(data => {
+        const statusEl = document.querySelector(`#status-${currentId}`);
+
+        if (statusEl) {
+            let badgeClass = 'bg-green-100 text-green-700';
+            let badgeText = 'Disetujui';
+            let btnTitle = 'Koreksi';
+            let actionStatus = 'approved';
+
+            if (keputusan === 'rejected') {
+                badgeClass = 'bg-red-100 text-red-700';
+                badgeText = 'Ditolak';
+                btnTitle = 'Lihat / Koreksi';
+                actionStatus = 'rejected';
+            } else if (keputusan === 'cancelled') {
+                badgeClass = 'bg-gray-100 text-gray-700 border border-gray-300';
+                badgeText = 'Dibatalkan';
+                btnTitle = 'Lihat / Ubah Keputusan';
+                actionStatus = 'cancelled';
+            }
+
+            statusEl.innerHTML = `
+                <div class="inline-flex items-center gap-1.5 justify-center">
+                    <span class="${badgeClass} rounded-full px-2 text-xs py-0.5">${badgeText}</span>
+                    <button type="button"
+                        onclick="openModalKeputusan(${currentId}, '${jamMulai}', '${jamSelesai}', ${JSON.stringify(catatan)}, ${JSON.stringify(uraian)}, ${currentHasPresensi ? 1 : 0}, '${currentJamSelesaiPresensi}', '${actionStatus}')"
+                        class="text-gray-400 cursor-pointer hover:text-gray-600" title="${btnTitle}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </button>
+                </div>`;
+        }
+
+        const jamEl = document.querySelector(`#jam-disetujui-${currentId}`);
+        if (jamEl) {
+            jamEl.textContent = (keputusan === 'rejected' || keputusan === 'cancelled') ? '-' : `${jamMulai} - ${jamSelesai}`;
+        }
+
+        if (data.uraian !== undefined) {
+            currentUraian = data.uraian;
+            const uraianEl = document.querySelector(`#uraian-display-${currentId}`);
+            if (uraianEl) {
+                uraianEl.textContent = data.uraian || '-';
+            }
+        }
+
+        closeModalKeputusan();
+    })
+    .catch(error => alert(error.message || 'Gagal menyimpan, coba lagi.'))
     .finally(() => {
         btn.disabled = false;
         btn.textContent = 'Simpan';

@@ -17,7 +17,7 @@ class DashboardController extends Controller
         // --- Statistik pengajuan tim bulan ini ---
         $stats = [
             'total'     => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->count(),
-            'disetujui' => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'approved')->count(),
+            'disetujui' => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->whereIn('status', ['approved', 'menunggu_kabag'])->count(),
             'diproses'  => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'pending')->count(),
             'ditolak'   => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
         ];
@@ -32,15 +32,126 @@ class DashboardController extends Controller
             ->orderBy('t.submitted_at', 'desc')
             ->get();
 
-        // --- Lembur hari ini yang approved ---
+        // --- Lembur hari ini yang sudah disetujui ketua / kabag ---
         $lemburHariIni = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->where('t.approver_employee_id', $nipKetua)
             ->whereDate('t.date', today())
-            ->where('t.status', 'approved')
+            ->whereIn('t.status', ['approved', 'menunggu_kabag'])
             ->select('p.nama as nama_pegawai', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui')
             ->get();
 
         return view('ketua-tim.dashboard', compact('stats', 'pengajuan', 'lemburHariIni'));
+    }
+
+    public function getPending()
+    {
+        $nipKetua = session('user')['nip'];
+        $bulanIni = now()->month;
+        $tahunIni = now()->year;
+
+        $pending = DB::table('t_transaksi')
+            ->join('m_pegawai', 't_transaksi.submitted_by_NIP', '=', 'm_pegawai.nip')
+            ->whereMonth('t_transaksi.date', $bulanIni)
+            ->whereYear('t_transaksi.date', $tahunIni)
+            ->where('t_transaksi.status', 'pending')
+            ->where('t_transaksi.approver_employee_id', $nipKetua) // filter tim ketua
+            ->select(
+                't_transaksi.id_transaksi',
+                'm_pegawai.nama',
+                't_transaksi.date',
+            )
+            ->orderBy('t_transaksi.date', 'asc')
+            ->get();
+
+        return response()->json($pending);
+    }
+
+    public function approve($id)
+    {
+        $nipKetua  = session('user')['nip'];
+
+        // Pastikan transaksi ini memang milik tim ketua tsb
+        $transaksi = DB::table('t_transaksi')
+            ->where('id_transaksi', $id)
+            ->where('approver_employee_id', $nipKetua)
+            ->first();
+
+        if (!$transaksi) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $jamMulai   = Carbon::parse($transaksi->date . ' ' . $transaksi->jam_mulai);
+        $jamSelesai = $transaksi->jam_selesai
+            ? Carbon::parse($transaksi->date . ' ' . $transaksi->jam_selesai)
+            : null;
+
+        if ($jamSelesai && $jamSelesai->lessThan($jamMulai)) {
+            $jamSelesai->addDay();
+        }
+
+        // Batasi jam selesai agar tidak melebihi jam kepulangan fisik presensi jika data presensi sudah ada
+        if ($jamSelesai) {
+            $pegawaiNipLama = DB::table('m_pegawai')->where('nip', $transaksi->submitted_by_NIP)->value('nip_lama');
+            $presensi = DB::table('t_presensi')
+                ->where('niplama', $pegawaiNipLama)
+                ->whereDate('tanggal', $transaksi->date)
+                ->first();
+
+            if ($presensi && $presensi->jam_selesai) {
+                $jamPulangPresensi = Carbon::parse($transaksi->date . ' ' . $presensi->jam_selesai);
+                if ($jamPulangPresensi->lessThan($jamMulai)) {
+                    $jamPulangPresensi->addDay();
+                }
+                if ($jamSelesai->greaterThan($jamPulangPresensi)) {
+                    $jamSelesai = $jamPulangPresensi;
+                }
+            }
+        }
+
+        // Cek apakah tim adalah Tim Bagian Umum atau approver adalah Kabag Umum
+        $isTimBagianUmum = false;
+        if (!empty($transaksi->tim_kode_tim)) {
+            $tim = DB::table('m_tim')->where('kode_tim', $transaksi->tim_kode_tim)->first();
+            if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
+                $isTimBagianUmum = true;
+            }
+        }
+
+        $nipSess = session('user')['nip'] ?? null;
+        $nipLamaSess = session('user')['nip_lama'] ?? null;
+        $isApproverKabag = DB::table('m_pejabat')
+            ->where('jabatan', 'Kepala Bagian Umum')
+            ->where('status', 'aktif')
+            ->where(function($q) use ($nipSess, $nipLamaSess) {
+                if ($nipSess) $q->where('nip', $nipSess);
+                if ($nipLamaSess) $q->orWhere('nip_lama', $nipLamaSess);
+            })->exists();
+
+        $finalStatus = ($isTimBagianUmum || $isApproverKabag) ? 'approved' : 'menunggu_kabag';
+        $approvedKabagAt = ($isTimBagianUmum || $isApproverKabag) ? now() : null;
+
+        $updateData = [
+            'status'                => $finalStatus,
+            'jam_mulai_disetujui'   => $jamMulai->format('H:i:s'),
+            'jam_selesai_disetujui' => $jamSelesai?->format('H:i:s'),
+            'approved_at'           => now()->toDateString(),
+        ];
+
+        if ($approvedKabagAt) {
+            $updateData['approved_kabag_at'] = $approvedKabagAt;
+        }
+
+        DB::table('t_transaksi')
+            ->where('id_transaksi', $id)
+            ->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'status'  => $finalStatus,
+            'message' => $finalStatus === 'menunggu_kabag' 
+                ? 'Pengajuan berhasil disetujui Ketua Tim dan diteruskan ke Kabag Umum' 
+                : 'Pengajuan berhasil disetujui'
+        ]);
     }
 }

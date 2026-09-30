@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('m_rates', function (Blueprint $table) {
-            $table->string('golongan', 10)->nullable()->after('id_rate');
+            if (!Schema::hasColumn('m_rates', 'golongan')) {
+                $table->string('golongan', 10)->nullable()->after('id_rate');
+            }
         });
     }
 
