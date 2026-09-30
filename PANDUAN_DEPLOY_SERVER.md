@@ -95,7 +95,12 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 31. 📄 **`resources/views/dashboard.blade.php`** *(Dashboard pegawai + pembersihan console.log debug + kontras empty state)*.
 32. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Persetujuan Ketua Tim + standarisasi search bar rounded-xl & kontras NIP)*.
 33. 📁 **`public/build/`** *(Folder bundle asset CSS & JS hasil npm run build terbaru)*.
-34. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
+34. 📄 **`app/Http/Controllers/LemburController.php`** *(Penanganan HTTP 403 Forbidden WAF server BPS pada `storeDoc` dengan dekripsi Base64 & normalisasi URL)*.
+35. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Penanganan HTTP 403 Forbidden WAF server BPS pada `storeDoc` Admin dengan dekripsi Base64 & normalisasi URL)*.
+36. 📄 **`resources/views/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi pegawai)*.
+37. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Ketua Tim)*.
+38. 📄 **`resources/views/admin/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Admin)*.
+39. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
 
 ---
 
@@ -307,8 +312,18 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Interaksi Panel Period Picker**:
   - Klik tombol periode untuk membuka panel: tombol **"Semua Bulan ({Tahun})"** berada di posisi atas dan ter-highlight aktif oranye amber.
   - Klik salah satu bulan spesifik (misal: *"Sep"*): halaman memfilter hanya untuk bulan September dan label berubah menjadi *"September {Tahun}"*.
-  - Buka kembali panel dan klik **"Semua Bulan ({Tahun})"**: halaman kembali menampilkan seluruh data lembur di tahun berjalan.
-- [ ] **Uji Tombol Reset Filter**:
-  - Ubah filter bulan atau status, lalu klik tombol **"Reset"**: filter seketika kembali ke kondisi awal yang bersih (*Semua Bulan Tahun Berjalan & sort Terbaru*).
+### L. Uji Unggah Link Dokumentasi Lembur (Bypass WAF / ModSecurity 403 Forbidden Server BPS)
+- [ ] **Buka Modal Tambah Dokumentasi**:
+  - Masuk ke menu lembur berstatus **Disetujui** pada role Pegawai (`/lembur`), Ketua Tim, atau Admin (`/admin/lembur`).
+  - Klik tautan **`+ Tambah`** pada kolom Dokumentasi untuk menampilkan modal pop-up.
+- [ ] **Kirim Tautan Google Drive**:
+  - Masukkan tautan Google Drive (contoh: `https://drive.google.com/drive/folders/...` atau format tanpa protokol `drive.google.com/...`).
+  - Klik tombol **Simpan**.
+- [ ] **Verifikasi Respon Jaringan (Network) & Hasil**:
+  - Buka DevTools (F12 -> Tab Network): pastikan request POST `.../dokumentasi` berhasil dengan kode **HTTP 302 / 200 OK** (tidak lagi diblokir **HTTP 403 Forbidden** oleh WAF server BPS).
+  - Muncul notifikasi sukses: *"Dokumentasi berhasil disimpan."*
+  - Pada baris tabel, muncul tombol **"Lihat ↗"** berwarna biru yang ketika diklik membuka tautan Google Drive asli di tab baru (*target _blank*).
+- [ ] **Uji Hapus Dokumentasi**:
+  - Klik tombol silang (hapus) di samping tautan *Lihat* dan konfirmasi: data dokumentasi berhasil terhapus dan kolom kembali ke tombol *+ Tambah*.
 
 

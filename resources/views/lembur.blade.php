@@ -1070,8 +1070,13 @@
         const modal = document.getElementById('modalDok');
         const form = document.getElementById('formDok');
 
-        if (form && el) {
-            form.action = el.getAttribute('data-action');
+        if (form) {
+            if (el) form.action = el.getAttribute('data-action');
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
         }
 
         modal?.classList.remove('hidden');
@@ -1079,9 +1084,46 @@
     };
 
     window.closeModalDok = function () {
+        const form = document.getElementById('formDok');
+        if (form) {
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
+        }
         document.getElementById('modalDok')?.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
+
+    const formDok = document.getElementById('formDok');
+    if (formDok) {
+        const inputDok = formDok.querySelector('[name="file_path"]');
+        if (inputDok) {
+            inputDok.addEventListener('blur', function () {
+                let val = this.value.trim();
+                if (val && !/^https?:\/\//i.test(val)) {
+                    this.value = 'https://' + val;
+                }
+            });
+        }
+
+        formDok.addEventListener('submit', function () {
+            const input = formDok.querySelector('[name="file_path"]');
+            if (!input) return;
+            let val = input.value.trim();
+            if (!val) return;
+            if (!/^https?:\/\//i.test(val)) {
+                val = 'https://' + val;
+            }
+            try {
+                input.type = 'text';
+                input.value = 'b64:' + btoa(unescape(encodeURIComponent(val)));
+            } catch (err) {
+                console.error('Encode error:', err);
+            }
+        });
+    }
 
     @if ($errors->has('file_path'))
         window.openModalDok(document.querySelector('#tabelLembur [data-action]') ?? document.querySelector('[data-action]'));

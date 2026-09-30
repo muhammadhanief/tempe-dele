@@ -746,8 +746,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('formDok');
         const modalDok = document.getElementById('modalDok');
 
-        if (form && el) {
-            form.action = el.getAttribute('data-action');
+        if (form) {
+            if (el) form.action = el.getAttribute('data-action');
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
         }
 
         modalDok?.classList.remove('hidden');
@@ -755,9 +760,46 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.closeModalDok = function () {
+        const form = document.getElementById('formDok');
+        if (form) {
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
+        }
         document.getElementById('modalDok')?.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
+
+    const formDokKetua = document.getElementById('formDok');
+    if (formDokKetua) {
+        const inputDok = formDokKetua.querySelector('[name="file_path"]');
+        if (inputDok) {
+            inputDok.addEventListener('blur', function () {
+                let val = this.value.trim();
+                if (val && !/^https?:\/\//i.test(val)) {
+                    this.value = 'https://' + val;
+                }
+            });
+        }
+
+        formDokKetua.addEventListener('submit', function () {
+            const input = formDokKetua.querySelector('[name="file_path"]');
+            if (!input) return;
+            let val = input.value.trim();
+            if (!val) return;
+            if (!/^https?:\/\//i.test(val)) {
+                val = 'https://' + val;
+            }
+            try {
+                input.type = 'text';
+                input.value = 'b64:' + btoa(unescape(encodeURIComponent(val)));
+            } catch (err) {
+                console.error('Encode error:', err);
+            }
+        });
+    }
 
     @if ($errors->has('file_path'))
         window.openModalDok(document.querySelector('#tabelLembur [data-action]') ?? document.querySelector('[data-action]'));

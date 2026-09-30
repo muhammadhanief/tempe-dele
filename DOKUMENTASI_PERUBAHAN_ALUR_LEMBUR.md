@@ -1495,7 +1495,46 @@ Menerapkan standar desain dialog enterprise responsif:
 | 3 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Filter default semua bulan tahun berjalan dan default sort `desc` untuk Kabag Umum. |
 | 4 | `resources/views/kabag-umum/pengajuan.blade.php` | Label Period Picker dinamis, tombol Semua Bulan di panel, default sort Terbaru, dan pembersihan em dash. |
 | 5 | `app/Http/Controllers/admin/PengajuanController.php` | Filter default semua bulan tahun berjalan dan default sort `desc` untuk Admin. |
-| 6 | `resources/views/admin/pengajuan.blade.php` | Label Period Picker dinamis, tombol Semua Bulan di panel, default sort Terbaru, dan pembersihan em dash. |
+| 6 | `resources/views/admin/pengajuan.blade.php` | Label Period Picker dinamis, tombol Semua Bulan di panel, default sort Terbaru, dan pembersihan em dash. |---
 
+## 23. Penanganan HTTP 403 Forbidden Firewall BPS (WAF / ModSecurity) pada Form Dokumentasi Lembur
 
+### A. Latar Belakang Masalah
+1. **Error HTTP 403 Forbidden di Server BPS**:
+   - Saat pengujian di server BPS (`...bps.go.id`), penambahan dokumentasi bukti lembur melalui modal "Tambah Dokumentasi" selalu gagal dan memunculkan error **HTTP 403 Forbidden** di browser DevTools (*Network Tab*).
+2. **Penyebab Utama (WAF / ModSecurity URL Filter)**:
+   - Server BPS dilindungi oleh Web Application Firewall (WAF) / ModSecurity dengan aturan OWASP CRS (seperti aturan deteksi RFI - *Remote File Inclusion* dan SSRF - *Server-Side Request Forgery*).
+   - Firewall secara ketat memindai isi badan formulir (*POST request body*). Ketika parameter `file_path` memuat teks skema URL mentah (`https://`, `http://`, `drive.google.com/`, dll.), WAF memblokir koneksi secara langsung sebelum permintaan sampai ke aplikasi Laravel.
+3. **Arahan Mentor BPS**:
+   - Melakukan enkripsi/obfuskasi nilai link pada sisi frontend sebelum data dikirim melalui HTTP POST, lalu melakukan dekripsi kembali pada controller backend sebelum divalidasi dan disimpan ke basis data.
+
+### B. Solusi Desain & Implementasi
+1. **Frontend Client-Side Encoding (`b64:`)**:
+   - Menambahkan *event listener submit* pada formulir modal dokumentasi (`#formDok`).
+   - Sebelum formulir dikirim, link URL dibersihkan dan otomatis dilengkapi skema `https://` jika pengguna mengetik tanpa protokol.
+   - Nilai input diubah menjadi format Base64 dengan awalan `b64:` menggunakan fungsi standar UTF-8:
+     ```javascript
+     input.type = 'text'; // Mencegah benturan validasi tipe URL bawaan browser terhadap string b64:...
+     input.value = 'b64:' + btoa(unescape(encodeURIComponent(val)));
+     ```
+   - Payload yang dikirim melalui jaringan tidak lagi memuat karakter URL mentah (`https://` atau `drive.google.com/`), sehingga lolos dari filter WAF server BPS.
+   - Menambahkan *event listener blur* pada kotak input agar otomatis menyematkan awalan `https://` jika pengguna hanya menyalin `drive.google.com/...`.
+2. **Backend Automatic Decoding & Normalisasi**:
+   - Pada method `storeDoc` di `LemburController` dan `admin/LemburController`:
+     - Mendeteksi apakah input `file_path` memiliki awalan `b64:` atau `enc:`, atau merupakan string Base64.
+     - Jika terenkripsi/Base64, dilakukan `base64_decode` untuk mengembalikan string URL asli yang bersih.
+     - Melakukan normalisasi protokol jika diperlukan, lalu melakukan `$request->merge(['file_path' => $filePath])`.
+     - Validasi Laravel (`$request->validate(['file_path' => 'required|url|max:255'])`) dijalankan terhadap URL asli yang sudah didekode.
+     - Nilai URL asli yang tersimpan ke tabel `m_dokumentasi.file_path` tetap berupa tautan bersih (`https://drive.google.com/...`), sehingga tautan "Lihat" di tabel riwayat lembur tetap dapat diklik normal tanpa perubahan skema database.
+3. **Kompatibilitas Penuh (*Backward Compatibility*)**:
+   - Backend tetap menerima pengiriman URL biasa tanpa Base64 (misalnya pada pengujian lokal atau API), sehingga tidak merusak fungsionalitas yang sudah ada.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Penambahan dekripsi Base64 dan normalisasi URL pada method `storeDoc`. |
+| 2 | `app/Http/Controllers/admin/LemburController.php` | Penambahan dekripsi Base64 dan normalisasi URL pada method `storeDoc` Admin. |
+| 3 | `resources/views/lembur.blade.php` | Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi pegawai. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Ketua Tim. |
+| 5 | `resources/views/admin/lembur.blade.php` | Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Admin. |
 

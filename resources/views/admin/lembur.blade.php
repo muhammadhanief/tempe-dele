@@ -1482,15 +1482,60 @@
     // =====================
     window.openModalDok = function (idTransaksi) {
         const base = "{{ url('admin/lembur') }}";
-        document.getElementById('formDok').action = `${base}/${idTransaksi}/dokumentasi`;
-        document.getElementById('modalDok').classList.remove('hidden');
+        const form = document.getElementById('formDok');
+        if (form) {
+            form.action = `${base}/${idTransaksi}/dokumentasi`;
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
+        }
+        document.getElementById('modalDok')?.classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
     };
 
     window.closeModalDok = function () {
-        document.getElementById('modalDok').classList.add('hidden');
+        const form = document.getElementById('formDok');
+        if (form) {
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
+        }
+        document.getElementById('modalDok')?.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
+
+    const formDokAdmin = document.getElementById('formDok');
+    if (formDokAdmin) {
+        const inputDok = formDokAdmin.querySelector('[name="file_path"]');
+        if (inputDok) {
+            inputDok.addEventListener('blur', function () {
+                let val = this.value.trim();
+                if (val && !/^https?:\/\//i.test(val)) {
+                    this.value = 'https://' + val;
+                }
+            });
+        }
+
+        formDokAdmin.addEventListener('submit', function () {
+            const input = formDokAdmin.querySelector('[name="file_path"]');
+            if (!input) return;
+            let val = input.value.trim();
+            if (!val) return;
+            if (!/^https?:\/\//i.test(val)) {
+                val = 'https://' + val;
+            }
+            try {
+                input.type = 'text';
+                input.value = 'b64:' + btoa(unescape(encodeURIComponent(val)));
+            } catch (err) {
+                console.error('Encode error:', err);
+            }
+        });
+    }
 
     // =====================
     // MODAL AKSI & KELOLA PENGAJUAN (ADMIN)
