@@ -1391,3 +1391,29 @@ Menerapkan standar desain dialog enterprise responsif:
 1. `resources/views/kabag-umum/pengajuan.blade.php`: Modal Keputusan Kabag Umum (`#modalKabag`) dan Modal Presensi (`#modalPresensi`).
 2. `resources/views/admin/pengajuan.blade.php`: Modal Keputusan Admin (`#modalKeputusan`).
 3. `resources/views/ketua-tim/pengajuan.blade.php`: Modal Keputusan Ketua Tim (`#modalKeputusan`).
+
+---
+
+## 20. Pelacakan Bundel Aset Produksi (`public/build`) dalam Repositori Git
+
+### A. Latar Belakang Masalah
+1. Secara default pada Laravel 11/Vite, direktori `/public/build` dimasukkan ke dalam berkas `.gitignore`.
+2. Pada server cPanel / shared hosting institusi (BPS), umumnya tidak tersedia akses Node.js / NPM atau terminal shell untuk mengeksekusi perintah `npm run build` secara mandiri.
+3. Dampaknya, jika aset terkompilasi tidak diikutsertakan ke dalam repositori Git:
+   - Server produksi tidak akan menerima berkas CSS dan JavaScript terbaru saat `git pull` dijalankan.
+   - Tampilan UI di server produksi dapat mengalami *broken layout* atau error pemanggilan manifest Vite (`Vite manifest not found at: .../public/build/manifest.json`).
+
+### B. Solusi & Implementasi
+1. **Penyesuaian `.gitignore`**:
+   - Menghapus aturan `/public/build` dari file `.gitignore` agar bundel produksi Vite (`manifest.json`, CSS, dan JS) otomatis terlacak oleh Git.
+   - **Tetap Mengabaikan `/public/hot`**: Aturan `/public/hot` tetap wajib diabaikan oleh Git. Berkas `public/hot` hanya tercipta saat lokal menjalankan `npm run dev` (Vite Hot Module Replacement). Jika berkas `public/hot` terbawa ke server produksi, directive `@vite` pada Blade akan keliru mengarahkan aset ke `http://localhost:5173` yang menyebabkan tampilan produksi rusak.
+2. **Kompilasi Aset Produksi**:
+   - Menjalankan `npm run build` di lingkungan lokal.
+   - Hasil kompilasi:
+     - `public/build/manifest.json` (peta aset Vite).
+     - `public/build/assets/app-*.css` (91 kB berkas CSS terkompilasi TailwindCSS).
+     - `public/build/assets/app-*.js` (37.5 kB berkas JavaScript terkompilasi).
+3. **Hasil untuk Lingkungan Produksi**:
+   - Begitu server produksi mengeksekusi `git pull`, seluruh aset tampilan yang sudah terkompilasi langsung terunduh secara instan.
+   - Server tidak lagi memerlukan Node.js atau NPM, dan tampilan UI di server dipastikan 100% identik dengan tampilan lokal.
+

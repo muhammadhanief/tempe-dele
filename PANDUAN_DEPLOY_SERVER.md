@@ -121,25 +121,18 @@ Pastikan file `.env` di server produksi:
 
 ## 📦 4. Asset Frontend (`public/build`)
 
-Aplikasi menggunakan Vite untuk mem-bundle aset CSS dan JavaScript (TailwindCSS). Karena folder `public/build` diabaikan oleh `.gitignore`, perhatikan metode berikut:
+Aplikasi menggunakan Vite untuk mem-bundle aset CSS dan JavaScript (TailwindCSS). 
 
-* **Skenario A: Server memiliki Terminal SSH & Node.js**
-  Jalankan perintah berikut di direktori proyek server:
-  ```bash
-  npm install
-  npm run build
-  ```
+> [!TIP]
+> **Otomatis Tersinkron via Git!**  
+> Folder `public/build` (berisi `manifest.json`, CSS, dan JS terkompilasi) **sudah dimasukkan ke dalam tracking Git**.  
+> Jadi, ketika server produksi menjalankan `git pull`, berkas aset terbaru **langsung otomatis terunduh ke server**. Anda **TIDAK PERLU** menginstal Node.js / NPM atau menjalankan `npm run build` di server produksi!
 
-* **Skenario B: Server cPanel / Shared Hosting (Tanpa Node.js)**
-  Di komputer lokal Anda, jalankan `npm run build` terlebih dahulu. Setelah selesai, salin/upload folder lokal:
-  ```
-  public/build/
-  ```
-  ke dalam direktori:
-  ```
-  public/build/
-  ```
-  pada server cPanel produksi Anda.
+* **Jika Menggunakan Git (`git pull`)**:
+  Cukup jalankan `git pull`, aset tampilan langsung sinkron 100%.
+
+* **Jika Unggah Manual (File Manager cPanel / FTP)**:
+  Unggah folder `public/build/` dari komputer lokal ke direktori `public/build/` di cPanel server.
 
 ---
 
