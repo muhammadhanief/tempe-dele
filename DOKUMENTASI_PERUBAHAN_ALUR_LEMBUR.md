@@ -1451,4 +1451,51 @@ Menerapkan standar desain dialog enterprise responsif:
 3. `resources/views/admin/pengajuan.blade.php`: Modal Keputusan Admin (`#modalKeputusan`).
 4. `resources/views/partials/navbar.blade.php`: Responsivitas judul halaman pada layar mobile.
 
+---
+
+## 22. Optimalisasi Filter Periode "Semua Bulan (Tahun Berjalan)" & Urutan Bawaan Terbaru ke Terlama (Ketua Tim, Kabag Umum, & Admin)
+
+### A. Latar Belakang Masalah & Alur Proses Bisnis
+1. **Masalah Bulan Berjalan vs Approval Bulan Berjalan + 1**:
+   - Berdasarkan proses bisnis riil di BPS, Ketua Tim melakukan persetujuan lembur pada bulan berikutnya (bulan berjalan + 1). Contohnya: di bulan Oktober, Ketua Tim perlu menyetujui pengajuan lembur yang dilakukan anggota pada bulan September.
+   - Pada implementasi sebelumnya, saat halaman dibuka tanpa parameter, sistem secara otomatis mengunci kueri ke bulan berjalan saat itu (`$bulan = now()->format('Y-m')`), yaitu Oktober.
+   - Akibatnya, saat Ketua Tim membuka akun di awal bulan Oktober, pengajuan lembur bulan September tidak muncul di tabel. Hal ini memicu kebingungan Ketua Tim yang mengira anggotanya belum mengajukan lembur (*"Kok tidak ada pengajuan kamu di akun saya"*).
+2. **Karakteristik Volume Data**:
+   - Volume lembur per bulan tidak terlalu banyak (hanya berkisar beberapa pengajuan per pegawai), sehingga pembatasan kaku per bulan kalender justru menyulitkan monitoring riwayat lembur.
+3. **Kebutuhan Sorting**:
+   - Pejabat peninjau membutuhkan pengajuan lembur bertanggal paling baru (*newest*) langsung tampil di baris paling atas agar tidak terlewatkan (*"sortnya dari terbaru ke terlama"*).
+
+### B. Solusi Desain & Implementasi (Menerapkan Standar Anti-Slop & Human UX)
+1. **Default Periode: Semua Bulan Tahun Berjalan (`now()->year`)**:
+   - Jika parameter `bulan` tidak dikirim (atau bernilai `'all'`): Sistem memfilter data berdasarkan tahun kalender berjalan (`whereYear('t.date', $currentYear)`), tanpa menyaring bulan (`whereMonth` tidak dipanggil).
+   - Label Period Picker pada toolbar menampilkan teks dinamis: **"Semua Bulan {Tahun}"** (contoh: **"Semua Bulan 2026"**).
+   - Di dalam panel Period Picker, ditambahkan tombol utama yang menonjol dan ergonomis: **"Semua Bulan ({Tahun})"** di atas grid 12 bulan (Jan - Des). Tombol ini memiliki status aktif berwarna oranye amber BPS (`#faa938`) saat filter Semua Bulan aktif.
+   - Pengguna tetap memiliki kebebasan penuh untuk memilih bulan spesifik (misal: "Sep 2026") kapan pun diperlukan, dan dapat kembali ke "Semua Bulan" hanya dengan 1 klik.
+2. **Default Sorting: Tanggal Terbaru ke Terlama (`desc`)**:
+   - Mengubah urutan bawaan (*default sort*) dari `priority` menjadi `desc` (`t.date desc, t.id_transaksi desc`).
+   - Opsi `desc` ("Terbaru") menjadi pilihan pertama dan teratas pada dropdown kolom Tanggal Lembur di tabel.
+   - Pejabat tetap dapat mengubah urutan ke "Terlama" (`asc`) atau "Prioritas Status" (`priority`) sesuai preferensi.
+3. **Penerapan Serentak & Konsisten Lintas Peran Approval**:
+   - Diterapkan secara simetris pada 3 controller dan view approval:
+     1. **Ketua Tim**: `app/Http/Controllers/ketuatim/PengajuanController.php` & `resources/views/ketua-tim/pengajuan.blade.php`.
+     2. **Kabag Umum**: `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` & `resources/views/kabag-umum/pengajuan.blade.php`.
+     3. **Admin**: `app/Http/Controllers/admin/PengajuanController.php` & `resources/views/admin/pengajuan.blade.php`.
+4. **Kepatuhan Prinsip Anti-Slop (Rule R-02, R-03, R-25, R-26, R-31)**:
+   - **R-02 (Copywriting Alami)**: Membersihkan seluruh karakter em dash (`—`) pada teks pencarian pegawai dan modal presensi menjadi tanda kurung atau strip biasa (`Nama (NIP)`).
+   - **R-03 (Mobile Responsiveness)**: Tombol "Semua Bulan" memiliki target sentuh min 42px dengan padding yang nyaman untuk jari jemari.
+   - **R-25 (Color Contrast WCAG AA)**: Teks tombol aktif menggunakan kontras tinggi terhadap latar belakang amber (`text-white` / `text-slate-950`).
+   - **R-26 (Interactive Elements)**: Semua tombol panel memiliki event handler riil tanpa dead control.
+   - **R-31 (Articulated Reason)**: Logika filter secara eksplisit menyelesaikan kendala persetujuan lintas bulan kalender $N+1$.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Filter default semua bulan tahun berjalan (`$bulan = 'all'`) dan default sort `desc`. |
+| 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Label Period Picker dinamis, tombol Semua Bulan tahun berjalan di panel, default sort Terbaru, dan pembersihan em dash. |
+| 3 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Filter default semua bulan tahun berjalan dan default sort `desc` untuk Kabag Umum. |
+| 4 | `resources/views/kabag-umum/pengajuan.blade.php` | Label Period Picker dinamis, tombol Semua Bulan di panel, default sort Terbaru, dan pembersihan em dash. |
+| 5 | `app/Http/Controllers/admin/PengajuanController.php` | Filter default semua bulan tahun berjalan dan default sort `desc` untuk Admin. |
+| 6 | `resources/views/admin/pengajuan.blade.php` | Label Period Picker dinamis, tombol Semua Bulan di panel, default sort Terbaru, dan pembersihan em dash. |
+
+
 

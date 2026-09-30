@@ -295,3 +295,20 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Periksa bagian bawah halaman (footer): tertulis identitas resmi *"Badan Pusat Statistik Provinsi Riau • Hak Cipta Dilindungi"*.
   - Buka Developer Console (F12 -> Tab Console): pastikan tidak ada log debug kotor seperti `DEBUG TIMKERJA`.
 
+### K. Uji Filter Periode "Semua Bulan (Tahun Berjalan)" & Urutan Bawaan Terbaru (Ketua Tim, Kabag Umum, & Admin)
+- [ ] **Buka Halaman Persetujuan Tanpa Parameter**:
+  - Akses menu **Persetujuan Lembur** pada role Ketua Tim (`/ketua-tim/pengajuan`), Kabag Umum (`/kabag-umum/pengajuan`), atau Admin (`/admin/pengajuan`).
+  - Pastikan tombol periode pada toolbar langsung menampilkan label **"Semua Bulan {Tahun}"** (contoh: *"Semua Bulan 2026"*).
+- [ ] **Verifikasi Visibilitas Pengajuan Lintas Bulan Kalender ($N+1$)**:
+  - Pastikan pengajuan lembur anggota tim di bulan sebelumnya (misal: lembur bulan September saat ditinjau pada bulan Oktober) langsung tampil utuh di tabel tanpa tersembunyi.
+- [ ] **Verifikasi Urutan Bawaan (*Default Sort*)**:
+  - Periksa kolom header **Tanggal Lembur**: dropdown urutan secara otomatis terpilih ke opsi **"Terbaru"** (`desc`).
+  - Pengajuan dengan tanggal paling baru langsung berada di baris pertama tabel.
+- [ ] **Uji Interaksi Panel Period Picker**:
+  - Klik tombol periode untuk membuka panel: tombol **"Semua Bulan ({Tahun})"** berada di posisi atas dan ter-highlight aktif oranye amber.
+  - Klik salah satu bulan spesifik (misal: *"Sep"*): halaman memfilter hanya untuk bulan September dan label berubah menjadi *"September {Tahun}"*.
+  - Buka kembali panel dan klik **"Semua Bulan ({Tahun})"**: halaman kembali menampilkan seluruh data lembur di tahun berjalan.
+- [ ] **Uji Tombol Reset Filter**:
+  - Ubah filter bulan atau status, lalu klik tombol **"Reset"**: filter seketika kembali ke kondisi awal yang bersih (*Semua Bulan Tahun Berjalan & sort Terbaru*).
+
+

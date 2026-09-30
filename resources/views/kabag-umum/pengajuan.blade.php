@@ -53,7 +53,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <span id="periodLabel">
-                        {{ \Carbon\Carbon::parse($bulan.'-01')->translatedFormat('F Y') }}
+                        @if(empty($selectedMonth))
+                            Semua Bulan {{ $selectedYear }}
+                        @else
+                            {{ \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->translatedFormat('F Y') }}
+                        @endif
                     </span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-40 shrink-0">
                         <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
@@ -69,12 +73,19 @@
                                 <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
                             </svg>
                         </button>
-                        <span id="yearLabel" class="text-sm font-bold text-gray-900">2026</span>
+                        <span id="yearLabel" class="text-sm font-bold text-gray-900">{{ $selectedYear }}</span>
                         <button type="button" id="yearNext"
                             class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                                 <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
                             </svg>
+                        </button>
+                    </div>
+
+                    <div class="mb-2.5">
+                        <button type="button" id="btnAllMonthsOfYearKabag"
+                            class="w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center {{ empty($selectedMonth) ? 'bg-[#faa938] text-slate-950 font-bold border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]' }}">
+                            Semua Bulan (<span id="allMonthsYearLabelKabag">{{ $selectedYear }}</span>)
                         </button>
                     </div>
 
@@ -152,9 +163,9 @@
                             <div class="relative inline-block text-left">
                                 <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
                                     class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[10px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
-                                    <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
-                                    <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
-                                    <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                    <option value="desc" {{ (($sort ?? 'desc') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                    <option value="asc" {{ (($sort ?? 'desc') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                    <option value="priority" {{ (($sort ?? 'desc') === 'priority') ? 'selected' : '' }}>Prioritas</option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -800,7 +811,7 @@ window.openModalPresensi = function(id) {
     fetch(`/kabag-umum/pengajuan/${id}/presensi`)
         .then(r => r.json())
         .then(d => {
-            subtitle.textContent = `${d.nama} (${d.nip}) — ${d.tanggal}`;
+            subtitle.textContent = `${d.nama} (${d.nip}) - ${d.tanggal}`;
             body.innerHTML = `
                 <div class="space-y-3 text-xs">
                     <div class="flex justify-between items-center py-2 border-b border-gray-100">
@@ -833,7 +844,11 @@ window.closeModalPresensi = function() {
 // =====================
 window.onHeaderSortChange = function(val) {
     const url = new URL(window.location.href);
-    url.searchParams.set('sort', val);
+    if (val && val !== 'desc') {
+        url.searchParams.set('sort', val);
+    } else {
+        url.searchParams.delete('sort');
+    }
     url.searchParams.delete('page');
     window.location.href = url.toString();
 };
@@ -897,27 +912,47 @@ window.clearSearchInput = function() {
     const yearNext = document.getElementById('yearNext');
     const monthGrid = document.getElementById('monthGrid');
     const btnThisMonth = document.getElementById('btnThisMonth');
+    const btnAllMonths = document.getElementById('btnAllMonthsOfYearKabag');
+    const allMonthsYearLabel = document.getElementById('allMonthsYearLabelKabag');
 
-    let currentBulanStr = "{{ $bulan }}"; // YYYY-MM
-    let [currY, currM] = currentBulanStr.split('-').map(Number);
-    let viewYear = currY;
+    let selYear = {{ $selectedYear }};
+    let selMonth = {{ $selectedMonth !== null ? $selectedMonth : 'null' }};
+    let viewYear = selYear;
 
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
     function renderMonths() {
         yearLabel.textContent = viewYear;
+        if (allMonthsYearLabel) allMonthsYearLabel.textContent = viewYear;
+        if (btnAllMonths) {
+            const isAllSelected = (selMonth === null && viewYear === selYear);
+            btnAllMonths.className = `w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center ${isAllSelected ? 'bg-[#faa938] text-slate-950 font-bold border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]'}`;
+            btnAllMonths.onclick = () => {
+                const now = new Date();
+                const url = new URL(window.location.href);
+                if (viewYear === now.getFullYear()) {
+                    url.searchParams.set('bulan', 'all');
+                } else {
+                    url.searchParams.set('bulan', `${viewYear}-all`);
+                }
+                url.searchParams.delete('page');
+                window.location.href = url.toString();
+            };
+        }
+
         monthGrid.innerHTML = '';
         monthNames.forEach((name, idx) => {
             const m = idx + 1;
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.textContent = name;
-            const isSelected = (viewYear === currY && m === currM);
-            btn.className = `py-2 rounded-lg text-xs font-semibold transition-colors ${isSelected ? 'bg-[#faa938] text-slate-950 shadow-sm' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`;
+            const isSelected = (viewYear === selYear && m === selMonth);
+            btn.className = `py-2 rounded-lg text-xs font-semibold transition-colors ${isSelected ? 'bg-[#faa938] text-slate-950 font-bold shadow-sm' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`;
             btn.onclick = () => {
                 const targetM = String(m).padStart(2, '0');
                 const url = new URL(window.location.href);
                 url.searchParams.set('bulan', `${viewYear}-${targetM}`);
+                url.searchParams.delete('page');
                 window.location.href = url.toString();
             };
             monthGrid.appendChild(btn);
@@ -941,6 +976,7 @@ window.clearSearchInput = function() {
                 const target = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}`;
                 const url = new URL(window.location.href);
                 url.searchParams.set('bulan', target);
+                url.searchParams.delete('page');
                 window.location.href = url.toString();
             };
         }

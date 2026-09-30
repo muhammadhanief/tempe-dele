@@ -21,7 +21,11 @@
                         </svg>
 
                         <span id="periodLabel" class="leading-none truncate">
-                            {{ \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('M Y') }}
+                            @if(empty($selectedMonth))
+                                Semua Bulan {{ $selectedYear }}
+                            @else
+                                {{ \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->translatedFormat('M Y') }}
+                            @endif
                         </span>
                     </span>
 
@@ -30,7 +34,7 @@
                     </svg>
                 </button>
 
-                <input type="hidden" id="periodValue" name="period" value="">
+                <input type="hidden" id="periodValue" name="period" value="{{ $bulan }}">
 
                 <div id="periodPanel"
                     class="hidden absolute z-50 mt-2 left-0 w-full sm:w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white shadow-lg p-3">
@@ -43,13 +47,20 @@
                             </svg>
                         </button>
 
-                        <span id="yearLabel" class="text-sm font-medium text-gray-900">2026</span>
+                        <span id="yearLabel" class="text-sm font-medium text-gray-900">{{ $selectedYear }}</span>
 
                         <button type="button" id="yearNext"
                             class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                                 <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
                             </svg>
+                        </button>
+                    </div>
+
+                    <div class="mb-2.5">
+                        <button type="button" id="btnAllMonthsOfYearAdmin"
+                            class="w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center {{ empty($selectedMonth) ? 'bg-[#faa938] text-white border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]' }}">
+                            Semua Bulan (<span id="allMonthsYearLabelAdmin">{{ $selectedYear }}</span>)
                         </button>
                     </div>
 
@@ -140,9 +151,9 @@
                             <div class="relative inline-block text-left">
                                 <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
                                     class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
-                                    <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
-                                    <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
-                                    <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                    <option value="desc" {{ (($sort ?? 'desc') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                    <option value="asc" {{ (($sort ?? 'desc') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                    <option value="priority" {{ (($sort ?? 'desc') === 'priority') ? 'selected' : '' }}>Prioritas</option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -612,6 +623,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const activeNip = urlParams.get('nip') || '';
 const activeStatus = urlParams.get('status') || '';
 const activeSort = urlParams.get('sort') || '';
+const activeBulan = urlParams.get('bulan') || '';
 let cachedPegawai = [];
 
 // =====================
@@ -626,7 +638,7 @@ fetch('/admin/pengajuan/pegawai')
             const emp = cachedPegawai.find(e => e.nip === activeNip);
 
             if (emp) {
-                document.getElementById('searchPegawai').value = `${emp.nama} — ${emp.nip}`;
+                document.getElementById('searchPegawai').value = `${emp.nama} (${emp.nip})`;
             }
         }
 
@@ -649,7 +661,7 @@ function renderDropdownPegawai(filter) {
         .forEach(emp => {
             const li = document.createElement('li');
             li.className = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-            li.textContent = `${emp.nama} — ${emp.nip}`;
+            li.textContent = `${emp.nama} (${emp.nip})`;
             li.onclick = () => pilihPegawai(emp);
             list.appendChild(li);
         });
@@ -668,7 +680,12 @@ window.filterDropdownPegawai = function () {
 
 function pilihPegawai(emp) {
     const params = new URLSearchParams(window.location.search);
-    params.set('bulan', document.getElementById('periodValue').value);
+    const pVal = document.getElementById('periodValue').value;
+    if (pVal && pVal !== 'all') {
+        params.set('bulan', pVal);
+    } else {
+        params.delete('bulan');
+    }
 
     if (emp) {
         params.set('nip', emp.nip);
@@ -696,7 +713,7 @@ window.onFilterStatusChange = function(statusVal) {
 
 window.onHeaderSortChange = function(sortVal) {
     const params = new URLSearchParams(window.location.search);
-    if (sortVal && sortVal !== 'priority') {
+    if (sortVal && sortVal !== 'desc') {
         params.set('sort', sortVal);
     } else {
         params.delete('sort');
@@ -732,13 +749,18 @@ window.onHeaderSortChange = function(sortVal) {
         const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
         let view = 'month';
-        let selYear  = {{ \Carbon\Carbon::parse($bulan . '-01')->year }};
-        let selMonth = {{ \Carbon\Carbon::parse($bulan . '-01')->month - 1 }};
+        let selYear  = {{ $selectedYear }};
+        let selMonth = {{ $selectedMonth !== null ? ($selectedMonth - 1) : 'null' }};
         let viewYear = selYear;
 
         function updateDisplayOnly(y, m) {
-            periodLabel.textContent = `${monthShort[m]} ${y}`;
-            periodValue.value = `${y}-${pad2(m + 1)}`;
+            if (m === null) {
+                periodLabel.textContent = `Semua Bulan ${y}`;
+                periodValue.value = (y === now.getFullYear()) ? 'all' : `${y}-all`;
+            } else {
+                periodLabel.textContent = `${monthShort[m]} ${y}`;
+                periodValue.value = `${y}-${pad2(m + 1)}`;
+            }
         }
 
         function setPeriod(y, m) {
@@ -747,7 +769,15 @@ window.onHeaderSortChange = function(sortVal) {
             updateDisplayOnly(y, m);
 
             const params = new URLSearchParams(window.location.search);
-            params.set('bulan', `${y}-${pad2(m + 1)}`);
+            if (m === null) {
+                if (y === now.getFullYear()) {
+                    params.set('bulan', 'all');
+                } else {
+                    params.set('bulan', `${y}-all`);
+                }
+            } else {
+                params.set('bulan', `${y}-${pad2(m + 1)}`);
+            }
             params.delete('page');
 
             window.location.href = `?${params.toString()}`;
@@ -767,6 +797,24 @@ window.onHeaderSortChange = function(sortVal) {
             view = 'month';
             navLabel.textContent = String(viewYear);
             navLabel.className = 'text-sm font-medium text-gray-900 cursor-pointer hover:text-[#faa938] select-none';
+
+            const allMonthsBtn = el('btnAllMonthsOfYearAdmin');
+            const allMonthsLabel = el('allMonthsYearLabelAdmin');
+            if (allMonthsLabel) allMonthsLabel.textContent = String(viewYear);
+            if (allMonthsBtn) {
+                const isAllMonthsSelected = (selMonth === null && viewYear === selYear);
+                allMonthsBtn.className = 'w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center ' + (
+                    isAllMonthsSelected
+                        ? 'bg-[#faa938] text-white border-[#faa938]'
+                        : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]'
+                );
+                allMonthsBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    setPeriod(viewYear, null);
+                    closePanel();
+                };
+            }
+
             grid.innerHTML = '';
 
             monthNames.forEach((name, m) => {
@@ -873,7 +921,8 @@ function updateResetBtn() {
 
     if (!btn) return;
 
-    (activeNip || (activeStatus && activeStatus !== 'all') || (activeSort && activeSort !== 'priority'))
+    const hasBulanFilter = (activeBulan && activeBulan !== 'all' && !activeBulan.endsWith('-all'));
+    (activeNip || (activeStatus && activeStatus !== 'all') || (activeSort && activeSort !== 'desc') || hasBulanFilter)
         ? btn.classList.remove('hidden')
         : btn.classList.add('hidden');
 }
@@ -881,10 +930,7 @@ function updateResetBtn() {
 updateResetBtn();
 
 document.getElementById('btnResetFilter')?.addEventListener('click', () => {
-    const params = new URLSearchParams();
-    params.set('bulan', document.getElementById('periodValue').value);
-
-    window.location.href = `?${params.toString()}`;
+    window.location.href = window.location.pathname;
 });
 
 // =====================
