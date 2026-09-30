@@ -384,32 +384,7 @@
                     ⚠️ <span id="warningText"></span>
                 </div>
 
-                {{-- 1. Pilihan Keputusan: DILETAKKAN DI ATAS AGAR LANGSUNG TERLIHAT! --}}
-                <div class="space-y-1">
-                    <label class="block text-xs font-semibold text-gray-700">Pilihan Keputusan:</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button type="button" onclick="setKeputusan('approved')" id="kBtnSetujui"
-                            class="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all flex items-center justify-center gap-1">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Setujui</span>
-                        </button>
-
-                        <button type="button" onclick="setKeputusan('rejected')" id="kBtnTolak"
-                            class="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 transition-all flex items-center justify-center gap-1">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            <span>Tolak</span>
-                        </button>
-
-                        <button type="button" onclick="setKeputusan('cancelled')" id="kBtnBatal"
-                            class="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-amber-50 hover:border-amber-400 hover:text-amber-800 transition-all flex items-center justify-center gap-1"
-                            title="Batalkan pengajuan (duplikat / salah tanggal)">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                            <span>Batalkan</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- 2. Jam Disetujui (2 Kolom Rapi) --}}
+                {{-- 1. Jam Disetujui (2 Kolom Rapi) --}}
                 <div id="wrapperJamDisetujui" class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Jam Mulai Disetujui</label>
@@ -430,7 +405,7 @@
                     </div>
                 </div>
 
-                {{-- 3. Uraian Kegiatan --}}
+                {{-- 2. Uraian Kegiatan --}}
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-xs font-semibold text-gray-700">
@@ -452,12 +427,37 @@
                     </p>
                 </div>
 
-                {{-- 4. Catatan --}}
+                {{-- 3. Catatan --}}
                 <div>
                     <label id="labelCatatan" class="block text-xs font-semibold text-gray-700 mb-1">Catatan</label>
                     <textarea id="kCatatan" rows="2"
                         class="border rounded-lg px-2.5 py-1.5 text-xs sm:text-sm w-full outline-none border-gray-300 focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30 resize-none"
                         placeholder="Tambahkan catatan jika diperlukan..."></textarea>
+                </div>
+
+                {{-- 4. Pilihan Keputusan: DI BAWAH (ALUR NATURAL SETELAH REVIEW DATA) --}}
+                <div class="space-y-1 pt-1 border-t border-gray-100">
+                    <label class="block text-xs font-semibold text-gray-700">Pilihan Keputusan:</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="setKeputusan('approved')" id="kBtnSetujui"
+                            class="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all flex items-center justify-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Setujui</span>
+                        </button>
+
+                        <button type="button" onclick="setKeputusan('rejected')" id="kBtnTolak"
+                            class="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 transition-all flex items-center justify-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <span>Tolak</span>
+                        </button>
+
+                        <button type="button" onclick="setKeputusan('cancelled')" id="kBtnBatal"
+                            class="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-amber-50 hover:border-amber-400 hover:text-amber-800 transition-all flex items-center justify-center gap-1"
+                            title="Batalkan pengajuan (duplikat / salah tanggal)">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>Batalkan</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 

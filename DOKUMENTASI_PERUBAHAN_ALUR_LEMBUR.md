@@ -1430,15 +1430,16 @@ Menerapkan standar desain dialog enterprise responsif:
 3. Pada layar smartphone sempit (< 400px), judul navbar yang panjang berpotensi mendorong tombol profil dan toggle drawer.
 
 ### B. Solusi Desain & Implementasi
-1. **Pemindahan Pilihan Keputusan ke Posisi Teratas (*Top Priority Action*)**:
-   - Blok pilihan keputusan (`Setujui` / `Tolak` / `Batalkan`) dipindahkan langsung ke **bagian paling atas body modal** (tepat di bawah header / info ringkas).
+1. **Penataan Alur Natural dari Atas ke Bawah (*Top-to-Bottom Natural Reading Flow*)**:
+   - Berdasarkan hierarki UX kedinasan, pejabat membaca dan meninjau data terlebih dahulu (*Jam Disetujui* $\rightarrow$ *Uraian Tugas* $\rightarrow$ *Catatan*), baru kemudian menetapkan **Pilihan Keputusan (*Setujui* / *Tolak* / *Batalkan*) di bagian bawah sebelum tombol simpan**.
+   - Blok pilihan keputusan (`Setujui` / `Tolak` / `Batalkan`) diletakkan tepat di bawah kolom Catatan (tepat di atas tombol aksi footer), dengan pembatas garis halus `border-t border-gray-100`.
    - Menggunakan komponen *segmented pill buttons* yang jelas, modern, dan mudah diklik/ditekan (kontras warna tegas: hijau emerald untuk Setujui, merah mawar untuk Tolak, dan amber untuk Batalkan).
    - **Default Otomatis `Setujui`**: Untuk pengajuan baru/pending, pilihan `Setujui` langsung aktif secara bawaan saat modal dibuka, sehingga pejabat dapat langsung memverifikasi jam/uraian dan menyimpannya dalam 1 klik tanpa kebingungan.
 2. **Desain Kompak Bebas Gulir (*Zero-Scroll Fit*)**:
    - Input jam mulai dan jam selesai disetujui ditata berdampingan rapi dalam format `grid grid-cols-2`.
    - Textarea Uraian Kegiatan dan Catatan diatur ke `rows="2"` (kompak dan proporsional, namun tetap mempertahankan fleksibilitas tarik vertikal `resize-y`).
-   - Pengetatan padding dan jarak vertikal (`space-y-2.5` / `space-y-3` dan `p-4 sm:p-5`), sehingga total tinggi modal terpangkas dari sebelumnya > 580px menjadi hanya ~330px - 350px.
-   - **Hasil**: Pada monitor resolusi rendah maupun layar HP, seluruh isi modal **100% langsung terlihat utuh tanpa ada scrollbar sama sekali**.
+   - Pengetatan padding dan jarak vertikal (`space-y-2.5` / `space-y-3` dan `p-4 sm:p-5`), sehingga total tinggi modal hanya **~330px - 340px**.
+   - **Hasil**: Bahkan di layar monitor dengan viewport terbatas (506px), seluruh isi modal dari atas sampai tombol Simpan di footer **100% langsung terlihat utuh tanpa ada scrollbar sama sekali**.
 3. **Peningkatan Responsivitas Mobile (*Mobile-Friendly Touch*)**:
    - Seluruh tombol aksi modal memiliki tinggi sentuh ergonomis (*thumb-friendly tap targets* $\ge 42$px).
    - Judul halaman pada navbar ditambahkan kelas `truncate max-w-[190px] xs:max-w-[260px] sm:max-w-none` agar tidak meluap (*overflow*) pada layar smartphone 360px - 390px.

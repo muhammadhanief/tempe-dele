@@ -365,29 +365,7 @@
                     ⚠️ <span id="warningText"></span>
                 </div>
 
-                {{-- 1. Pilihan Keputusan: LANGSUNG DI ATAS AGAR PASTI TERLIHAT! --}}
-                <div id="wrapperPilihanKeputusan" class="space-y-1">
-                    <label class="block text-xs font-semibold text-gray-700">Pilihan Keputusan</label>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <button type="button" onclick="setKeputusan('approved')" id="kBtnSetujui"
-                            class="flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-800 transition-all hover:bg-emerald-100">
-                            <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Setujui</span>
-                        </button>
-
-                        <button type="button" onclick="setKeputusan('rejected')" id="kBtnTolak"
-                            class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">
-                            <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                            <span>Tolak</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- 2. Jam Disetujui (2 Kolom Rapi) --}}
+                {{-- 1. Jam Disetujui (2 Kolom Rapi) --}}
                 <div id="wrapperJamDisetujui" class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-gray-700">Jam Mulai Disetujui</label>
@@ -408,7 +386,7 @@
                     </div>
                 </div>
 
-                {{-- 3. Uraian Kegiatan (Compact Rows=2 dengan Counter) --}}
+                {{-- 2. Uraian Kegiatan (Compact Rows=2 dengan Counter) --}}
                 <div>
                     <div class="mb-1 flex items-center justify-between">
                         <label class="block text-xs font-semibold text-gray-700">Uraian Kegiatan</label>
@@ -428,7 +406,7 @@
                     </p>
                 </div>
 
-                {{-- 4. Catatan (Compact Rows=2) --}}
+                {{-- 3. Catatan (Compact Rows=2) --}}
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-gray-700">
                         Catatan <span class="text-gray-400 font-normal" id="kCatatanHint">(Opsional)</span>
@@ -436,6 +414,28 @@
                     <textarea id="kCatatan" rows="2"
                         class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs sm:text-sm outline-none focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30"
                         placeholder="Tambahkan catatan jika diperlukan..."></textarea>
+                </div>
+
+                {{-- 4. Pilihan Keputusan: DI BAWAH (ALUR NATURAL SETELAH REVIEW DATA) --}}
+                <div id="wrapperPilihanKeputusan" class="space-y-1 pt-1 border-t border-gray-100">
+                    <label class="block text-xs font-semibold text-gray-700">Keputusan Akhir:</label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" onclick="setKeputusan('approved')" id="kBtnSetujui"
+                            class="flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-800 transition-all hover:bg-emerald-100">
+                            <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Setujui</span>
+                        </button>
+
+                        <button type="button" onclick="setKeputusan('rejected')" id="kBtnTolak"
+                            class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">
+                            <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            <span>Tolak</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 

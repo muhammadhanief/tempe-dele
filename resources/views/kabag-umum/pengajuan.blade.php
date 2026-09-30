@@ -379,29 +379,7 @@
                     </div>
                 </div>
 
-                {{-- 1. Pilihan Keputusan: DILETAKKAN DI ATAS AGAR PASTI TERLIHAT! --}}
-                <div id="mWrapperPilihanKeputusan" class="space-y-1">
-                    <label class="block text-xs font-semibold text-gray-700">Keputusan Akhir:</label>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <button type="button" onclick="setKeputusanKabag('approved')" id="btnPilihSetuju"
-                            class="flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-800 transition-all hover:bg-emerald-100">
-                            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Setujui Final</span>
-                        </button>
-
-                        <button type="button" onclick="setKeputusanKabag('rejected')" id="btnPilihTolak"
-                            class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">
-                            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Tolak</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- 2. Jam Disetujui (2 Kolom Rapi) --}}
+                {{-- 1. Jam Disetujui (2 Kolom Rapi) --}}
                 <div id="mWrapperJamDisetujui" class="grid grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Jam Mulai Disetujui</label>
@@ -421,7 +399,7 @@
                     </div>
                 </div>
 
-                {{-- 3. Uraian Kegiatan --}}
+                {{-- 2. Uraian Kegiatan --}}
                 <div>
                     <div class="mb-1 flex items-center justify-between">
                         <label class="block text-xs font-semibold text-gray-700">Uraian Kegiatan</label>
@@ -441,7 +419,7 @@
                     </p>
                 </div>
 
-                {{-- 4. Catatan Kabag Umum --}}
+                {{-- 3. Catatan Kabag Umum --}}
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1">
                         Catatan / Arahan Kabag Umum <span class="text-gray-400 font-normal" id="mNoteWajibHint">(Wajib jika menolak)</span>
@@ -449,6 +427,28 @@
                     <textarea id="mNoteKabag" rows="2"
                         class="w-full rounded-xl border border-gray-300 px-2.5 py-1.5 text-xs sm:text-sm focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30 outline-none"
                         placeholder="Tuliskan catatan, arahan, atau alasan penolakan..."></textarea>
+                </div>
+
+                {{-- 4. Pilihan Keputusan: DI BAWAH (ALUR NATURAL SETELAH REVIEW DATA) --}}
+                <div id="mWrapperPilihanKeputusan" class="space-y-1 pt-1 border-t border-gray-100">
+                    <label class="block text-xs font-semibold text-gray-700">Keputusan Akhir:</label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" onclick="setKeputusanKabag('approved')" id="btnPilihSetuju"
+                            class="flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-800 transition-all hover:bg-emerald-100">
+                            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Setujui Final</span>
+                        </button>
+
+                        <button type="button" onclick="setKeputusanKabag('rejected')" id="btnPilihTolak"
+                            class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">
+                            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Tolak</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
