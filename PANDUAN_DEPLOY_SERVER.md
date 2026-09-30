@@ -102,8 +102,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 38. 📄 **`resources/views/admin/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Admin)*.
 39. 📄 **`resources/views/partials/navbar.blade.php`** *(Pemindahan hamburger toggle button ke pojok kiri atas bilah navigasi mendampingi judul)*.
 40. 📄 **`resources/views/partials/sidebar.blade.php`** *(Penambahan tombol silang tutup mobile pada header drawer navigasi)*.
-41. 📄 **`resources/css/app.css`** *(Styling tabel responsif, akselerasi momentum sentuh, dan scrollbar ramping ala SIMANTIK)*.
-42. 📄 **`resources/js/app.js`** *(Fungsi `initDragAndSwipeScroll` untuk drag horizontal mouse desktop dan touch swipe mobile)*.
+41. 📄 **`resources/css/app.css`** *(Styling scrollbar kontras tinggi 8px, track slate-200, thumb slate-400/amber, dan kelas scrollbar visual mobile)*.
+42. 📄 **`resources/js/app.js`** *(Fungsi `initTableScrollbars` untuk sinkronisasi realtime thumb visual scrollbar mobile, seek interaktif sentuh, dan desktop drag)*.
 43. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Penambahan `min-w-[1100px]` dan petunjuk visual geser tabel mobile)*.
 44. 📄 Seluruh file blade tabel lainnya (`ketua-tim`, `lembur`, `admin`, `akumulasi`, `rekapitulasi`, `daftar_hadir`, `pimpinan`) yang dilengkapi petunjuk geser mobile.
 45. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
@@ -111,6 +111,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 47. 📄 **`resources/views/admin/lembur.blade.php`** *(Page Header terstruktur H1 + subjudul + tombol Unduh Excel & Ajukan Lembur, modernisasi filter rounded-xl, dan perbaikan text-wrap whitespace-nowrap)*.
 48. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penambahan whitespace-nowrap pada dateBtn dan dateLabel untuk proteksi konsisten di layar kecil)*.
 49. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil npm run build: manifest.json, CSS, JS)*.
+50. 📄 Seluruh view tabel (11 file blade) yang telah dilengkapi komponen bilah scrollbar visual interaktif (`.table-scroll-hint`, `.table-scroll-track`, `.table-scroll-thumb`).
 
 ---
 
@@ -358,3 +359,14 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Periksa tombol filter tanggal pada toolbar: teks label **"Semua Tanggal"** tampil rapi dalam 1 baris utuh dan tidak terpotong ke 2 baris vertikal.
   - Uji pada tampilan layar sempit / mobile: tombol tanggal tetap mempertahankan teks 1 baris berkat kelas `whitespace-nowrap`.
   - Semua kontrol toolbar (Date Picker, Filter Bulan, Per Halaman, Search) seragam dalam bentuk kartu modern `rounded-xl shadow-2xs`.
+
+### O. Uji Scrollbar Visual Interaktif pada Tabel Mobile
+- [ ] **Bilah Scrollbar Visual di Layar HP**:
+  - Buka menu lembur/pengajuan/rekapitulasi pada smartphone atau aktifkan Device Mode peramban (lebar <= 420px).
+  - Di atas tabel terlihat bilah scrollbar horizontal (`h-1.5`) dengan track abu-abu lembut dan thumb oranye amber BPS `#faa938`.
+  - Indikator teks di sebelah kanan menunjukkan status geser (*"Geser »"*, persentase posisi, atau *"« Geser kiri"*).
+- [ ] **Sinkronisasi Gestur Sentuh & Seek Interaktif**:
+  - Geser tabel dengan jari: bilah thumb oranye meluncur mulus mengikuti pergerakan tabel secara realtime.
+  - Ketuk atau geser langsung bilah scrollbar: tabel langsung melompat (*smooth scroll*) ke posisi kolom yang dipilih.
+  - Pada peramban desktop, scrollbar bawah tabel memiliki ketebalan 8px dengan kontras tinggi sehingga mudah dilihat dan digeser.
+

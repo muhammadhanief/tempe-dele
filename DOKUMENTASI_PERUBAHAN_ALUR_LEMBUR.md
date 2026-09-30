@@ -1638,5 +1638,59 @@ Menerapkan standar desain dialog enterprise responsif:
 | 2 | `resources/views/admin/lembur.blade.php` | Page Header semantik (H1 + subjudul + tombol Unduh Excel & Ajukan Lembur), modernisasi filter `rounded-xl`, dan perbaikan text-wrap `whitespace-nowrap`. |
 | 3 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan `whitespace-nowrap` pada `dateBtn` dan `dateLabel` untuk proteksi konsisten di layar kecil. |
 
+---
+
+## 26. Implementasi Scrollbar Visual Interaktif pada Tabel Mobile & Peningkatan Kontras Scrollbar Universal (Anti-Confusion UX)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Kebiasaan OS Mobile Menyembunyikan Scrollbar (*Hidden Overlay Scrollbar*)**:
+   - Pada perangkat smartphone (iOS Safari & Android Chrome), peramban web secara bawaan menyembunyikan scrollbar saat layar dalam keadaan diam (tidak sedang disentuh).
+   - Pengguna menyampaikan masukan bahwa meskipun sudah ada teks *"Geser tabel ke kiri / kanan untuk melihat kolom lengkap"*, ketiadaan scrollbar visual tetap menimbulkan kebingungan bagi pengguna awam di ponsel.
+2. **Keterbacaan Scrollbar Desktop**:
+   - Pada layar laptop/PC, scrollbar 6px dengan warna abu-abu pudar sebelumnya kurang mencolok di atas latar belakang tabel putih.
+
+### B. Rincian Solusi & Implementasi Teknis
+
+1. **Scrollbar Visual Interaktif Khusus Mobile (`.table-scroll-hint`, `.table-scroll-track`, `.table-scroll-thumb`)**:
+   - Menambahkan bilah scrollbar visual horizontal yang diletakkan tepat di atas tabel (pada blok helper mobile `sm:hidden`).
+   - Struktur komponen:
+     - **Header Bar**: Ikon gestur horizontal + teks *"Geser tabel ke kiri / kanan"* di sisi kiri, dan indikator dinamis di sisi kanan (*"Geser »"*, persentase posisi scroll $0\%-100\%$, atau *"« Geser kiri"*).
+     - **Track Scrollbar**: Bilah `h-1.5` berwarna abu-abu lembut `bg-slate-200/90` bersudut membulat penuh (`rounded-full`).
+     - **Thumb Scrollbar**: Indikator posisi oranye amber BPS `#faa938` dengan lebar proporsional terhadap rasio layar vs lebar tabel (`clientWidth / scrollWidth`).
+   - **Interaktivitas Penuh**:
+     - Saat tabel digeser dengan jari (touch swipe/momentum), thumb bar meluncur secara realtime mengikuti posisi scroll.
+     - Pengguna juga dapat mengetuk (*tap*) atau menggeser (*drag*) langsung pada bilah scrollbar untuk melompat ke kolom tertentu secara instan.
+     - Bilah scrollbar ini langsung terlihat sejak detik pertama halaman terbuka di smartphone tanpa harus menunggu pengguna menyentuh layar.
+
+2. **Peningkatan Kontras & Dimensi Scrollbar Universal (`resources/css/app.css`)**:
+   - Memperbesar ketebalan scrollbar tabel dari `6px` menjadi `8px`.
+   - Memberikan kontras tinggi: track `background: #e2e8f0` (slate-200) dengan thumb `background: #94a3b8` (slate-400), border `1.5px solid #e2e8f0`, dan efek hover oranye amber BPS `#faa938`.
+   - Menambahkan `padding-bottom: 2px` agar scrollbar tabel memiliki ruang gerak yang rapi dan tidak terpotong radius sudut tabel.
+
+3. **Universal Auto-Initializer & Sinkronisasi Realtime (`resources/js/app.js`)**:
+   - Fungsi `initTableScrollbars` otomatis mendeteksi setiap tabel di dalam `.overflow-x-auto` atau `.table-responsive`.
+   - Menggunakan `requestAnimationFrame` untuk sinkronisasi posisi thumb yang mulus tanpa hambatan performa (*60fps smooth*).
+   - Menggunakan `ResizeObserver` untuk mendeteksi perubahan orientasi layar smartphone (portrait/landscape) atau perubahan lebar tabel secara dinamis.
+   - Tetap mendukung desktop mouse drag-to-scroll dengan mengabaikan elemen klik interaktif (tombol, tautan, input).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `resources/css/app.css` | Peningkatan dimensi scrollbar 8px, kontras warna slate-400 / amber, dan styling track/thumb mobile. |
+| 2 | `resources/js/app.js` | Fungsi `initTableScrollbars` untuk sinkronisasi realtime, seek interaktif, touch tracking, dan desktop drag. |
+| 3 | `resources/views/lembur.blade.php` | Komponen visual scrollbar mobile pada tabel lembur pegawai. |
+| 4 | `resources/views/admin/lembur.blade.php` | Komponen visual scrollbar mobile pada tabel monitoring lembur admin. |
+| 5 | `resources/views/ketua-tim/lembur.blade.php` | Komponen visual scrollbar mobile pada tabel lembur ketua tim. |
+| 6 | `resources/views/kabag-umum/pengajuan.blade.php` | Komponen visual scrollbar mobile pada tabel persetujuan kabag umum. |
+| 7 | `resources/views/ketua-tim/pengajuan.blade.php` | Komponen visual scrollbar mobile pada tabel persetujuan ketua tim. |
+| 8 | `resources/views/admin/pengajuan.blade.php` | Komponen visual scrollbar mobile pada tabel persetujuan admin. |
+| 9 | `resources/views/rekapitulasi.blade.php` | Komponen visual scrollbar mobile pada tabel rekapitulasi pegawai. |
+| 10 | `resources/views/admin/daftar_hadir.blade.php` | Komponen visual scrollbar mobile pada tabel daftar hadir admin. |
+| 11 | `resources/views/pimpinan/pengajuan.blade.php` | Komponen visual scrollbar mobile pada tabel persetujuan pimpinan. |
+| 12 | `resources/views/admin/akumulasi.blade.php` | Komponen visual scrollbar mobile pada tabel akumulasi admin. |
+| 13 | `resources/views/akumulasi.blade.php` | Komponen visual scrollbar mobile pada tabel akumulasi pegawai. |
+| 14 | `resources/views/admin/riwayat_presensi.blade.php` | Komponen visual scrollbar mobile pada tabel riwayat presensi admin. |
+
+
 
 
