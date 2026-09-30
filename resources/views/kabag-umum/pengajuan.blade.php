@@ -340,14 +340,14 @@
 </div>
 
 {{-- Modal Keputusan Kabag Umum --}}
-<div id="modalKabag" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs" onclick="closeModalKabag()"></div>
+<div id="modalKabag" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalKabag()"></div>
 
-    <div class="relative flex min-h-full items-center justify-center p-4">
-        <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100">
+    <div class="relative flex min-h-full items-center justify-center p-3 sm:p-4 my-auto">
+        <div class="relative w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100 my-auto">
 
             {{-- Modal Header --}}
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 px-6 py-4 text-white flex items-center justify-between">
+            <div class="shrink-0 bg-gradient-to-r from-slate-900 to-indigo-950 px-6 py-4 text-white flex items-center justify-between">
                 <div>
                     <h3 class="text-base font-bold" id="mModalTitle">Persetujuan Akhir Kabag Umum</h3>
                     <p class="text-xs text-slate-300 mt-0.5" id="mModalSubtitle">Berikan persetujuan atau penolakan final atas lembur pegawai</p>
@@ -356,7 +356,7 @@
             </div>
 
             {{-- Modal Body --}}
-            <div class="p-6 space-y-4">
+            <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
                 {{-- Info Ringkas --}}
                 <div class="rounded-xl bg-slate-50 p-4 border border-slate-200 text-xs space-y-1.5">
                     <div class="flex justify-between">
@@ -414,7 +414,7 @@
                             <span id="mUraianBadge" class="rounded-full px-2 py-0.5 text-[10px] font-medium"></span>
                         </div>
                     </div>
-                    <textarea id="mUraian" rows="4" maxlength="2000"
+                    <textarea id="mUraian" rows="3" maxlength="2000"
                         class="w-full resize-y rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none transition-all"
                         placeholder="Uraian kegiatan lembur..."></textarea>
                     <p id="mUraianHint" class="mt-1 hidden flex items-center gap-1 text-[11px] text-amber-700">
@@ -430,7 +430,7 @@
                     <label class="block text-xs font-semibold text-gray-700 mb-1">
                         Catatan / Arahan Kabag Umum <span class="text-gray-400 font-normal" id="mNoteWajibHint">(Wajib jika menolak)</span>
                     </label>
-                    <textarea id="mNoteKabag" rows="3"
+                    <textarea id="mNoteKabag" rows="2"
                         class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none"
                         placeholder="Tuliskan catatan, arahan, atau alasan penolakan..."></textarea>
                 </div>
@@ -440,7 +440,7 @@
                     <label class="block text-xs font-semibold text-gray-700 mb-2">Keputusan Akhir</label>
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" onclick="setKeputusanKabag('approved')" id="btnPilihSetuju"
-                            class="flex items-center justify-center gap-2 rounded-xl border-2 border-emerald-300 bg-emerald-50/50 p-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-all">
+                            class="flex items-center justify-center gap-2 rounded-xl border-2 border-emerald-300 bg-emerald-50/50 p-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-all">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
@@ -448,7 +448,7 @@
                         </button>
 
                         <button type="button" onclick="setKeputusanKabag('rejected')" id="btnPilihTolak"
-                            class="flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white p-3 text-sm font-semibold text-gray-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 transition-all">
+                            class="flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white p-2.5 text-sm font-semibold text-gray-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 transition-all">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                             </svg>
@@ -459,7 +459,7 @@
             </div>
 
             {{-- Modal Footer --}}
-            <div class="bg-gray-50 px-6 py-4 flex justify-end gap-2 border-t border-gray-100">
+            <div class="shrink-0 bg-gray-50 px-6 py-3.5 flex justify-end gap-2 border-t border-gray-100">
                 <button type="button" onclick="closeModalKabag()"
                     class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                     Batal
@@ -475,18 +475,18 @@
 </div>
 
 {{-- Modal Presensi --}}
-<div id="modalPresensi" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs" onclick="closeModalPresensi()"></div>
-    <div class="relative flex min-h-full items-center justify-center p-4">
-        <div class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl border border-gray-100">
-            <div class="flex items-center justify-between border-b px-5 py-4 bg-slate-50">
+<div id="modalPresensi" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalPresensi()"></div>
+    <div class="relative flex min-h-full items-center justify-center p-3 sm:p-4 my-auto">
+        <div class="relative w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-gray-100 my-auto">
+            <div class="shrink-0 flex items-center justify-between border-b px-5 py-4 bg-slate-50">
                 <div>
                     <h3 class="text-sm font-bold text-gray-900">Informasi Kehadiran Presensi</h3>
                     <p class="text-xs text-gray-500 mt-0.5" id="presensiSubtitle">-</p>
                 </div>
                 <button type="button" onclick="closeModalPresensi()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
             </div>
-            <div class="p-5" id="presensiBody">
+            <div class="p-5 flex-1 overflow-y-auto" id="presensiBody">
                 <p class="py-4 text-center text-sm text-gray-400">Memuat data presensi...</p>
             </div>
         </div>

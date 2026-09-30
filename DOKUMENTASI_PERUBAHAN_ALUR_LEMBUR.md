@@ -1361,3 +1361,33 @@ Seluruh teks dan rasio kontras warna divalidasi langsung menggunakan alat penguj
 1. Mengintegrasikan trait `App\Traits\KoreksiLembur` pada `App\Http\Controllers\pegawai\RekapitulasiController`.
 2. Menambahkan pemanggilan `$this->koreksiUntukBulan((int) $tahun, (int) $bln);` sesaat sebelum mengeksekusi kueri rekapitulasi pegawai.
 3. *Hasil*: Begitu pegawai membuka menu `/rekapitulasi`, sistem secara otomatis menyapu (*sweep*) seluruh pengajuan `approved` pada bulan tersebut yang `eligible`-nya masih `NULL`, mengevaluasinya terhadap presensi riil, dan menampilkannya seketika pada tabel rekapitulasi.
+
+---
+
+## 19. Perbaikan Scrolling & Responsivitas Modal Persetujuan (Kabag Umum, Admin, & Ketua Tim)
+
+### A. Latar Belakang Masalah
+Pada layar monitor/laptop dengan tinggi viewport terbatas (misal 674px - 768px atau laptop dengan display scaling Windows 125%/150%), dialog modal persetujuan Kabag Umum (`#modalKabag`) sebelumnya tidak memiliki batas tinggi maksimal (`max-h-[...]`) dan tidak memiliki scrolling mandiri pada body (`overflow-y-auto`).
+Akibatnya:
+1. Kartu modal terpusat secara kaku (`items-center`) dengan tinggi melebihi tinggi layar.
+2. Bagian header dialog terdorong ke atas keluar layar.
+3. Bagian footer aksi ("Batal" dan "Simpan Keputusan") terpotong di bawah batas layar (*off-screen*).
+4. Pengguna tidak dapat men-scroll tampilan dan terpaksa memperkecil ukuran layar / zoom out browser untuk menjangkau tombol aksi.
+
+### B. Solusi & Perubahan Arsitektur Modal (*Docked Header & Footer*)
+Menerapkan standar desain dialog enterprise responsif:
+1. **Batas Tinggi & Flexbox Vertikal**:
+   - Kontainer kartu modal menggunakan `max-h-[90vh] flex flex-col overflow-hidden my-auto`, menjamin dialog selalu muat di dalam viewport layar dengan margin simetris di atas dan bawah.
+2. **Pinned / Docked Header (`shrink-0`)**:
+   - Header modal (judul, subjudul deskriptif, dan tombol tutup silang `×`) tetap tersemat di bagian paling atas dan tidak pernah tergulung hilang saat pengguna memeriksa data.
+3. **Scrollable Body (`flex-1 overflow-y-auto`)**:
+   - Konten isian (ringkasan pegawai, jam disetujui, hint presensi pulang, textarea uraian kegiatan, catatan arahan, dan tombol opsi keputusan) diletakkan dalam kontainer `flex-1 overflow-y-auto` dengan scrollbar vertikal mandiri yang halus.
+4. **Pinned / Docked Footer (`shrink-0`)**:
+   - Footer tombol aksi ("Batal" dan "Simpan Keputusan") selalu terlihat (*always in view*) dan siap diklik di bagian bawah tanpa mengharuskan pengguna menggulung layar ke dasar.
+5. **Safety Net Outer Scroll**:
+   - Pembungkus modal terluar (`#modalKabag`, `#modalKeputusan`) ditambahkan kelas `overflow-y-auto` untuk memastikan fleksibilitas penuh jika diakses pada viewport ultra-kecil atau saat keyboard virtual mobile aktif.
+
+### C. File yang Diperbarui
+1. `resources/views/kabag-umum/pengajuan.blade.php`: Modal Keputusan Kabag Umum (`#modalKabag`) dan Modal Presensi (`#modalPresensi`).
+2. `resources/views/admin/pengajuan.blade.php`: Modal Keputusan Admin (`#modalKeputusan`).
+3. `resources/views/ketua-tim/pengajuan.blade.php`: Modal Keputusan Ketua Tim (`#modalKeputusan`).
