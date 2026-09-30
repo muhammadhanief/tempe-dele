@@ -15,7 +15,7 @@
     @endphp
 
     {{-- Page Title --}}
-    <span class="text-xl font-bold tracking-tight text-slate-800">
+    <span class="text-base sm:text-xl font-bold tracking-tight text-slate-800 truncate max-w-[190px] xs:max-w-[260px] sm:max-w-none">
         @yield('title')
     </span>
 

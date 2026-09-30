@@ -361,108 +361,114 @@
 
 {{-- ===================== MODAL KEPUTUSAN ===================== --}}
 <div id="modalKeputusan" class="fixed inset-0 z-50 hidden overflow-y-auto">
-    <div class="fixed inset-0 bg-black/40" onclick="closeModalKeputusan()"></div>
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalKeputusan()"></div>
 
     <div class="relative flex min-h-screen items-center justify-center p-3 sm:p-4 my-auto">
-        <div class="w-full sm:max-w-lg bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden my-auto">
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden my-auto border border-gray-100">
 
-            <div class="shrink-0 flex items-center justify-between border-b bg-white px-4 sm:px-6 py-4">
-                <h2 class="text-base sm:text-lg font-semibold text-gray-900">Keputusan Lembur</h2>
+            <div class="shrink-0 flex items-center justify-between border-b bg-white px-4 sm:px-6 py-3">
+                <div>
+                    <h2 class="text-base font-bold text-gray-900">Keputusan Lembur</h2>
+                    <p class="text-xs text-gray-500">Pilih keputusan persetujuan, penolakan, atau pembatalan lembur.</p>
+                </div>
 
                 <button type="button" onclick="closeModalKeputusan()"
-                    class="text-gray-500 hover:text-gray-700 text-xl leading-none">
+                    class="text-gray-400 hover:text-gray-700 text-xl leading-none p-1">
                     &times;
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto">
+            <div class="p-4 sm:p-5 space-y-3">
                 <div id="warningDurasi"
-                    class="hidden mx-4 sm:mx-6 mt-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                    class="hidden px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
                     ⚠️ <span id="warningText"></span>
                 </div>
 
-                <div class="px-4 sm:px-6 py-5 space-y-5">
-                    <div id="wrapperJamDisetujui" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jam Mulai Disetujui</label>
-                            <input id="kJamMulai" type="time"
-                                class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-300 focus:ring-1 focus:ring-gray-400" />
-                        </div>
+                {{-- 1. Pilihan Keputusan: DILETAKKAN DI ATAS AGAR LANGSUNG TERLIHAT! --}}
+                <div class="space-y-1">
+                    <label class="block text-xs font-semibold text-gray-700">Pilihan Keputusan:</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="setKeputusan('approved')" id="kBtnSetujui"
+                            class="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all flex items-center justify-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Setujui</span>
+                        </button>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jam Selesai Disetujui</label>
-                            <input id="kJamSelesai" type="time"
-                                class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-300 focus:ring-1 focus:ring-gray-400" />
-                            <p id="kJamSelesaiPresensiHint" class="mt-1.5 hidden flex items-center gap-1 text-xs text-blue-700 font-medium">
-                                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <span>Maksimal jam selesai: <strong id="kJamSelesaiPresensiVal">-</strong> (sesuai presensi pulang)</span>
-                            </p>
-                        </div>
+                        <button type="button" onclick="setKeputusan('rejected')" id="kBtnTolak"
+                            class="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 transition-all flex items-center justify-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <span>Tolak</span>
+                        </button>
+
+                        <button type="button" onclick="setKeputusan('cancelled')" id="kBtnBatal"
+                            class="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-amber-50 hover:border-amber-400 hover:text-amber-800 transition-all flex items-center justify-center gap-1"
+                            title="Batalkan pengajuan (duplikat / salah tanggal)">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>Batalkan</span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- 2. Jam Disetujui (2 Kolom Rapi) --}}
+                <div id="wrapperJamDisetujui" class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Jam Mulai Disetujui</label>
+                        <input id="kJamMulai" type="time"
+                            class="border rounded-lg px-2.5 py-1.5 text-xs sm:text-sm w-full outline-none border-gray-300 focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30" />
                     </div>
 
-                    {{-- Uraian Kegiatan (Di atas kotak Catatan) --}}
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="block text-sm font-medium text-gray-700">
-                                Uraian Kegiatan
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <span id="kUraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
-                                <span id="kUraianBadge" class="rounded-full px-2 py-0.5 text-[11px] font-medium"></span>
-                            </div>
-                        </div>
-                        <textarea id="kUraian" rows="4" maxlength="2000"
-                            class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-300 focus:ring-1 focus:ring-gray-400 resize-y transition-all"
-                            placeholder="Uraian kegiatan lembur..."></textarea>
-                        <p id="kUraianLockedHint" class="mt-1.5 hidden flex items-center gap-1.5 text-xs text-amber-700">
-                            <svg class="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Jam Selesai Disetujui</label>
+                        <input id="kJamSelesai" type="time"
+                            class="border rounded-lg px-2.5 py-1.5 text-xs sm:text-sm w-full outline-none border-gray-300 focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30" />
+                        <p id="kJamSelesaiPresensiHint" class="mt-1 hidden flex items-center gap-1 text-[11px] text-blue-700 font-medium">
+                            <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            <span>Uraian tidak dapat diedit karena data presensi belum tersedia.</span>
+                            <span class="truncate">Maks: <strong id="kJamSelesaiPresensiVal">-</strong> (presensi)</span>
                         </p>
                     </div>
+                </div>
 
-                    <div>
-                        <label id="labelCatatan" class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
-                        <textarea id="kCatatan" rows="3"
-                            class="border rounded-lg px-3 py-2 text-sm w-full outline-none border-gray-300 focus:ring-1 focus:ring-gray-400 resize-none"
-                            placeholder="Tambahkan catatan jika diperlukan..."></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Keputusan</label>
-
-                        <div class="grid grid-cols-3 gap-2">
-                            <button type="button" onclick="setKeputusan('rejected')" id="kBtnTolak"
-                                class="px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all">
-                                Tolak
-                            </button>
-
-                            <button type="button" onclick="setKeputusan('cancelled')" id="kBtnBatal"
-                                class="px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-rose-50 hover:border-rose-400 hover:text-rose-700 transition-all"
-                                title="Batalkan pengajuan (duplikat / salah tanggal)">
-                                Batalkan
-                            </button>
-
-                            <button type="button" onclick="setKeputusan('approved')" id="kBtnSetujui"
-                                class="px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all">
-                                Setujui
-                            </button>
+                {{-- 3. Uraian Kegiatan --}}
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-gray-700">
+                            Uraian Kegiatan
+                        </label>
+                        <div class="flex items-center gap-1.5">
+                            <span id="kUraianCount" class="text-[10px] text-gray-400">0 / 2000</span>
+                            <span id="kUraianBadge" class="rounded-full px-1.5 py-0.2 text-[10px] font-medium"></span>
                         </div>
                     </div>
+                    <textarea id="kUraian" rows="2" maxlength="2000"
+                        class="border rounded-lg px-2.5 py-1.5 text-xs sm:text-sm w-full outline-none border-gray-300 focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30 resize-y transition-all"
+                        placeholder="Uraian kegiatan lembur..."></textarea>
+                    <p id="kUraianLockedHint" class="mt-1 hidden flex items-center gap-1 text-[11px] text-amber-700">
+                        <svg class="h-3 w-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Uraian tidak dapat diedit karena data presensi belum tersedia.</span>
+                    </p>
+                </div>
+
+                {{-- 4. Catatan --}}
+                <div>
+                    <label id="labelCatatan" class="block text-xs font-semibold text-gray-700 mb-1">Catatan</label>
+                    <textarea id="kCatatan" rows="2"
+                        class="border rounded-lg px-2.5 py-1.5 text-xs sm:text-sm w-full outline-none border-gray-300 focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30 resize-none"
+                        placeholder="Tambahkan catatan jika diperlukan..."></textarea>
                 </div>
             </div>
 
-            <div class="shrink-0 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-4 border-t bg-gray-50">
+            <div class="shrink-0 flex items-center justify-end gap-2 px-4 sm:px-6 py-2.5 sm:py-3 border-t bg-gray-50">
                 <button type="button" onclick="closeModalKeputusan()"
-                    class="w-full sm:w-auto px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-100 bg-white">
+                    class="rounded-lg border border-gray-300 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100 bg-white">
                     Batal
                 </button>
 
                 <button type="button" onclick="simpanKeputusan()" id="btnSimpan"
-                    class="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-black bg-[#faa938] rounded-lg hover:bg-[#fd9a10] hover:text-white transition-all">
+                    class="rounded-lg bg-[#faa938] px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold text-slate-950 transition-all hover:bg-[#fd9a10] shadow-sm">
                     Simpan
                 </button>
             </div>
@@ -1002,7 +1008,7 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, uraian, 
     } else if (initialStatus === 'cancelled') {
         setKeputusan('cancelled');
     } else {
-        resetBtnKeputusan();
+        setKeputusan('approved');
     }
     cekWarningDurasi();
 
@@ -1029,24 +1035,24 @@ window.setKeputusan = function(val) {
     const labelCatatan = document.getElementById('labelCatatan');
 
     if (val === 'rejected') {
-        document.getElementById('kBtnTolak').className = 'px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-red-400 bg-red-50 text-red-600 transition-all';
+        document.getElementById('kBtnTolak').className = 'px-2.5 py-1.5 text-xs sm:text-sm font-bold rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-700 transition-all flex items-center justify-center gap-1 shadow-xs';
         if (wrapperJam) wrapperJam.classList.remove('hidden');
         if (labelCatatan) labelCatatan.textContent = 'Catatan / Alasan Penolakan';
     } else if (val === 'cancelled') {
-        document.getElementById('kBtnBatal').className = 'px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-rose-400 bg-rose-50 text-rose-700 transition-all';
+        document.getElementById('kBtnBatal').className = 'px-2.5 py-1.5 text-xs sm:text-sm font-bold rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-800 transition-all flex items-center justify-center gap-1 shadow-xs';
         if (wrapperJam) wrapperJam.classList.add('hidden');
         if (labelCatatan) labelCatatan.innerHTML = 'Catatan / Alasan Pembatalan <span class="text-rose-500 font-semibold">*wajib</span>';
     } else {
-        document.getElementById('kBtnSetujui').className = 'px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-green-400 bg-green-50 text-green-700 transition-all';
+        document.getElementById('kBtnSetujui').className = 'px-2.5 py-1.5 text-xs sm:text-sm font-bold rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-800 transition-all flex items-center justify-center gap-1 shadow-xs';
         if (wrapperJam) wrapperJam.classList.remove('hidden');
         if (labelCatatan) labelCatatan.textContent = 'Catatan (Opsional)';
     }
 };
 
 function resetBtnKeputusan() {
-    document.getElementById('kBtnTolak').className = 'px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all';
-    document.getElementById('kBtnBatal').className = 'px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition-all';
-    document.getElementById('kBtnSetujui').className = 'px-3 py-2 text-xs sm:text-sm font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all';
+    document.getElementById('kBtnTolak').className = 'px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 transition-all flex items-center justify-center gap-1';
+    document.getElementById('kBtnBatal').className = 'px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-amber-50 hover:border-amber-400 hover:text-amber-800 transition-all flex items-center justify-center gap-1';
+    document.getElementById('kBtnSetujui').className = 'px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl border border-gray-300 text-gray-600 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all flex items-center justify-center gap-1';
     const wrapperJam = document.getElementById('wrapperJamDisetujui');
     if (wrapperJam) wrapperJam.classList.remove('hidden');
     const labelCatatan = document.getElementById('labelCatatan');

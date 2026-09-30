@@ -1417,3 +1417,37 @@ Menerapkan standar desain dialog enterprise responsif:
    - Begitu server produksi mengeksekusi `git pull`, seluruh aset tampilan yang sudah terkompilasi langsung terunduh secara instan.
    - Server tidak lagi memerlukan Node.js atau NPM, dan tampilan UI di server dipastikan 100% identik dengan tampilan lokal.
 
+---
+
+## 21. Rekayasa Ulang Modal Keputusan Lembur (*Zero-Scroll UX*) & Optimalisasi Responsivitas Mobile
+
+### A. Latar Belakang Masalah
+1. Sebelumnya pada modal aksi persetujuan lembur (`#modalKeputusan` di Ketua Tim & Admin, serta `#modalKabag` di Kabag Umum), opsi **Pilihan Keputusan (Setujui / Tolak)** diletakkan di bagian paling bawah formulir, di bawah textarea Uraian Kegiatan (`rows="4"`) dan Catatan (`rows="3"`).
+2. Akibat penumpukan vertikal tersebut:
+   - Tombol keputusan terdorong ke bawah batas tampilan (*below the fold*) dan tertutup oleh footer modal.
+   - Muncul scrollbar vertikal pada modal. Pengguna sering kali tidak menyadari keberadaan tombol "Setujui" / "Tolak" karena harus menggulung layar ke bawah terlebih dahulu.
+   - Saat pengguna langsung mengklik tombol "Simpan Keputusan" di footer, sistem memunculkan peringatan *"Pilih keputusan terlebih dahulu"*, membingungkan pejabat peninjau.
+3. Pada layar smartphone sempit (< 400px), judul navbar yang panjang berpotensi mendorong tombol profil dan toggle drawer.
+
+### B. Solusi Desain & Implementasi
+1. **Pemindahan Pilihan Keputusan ke Posisi Teratas (*Top Priority Action*)**:
+   - Blok pilihan keputusan (`Setujui` / `Tolak` / `Batalkan`) dipindahkan langsung ke **bagian paling atas body modal** (tepat di bawah header / info ringkas).
+   - Menggunakan komponen *segmented pill buttons* yang jelas, modern, dan mudah diklik/ditekan (kontras warna tegas: hijau emerald untuk Setujui, merah mawar untuk Tolak, dan amber untuk Batalkan).
+   - **Default Otomatis `Setujui`**: Untuk pengajuan baru/pending, pilihan `Setujui` langsung aktif secara bawaan saat modal dibuka, sehingga pejabat dapat langsung memverifikasi jam/uraian dan menyimpannya dalam 1 klik tanpa kebingungan.
+2. **Desain Kompak Bebas Gulir (*Zero-Scroll Fit*)**:
+   - Input jam mulai dan jam selesai disetujui ditata berdampingan rapi dalam format `grid grid-cols-2`.
+   - Textarea Uraian Kegiatan dan Catatan diatur ke `rows="2"` (kompak dan proporsional, namun tetap mempertahankan fleksibilitas tarik vertikal `resize-y`).
+   - Pengetatan padding dan jarak vertikal (`space-y-2.5` / `space-y-3` dan `p-4 sm:p-5`), sehingga total tinggi modal terpangkas dari sebelumnya > 580px menjadi hanya ~330px - 350px.
+   - **Hasil**: Pada monitor resolusi rendah maupun layar HP, seluruh isi modal **100% langsung terlihat utuh tanpa ada scrollbar sama sekali**.
+3. **Peningkatan Responsivitas Mobile (*Mobile-Friendly Touch*)**:
+   - Seluruh tombol aksi modal memiliki tinggi sentuh ergonomis (*thumb-friendly tap targets* $\ge 42$px).
+   - Judul halaman pada navbar ditambahkan kelas `truncate max-w-[190px] xs:max-w-[260px] sm:max-w-none` agar tidak meluap (*overflow*) pada layar smartphone 360px - 390px.
+   - Seluruh tabel pengajuan telah terlindungi oleh pembungkus `overflow-x-auto` yang mulus.
+
+### C. File yang Dimodifikasi
+1. `resources/views/ketua-tim/pengajuan.blade.php`: Modal Keputusan Ketua Tim (`#modalKeputusan`).
+2. `resources/views/kabag-umum/pengajuan.blade.php`: Modal Keputusan Kabag Umum (`#modalKabag`).
+3. `resources/views/admin/pengajuan.blade.php`: Modal Keputusan Admin (`#modalKeputusan`).
+4. `resources/views/partials/navbar.blade.php`: Responsivitas judul halaman pada layar mobile.
+
+
