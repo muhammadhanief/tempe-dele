@@ -137,6 +137,14 @@
         </div>
     </div>
 
+    {{-- Petunjuk Geser di Layar HP (Mobile) --}}
+    <div class="sm:hidden flex items-center gap-1.5 px-1 mb-2 text-[11px] font-medium text-slate-500">
+        <svg class="h-3.5 w-3.5 text-amber-500 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+        </svg>
+        <span>Geser tabel ke kiri / kanan untuk melihat kolom lengkap</span>
+    </div>
+
     {{-- ===================== TABEL ===================== --}}
     <div class="w-full overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
         <table class="min-w-[980px] lg:min-w-full table-auto">

@@ -1538,3 +1538,57 @@ Menerapkan standar desain dialog enterprise responsif:
 | 4 | `resources/views/ketua-tim/lembur.blade.php` | Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Ketua Tim. |
 | 5 | `resources/views/admin/lembur.blade.php` | Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Admin. |
 
+---
+
+## 24. Optimalisasi Tampilan Mobile: Pemindahan Hamburger Button ke Kiri Atas & Fitur Geser Horizontal Tabel (Swipe & Drag-to-Scroll ala SIMANTIK)
+
+### A. Latar Belakang Masalah & Kebutuhan Pengguna Mobile
+1. **Posisi Ikon Hamburger Button (Navigasi Mobile)**:
+   - Sebelumnya, tombol *hamburger toggle* navigasi terletak di sisi kanan atas (berdampingan dengan dropdown profil pengguna).
+   - Pengguna meminta agar tombol Hamburger dipindahkan ke **kiri atas** sesuai konvensi umum aplikasi mobile dan sistem administrasi BPS, mendampingi judul halaman secara natural.
+2. **Keterbacaan Tabel Lembur pada Layar Smartphone**:
+   - Tabel administrasi lembur memiliki banyak kolom penting (*Tanggal, Nama/NIP, Jam Diajukan, Jam Disetujui, Durasi, Presensi Pulang, Uraian Kegiatan, Status, Aksi*).
+   - Pada layar smartphone (lebar 360px - 414px), beberapa tabel (terutama tabel Persetujuan Kabag Umum dan Akumulasi) belum memiliki lebar minimum (`min-w-[...]`) yang memadai, sehingga teks kolom terhimpit vertikal (*text squishing*) dan tidak nyaman dibaca.
+   - Merujuk pada implementasi di aplikasi saudara (**SIMANTIK BPS**), pengguna menginginkan tabel dapat **digeser ke kiri dan ke kanan secara leluasa (*horizontal swipe & drag-to-scroll*)** sehingga seluruh data tabel dapat terlihat utuh dan lega.
+
+### B. Solusi Desain & Implementasi (Menerapkan Standar Anti-Slop & Mobile UX)
+1. **Pemindahan Hamburger Button ke Kiri Atas (`navbar.blade.php`)**:
+   - Mereposisi tombol `#sidebar-toggle` ke sisi paling kiri pada bilah navbar, tepat sebelum komponen judul halaman (`@yield('title')`).
+   - Struktur navbar mobile kini tersusun rapi: `[ Hamburger Icon ] [ Judul Halaman ] ...................... [ Avatar & Profil ]`.
+   - Menambahkan tombol tutup silang `(X)` di dalam header drawer sidebar mobile (`sidebar.blade.php`) agar pengguna dapat menutup menu secara intuitif selain dengan menekan area latar belakang (*overlay backdrop*).
+2. **Styling Geser Horizontal Universal (`app.css` & Standar SIMANTIK)**:
+   - Mengadopsi konfigurasi CSS responsive table dari SIMANTIK ke `resources/css/app.css` untuk kelas `.table-responsive` dan `.overflow-x-auto`:
+     - `-webkit-overflow-scrolling: touch !important` (akselerasi *hardware momentum scrolling* pada iOS dan Android).
+     - `touch-action: pan-x pan-y !important` (mencegah konflik scroll vertikal halaman dengan gestur swipe horizontal tabel).
+     - `overscroll-behavior-x: contain` (mencegah navigasi browser *back/forward gesture* terpicu saat swipe tabel).
+     - Scrollbar ramping modern berukuran 6px bertema warna slate halus (`#cbd5e1` / `#f1f5f9`).
+3. **Fitur Drag-to-Scroll Desktop & Touch Momentum (`app.js`)**:
+   - Menambahkan utilitas `initDragAndSwipeScroll` pada `resources/js/app.js` yang otomatis mendeteksi semua kontainer tabel:
+     - Di komputer/laptop (desktop), pengguna dapat menahan klik kiri mouse (*mouse drag*) untuk menggeser tabel ke kiri-kanan secara instan.
+     - Otomatis mengabaikan elemen klik interaktif (*tombol, tautan, input, dropdown select*) agar fungsi tombol Aksi dan Lihat Dokumentasi tetap bekerja normal tanpa terpicu gestur drag.
+4. **Standarisasi Lebar Minimum Tabel & Petunjuk Sentuh Visual**:
+   - Menetapkan batas lebar minimum proporsional pada semua tabel (misal: `min-w-[1100px]` pada tabel persetujuan Kabag Umum, `min-w-[950px]` pada Daftar Hadir dan Akumulasi) agar kolom tabel tidak pernah termampatkan di layar kecil.
+   - Menambahkan teks petunjuk visual ergonomis di atas tabel khusus layar ponsel (`sm:hidden`):
+     $$\text{👉 "Geser tabel ke kiri / kanan untuk melihat kolom lengkap"}$$
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/partials/navbar.blade.php` | Pemindahan tombol hamburger toggle ke kiri atas sebelum judul halaman. |
+| 2 | `resources/views/partials/sidebar.blade.php` | Penambahan tombol tutup silang `(X)` pada header drawer sidebar mobile. |
+| 3 | `resources/css/app.css` | Styling geser tabel horizontal ala SIMANTIK, touch momentum, dan scrollbar ramping. |
+| 4 | `resources/js/app.js` | Script `initDragAndSwipeScroll` untuk drag-to-scroll mouse desktop dan swipe sentuh mobile. |
+| 5 | `resources/views/kabag-umum/pengajuan.blade.php` | Penambahan `min-w-[1100px]` dan petunjuk geser mobile pada tabel Kabag Umum. |
+| 6 | `resources/views/ketua-tim/pengajuan.blade.php` | Penambahan petunjuk geser mobile pada tabel persetujuan Ketua Tim. |
+| 7 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan petunjuk geser mobile pada tabel lembur Ketua Tim. |
+| 8 | `resources/views/lembur.blade.php` | Penambahan petunjuk geser mobile pada tabel lembur pegawai. |
+| 9 | `resources/views/admin/lembur.blade.php` | Penambahan petunjuk geser mobile pada tabel monitoring lembur Admin. |
+| 10 | `resources/views/admin/pengajuan.blade.php` | Penambahan petunjuk geser mobile pada tabel persetujuan Admin. |
+| 11 | `resources/views/admin/daftar_hadir.blade.php` | Penambahan `min-w-[950px]` dan petunjuk geser mobile pada tabel Daftar Hadir. |
+| 12 | `resources/views/admin/riwayat_presensi.blade.php` | Penggantian wrapper `overflow-x-auto`, `min-w-[700px]`, dan petunjuk geser mobile. |
+| 13 | `resources/views/akumulasi.blade.php` | Penggantian wrapper `overflow-x-auto`, `min-w-[950px]`, dan petunjuk geser mobile. |
+| 14 | `resources/views/rekapitulasi.blade.php` | Penambahan petunjuk geser mobile pada tabel rekapitulasi pegawai. |
+| 15 | `resources/views/pimpinan/pengajuan.blade.php` | Penambahan petunjuk geser mobile pada tabel persetujuan Pimpinan. |
+| 16 | `resources/views/admin/akumulasi.blade.php` | Penambahan petunjuk geser mobile pada tabel akumulasi Admin. |
+
+

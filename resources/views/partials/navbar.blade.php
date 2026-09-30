@@ -1,4 +1,4 @@
-<nav class="flex h-16 items-center justify-between gap-3 bg-white px-6">
+<nav class="flex h-16 items-center justify-between gap-3 bg-white px-4 sm:px-6 border-b border-slate-100">
     @php
         $role = session('user')
             ? \DB::table('m_pegawai')->where('nip', session('user')['nip'])->value('role')
@@ -14,13 +14,30 @@
         };
     @endphp
 
-    {{-- Page Title --}}
-    <span class="text-base sm:text-xl font-bold tracking-tight text-slate-800 truncate max-w-[190px] xs:max-w-[260px] sm:max-w-none">
-        @yield('title')
-    </span>
+    {{-- Left Side: Hamburger Toggle (mobile) + Page Title --}}
+    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        {{-- Custom Toggle Button (mobile only - on LEFT) --}}
+        <button
+            type="button"
+            id="sidebar-toggle"
+            onclick="toggleSidebar()"
+            aria-label="Buka menu navigasi"
+            class="lg:hidden group flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-colors duration-200 shrink-0 -ml-1 text-slate-700"
+        >
+            <div class="space-y-1.5 pointer-events-none">
+                <span id="bar-top" class="block h-[3px] w-6 origin-center rounded-full bg-slate-600 transition-all duration-300 ease-in-out"></span>
+                <span id="bar-bot" class="block h-[3px] w-4 origin-center rounded-full bg-orange-500 transition-all duration-300 ease-in-out"></span>
+            </div>
+        </button>
+
+        {{-- Page Title --}}
+        <span class="text-base sm:text-xl font-bold tracking-tight text-slate-800 truncate">
+            @yield('title')
+        </span>
+    </div>
 
     {{-- Right side --}}
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
 
         {{-- Profile Dropdown --}}
         <div class="relative z-30" id="profileDropdown">
@@ -83,20 +100,6 @@
                 </div>
             </div>
         </div>
-
-        {{-- Custom Toggle Button (mobile only) --}}
-        <button
-            type="button"
-            id="sidebar-toggle"
-            onclick="toggleSidebar()"
-            aria-label="Buka menu navigasi"
-            class="ml-0.5 lg:hidden group flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-colors duration-200 shrink-0"
-        >
-            <div class="space-y-1.5 pointer-events-none">
-                <span id="bar-top" class="block h-[3px] w-6 origin-center rounded-full bg-slate-500 transition-all duration-300 ease-in-out"></span>
-                <span id="bar-bot" class="block h-[3px] w-4 origin-center rounded-full bg-orange-500 transition-all duration-300 ease-in-out"></span>
-            </div>
-        </button>
 
     </div>
 </nav>

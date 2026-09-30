@@ -100,7 +100,13 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 36. 📄 **`resources/views/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi pegawai)*.
 37. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Ketua Tim)*.
 38. 📄 **`resources/views/admin/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Admin)*.
-39. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
+39. 📄 **`resources/views/partials/navbar.blade.php`** *(Pemindahan hamburger toggle button ke pojok kiri atas bilah navigasi mendampingi judul)*.
+40. 📄 **`resources/views/partials/sidebar.blade.php`** *(Penambahan tombol silang tutup mobile pada header drawer navigasi)*.
+41. 📄 **`resources/css/app.css`** *(Styling tabel responsif, akselerasi momentum sentuh, dan scrollbar ramping ala SIMANTIK)*.
+42. 📄 **`resources/js/app.js`** *(Fungsi `initDragAndSwipeScroll` untuk drag horizontal mouse desktop dan touch swipe mobile)*.
+43. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Penambahan `min-w-[1100px]` dan petunjuk visual geser tabel mobile)*.
+44. 📄 Seluruh file blade tabel lainnya (`ketua-tim`, `lembur`, `admin`, `akumulasi`, `rekapitulasi`, `daftar_hadir`, `pimpinan`) yang dilengkapi petunjuk geser mobile.
+45. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
 
 ---
 
@@ -325,5 +331,19 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Pada baris tabel, muncul tombol **"Lihat ↗"** berwarna biru yang ketika diklik membuka tautan Google Drive asli di tab baru (*target _blank*).
 - [ ] **Uji Hapus Dokumentasi**:
   - Klik tombol silang (hapus) di samping tautan *Lihat* dan konfirmasi: data dokumentasi berhasil terhapus dan kolom kembali ke tombol *+ Tambah*.
+
+### M. Uji Tampilan Mobile & Geser Horizontal Tabel (Swipe & Drag-to-Scroll ala SIMANTIK)
+- [ ] **Posisi Hamburger Button di Kiri Atas**:
+  - Buka aplikasi di layar smartphone atau aktifkan *Device Mode* pada browser DevTools (lebar <= 420px).
+  - Pastikan tombol Hamburger (garis tiga) berada di **pojok KIRI atas**, mendampingi judul halaman (bukan lagi di sisi kanan).
+  - Sentuh/klik tombol Hamburger: drawer menu navigasi terbuka mulus dari kiri ke kanan.
+  - Tekan tombol silang `(X)` di samping brand logo atau sentuh area gelap luar untuk menutup kembali navigasi.
+- [ ] **Fitur Geser Tabel Horizontal (Swipe & Drag-to-Scroll)**:
+  - Akses halaman pengajuan lembur (Pegawai, Ketua Tim, Kabag Umum, Admin, atau Akumulasi).
+  - Di atas tabel muncul petunjuk sentuh: *"Geser tabel ke kiri / kanan untuk melihat kolom lengkap"*.
+  - Geser tabel dengan jari ke kanan: tabel bergeser mulus tanpa patah-patah (*touch momentum scrolling*).
+  - Kolom-kolom lebar (Nama, Tanggal, Jam, Uraian, Presensi Pulang, Status, dan Tombol Aksi) tersaji proporsional dan tidak saling menghimpit.
+  - Pada browser desktop, pengguna dapat menahan klik kiri mouse pada ruang kosong tabel lalu menariknya (*drag-to-scroll*) untuk menggeser kolom secara instan.
+
 
 

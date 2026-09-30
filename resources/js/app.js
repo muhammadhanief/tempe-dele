@@ -41,3 +41,60 @@ document.addEventListener('click', (e) => {
 
     window.addEventListener('pageshow', hideLoading);
 
+// =========================================================================
+// Universal Touch & Drag-to-Scroll Enhancement for Tables (simantik-inspired)
+// =========================================================================
+function initDragAndSwipeScroll() {
+    const containers = document.querySelectorAll('.overflow-x-auto, .table-responsive');
+
+    containers.forEach((slider) => {
+        if (slider.dataset.dragScrollInit) return;
+        slider.dataset.dragScrollInit = 'true';
+
+        let isDown = false;
+        let startX = 0;
+        let scrollLeft = 0;
+        let isMoved = false;
+
+        slider.classList.add('drag-scrollable');
+
+        slider.addEventListener('mousedown', (e) => {
+            if (e.target.closest('a, button, input, select, textarea, label, [role="button"], .no-drag')) {
+                return;
+            }
+            isDown = true;
+            isMoved = false;
+            slider.classList.add('active-dragging');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 1.35;
+            if (Math.abs(walk) > 4) {
+                isMoved = true;
+                e.preventDefault();
+            }
+            slider.scrollLeft = scrollLeft - walk;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDown) {
+                isDown = false;
+                slider.classList.remove('active-dragging');
+            }
+        });
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDragAndSwipeScroll);
+} else {
+    initDragAndSwipeScroll();
+}
+
+window.initDragAndSwipeScroll = initDragAndSwipeScroll;
+
+

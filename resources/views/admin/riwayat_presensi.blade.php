@@ -42,9 +42,17 @@
         </div>
 </div>
 
-<div class="overflow-hidden max-w-6xl mx-auto px-8 my-5">
+    {{-- Petunjuk Geser di Layar HP (Mobile) --}}
+    <div class="sm:hidden flex items-center gap-1.5 px-4 mb-2 text-[11px] font-medium text-slate-500 max-w-6xl mx-auto">
+        <svg class="h-3.5 w-3.5 text-amber-500 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+        </svg>
+        <span>Geser tabel ke kiri / kanan untuk melihat kolom lengkap</span>
+    </div>
+
+<div class="overflow-x-auto max-w-6xl mx-auto px-4 sm:px-8 my-5">
     {{-- Tabel --}}
-    <table class="min-w-full rounded-xl border-separate border-spacing-0">
+    <table class="w-full min-w-[700px] rounded-xl border-separate border-spacing-0">
         <thead>
             <tr class="bg-gray-100">
                 <th class="p-3 text-center text-sm font-semibold text-gray-900 rounded-tl-xl">

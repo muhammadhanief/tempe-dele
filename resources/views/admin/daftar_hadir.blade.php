@@ -152,9 +152,17 @@
         </div>
     </div>
 
+    {{-- Petunjuk Geser di Layar HP (Mobile) --}}
+    <div class="sm:hidden flex items-center gap-1.5 px-1 mb-2 text-[11px] font-medium text-slate-500">
+        <svg class="h-3.5 w-3.5 text-amber-500 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+        </svg>
+        <span>Geser tabel ke kiri / kanan untuk melihat kolom lengkap</span>
+    </div>
+
     {{-- ===================== TABEL DAFTAR HADIR ===================== --}}
     <div class="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-xs">
-        <table class="w-full table-auto border-collapse" id="tabelDaftarHadir">
+        <table class="w-full min-w-[950px] table-auto border-collapse" id="tabelDaftarHadir">
             <thead>
                 <tr class="bg-gray-50/90 text-gray-700 text-xs font-semibold border-b border-gray-200">
                     <th rowspan="2" class="w-28 px-3 py-3 text-center align-middle border-r border-gray-200 whitespace-nowrap">

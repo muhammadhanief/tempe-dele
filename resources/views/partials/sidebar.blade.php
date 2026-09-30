@@ -27,18 +27,26 @@
         };
     @endphp
 
-    {{-- Brand --}}
-    <a href="{{ $brandRoute }}" class="flex items-center gap-2 px-4 mb-8 mt-2 lg:mt-0 transition-opacity hover:opacity-90">
-        <div class="w-16 h-16 flex items-center justify-center shrink-0">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo OverTime" class="w-full h-auto" />
-        </div>
-        <div class="flex flex-col leading-tight">
-            <span class="text-base font-bold text-white tracking-wide mb-1.5">TEMPE DELE</span>
-            <span class="text-[12px] text-slate-300">
-                sisTEM PEngelolaan <br>DokumEn LEmbur
-            </span>
-        </div>
-    </a>
+    {{-- Brand & Mobile Close --}}
+    <div class="flex items-center justify-between px-4 mb-8 mt-2 lg:mt-0">
+        <a href="{{ $brandRoute }}" class="flex items-center gap-2 transition-opacity hover:opacity-90">
+            <div class="w-14 h-14 flex items-center justify-center shrink-0">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo OverTime" class="w-full h-auto" />
+            </div>
+            <div class="flex flex-col leading-tight">
+                <span class="text-base font-bold text-white tracking-wide mb-1">TEMPE DELE</span>
+                <span class="text-[11px] text-slate-300">
+                    sisTEM PEngelolaan <br>DokumEn LEmbur
+                </span>
+            </div>
+        </a>
+        <button type="button" onclick="closeSidebar()" aria-label="Tutup menu navigasi"
+            class="lg:hidden p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
 
     @php
         $nipSess = session('user')['nip'] ?? null;
