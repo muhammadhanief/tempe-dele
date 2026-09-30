@@ -112,6 +112,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 48. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penambahan whitespace-nowrap pada dateBtn dan dateLabel untuk proteksi konsisten di layar kecil)*.
 49. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil npm run build: manifest.json, CSS, JS)*.
 50. 📄 Seluruh view tabel (11 file blade) yang telah dilengkapi komponen bilah scrollbar visual interaktif (`.table-scroll-hint`, `.table-scroll-track`, `.table-scroll-thumb`).
+51. 📄 **Seluruh View Filter Pencarian Pegawai & Tim (10 file)**: `resources/views/ketua-tim/pengajuan.blade.php`, `resources/views/pimpinan/pengajuan.blade.php`, `resources/views/admin/pengajuan.blade.php`, `resources/views/admin/lembur.blade.php`, `resources/views/lembur.blade.php`, `resources/views/admin/tim.blade.php`, `resources/views/admin/akumulasi.blade.php`, `resources/views/admin/presensi.blade.php`, `resources/views/admin/spkl.blade.php`, `resources/views/admin/pengguna.blade.php` *(Perbaikan dropdown tampil penuh otomatis saat dibuka, auto-select teks untuk pengetikan cepat, tombol clear `(×)`, sorotan centang pilihan aktif, dan clickable chevron)*.
+52. 📁 **`public/build/`** *(Aset bundle frontend produksi Vite terbaru: manifest.json, app-vIdj2UmY.css, app-DbISuP7_.js)*.
 
 ---
 
@@ -370,3 +372,19 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Ketuk atau geser langsung bilah scrollbar: tabel langsung melompat (*smooth scroll*) ke posisi kolom yang dipilih.
   - Pada peramban desktop, scrollbar bawah tabel memiliki ketebalan 8px dengan kontras tinggi sehingga mudah dilihat dan digeser.
 
+### P. Uji Fitur Dropdown Pencarian Pegawai & Tim (Tampil Penuh Otomatis & Ganti Cepat 1-Langkah)
+- [ ] **Pembukaan Daftar Lengkap Otomatis Saat Dropdown Diklik (Single-Step Switching)**:
+  - Buka halaman Persetujuan Pengajuan (Ketua Tim, Pimpinan, atau Admin), atau halaman Monitoring Lembur (`/admin/lembur`).
+  - Pilih salah satu pegawai (misal: "Pegawai A"). Halaman me-reload dan kotak pencarian terisi nama Pegawai A.
+  - Klik kembali kotak input pencarian: dropdown langsung terbuka menyajikan **SELURUH** nama pegawai secara lengkap (tidak terfilter sendiri hanya menjadi Pegawai A).
+  - Pengguna dapat langsung mengklik *Pegawai C* dalam 1 kali klik tanpa harus mereset ke *"Semua pegawai"* terlebih dahulu.
+- [ ] **Fitur Auto-Select Teks untuk Pengetikan Instan**:
+  - Saat kotak input pencarian yang sudah terisi diklik/difokuskan, teks nama pegawai yang lama otomatis terblok/terseleksi (`select()`).
+  - Ketik huruf baru (misal huruf `'C'`): teks nama lama langsung terhapus otomatis dan dropdown seketika memfilter nama yang mengandung huruf `'C'`.
+- [ ] **Tombol Clear Cepat `(×)`**:
+  - Saat ada nama pegawai/tim yang sedang terpilih, tombol silang `(×)` muncul di sebelah kanan input.
+  - Klik tombol `(×)`: filter seketika ter-reset ke *"Semua"* dalam 1 kali klik.
+- [ ] **Sorotan Visual Centang & Tombol Panah Buka/Tutup**:
+  - Item pegawai/tim yang sedang aktif ditandai dengan latar belakang oranye lembut dan ikon centang resmi BPS.
+  - Klik tombol panah bawah (chevron): dropdown dapat dibuka-tutup secara fleksibel.
+  - Klik di luar area kotak pencarian: dropdown tertutup rapi dan nama aktif tetap utuh tanpa merusak pencarian.

@@ -1691,6 +1691,54 @@ Menerapkan standar desain dialog enterprise responsif:
 | 13 | `resources/views/akumulasi.blade.php` | Komponen visual scrollbar mobile pada tabel akumulasi pegawai. |
 | 14 | `resources/views/admin/riwayat_presensi.blade.php` | Komponen visual scrollbar mobile pada tabel riwayat presensi admin. |
 
+---
 
+## 27. Perbaikan Menyeluruh Dropdown Pencarian Pegawai & Tim: Tampil Penuh Otomatis, Seleksi Teks Instan, dan Tombol Clear Cepat (Single-Step Switching)
 
+### A. Latar Belakang & Masalah Pengguna
+1. **Dropdown Terfilter Sendiri Saat Dibuka Kembali (*Self-Filtering Dropdown Trap*)**:
+   - Ketika pengguna memfilter pegawai tertentu (misal: memilih *Pegawai A*), nama pegawai tersebut terisi ke dalam kotak input pencarian: `"Nama Pegawai A (NIP)"`.
+   - Ketika pengguna ingin berpindah atau memilih pegawai lain (misal: *Pegawai C*), mereka mengklik kembali kotak input tersebut.
+   - Pada implementasi sebelumnya, pemanggilan `toggleDropdownPegawai()` mengoper nilai yang sedang ada di dalam input (`search.value`) ke fungsi `renderDropdownPegawai(search.value)`.
+   - Akibatnya, fungsi pencarian melakukan filter teks terhadap string lengkap `"Nama Pegawai A (NIP)"`. Semua pegawai lainnya tereliminasi dari daftar sehingga dropdown hanya menampilkan *Pegawai A* dan opsi *"Semua pegawai"*.
+   - **Keluhan Pengguna**: Pengguna terpaksa harus mengklik *"Semua pegawai"* terlebih dahulu (yang me-refresh halaman), baru kemudian bisa mengklik dan mencari *Pegawai C*. Masalah ini terjadi pada desktop maupun mobile di seluruh aplikasi.
+2. **Ketiadaan Fitur Auto-Select & Tombol Reset Cepat**:
+   - Saat pengguna mengklik kotak input yang sudah berisi nama pegawai, kursor hanya diletakkan di akhir teks tanpa menyeleksi seluruh teks. Jika pengguna langsung mengetik huruf baru, teks lama tidak terhapus dan pencarian menjadi rusak.
+   - Tidak ada tombol silang cepat `(×)` untuk mengosongkan pilihan dalam 1 klik tanpa harus menekan tombol backspace berulang kali.
 
+### B. Solusi & Rincian Implementasi Teknis
+
+1. **Prinsip Universal: Selalu Tampilkan Daftar Lengkap Saat Dropdown Dibuka**:
+   - Seluruh fungsi pembuka dropdown (`openDropdownPegawai()`, `openDropdownTim()`, `openDropdown()`) diubah agar **selalu mengoper parameter kosong `''`** ke fungsi perender (`renderDropdownPegawai('')`, `populateDropdownTim('', ...)`).
+   - Dengan begitu, saat pengguna mengklik input atau tombol panah, dropdown **selalu menyajikan seluruh daftar pegawai/tim secara lengkap**, memungkinkan pengguna langsung beralih ke pegawai/tim mana pun dalam 1 langkah mudah (*single-step switching*).
+
+2. **Auto-Select Teks untuk Pengetikan Instan (`search.select()`)**:
+   - Setiap kali input pencarian diklik atau difokuskan (`onclick` & `onfocus`), sistem secara otomatis menjalankan `setTimeout(() => search.select(), 10)`.
+   - Seluruh teks nama pegawai/tim yang sedang aktif otomatis terblok/terseleksi. Begitu pengguna mengetik satu karakter baru (misalnya huruf `'C'`), teks lama langsung tergantikan dan daftar secara instan terfilter hanya untuk nama yang mengandung huruf tersebut via event `oninput`.
+
+3. **Indikator Visual Elegan & Sorotan Pilihan Aktif**:
+   - Opsi default (*"Semua pegawai"* / *"Semua tim"*) dan nama pegawai/tim yang sedang aktif kini diberi latar belakang oranye lembut (`bg-amber-50/70`), teks tebal berkarakter (`font-semibold text-amber-700`), serta **ikon centang resmi BPS** (`<svg> checkmark`).
+   - Pengguna dengan mudah mengetahui item apa yang sedang aktif sambil tetap leluasa menelusuri seluruh opsi lainnya.
+   - Jika hasil pengetikan tidak cocok dengan data mana pun, sistem menampilkan baris status informatif (*"Pegawai/Tim tidak ditemukan"*).
+
+4. **Tombol Hapus Cepat Cerdas `(×)` (`#btnClearPegawai` & `#btnClearTim`)**:
+   - Menyematkan tombol silang mini di sisi kanan kotak pencarian yang otomatis muncul ketika ada item yang terpilih atau ketika pengguna sedang mengetik.
+   - Mengklik tombol silang langsung mereset pencarian ke *"Semua"* dalam 1 kali klik.
+
+5. **Tombol Panah Interaktif & Penanganan Klik Luar (*Click-Outside Handler*)**:
+   - Ikon chevron panah bawah diubah menjadi tombol yang dapat diklik (`toggleDropdown...()`) untuk membuka/menutup dropdown secara fleksibel.
+   - Penanganan klik di luar elemen (`document.addEventListener('click', ...)`) menutup dropdown secara rapi dan otomatis mengembalikan teks input ke nama yang sedang aktif jika pengguna membatalkan pengetikan tanpa memilih.
+
+### C. Berkas yang Diperbarui (10 File)
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Filter Pegawai: `openDropdownPegawai('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, clickable chevron. |
+| 2 | `resources/views/pimpinan/pengajuan.blade.php` | Filter Pegawai: `openDropdownPegawai('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, clickable chevron. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Filter Pegawai: `openDropdownPegawai('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, clickable chevron. |
+| 4 | `resources/views/admin/lembur.blade.php` | Filter Pegawai & Filter Tim: `openDropdown('')` & `openDropdownTim('')`, auto-select teks, tombol clear `(×)` kedua input, sorotan centang aktif. |
+| 5 | `resources/views/lembur.blade.php` | Filter Tim Pegawai: `openDropdownTim('')`, auto-select teks, tombol `#btnClearTim`, sorotan centang aktif, click-outside handler. |
+| 6 | `resources/views/admin/tim.blade.php` | Filter Tim Admin: opsi *"Semua tim"*, `openDropdownTim('')`, auto-select teks, tombol `#btnClearTim`, sorotan centang aktif, click-outside. |
+| 7 | `resources/views/admin/akumulasi.blade.php` | Filter Pegawai Akumulasi: `openDropdown('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, click-outside. |
+| 8 | `resources/views/admin/presensi.blade.php` | Filter Pegawai Presensi: `openDropdown('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, click-outside. |
+| 9 | `resources/views/admin/spkl.blade.php` | Filter Pegawai SPKL: `openDropdown('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, click-outside. |
+| 10 | `resources/views/admin/pengguna.blade.php` | Filter Pegawai Pengguna: opsi *"Semua pegawai"*, `openDropdown('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, click-outside. |

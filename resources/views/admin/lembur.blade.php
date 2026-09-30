@@ -110,34 +110,49 @@
             </div>
 
             {{-- Filter Pegawai --}}
-            <div class="relative w-full sm:w-64">
+            <div class="relative w-full sm:w-64" id="wrapSearchPegawai">
                 <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
-                    onclick="toggleDropdown()" oninput="filterDropdown()" autocomplete="off"
-                    class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
-                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3 text-gray-400">
-                        <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                    </svg>
+                    onclick="openDropdown()" onfocus="openDropdown()" oninput="filterDropdown()" autocomplete="off"
+                    class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
+
+                <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                    <button type="button" id="btnClearPegawai" onclick="pilihPegawai(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter pegawai">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    <button type="button" onclick="toggleDropdown()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar pegawai">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                            <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                        </svg>
+                    </button>
                 </div>
+
                 <div id="dropdownPegawai"
-                    class="hidden absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                    class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
                     <ul id="listPegawai"></ul>
                 </div>
             </div>
 
             {{-- Filter Tim --}}
-            <div class="relative w-full sm:w-60">
+            <div class="relative w-full sm:w-60" id="wrapSearchTim">
                 <input type="text" id="searchTim" placeholder="Cari nama tim..."
-                    onclick="toggleDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
+                    onclick="openDropdownTim()" onfocus="openDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
                     value="{{ request('search') }}"
-                    class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
-                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3 text-gray-400">
-                        <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                    </svg>
+                    class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
+
+                <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                    <button type="button" id="btnClearTim" onclick="pilihTim(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter tim">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    <button type="button" onclick="toggleDropdownTim()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar tim">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                            <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                        </svg>
+                    </button>
                 </div>
+                </div>
+
                 <div id="dropdownTim"
-                    class="hidden absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                    class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
                     <ul id="listTim"></ul>
                 </div>
             </div>
@@ -1197,43 +1212,88 @@
     // =====================
     function populateDropdownTim(filter = '', data = []) {
         const list = document.getElementById('listTim');
+        if (!list) return;
         list.innerHTML = '';
 
         const liSemua = document.createElement('li');
-        liSemua.className   = 'cursor-pointer px-4 py-2 text-sm text-gray-400 hover:bg-gray-50';
-        liSemua.textContent = 'Semua tim';
+        liSemua.className   = 'cursor-pointer px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-50 flex items-center justify-between ' + (!selectedTimId ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+        liSemua.innerHTML   = '<span>Semua tim</span>' + (!selectedTimId ? '<svg class="w-3.5 h-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
         liSemua.addEventListener('mousedown', (e) => { e.preventDefault(); pilihTim(null); });
         list.appendChild(liSemua);
 
-        data
-            .filter(t => t.nama_tim.toLowerCase().includes(filter.toLowerCase()))
-            .forEach(tim => {
-                const li = document.createElement('li');
-                li.className   = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-                li.textContent = tim.nama_tim;
-                li.addEventListener('mousedown', (e) => { e.preventDefault(); pilihTim(tim); });
-                list.appendChild(li);
-            });
+        const keyword = (filter || '').toLowerCase().trim();
+        const filtered = data.filter(t => {
+            if (!keyword) return true;
+            return (t.nama_tim || '').toLowerCase().includes(keyword) || (t.kode_tim || '').toLowerCase().includes(keyword);
+        });
+
+        if (filtered.length === 0) {
+            const liEmpty = document.createElement('li');
+            liEmpty.className = 'px-4 py-3 text-xs text-gray-400 text-center';
+            liEmpty.textContent = 'Tim tidak ditemukan';
+            list.appendChild(liEmpty);
+            return;
+        }
+
+        filtered.forEach(tim => {
+            const isSelected = selectedTimId === tim.kode_tim;
+            const li = document.createElement('li');
+            li.className   = 'cursor-pointer px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center justify-between ' + (isSelected ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+            li.innerHTML   = `<span>${tim.nama_tim}</span>` + (isSelected ? '<svg class="w-3.5 h-3.5 text-[#faa938] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
+            li.addEventListener('mousedown', (e) => { e.preventDefault(); pilihTim(tim); });
+            list.appendChild(li);
+        });
     }
 
-    window.toggleDropdownTim = function () {
-        const dd       = document.getElementById('dropdownTim');
-        const isHidden = dd.classList.contains('hidden');
+    window.openDropdownTim = function () {
+        const dd     = document.getElementById('dropdownTim');
+        const search = document.getElementById('searchTim');
+        if (!dd || !search) return;
+
         tutupSemuaDropdown();
-        if (isHidden) { populateDropdownTim('', cachedTim); dd.classList.remove('hidden'); }
+        populateDropdownTim('', cachedTim); // Always full list!
+        dd.classList.remove('hidden');
+        setTimeout(() => search.select(), 10);
+    };
+
+    window.toggleDropdownTim = function () {
+        const dd = document.getElementById('dropdownTim');
+        if (!dd) return;
+
+        if (dd.classList.contains('hidden')) {
+            openDropdownTim();
+        } else {
+            dd.classList.add('hidden');
+        }
     };
 
     window.filterDropdownTim = function () {
-        populateDropdownTim(document.getElementById('searchTim').value, cachedTim);
-        document.getElementById('dropdownTim').classList.remove('hidden');
+        const search = document.getElementById('searchTim');
+        populateDropdownTim(search.value, cachedTim);
+        document.getElementById('dropdownTim')?.classList.remove('hidden');
+
+        const btnClear = document.getElementById('btnClearTim');
+        if (btnClear) {
+            search.value.trim() ? btnClear.classList.remove('hidden') : (selectedTimId ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden'));
+        }
     };
 
     function pilihTim(tim) {
         selectedTimId = tim ? tim.kode_tim : null;
-        document.getElementById('searchTim').value    = tim ? tim.nama_tim : '';
-        document.getElementById('dropdownTim').classList.add('hidden');
+        const search = document.getElementById('searchTim');
+        if (search) search.value = tim ? tim.nama_tim : '';
+        document.getElementById('dropdownTim')?.classList.add('hidden');
+
+        const btnClear = document.getElementById('btnClearTim');
+        if (btnClear) {
+            selectedTimId ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden');
+        }
+
         selectedNip = null;
-        document.getElementById('searchPegawai').value = '';
+        const searchPeg = document.getElementById('searchPegawai');
+        if (searchPeg) searchPeg.value = '';
+        document.getElementById('btnClearPegawai')?.classList.add('hidden');
+
         if (tim) fetchPegawai(tim.kode_tim);
         else     fetchPegawai();
         applyFilter();
@@ -1244,43 +1304,114 @@
     // =====================
     function populateDropdown(filter = '', data = []) {
         const list = document.getElementById('listPegawai');
+        if (!list) return;
         list.innerHTML = '';
 
         const liSemua = document.createElement('li');
-        liSemua.className   = 'cursor-pointer px-4 py-2 text-sm text-gray-400 hover:bg-gray-50';
-        liSemua.textContent = 'Semua pegawai';
+        liSemua.className   = 'cursor-pointer px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-50 flex items-center justify-between ' + (!selectedNip ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+        liSemua.innerHTML   = '<span>Semua pegawai</span>' + (!selectedNip ? '<svg class="w-3.5 h-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
         liSemua.addEventListener('mousedown', (e) => { e.preventDefault(); pilihPegawai(null); });
         list.appendChild(liSemua);
 
-        data
-            .filter(e => `${e.nama} ${e.nip}`.toLowerCase().includes(filter.toLowerCase()))
-            .forEach(emp => {
-                const li = document.createElement('li');
-                li.className   = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-                li.textContent = `${emp.nama} - ${emp.nip}`;
-                li.addEventListener('mousedown', (e) => { e.preventDefault(); pilihPegawai(emp); });
-                list.appendChild(li);
-            });
+        const keyword = (filter || '').toLowerCase().trim();
+        const filtered = data.filter(e => {
+            if (!keyword) return true;
+            return `${e.nama || ''} ${e.nip || ''}`.toLowerCase().includes(keyword);
+        });
+
+        if (filtered.length === 0) {
+            const liEmpty = document.createElement('li');
+            liEmpty.className = 'px-4 py-3 text-xs text-gray-400 text-center';
+            liEmpty.textContent = 'Pegawai tidak ditemukan';
+            list.appendChild(liEmpty);
+            return;
+        }
+
+        filtered.forEach(emp => {
+            const isSelected = selectedNip === emp.nip;
+            const li = document.createElement('li');
+            li.className   = 'cursor-pointer px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center justify-between ' + (isSelected ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+            li.innerHTML   = `<span>${emp.nama} (${emp.nip})</span>` + (isSelected ? '<svg class="w-3.5 h-3.5 text-[#faa938] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
+            li.addEventListener('mousedown', (e) => { e.preventDefault(); pilihPegawai(emp); });
+            list.appendChild(li);
+        });
     }
 
-    window.toggleDropdown = function () {
-        const dd       = document.getElementById('dropdownPegawai');
-        const isHidden = dd.classList.contains('hidden');
+    window.openDropdown = function () {
+        const dd     = document.getElementById('dropdownPegawai');
+        const search = document.getElementById('searchPegawai');
+        if (!dd || !search) return;
+
         tutupSemuaDropdown();
-        if (isHidden) { populateDropdown('', cachedPegawai); dd.classList.remove('hidden'); }
+        populateDropdown('', cachedPegawai); // Always full list!
+        dd.classList.remove('hidden');
+        setTimeout(() => search.select(), 10);
+    };
+
+    window.toggleDropdown = function () {
+        const dd = document.getElementById('dropdownPegawai');
+        if (!dd) return;
+
+        if (dd.classList.contains('hidden')) {
+            openDropdown();
+        } else {
+            dd.classList.add('hidden');
+        }
     };
 
     window.filterDropdown = function () {
-        populateDropdown(document.getElementById('searchPegawai').value, cachedPegawai);
-        document.getElementById('dropdownPegawai').classList.remove('hidden');
+        const search = document.getElementById('searchPegawai');
+        populateDropdown(search.value, cachedPegawai);
+        document.getElementById('dropdownPegawai')?.classList.remove('hidden');
+
+        const btnClear = document.getElementById('btnClearPegawai');
+        if (btnClear) {
+            search.value.trim() ? btnClear.classList.remove('hidden') : (selectedNip ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden'));
+        }
     };
 
     function pilihPegawai(emp) {
         selectedNip = emp ? emp.nip : null;
-        document.getElementById('searchPegawai').value = emp ? `${emp.nama} - ${emp.nip}` : '';
-        document.getElementById('dropdownPegawai').classList.add('hidden');
+        const search = document.getElementById('searchPegawai');
+        if (search) search.value = emp ? `${emp.nama} (${emp.nip})` : '';
+        document.getElementById('dropdownPegawai')?.classList.add('hidden');
+
+        const btnClear = document.getElementById('btnClearPegawai');
+        if (btnClear) {
+            selectedNip ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden');
+        }
+
         applyFilter();
     }
+
+    // Close dropdowns when clicked outside and restore active selection text if untouched
+    document.addEventListener('click', (e) => {
+        const wrapPeg = document.getElementById('wrapSearchPegawai');
+        const ddPeg = document.getElementById('dropdownPegawai');
+        const searchPeg = document.getElementById('searchPegawai');
+        if (wrapPeg && ddPeg && searchPeg && !wrapPeg.contains(e.target)) {
+            ddPeg.classList.add('hidden');
+            if (selectedNip) {
+                const emp = cachedPegawai.find(emp => emp.nip === selectedNip);
+                if (emp) searchPeg.value = `${emp.nama} (${emp.nip})`;
+            } else {
+                searchPeg.value = '';
+            }
+        }
+
+        const wrapTim = document.getElementById('wrapSearchTim');
+        const ddTim = document.getElementById('dropdownTim');
+        const searchTim = document.getElementById('searchTim');
+        if (wrapTim && ddTim && searchTim && !wrapTim.contains(e.target)) {
+            ddTim.classList.add('hidden');
+            if (selectedTimId) {
+                const tim = cachedTim.find(tim => tim.kode_tim === selectedTimId);
+                if (tim) searchTim.value = tim.nama_tim;
+            } else {
+                searchTim.value = '';
+            }
+        }
+    });
 
     // =====================
     // DATE PICKER

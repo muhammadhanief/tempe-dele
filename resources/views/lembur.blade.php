@@ -123,15 +123,20 @@
         </select>
 
         {{-- Filter Tim --}}
-        <div class="relative w-full sm:w-64">
+        <div class="relative w-full sm:w-64" id="wrapSearchTim">
             <input type="text" id="searchTim" placeholder="Cari nama tim..."
-                onclick="toggleDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
-                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                onclick="openDropdownTim()" onfocus="openDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
+                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
 
-            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3 text-gray-400">
-                    <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                </svg>
+            <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                <button type="button" id="btnClearTim" onclick="pilihTim(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter tim">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <button type="button" onclick="toggleDropdownTim()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar tim">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                        <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                    </svg>
+                </button>
             </div>
 
             <div id="dropdownTim"
@@ -721,33 +726,54 @@
 
         list.innerHTML = '';
 
+        const isSemuaSelected = !selectedTim;
         const liSemua = document.createElement('li');
-        liSemua.className = 'cursor-pointer px-4 py-2 text-sm text-gray-400 hover:bg-gray-50';
-        liSemua.textContent = 'Semua tim';
+        liSemua.className = 'cursor-pointer px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-50 flex items-center justify-between ' + (isSemuaSelected ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+        liSemua.innerHTML = '<span>Semua tim</span>' + (isSemuaSelected ? '<svg class="w-3.5 h-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
         liSemua.onclick = () => pilihTim(null);
         list.appendChild(liSemua);
 
-        const keyword = filter.toLowerCase();
+        const keyword = (filter || '').toLowerCase().trim();
 
-        cachedTim
-            .filter(tim => String(tim.nama_tim ?? '').toLowerCase().includes(keyword))
-            .forEach(tim => {
-                const li = document.createElement('li');
-                li.className = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-                li.textContent = tim.nama_tim ?? '-';
-                li.onclick = () => pilihTim(tim);
-                list.appendChild(li);
-            });
+        const filtered = cachedTim.filter(tim => String(tim.nama_tim ?? '').toLowerCase().includes(keyword));
+
+        if (filtered.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'px-4 py-3 text-xs text-gray-400 text-center';
+            li.textContent = 'Tim tidak ditemukan';
+            list.appendChild(li);
+            return;
+        }
+
+        filtered.forEach(tim => {
+            const isSelected = selectedTim === tim.kode_tim;
+            const li = document.createElement('li');
+            li.className = 'cursor-pointer px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center justify-between ' + (isSelected ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+            li.innerHTML = `<span>${tim.nama_tim ?? '-'}</span>` + (isSelected ? '<svg class="w-3.5 h-3.5 text-[#faa938] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
+            li.onclick = () => pilihTim(tim);
+            list.appendChild(li);
+        });
     }
+
+    window.openDropdownTim = function () {
+        const dropdown = document.getElementById('dropdownTim');
+        const search = document.getElementById('searchTim');
+        if (!dropdown || !search) return;
+
+        renderDropdownTim(''); // Always render full list when opened
+        dropdown.classList.remove('hidden');
+        setTimeout(() => search.select(), 10);
+    };
 
     window.toggleDropdownTim = function () {
         const dropdown = document.getElementById('dropdownTim');
-        const search = document.getElementById('searchTim');
+        if (!dropdown) return;
 
-        if (!dropdown || !search) return;
-
-        dropdown.classList.toggle('hidden');
-        renderDropdownTim(search.value);
+        if (dropdown.classList.contains('hidden')) {
+            openDropdownTim();
+        } else {
+            dropdown.classList.add('hidden');
+        }
     };
 
     window.filterDropdownTim = function () {
@@ -758,6 +784,11 @@
 
         renderDropdownTim(search.value);
         dropdown.classList.remove('hidden');
+
+        const btnClear = document.getElementById('btnClearTim');
+        if (btnClear) {
+            search.value.trim() ? btnClear.classList.remove('hidden') : (selectedTim ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden'));
+        }
     };
 
     function pilihTim(tim) {
@@ -765,13 +796,33 @@
 
         const input = document.getElementById('searchTim');
         const dropdown = document.getElementById('dropdownTim');
+        const btnClear = document.getElementById('btnClearTim');
 
         if (input) input.value = tim ? tim.nama_tim : '';
         if (dropdown) dropdown.classList.add('hidden');
+        if (btnClear) {
+            selectedTim ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden');
+        }
 
         filterTabel();
         updateResetBtn();
     }
+
+    // Click outside to close and restore active label
+    document.addEventListener('click', (e) => {
+        const wrap = document.getElementById('wrapSearchTim');
+        const dropdown = document.getElementById('dropdownTim');
+        const search = document.getElementById('searchTim');
+        if (wrap && dropdown && search && !wrap.contains(e.target)) {
+            dropdown.classList.add('hidden');
+            if (selectedTim) {
+                const found = cachedTim.find(t => t.kode_tim === selectedTim);
+                if (found) search.value = found.nama_tim;
+            } else {
+                search.value = '';
+            }
+        }
+    });
 
     fetch('/lembur/tim')
         .then(response => response.json())

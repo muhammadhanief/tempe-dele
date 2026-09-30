@@ -80,19 +80,24 @@
             </div>
 
         {{-- Filter Pegawai --}}
-        <div class="relative w-full sm:w-[22rem]">
+        <div class="relative w-full sm:w-[22rem]" id="wrapSearchPegawai">
             <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
-                onclick="toggleDropdownPegawai()" oninput="filterDropdownPegawai()" autocomplete="off"
-                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-4 pr-8 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
+                onclick="openDropdownPegawai()" onfocus="openDropdownPegawai()" oninput="filterDropdownPegawai()" autocomplete="off"
+                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-4 pr-12 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
 
-            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3 text-gray-400">
-                    <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                </svg>
+            <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                <button type="button" id="btnClearPegawai" onclick="pilihPegawai(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter pegawai">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <button type="button" onclick="toggleDropdownPegawai()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar pegawai">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                        <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                    </svg>
+                </button>
             </div>
 
             <div id="dropdownPegawai"
-                class="absolute z-40 mt-1 hidden max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                class="absolute z-40 mt-1 hidden max-h-56 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
                 <ul id="listPegawai"></ul>
             </div>
         </div>
@@ -522,6 +527,7 @@ fetch('/ketua-tim/pengajuan/anggota')
             const emp = cachedAnggota.find(e => e.nip === activeNip);
             if (emp) {
                 document.getElementById('searchPegawai').value = `${emp.nama} (${emp.nip})`;
+                document.getElementById('btnClearPegawai')?.classList.remove('hidden');
             }
         }
         updateResetBtn();
@@ -538,32 +544,56 @@ function renderDropdownPegawai(filter = '') {
     list.innerHTML = '';
 
     const liSemua = document.createElement('li');
-    liSemua.className = 'cursor-pointer px-4 py-2 text-sm text-gray-400 hover:bg-gray-50';
-    liSemua.textContent = 'Semua anggota';
+    liSemua.className = 'cursor-pointer px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 flex items-center justify-between ' + (!activeNip ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+    liSemua.innerHTML = '<span>Semua anggota</span>' + (!activeNip ? '<svg class="w-4 h-4 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
     liSemua.onclick = () => pilihPegawai(null);
     list.appendChild(liSemua);
 
-    const keyword = filter.toLowerCase();
+    const keyword = (filter || '').toLowerCase().trim();
 
-    cachedAnggota
-        .filter(emp => `${emp.nama ?? ''} ${emp.nip ?? ''}`.toLowerCase().includes(keyword))
-        .forEach(emp => {
-            const li = document.createElement('li');
-            li.className = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-            li.textContent = `${emp.nama} (${emp.nip})`;
-            li.onclick = () => pilihPegawai(emp);
-            list.appendChild(li);
-        });
+    const filtered = cachedAnggota.filter(emp => {
+        if (!keyword) return true;
+        return `${emp.nama ?? ''} ${emp.nip ?? ''}`.toLowerCase().includes(keyword);
+    });
+
+    if (filtered.length === 0) {
+        const liEmpty = document.createElement('li');
+        liEmpty.className = 'px-4 py-3 text-xs text-gray-400 text-center';
+        liEmpty.textContent = 'Pegawai tidak ditemukan';
+        list.appendChild(liEmpty);
+        return;
+    }
+
+    filtered.forEach(emp => {
+        const isSelected = activeNip === emp.nip;
+        const li = document.createElement('li');
+        li.className = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between ' + (isSelected ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+        li.innerHTML = `<span>${emp.nama} (${emp.nip})</span>` + (isSelected ? '<svg class="w-4 h-4 text-[#faa938] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
+        li.onclick = () => pilihPegawai(emp);
+        list.appendChild(li);
+    });
 }
 
-window.toggleDropdownPegawai = function () {
+window.openDropdownPegawai = function () {
     const dropdown = document.getElementById('dropdownPegawai');
     const search = document.getElementById('searchPegawai');
 
     if (!dropdown || !search) return;
 
-    dropdown.classList.toggle('hidden');
-    renderDropdownPegawai(search.value);
+    renderDropdownPegawai(''); // Always render full list when opened
+    dropdown.classList.remove('hidden');
+    setTimeout(() => search.select(), 10);
+};
+
+window.toggleDropdownPegawai = function () {
+    const dropdown = document.getElementById('dropdownPegawai');
+    if (!dropdown) return;
+
+    if (dropdown.classList.contains('hidden')) {
+        openDropdownPegawai();
+    } else {
+        dropdown.classList.add('hidden');
+    }
 };
 
 window.filterDropdownPegawai = function () {
@@ -574,7 +604,28 @@ window.filterDropdownPegawai = function () {
 
     renderDropdownPegawai(search.value);
     dropdown.classList.remove('hidden');
+
+    const btnClear = document.getElementById('btnClearPegawai');
+    if (btnClear) {
+        search.value.trim() ? btnClear.classList.remove('hidden') : (activeNip ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden'));
+    }
 };
+
+// Close dropdown when clicked outside and restore active value if untouched
+document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('wrapSearchPegawai');
+    const dropdown = document.getElementById('dropdownPegawai');
+    const search = document.getElementById('searchPegawai');
+    if (wrap && dropdown && search && !wrap.contains(e.target)) {
+        dropdown.classList.add('hidden');
+        if (activeNip) {
+            const emp = cachedAnggota.find(emp => emp.nip === activeNip);
+            if (emp) search.value = `${emp.nama} (${emp.nip})`;
+        } else {
+            search.value = '';
+        }
+    }
+});
 
 function pilihPegawai(emp) {
     const params = new URLSearchParams(window.location.search);
