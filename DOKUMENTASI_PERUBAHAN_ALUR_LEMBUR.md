@@ -1347,4 +1347,17 @@ Seluruh teks dan rasio kontras warna divalidasi langsung menggunakan alat penguj
 - **Cache Blade**: `php artisan view:clear` dan `php artisan view:cache` berhasil tanpa kesalahan sintaks.
 - **Integritas Sistem**: Tidak ada sintaks PHP, rute Laravel, maupun logika bisnis yang terganggu.
 
+---
 
+## 18. Sinkronisasi Otomatis Kelayakan (`eligible`) pada Rekapitulasi Pegawai (`app/Http/Controllers/pegawai/RekapitulasiController.php`)
+
+### A. Latar Belakang Masalah
+1. Sebelumnya, method `koreksiUntukBulan` baru terpasang pada modul Admin (`admin/RekapitulasiController.php` dan `app/Exports/RekapitulasiExport.php`).
+2. Pada modul Pegawai (`app/Http/Controllers/pegawai/RekapitulasiController.php`), kueri langsung memfilter:
+   `->where('submitted_by_NIP', $nip)->where('status', 'approved')->where('eligible', 1)`.
+3. Jika pengajuan lembur pegawai telah disetujui (`status = 'approved'`) namun nilai `eligible`-nya masih `NULL` (karena belum dievaluasi oleh sistem), data tersebut tidak muncul di halaman rekapitulasi pegawai (`/rekapitulasi`).
+
+### B. Solusi & Perbaikan
+1. Mengintegrasikan trait `App\Traits\KoreksiLembur` pada `App\Http\Controllers\pegawai\RekapitulasiController`.
+2. Menambahkan pemanggilan `$this->koreksiUntukBulan((int) $tahun, (int) $bln);` sesaat sebelum mengeksekusi kueri rekapitulasi pegawai.
+3. *Hasil*: Begitu pegawai membuka menu `/rekapitulasi`, sistem secara otomatis menyapu (*sweep*) seluruh pengajuan `approved` pada bulan tersebut yang `eligible`-nya masih `NULL`, mengevaluasinya terhadap presensi riil, dan menampilkannya seketika pada tabel rekapitulasi.
