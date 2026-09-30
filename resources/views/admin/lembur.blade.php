@@ -203,228 +203,270 @@
         </div>
 
         {{-- Tabel --}}
-        <div class="w-full overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
-            <table class="min-w-[1180px] lg:min-w-full table-auto">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tl-xl w-32">
-                            <div class="inline-flex items-center justify-center gap-1.5 w-full">
-                                <span>Tanggal</span>
-                                <div class="relative inline-block text-left">
-                                    <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
-                                        class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
-                                        <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
-                                        <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
-                                        <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                                        </svg>
+        <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[1240px] table-auto divide-y divide-gray-200">
+                    <thead class="bg-gray-50/90 border-b border-gray-200">
+                        <tr>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl w-32">
+                                <div class="inline-flex items-center justify-center gap-1.5 w-full">
+                                    <span>Tanggal</span>
+                                    <div class="relative inline-block text-left">
+                                        <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                                            class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                            <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
+                                            <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                            <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                        </select>
+                                        <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Pegawai</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Jam Diajukan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Jam Disetujui</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize">Uraian Kegiatan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-36">Tim & Ketua</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-32">Status</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-20">Catatan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Dokumentasi</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tr-xl w-24">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-300" id="tabelLembur">
-                    @forelse($transaksi as $t)
-                        <tr class="bg-white transition-all duration-500 hover:bg-gray-50"
-                            data-tanggal="{{ $t->date }}"
-                            data-tim="{{ $t->tim_kode_tim }}"
-                            data-nip="{{ $t->submitted_by_NIP }}">
+                            </th>
+                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize w-44">Pegawai</th>
+                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize w-40">Tim &amp; Ketua</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-32">Jam Diajukan</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-32">Jam Disetujui</th>
+                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-36">Data Presensi</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-36">Status</th>
+                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize w-32">Catatan</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-24">Dokumentasi</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl w-24">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white" id="tabelLembur">
+                        @forelse($transaksi as $t)
+                            <tr class="transition-colors hover:bg-slate-50/80"
+                                data-tanggal="{{ $t->date }}"
+                                data-tim="{{ $t->tim_kode_tim }}"
+                                data-nip="{{ $t->submitted_by_NIP }}">
 
-                            <td class="px-2 py-2 text-xs text-gray-900">
-                                {{ \Carbon\Carbon::parse($t->date)->translatedFormat('d F Y') }}
-                            </td>
+                                <td class="px-3.5 py-3.5 text-xs text-gray-700 whitespace-nowrap text-center align-middle">
+                                    <span class="font-medium text-gray-900">{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}</span>
+                                </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left">
-                                <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $t->nama_pegawai ?? '-' }}</div>
-                                <div class="mt-0.5">
+                                <td class="px-3.5 py-3.5 text-xs text-left align-middle">
+                                    <div class="font-semibold text-gray-900 leading-snug">{{ $t->nama_pegawai ?? '-' }}</div>
+                                    <div class="text-[11px] font-mono text-gray-500 mt-0.5">{{ $t->submitted_by_NIP }}</div>
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-left align-middle">
+                                    <div class="font-medium text-gray-800 leading-snug max-w-[150px] break-words">{{ $t->nama_tim ?? '-' }}</div>
+                                    <div class="text-[11px] text-gray-500 mt-0.5">Ketua: <span class="text-gray-700">{{ $t->nama_ketua ?? '-' }}</span></div>
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
+                                    @if($t->jam_mulai && $t->jam_selesai)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] font-medium text-gray-700 bg-gray-50 border border-gray-200/80">
+                                            {{ substr($t->jam_mulai, 0, 5) }} &ndash; {{ substr($t->jam_selesai, 0, 5) }}
+                                        </span>
+                                    @elseif($t->jam_mulai)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-600 bg-gray-50 border border-gray-200/80">
+                                            {{ substr($t->jam_mulai, 0, 5) }} &ndash; <span class="text-gray-400 font-sans italic text-[10px] ml-1">menunggu</span>
+                                        </span>
+                                    @else
+                                        <span class="text-gray-300 font-mono">-</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
+                                    @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200/80">
+                                            {{ substr($t->jam_mulai_disetujui, 0, 5) }} &ndash; {{ substr($t->jam_selesai_disetujui, 0, 5) }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-300 font-mono">-</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-gray-800 group relative align-middle">
+                                    {{-- Mode tampil --}}
+                                    <div class="flex items-start gap-1.5" id="view-{{ $t->id_transaksi }}">
+                                        <div class="flex-1 max-w-[240px] whitespace-normal break-words leading-relaxed text-gray-700">
+                                            {{ $t->uraian ?? '-' }}
+                                        </div>
+                                        <button type="button"
+                                            onclick="startEditUraian({{ $t->id_transaksi }})"
+                                            class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-amber-500 rounded p-0.5 transition-all duration-150 cursor-pointer"
+                                            title="Edit uraian cepat">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    {{-- Mode edit --}}
+                                    <div class="hidden" id="edit-{{ $t->id_transaksi }}">
+                                        <textarea
+                                            id="textarea-{{ $t->id_transaksi }}"
+                                            rows="3"
+                                            maxlength="2000"
+                                            class="w-full text-xs border border-[#faa938] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#faa938] resize-y text-gray-800"
+                                            placeholder="Isi uraian kegiatan...">{{ $t->uraian }}</textarea>
+                                        <div class="flex gap-1.5 mt-1 justify-end">
+                                            <button type="button"
+                                                onclick="cancelEditUraian({{ $t->id_transaksi }})"
+                                                class="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:bg-gray-50">
+                                                Batal
+                                            </button>
+                                            <button type="button"
+                                                onclick="submitEditUraian({{ $t->id_transaksi }})"
+                                                class="text-xs px-2 py-0.5 rounded border border-[#faa938] text-orange-500 hover:bg-amber-50">
+                                                Simpan
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                {{-- Kolom Data Presensi (Lihat Presensi) --}}
+                                <td class="px-3.5 py-3.5 text-center whitespace-nowrap align-middle">
                                     @if($t->has_presensi)
                                         <button type="button"
                                             onclick="openModalPresensiAdmin({{ $t->id_transaksi }})"
-                                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
-                                            title="Klik untuk melihat detail presensi pegawai">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            <span>Presensi: {{ $t->jam_selesai_presensi ? 'Pulang ' . $t->jam_selesai_presensi : 'Ada' }}</span>
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer shadow-2xs group"
+                                            title="Presensi Pulang: {{ $t->jam_selesai_presensi ?? '-' }} • Klik untuk rincian">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span>Lihat Presensi</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                                            </svg>
                                         </button>
                                     @else
-                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-gray-50 text-gray-400 border border-gray-200"
-                                            title="Data presensi pegawai pada tanggal ini belum tersedia di sistem">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] text-gray-400 bg-gray-50 border border-gray-200/60">
                                             <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                                             <span>Belum Presensi</span>
                                         </span>
                                     @endif
-                                </div>
-                            </td>
+                                </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-center">
-                                @if($t->jam_mulai && $t->jam_selesai)
-                                    {{ substr($t->jam_mulai, 0, 5) }} - {{ substr($t->jam_selesai, 0, 5) }}
-                                @elseif($t->jam_mulai)
-                                    {{ substr($t->jam_mulai, 0, 5) }} - <span class="text-gray-400 italic">menunggu</span>
-                                @else
-                                    -
-                                @endif
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 text-center">
-                                @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
-                                    {{ substr($t->jam_mulai_disetujui, 0, 5) }} - {{ substr($t->jam_selesai_disetujui, 0, 5) }}
-                                @else
-                                    -
-                                @endif
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 group relative">
-                                {{-- Mode tampil --}}
-                                <div class="flex items-start gap-1" id="view-{{ $t->id_transaksi }}">
-                                    <span class="flex-1">{{ $t->uraian ?? '-' }}</span>
-                                    <button type="button"
-                                        onclick="startEditUraian({{ $t->id_transaksi }})"
-                                        class="flex-shrink-0 invisible group-hover:visible text-gray-300 hover:text-amber-500 rounded-full p-1.5 transition-all duration-150"
-                                        title="Edit uraian">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/>
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {{-- Mode edit --}}
-                                <div class="hidden" id="edit-{{ $t->id_transaksi }}">
-                                    <textarea
-                                        id="textarea-{{ $t->id_transaksi }}"
-                                        rows="4"
-                                        maxlength="2000"
-                                        class="w-full text-xs border border-[#faa938] rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#faa938] resize-y text-gray-800"
-                                        placeholder="Isi uraian kegiatan...">{{ $t->uraian }}</textarea>
-                                    <div class="flex gap-1.5 mt-1 justify-end">
-                                        <button type="button"
-                                            onclick="cancelEditUraian({{ $t->id_transaksi }})"
-                                            class="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:bg-gray-50">
-                                            Batal
-                                        </button>
-                                        <button type="button"
-                                            onclick="submitEditUraian({{ $t->id_transaksi }})"
-                                            class="text-xs px-2 py-0.5 rounded border border-[#faa938] text-orange-500 hover:bg-amber-50">
-                                            Simpan
-                                        </button>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td class="px-2.5 py-2 text-xs text-gray-900 text-left">
-                                <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $t->nama_tim ?? '-' }}</div>
-                                <div class="text-[11px] text-gray-500 mt-0.5">Ketua: {{ $t->nama_ketua ?? '-' }}</div>
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 text-center" id="status-cell-{{ $t->id_transaksi }}">
-                                @if($t->status === 'pending')
-                                    <span class="bg-amber-100 rounded-full px-2.5 text-xs text-amber-700 py-0.5 whitespace-nowrap font-medium">Menunggu Ketua</span>
-                                @elseif($t->status === 'menunggu_kabag')
-                                    <span class="bg-blue-100 rounded-full px-2.5 text-xs text-blue-700 py-0.5 whitespace-nowrap font-medium">Menunggu Kabag</span>
-                                @elseif($t->status === 'approved')
-                                    <span class="bg-emerald-100 rounded-full px-2.5 text-xs text-emerald-700 py-0.5 whitespace-nowrap font-medium">Disetujui</span>
-                                @elseif($t->status === 'rejected')
-                                    <span class="bg-rose-100 rounded-full px-2.5 text-xs text-rose-700 py-0.5 whitespace-nowrap font-medium">Ditolak</span>
-                                @elseif($t->status === 'cancelled')
-                                    <span class="bg-gray-100 rounded-full px-2.5 text-xs text-gray-700 py-0.5 whitespace-nowrap font-medium border border-gray-300">Dibatalkan</span>
-                                @else
-                                    <span class="text-gray-400 text-xs">-</span>
-                                @endif
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left" id="note-cell-{{ $t->id_transaksi }}">
-                                {{ $t->note ?? '-' }}
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-center">
-                                @if($t->status === 'approved')
-                                    @if($t->file_dokumentasi)
-                                        <div class="flex items-center justify-center gap-2">
-                                            <a href="{{ $t->file_dokumentasi }}" target="_blank"
-                                                class="inline-flex items-center gap-1 text-blue-500 hover:text-blue-700 underline">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                                </svg>
-                                                Lihat
-                                            </a>
-                                            @if($t->submitted_by_NIP === session('user')['nip'])
-                                                <form action="{{ route('admin.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
-                                                    onsubmit="return confirm('Hapus dokumentasi ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-400 hover:text-red-600">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                        </svg>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
+                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle" id="status-cell-{{ $t->id_transaksi }}">
+                                    @if($t->status === 'pending')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            <span>Menunggu Ketua</span>
+                                        </span>
+                                    @elseif($t->status === 'menunggu_kabag')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                            <span>Menunggu Kabag</span>
+                                        </span>
+                                    @elseif($t->status === 'approved')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span>Disetujui</span>
+                                        </span>
+                                    @elseif($t->status === 'rejected')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                            <span>Ditolak</span>
+                                        </span>
+                                    @elseif($t->status === 'cancelled')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                            <span>Dibatalkan</span>
+                                        </span>
                                     @else
-                                        @if($t->submitted_by_NIP === session('user')['nip'])
-                                            <button type="button"
-                                                onclick="openModalDok({{ $t->id_transaksi }})"
-                                                class="text-[#faa938] hover:text-[#fd9a10] text-xs underline">
-                                                + Tambah
-                                            </button>
-                                        @else
-                                            <span class="text-gray-300">-</span>
-                                        @endif
+                                        <span class="text-gray-300 text-xs">-</span>
                                     @endif
-                                @else
-                                    <span class="text-gray-300">-</span>
-                                @endif
-                            </td>
+                                </td>
 
-                            <td class="px-2 py-2 text-center text-xs whitespace-nowrap" id="aksi-cell-{{ $t->id_transaksi }}">
-                                @if($t->status !== 'cancelled')
-                                    <button type="button"
-                                        onclick="openModalBatalAdmin({{ $t->id_transaksi }}, {{ json_encode($t->nama_pegawai ?? '-') }}, '{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}')"
-                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer"
-                                        title="Batalkan pengajuan ini">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                        <span>Batal</span>
-                                    </button>
-                                @else
-                                    <span class="text-gray-400 text-xs italic">Dibatalkan</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="10" class="px-3 py-10 text-center">
-                                <div class="flex flex-col items-center justify-center gap-1.5 text-gray-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                    <span class="text-sm font-medium text-gray-500">Tidak ada pengajuan lembur yang sesuai.</span>
-                                    @if(request()->hasAny(['tanggal', 'bulan', 'tim', 'nip', 'status']))
-                                        <a href="{{ route('admin.lembur') }}" class="text-xs text-[#faa938] hover:underline font-semibold mt-1">
-                                            Reset semua filter
-                                        </a>
+                                <td class="px-3.5 py-3.5 text-xs text-gray-600 text-left max-w-[140px] break-words align-middle" id="note-cell-{{ $t->id_transaksi }}">
+                                    @if(!empty($t->note))
+                                        <span class="italic text-gray-600 leading-relaxed">{{ $t->note }}</span>
+                                    @else
+                                        <span class="text-gray-300">-</span>
                                     @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
+                                    @if($t->status === 'approved')
+                                        @if($t->file_dokumentasi)
+                                            <div class="inline-flex items-center justify-center gap-1.5">
+                                                <a href="{{ $t->file_dokumentasi }}" target="_blank"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200/80 hover:bg-blue-100 hover:text-blue-800 transition-colors shadow-2xs">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                                    </svg>
+                                                    <span>Lihat</span>
+                                                </a>
+                                                @if($t->submitted_by_NIP === session('user')['nip'])
+                                                    <form action="{{ route('admin.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
+                                                        onsubmit="return confirm('Hapus dokumentasi ini?')" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="p-1 text-gray-400 hover:text-red-600 rounded transition-colors" title="Hapus dokumentasi">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        @else
+                                            @if($t->submitted_by_NIP === session('user')['nip'])
+                                                <button type="button"
+                                                    onclick="openModalDok({{ $t->id_transaksi }})"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200/80 hover:bg-amber-100 transition-colors shadow-2xs">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                                    </svg>
+                                                    <span>Unggah</span>
+                                                </button>
+                                            @else
+                                                <span class="text-gray-300">-</span>
+                                            @endif
+                                        @endif
+                                    @else
+                                        <span class="text-gray-300">-</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-center text-xs whitespace-nowrap align-middle" id="aksi-cell-{{ $t->id_transaksi }}">
+                                    @if($t->status !== 'cancelled')
+                                        <button type="button"
+                                            onclick="openModalAksiAdmin({{ $t->id_transaksi }}, {{ json_encode($t->nama_pegawai ?? '-') }}, '{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}', {{ json_encode($t->uraian ?? '') }})"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs transition-all cursor-pointer group"
+                                            title="Kelola & Aksi Pengajuan">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 group-hover:text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                                            </svg>
+                                            <span>Aksi</span>
+                                        </button>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-400 bg-gray-50 border border-gray-200/60 italic">Dibatalkan</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="11" class="px-4 py-16 text-center">
+                                    <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-[#faa938] mb-3 border border-amber-100/80 shadow-xs">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                        </div>
+                                        <h3 class="text-sm font-bold text-gray-900 mb-1">Tidak Ada Pengajuan Lembur</h3>
+                                        <p class="text-xs text-gray-500 mb-3 text-center leading-relaxed">
+                                            Tidak ada data pengajuan lembur yang sesuai dengan kriteria filter saat ini.
+                                        </p>
+                                        @if(request()->hasAny(['tanggal', 'bulan', 'tim', 'nip', 'status']))
+                                            <a href="{{ route('admin.lembur') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-2xs transition-all">
+                                                Reset Semua Filter
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-5">
@@ -542,9 +584,9 @@
     </div>
 </div>
 
-{{-- MODAL BATALKAN PENGAJUAN (ADMIN) --}}
-<div id="modalBatalAdmin" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalBatalAdmin()"></div>
+{{-- MODAL AKSI & KELOLA PENGAJUAN (ADMIN) --}}
+<div id="modalAksiAdmin" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalAksiAdmin()"></div>
 
     <div class="relative flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] overflow-y-auto">
@@ -554,61 +596,112 @@
             </div>
 
             <div class="flex items-center justify-between border-b px-4 sm:px-6 py-4 sticky top-0 bg-white z-10">
-                <div class="flex items-center gap-2 text-rose-600">
-                    <div class="p-1.5 bg-rose-100 rounded-lg">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-1.5 bg-amber-50 text-[#faa938] border border-amber-200 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                         </svg>
                     </div>
-                    <h2 class="text-base font-bold text-gray-900">Batalkan Pengajuan Lembur</h2>
+                    <div>
+                        <h2 class="text-sm sm:text-base font-bold text-gray-900">Kelola Pengajuan Lembur</h2>
+                        <p class="text-xs text-gray-500 mt-0.5" id="aksiSubtitleAdmin">-</p>
+                    </div>
                 </div>
-                <button type="button" onclick="closeModalBatalAdmin()"
-                    class="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                <button type="button" onclick="closeModalAksiAdmin()"
+                    class="text-gray-400 hover:text-gray-600 text-xl leading-none cursor-pointer">
                     &times;
                 </button>
             </div>
 
-            <form id="formBatalAdmin" onsubmit="submitBatalAdmin(event)" class="px-4 sm:px-6 py-5 space-y-4">
-                @csrf
+            <div class="px-4 sm:px-6 py-4 space-y-4">
+                <input type="hidden" id="aksiIdTransaksi" value="">
                 <input type="hidden" id="batalIdTransaksi" value="">
 
-                <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-xs text-rose-900">
-                    <p class="font-medium text-rose-800">
-                        Anda akan membatalkan pengajuan lembur:
-                    </p>
-                    <div class="grid grid-cols-3 gap-1 pt-1 text-gray-700">
-                        <span class="text-gray-500">Pegawai:</span>
-                        <span class="col-span-2 font-semibold text-gray-900" id="batalNamaPegawai">-</span>
-                        <span class="text-gray-500">Tanggal:</span>
-                        <span class="col-span-2 font-semibold text-gray-900" id="batalTanggal">-</span>
+                {{-- Tab Navigasi Aksi --}}
+                <div class="flex border-b border-gray-200 gap-2">
+                    <button type="button" id="tabBtnEditUraian" onclick="switchAksiTab('edit')"
+                        class="pb-2.5 px-3 text-xs font-semibold border-b-2 border-[#faa938] text-gray-900 transition-colors cursor-pointer flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        <span>Edit Uraian</span>
+                    </button>
+                    <button type="button" id="tabBtnBatalPengajuan" onclick="switchAksiTab('batal')"
+                        class="pb-2.5 px-3 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span>Batalkan Pengajuan</span>
+                    </button>
+                </div>
+
+                {{-- PANEL 1: EDIT URAIAN --}}
+                <div id="panelEditUraian" class="space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="aksiUraianInput" class="block text-xs font-semibold text-gray-800">
+                                Uraian Kegiatan Lembur
+                            </label>
+                            <span id="aksiUraianCounter" class="text-[11px] text-gray-400">0 / 2000</span>
+                        </div>
+                        <textarea id="aksiUraianInput" rows="4" maxlength="2000"
+                            class="w-full rounded-xl border border-gray-300 p-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 resize-y transition-all"
+                            placeholder="Tulis uraian kegiatan lembur..."></textarea>
+                        <p id="aksiUraianError" class="text-xs text-rose-600 mt-1 hidden"></p>
                     </div>
-                    <p class="text-[11px] text-rose-700/90 pt-1 leading-relaxed">
-                        Pengajuan ini akan diubah statusnya menjadi <b>Dibatalkan</b> dan jam lembur tidak akan dihitung pada rekapitulasi/uang lembur. Data tetap tersimpan rapi untuk histori audit.
-                    </p>
+
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 border-t">
+                        <button type="button" onclick="closeModalAksiAdmin()"
+                            class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">
+                            Tutup
+                        </button>
+                        <button type="button" onclick="submitAksiEditUraian()" id="btnSubmitEditUraian"
+                            class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Simpan Uraian</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div>
-                    <label for="batalAlasan" class="block text-xs font-semibold text-gray-800 mb-1.5">
-                        Alasan Pembatalan <span class="text-rose-500">*</span>
-                    </label>
-                    <textarea id="batalAlasan" name="alasan" rows="3" required
-                        placeholder="Contoh: Dobel input pengajuan lembur / Salah input tanggal pengajuan"
-                        class="w-full rounded-xl border border-gray-300 p-3 text-xs text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"></textarea>
-                    <p id="batalAlasanError" class="text-xs text-rose-600 mt-1 hidden"></p>
+                {{-- PANEL 2: BATALKAN PENGAJUAN --}}
+                <div id="panelBatalPengajuan" class="space-y-4 hidden">
+                    <form id="formBatalAdmin" onsubmit="submitBatalAdmin(event)" class="space-y-4">
+                        @csrf
+                        <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-xs text-rose-900">
+                            <p class="font-medium text-rose-800">
+                                Fitur ini digunakan jika pengajuan lembur salah tanggal atau dobel input:
+                            </p>
+                            <p class="text-[11px] text-rose-700/90 leading-relaxed">
+                                Pengajuan akan diubah statusnya menjadi <b>Dibatalkan</b> dan tidak akan masuk dalam perhitungan lembur/keuangan. Riwayat pengajuan tetap tersimpan untuk transparansi.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="batalAlasan" class="block text-xs font-semibold text-gray-800 mb-1.5">
+                                Alasan Pembatalan <span class="text-rose-500">*</span>
+                            </label>
+                            <textarea id="batalAlasan" name="alasan" rows="3" required
+                                placeholder="Contoh: Dobel input pengajuan lembur / Salah input tanggal pengajuan"
+                                class="w-full rounded-xl border border-gray-300 p-3 text-xs text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"></textarea>
+                            <p id="batalAlasanError" class="text-xs text-rose-600 mt-1 hidden"></p>
+                        </div>
+
+                        <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 border-t">
+                            <button type="button" onclick="closeModalAksiAdmin()"
+                                class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">
+                                Tutup
+                            </button>
+                            <button type="submit" id="btnSubmitBatalAdmin"
+                                class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-rose-600/20 cursor-pointer">
+                                <span>Ya, Batalkan Pengajuan</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 border-t">
-                    <button type="button" onclick="closeModalBatalAdmin()"
-                        class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all">
-                        Tutup
-                    </button>
-
-                    <button type="submit" id="btnSubmitBatalAdmin"
-                        class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-rose-600/20">
-                        <span>Ya, Batalkan Pengajuan</span>
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -1400,29 +1493,94 @@
     };
 
     // =====================
-    // MODAL BATALKAN PENGAJUAN (ADMIN)
+    // MODAL AKSI & KELOLA PENGAJUAN (ADMIN)
     // =====================
-    window.openModalBatalAdmin = function (idTransaksi, namaPegawai, tanggal) {
+    window.switchAksiTab = function (tab) {
+        const tabEdit = document.getElementById('tabBtnEditUraian');
+        const tabBatal = document.getElementById('tabBtnBatalPengajuan');
+        const panelEdit = document.getElementById('panelEditUraian');
+        const panelBatal = document.getElementById('panelBatalPengajuan');
+
+        if (tab === 'edit') {
+            tabEdit.className = 'pb-2.5 px-3 text-xs font-semibold border-b-2 border-[#faa938] text-gray-900 transition-colors cursor-pointer flex items-center gap-1.5';
+            tabBatal.className = 'pb-2.5 px-3 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1.5';
+            panelEdit.classList.remove('hidden');
+            panelBatal.classList.add('hidden');
+        } else {
+            tabBatal.className = 'pb-2.5 px-3 text-xs font-semibold border-b-2 border-rose-500 text-rose-600 transition-colors cursor-pointer flex items-center gap-1.5';
+            tabEdit.className = 'pb-2.5 px-3 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition-colors cursor-pointer flex items-center gap-1.5';
+            panelBatal.classList.remove('hidden');
+            panelEdit.classList.add('hidden');
+            setTimeout(() => document.getElementById('batalAlasan').focus(), 50);
+        }
+    };
+
+    window.openModalAksiAdmin = function (idTransaksi, namaPegawai, tanggal, uraian) {
+        document.getElementById('aksiIdTransaksi').value = idTransaksi;
         document.getElementById('batalIdTransaksi').value = idTransaksi;
-        document.getElementById('batalNamaPegawai').textContent = namaPegawai || '-';
-        document.getElementById('batalTanggal').textContent = tanggal || '-';
+        document.getElementById('aksiSubtitleAdmin').textContent = `${namaPegawai || '-'} • ${tanggal || '-'}`;
+
+        const uraianInput = document.getElementById('aksiUraianInput');
+        uraianInput.value = uraian || '';
+        document.getElementById('aksiUraianCounter').textContent = `${(uraian || '').length} / 2000`;
+        document.getElementById('aksiUraianError').classList.add('hidden');
+
         document.getElementById('batalAlasan').value = '';
         document.getElementById('batalAlasanError').classList.add('hidden');
-        document.getElementById('batalAlasanError').textContent = '';
-        
-        const btnSubmit = document.getElementById('btnSubmitBatalAdmin');
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = '<span>Ya, Batalkan Pengajuan</span>';
 
-        document.getElementById('modalBatalAdmin').classList.remove('hidden');
+        const btnSubmitBatal = document.getElementById('btnSubmitBatalAdmin');
+        btnSubmitBatal.disabled = false;
+        btnSubmitBatal.innerHTML = '<span>Ya, Batalkan Pengajuan</span>';
+
+        const btnSubmitEdit = document.getElementById('btnSubmitEditUraian');
+        btnSubmitEdit.disabled = false;
+        btnSubmitEdit.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Simpan Uraian</span>
+        `;
+
+        switchAksiTab('edit');
+
+        document.getElementById('modalAksiAdmin').classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
-        setTimeout(() => document.getElementById('batalAlasan').focus(), 100);
     };
 
-    window.closeModalBatalAdmin = function () {
-        document.getElementById('modalBatalAdmin').classList.add('hidden');
+    window.closeModalAksiAdmin = function () {
+        document.getElementById('modalAksiAdmin').classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
+
+    // Alias backward-compatibility
+    window.openModalBatalAdmin = function (idTransaksi, namaPegawai, tanggal) {
+        openModalAksiAdmin(idTransaksi, namaPegawai, tanggal, '');
+        switchAksiTab('batal');
+    };
+    window.closeModalBatalAdmin = window.closeModalAksiAdmin;
+
+    window.submitAksiEditUraian = function () {
+        const id = document.getElementById('aksiIdTransaksi').value;
+        const uraian = document.getElementById('aksiUraianInput').value.trim();
+        const errorEl = document.getElementById('aksiUraianError');
+
+        if (!uraian) {
+            errorEl.textContent = 'Uraian kegiatan wajib diisi.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        const base = "{{ url('admin/lembur') }}";
+        const form = document.getElementById('formEditUraian');
+        form.action = `${base}/${id}/uraian`;
+        document.getElementById('inputUraian').value = uraian;
+        form.submit();
+    };
+
+    document.getElementById('aksiUraianInput')?.addEventListener('input', function () {
+        const counter = document.getElementById('aksiUraianCounter');
+        if (counter) counter.textContent = `${this.value.length} / 2000`;
+    });
 
     window.submitBatalAdmin = async function (e) {
         e.preventDefault();
@@ -1469,20 +1627,20 @@
 
             const statusCell = document.getElementById(`status-cell-${id}`);
             if (statusCell) {
-                statusCell.innerHTML = `<span class="bg-gray-100 rounded-full px-2.5 text-xs text-gray-700 py-0.5 whitespace-nowrap font-medium border border-gray-300">Dibatalkan</span>`;
+                statusCell.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200"><span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span><span>Dibatalkan</span></span>`;
             }
 
             const noteCell = document.getElementById(`note-cell-${id}`);
             if (noteCell) {
-                noteCell.textContent = data.note || `[Dibatalkan Admin] ${alasan}`;
+                noteCell.innerHTML = `<span class="italic text-gray-600 leading-relaxed">${data.note || `[Dibatalkan Admin] ${alasan}`}</span>`;
             }
 
             const aksiCell = document.getElementById(`aksi-cell-${id}`);
             if (aksiCell) {
-                aksiCell.innerHTML = `<span class="text-gray-400 text-xs italic">Dibatalkan</span>`;
+                aksiCell.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-400 bg-gray-50 border border-gray-200/60 italic">Dibatalkan</span>`;
             }
 
-            closeModalBatalAdmin();
+            closeModalAksiAdmin();
 
             const alertBox = document.createElement('div');
             alertBox.className = 'fixed bottom-5 right-5 z-50 bg-emerald-600 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all duration-300';

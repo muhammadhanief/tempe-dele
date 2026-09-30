@@ -33,23 +33,23 @@
     <div class="rounded-2xl bg-gray-50 p-5">
       <p class="text-xs text-gray-500 mb-2">Total pengajuan</p>
       <p class="text-3xl font-semibold text-gray-900">{{ $stats['total'] }}</p>
-      <p class="mt-1 text-xs text-gray-400">Bulan ini</p>
+      <p class="mt-1 text-xs text-slate-500">Bulan ini</p>
     </div>
     <div class="rounded-2xl bg-gray-50 p-5 cursor-pointer hover:bg-yellow-50 hover:ring-2 hover:ring-yellow-300 transition"
         onclick="bukaModalPending()">
       <p class="text-xs text-gray-500 mb-2">Diproses</p>
       <p class="text-3xl font-semibold text-yellow-700" id="cardDiproses">{{ $stats['diproses'] }}</p>
-      <p class="mt-1 text-xs text-gray-400">Menunggu review · klik untuk lihat</p>
+      <p class="mt-1 text-xs text-slate-500">Menunggu review · klik untuk lihat</p>
     </div>
     <div class="rounded-2xl bg-gray-50 p-5">
       <p class="text-xs text-gray-500 mb-2">Disetujui</p>
       <p class="text-3xl font-semibold text-green-700">{{ $stats['disetujui'] }}</p>
-      <p class="mt-1 text-xs text-gray-400">Pengajuan bulan ini</p>
+      <p class="mt-1 text-xs text-slate-500">Pengajuan bulan ini</p>
     </div>
     <div class="rounded-2xl bg-gray-50 p-5">
       <p class="text-xs text-gray-500 mb-2">Ditolak</p>
       <p class="text-3xl font-semibold text-red-700">{{ $stats['ditolak'] }}</p>
-      <p class="mt-1 text-xs text-gray-400">Pengajuan bulan ini</p>
+      <p class="mt-1 text-xs text-slate-500">Pengajuan bulan ini</p>
     </div>
   </div>
 
@@ -66,11 +66,11 @@
             <h2 class="text-lg font-semibold">Lembur hari ini</h2>
             <p class="mt-1 text-sm text-gray-600">
               {{ now()->translatedFormat('l, d F Y') }}
-              &mdash; {{ $lemburHariIni->count() }} karyawan
+               - {{ $lemburHariIni->count() }} pegawai
             </p>
           </div>
           <a href="{{ route('admin.daftar_hadir') }}"
-             class="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold border border-black/15 hover:bg-gray-50">
+             class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold border border-black/15 hover:bg-gray-50">
             Lihat semua
           </a>
         </div>
@@ -103,7 +103,7 @@
               </div>
             </div>
           @empty
-            <div class="p-5 text-sm text-gray-400 text-center">
+            <div class="p-5 text-sm text-slate-500 font-medium text-center">
               Tidak ada pengajuan lembur hari ini.
             </div>
           @endforelse
@@ -183,11 +183,11 @@
               </span>
               <div>
                 <p class="text-sm text-gray-800">{{ $notif['pesan'] }}</p>
-                <p class="mt-0.5 text-xs text-gray-400">{{ $notif['waktu'] }}</p>
+                <p class="mt-0.5 text-xs text-slate-500">{{ $notif['waktu'] }}</p>
               </div>
             </div>
           @empty
-            <div class="p-5 text-sm text-gray-400 text-center">
+            <div class="p-5 text-sm text-slate-500 font-medium text-center">
               Semua sudah beres!
             </div>
           @endforelse
