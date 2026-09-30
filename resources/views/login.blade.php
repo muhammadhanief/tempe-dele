@@ -20,10 +20,10 @@
 
         {{-- Left Illustration --}}
         <section class="hidden items-center justify-center bg-slate-50 px-10 py-12 lg:flex">
-            <div class="w-full max-w-xl">
+            <div class="w-full max-w-xl flex items-center justify-center">
                 <img src="{{ asset('images/login.jpg') }}"
                      alt="Ilustrasi TEMPE DELE"
-                     class="w-full object-contain scale-125">
+                     class="w-full h-auto max-h-[460px] object-contain rounded-2xl">
             </div>
         </section>
 
@@ -98,7 +98,8 @@
 
                             <button type="button"
                                     onclick="togglePassword()"
-                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700">
+                                    aria-label="Tampilkan atau sembunyikan kata sandi"
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-800">
 
                                 {{-- Eye --}}
                                 <svg id="iconShow" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -120,11 +121,7 @@
                     </div>
 
                     <button type="submit"
-                            class="inline-flex w-full items-center justify-center rounded-xl bg-[#fd9a10] px-5 py-3 text-sm font-semibold text-white
-                                   shadow-[0_4px_14px_rgba(253,154,16,0.35)]
-                                   transition-all duration-300
-                                   hover:-translate-y-0.5 hover:bg-[#f6960f] hover:shadow-[0_6px_20px_rgba(253,154,16,0.45)]
-                                   active:translate-y-0">
+                            class="inline-flex w-full items-center justify-center rounded-xl bg-[#fd9a10] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#e08507] hover:shadow-md active:translate-y-0">
                         Masuk
                     </button>
                 </form>
@@ -132,46 +129,46 @@
                 @if (app()->isLocal())
                     <div class="mt-6 pt-5 border-t border-slate-200">
                         <div class="flex items-center justify-between mb-2.5">
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">⚡ Testing Auto-Login</span>
-                            <span class="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">Dev Mode</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Testing Auto-Login</span>
+                            <span class="text-[10px] bg-amber-100 text-amber-900 font-semibold px-2 py-0.5 rounded-md">Dev Mode</span>
                         </div>
 
                         <div class="space-y-3 text-xs">
                             {{-- Admin & Superadmin --}}
                             <div>
-                                <span class="text-[10px] font-semibold text-slate-500 block mb-1">👑 Admin & Superadmin (Monitoring & Pengelolaan):</span>
+                                <span class="text-[10px] font-semibold text-slate-600 block mb-1">Admin & Superadmin:</span>
                                 <div class="grid grid-cols-2 gap-1.5">
                                     <a href="{{ route('dev.login', 'superadmin') }}"
-                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-900 hover:bg-purple-100 transition-colors font-semibold">
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-semibold">
                                         <span>Super Admin</span>
-                                        <span class="text-[10px] bg-purple-200 px-1.5 py-0.5 rounded text-purple-900 font-bold">&rarr;</span>
+                                        <span class="text-[10px] text-slate-500 font-medium">Buka</span>
                                     </a>
                                     <a href="{{ route('dev.login', 'admin') }}"
-                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-900 hover:bg-rose-100 transition-colors font-semibold">
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-semibold">
                                         <span>Admin Lembur</span>
-                                        <span class="text-[10px] bg-rose-200 px-1.5 py-0.5 rounded text-rose-900 font-bold">&rarr;</span>
+                                        <span class="text-[10px] text-slate-500 font-medium">Buka</span>
                                     </a>
                                 </div>
                             </div>
 
                             {{-- Kabag Umum --}}
                             <div>
-                                <span class="text-[10px] font-semibold text-slate-500 block mb-1">🏛️ Kabag Umum:</span>
+                                <span class="text-[10px] font-semibold text-slate-600 block mb-1">Kepala Bagian Umum:</span>
                                 <a href="{{ route('dev.login', '197106131993121001') }}"
-                                   class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-900 hover:bg-indigo-100 transition-colors font-medium">
+                                   class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-medium">
                                     <span>Joko Suwarjo (Kabag Umum)</span>
-                                    <span class="text-[10px] bg-indigo-200 px-1.5 py-0.5 rounded text-indigo-900 font-bold">Masuk &rarr;</span>
+                                    <span class="text-[10px] text-slate-500 font-medium">Buka</span>
                                 </a>
                             </div>
 
                             {{-- Tim SID --}}
                             <div>
-                                <span class="text-[10px] font-semibold text-slate-500 block mb-1">🌐 Tim SID (Alur Bertingkat):</span>
+                                <span class="text-[10px] font-semibold text-slate-600 block mb-1">Tim SID (Alur Bertingkat):</span>
                                 <div class="space-y-1.5">
                                     <a href="{{ route('dev.login', '197703081999011001') }}"
-                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 hover:bg-blue-100 transition-colors font-medium">
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-medium">
                                         <span>Sumbodo Aji (Ketua Tim SID)</span>
-                                        <span class="text-[10px] bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 font-bold">Masuk &rarr;</span>
+                                        <span class="text-[10px] text-slate-500 font-medium">Buka</span>
                                     </a>
                                     <div class="grid grid-cols-3 gap-1.5">
                                         <a href="{{ route('dev.login', '198907112010122003') }}"

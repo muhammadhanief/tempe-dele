@@ -173,7 +173,7 @@
 
                         <td class="px-2 py-2 text-xs text-gray-900">
                             <div class="font-medium">{{ $p->nama_pegawai }}</div>
-                            <div class="text-xs text-gray-400">{{ $p->nip_pegawai }}</div>
+                            <div class="text-xs text-slate-500">{{ $p->nip_pegawai }}</div>
                         </td>
 
                         <td class="px-2 py-2 text-xs text-gray-900 text-left">
@@ -206,7 +206,7 @@
                         <td class="px-2 py-2 text-center">
                             <button type="button" onclick="openModalPresensi({{ $p->id_transaksi }})"
                                 class="inline-flex items-center justify-center gap-1 text-xs font-medium cursor-pointer
-                                {{ $p->has_presensi ? 'text-green-600 underline' : 'text-gray-400' }}">
+                                {{ $p->has_presensi ? 'text-green-600 underline' : 'text-slate-500' }}">
                                 {{ $p->has_presensi ? 'Informasi tersedia' : 'Tidak ada informasi' }}
 
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -221,7 +221,7 @@
                                     <span class="bg-green-100 rounded-full px-2 text-xs text-green-700 py-0.5">Disetujui</span>
                                     <button type="button"
                                         onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'approved')"
-                                        class="text-gray-400 cursor-pointer hover:text-gray-600" title="Koreksi">
+                                        class="text-slate-500 cursor-pointer hover:text-slate-800" title="Koreksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
@@ -232,7 +232,7 @@
                                     <span class="bg-blue-100 rounded-full px-2 text-xs text-blue-700 py-0.5">Menunggu Kabag</span>
                                     <button type="button"
                                         onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'approved')"
-                                        class="text-blue-500 cursor-pointer hover:text-blue-700" title="Proses / Setujui">
+                                        class="text-blue-600 cursor-pointer hover:text-blue-800" title="Proses / Setujui">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
@@ -243,7 +243,7 @@
                                     <span class="bg-red-100 rounded-full px-2 text-xs text-red-700 py-0.5">Ditolak</span>
                                     <button type="button"
                                         onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'rejected')"
-                                        class="text-gray-400 cursor-pointer hover:text-gray-600" title="Lihat / Koreksi">
+                                        class="text-slate-500 cursor-pointer hover:text-slate-800" title="Lihat / Koreksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
@@ -254,7 +254,7 @@
                                     <span class="bg-gray-100 rounded-full px-2 text-xs text-gray-700 py-0.5 border border-gray-300">Dibatalkan</span>
                                     <button type="button"
                                         onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'cancelled')"
-                                        class="text-gray-400 cursor-pointer hover:text-gray-600" title="Lihat / Ubah Keputusan">
+                                        class="text-slate-500 cursor-pointer hover:text-slate-800" title="Lihat / Ubah Keputusan">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
@@ -262,11 +262,11 @@
                                 </div>
                             @else
                                 <div class="inline-flex items-center gap-2">
-                                    <span class="bg-amber-100 rounded-full px-2 text-xs text-amber-700 py-0.5">Menunggu Ketua</span>
+                                    <span class="bg-amber-100 rounded-full px-2 text-xs text-amber-800 py-0.5 font-medium">Menunggu Ketua</span>
 
                                     <button type="button"
                                         onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'pending')"
-                                        class="text-amber-400 cursor-pointer hover:text-amber-500" title="Proses">
+                                        class="text-amber-600 cursor-pointer hover:text-amber-800" title="Proses">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
@@ -277,8 +277,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="px-3 py-8 text-center text-sm text-gray-400">
-                            Tidak ada pengajuan lembur yang menunggu keputusan.
+                        <td colspan="9" class="px-3 py-10 text-center text-sm text-slate-500 font-medium">
+                            Tidak ada data pengajuan lembur yang sesuai dengan filter yang dipilih.
                         </td>
                     </tr>
                 @endforelse

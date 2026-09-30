@@ -35,13 +35,13 @@
             @include('partials.navbar')
 
             {{-- PAGE CONTENT --}}
-            <main class="flex-1 px-2 py-6">
+            <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">
                 @yield('content')
             </main>
 
             {{-- FOOTER --}}
-            <footer class="py-4 text-center text-xs text-slate-400">
-                &copy; {{ date('Y') }} BPS Provinsi Jawa Tengah &mdash; Tim SID
+            <footer class="py-4 text-center text-xs text-slate-500">
+                &copy; {{ date('Y') }} BPS Provinsi Jawa Tengah - Tim SID
             </footer>
 
         </div>
@@ -63,7 +63,7 @@
                 </svg>
                 <div class="text-center">
                     <p class="text-sm font-semibold text-slate-800">Memuat data...</p>
-                    <p class="text-xs text-slate-400 mt-1">Mohon tunggu sebentar</p>
+                    <p class="text-xs text-slate-500 mt-1">Mohon tunggu sebentar</p>
                 </div>
             </div>
         </div>
@@ -71,6 +71,21 @@
 
     {{-- SCRIPTS --}}
     @stack('scripts')
+
+    <script>
+        // Global Keyboard Accessibility Handler (R-32)
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                const profileMenu = document.getElementById('profileDropdownMenu');
+                if (profileMenu && !profileMenu.classList.contains('hidden')) {
+                    profileMenu.classList.add('hidden');
+                }
+                if (typeof closeSidebar === 'function' && typeof isOpen !== 'undefined' && isOpen) {
+                    closeSidebar();
+                }
+            }
+        });
+    </script>
 
 </body>
 </html>

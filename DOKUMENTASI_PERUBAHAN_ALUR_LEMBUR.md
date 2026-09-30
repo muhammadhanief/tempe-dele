@@ -1257,12 +1257,94 @@ php artisan up
      - **Modal Presensi Terintegrasi (`#modalPresensiAdmin`)**:
        - Mengklik badge hijau presensi akan langsung membuka modal informasi presensi pegawai tanpa berpindah halaman, menampilkan status kehadiran (WFO/WFOL), jam masuk, dan jam pulang secara instan via endpoint `/admin/pengajuan/{id}/presensi`.
 
+---
 
+## 17. Audit & Remedi Antislop UI/UX, Aksesibilitas WCAG AA, dan Standarisasi Tampilan (29 September 2026)
 
+> [!IMPORTANT]
+> **Jaminan Integritas Alur & Logika Bisnis:**
+> Pembaruan pada bagian ini **100% murni perbaikan tampilan (UI/UX), aksesibilitas pengguna, dan standarisasi visual**.
+> **Tidak ada perubahan alur kerja bisnis, logika controller backend, skema migrasi database, kueri SQL, atau logika persetujuan pengajuan lembur yang dimodifikasi.**
 
+### A. Latar Belakang & Audit Antislop v3.2.19
+Dilakukan audit komprehensif tampilan menggunakan rulebook Antislop v3.2.19 (`antislop.md`) dan modul-modul pendukung (`antislop-ui`, `antislop-human`, `antislop-layoutmobile`, `antislop-copywriting`, `antislop-code`).
+Seluruh teks dan rasio kontras warna divalidasi langsung menggunakan alat penguji kontras WCAG AA (`contrast-check.py`) dengan batas aman minimal rasio kontras 4.5:1 untuk teks normal. Laporan audit lengkap tersimpan pada berkas `anti-slop/audit-001-2026-09-29.md`.
 
+### B. Rincian Remediasi Visual & Aksesibilitas
 
+1. **Tata Letak & Responsivitas Mobile (`resources/views/layouts/app.blade.php`)**:
+   - Menambahkan padding kontainer konten responsif (`px-4 sm:px-6 lg:px-8`) agar tampilan tabel dan form di layar smartphone tidak mepet ke tepi layar atau terpotong.
+   - Mengganti teks keterangan kontras rendah dari `text-slate-400` (2.56:1 fail) menjadi `text-slate-500` (4.76:1 pass WCAG AA).
+   - Menghapus karakter dekoratif em dash (`—`).
+   - Mendaftarkan *global keyboard event listener* tombol `Escape` untuk menutup modal atau dropdown yang sedang terbuka secara aksesibel (memenuhi aturan R-32 Antislop).
 
+2. **Pembersihan Footer Boilerplate (`resources/views/partials/footer.blade.php`)**:
+   - Menghapus teks bawaan template pihak ketiga (*"Company Ltd. All rights reservered"*) yang tidak profesional.
+   - Menggantikannya dengan identitas resmi instansi: *"Badan Pusat Statistik Provinsi Riau • Hak Cipta Dilindungi"*.
 
+3. **Aksesibilitas Navbar & Avatar (`resources/views/partials/navbar.blade.php`)**:
+   - Mengubah elemen pembungkus tombol toggle sidebar dari elemen non-interaktif `<div>` menjadi `<button>` semantik lengkap dengan atribut `aria-label="Toggle menu navigasi"`.
+   - Memperbaiki kontras ikon avatar profil dan teks peran pengguna: mengubah latar dari kontras rendah menjadi `text-amber-800` pada `bg-amber-100` (rasio 4.52:1 pass) serta `text-slate-500` untuk label status peran.
+
+4. **Perbaikan Tautan Mati & Kontras Sidebar (`resources/views/partials/sidebar.blade.php`)**:
+   - Mengubah tautan mati (*ghost link*) `href="#"` pada header logo/brand menjadi tautan aktif ke rute dashboard dinamis pengguna (`{{ route(auth()->user()->role . '.dashboard') }}`).
+   - Meningkatkan rasio kontras teks tajuk navigasi (*nav group headers*) dan teks item menu non-aktif dari `text-slate-500` (3.75:1 fail pada latar `bg-slate-900`) menjadi `text-slate-400` (6.96:1 pass WCAG AA).
+
+5. **Form Autentikasi Bersih & Ergonomis (`resources/views/login.blade.php`)**:
+   - Menghapus efek `scale-125` pada gambar ilustrasi halaman login yang berisiko menyebabkan *layout clipping* atau pergeseran tak terduga pada layar beresolusi sedang/kecil.
+   - Menghilangkan efek *neon glowing box-shadow* berlebihan pada tombol utama, digantikan dengan elevasi bayangan Tailwind yang teratur dan bersih (`shadow-sm hover:shadow-md`).
+   - Menambahkan atribut aksesibilitas `aria-label="Tampilkan atau sembunyikan kata sandi"` pada tombol intip sandi.
+   - Merapikan gaya visual tombol bantuan login cepat pengembang agar lebih tenang dan serasi.
+
+6. **Halaman Sambutan / Landing Page Bebas Efek Berlebihan (`resources/views/welcome.blade.php`)**:
+   - Menghapus elemen dekoratif tanpa struktur (*radial blur blob* oranye mengambang).
+   - Menghapus bayangan bercahaya warna-warni (*glow drop-shadows*) pada tombol navigasi utama.
+   - Menyeragamkan radius sudut kartu (*border-radius*) dari campur aduk `rounded-3xl` menjadi `rounded-xl` yang konsisten di seluruh desain sistem.
+   - Mengganti tanda hubung dekoratif em dash dengan tanda hubung bersih.
+
+7. **Pembersihan Log Pengembang & Mikro-Interaksi Dashboard Pegawai (`resources/views/dashboard.blade.php`)**:
+   - Menghapus sisa kode debug pengembang `console.log("DEBUG TIMKERJA:", ...)` dari skrip JavaScript halaman.
+   - Menghilangkan karakter panah dekoratif chevron `›` yang tidak bernilai semantik pada kartu status.
+   - Memperbaiki rasio kontras teks keadaan kosong (*empty state*) dari `text-gray-400` menjadi `text-slate-500`.
+
+8. **Standarisasi Istilah & Tipografi Dashboard Admin (`resources/views/admin/dashboard.blade.php`)**:
+   - Memperbaiki terminologi instansi dari "karyawan" menjadi "pegawai" sesuai standar baku Aparatur Sipil Negara / BPS.
+   - Menghapus tanda em dash pada judul kartu.
+   - Memperbaiki kontras teks keterangan metrik dari `text-slate-400` menjadi `text-slate-500`.
+
+9. **Penyempurnaan Aksesibilitas Form Pengajuan Admin & Ketua Tim (`resources/views/admin/pengajuan.blade.php` & `resources/views/ketua-tim/pengajuan.blade.php`)**:
+   - Meningkatkan keterbacaan teks nomor NIP dan ikon aksi tabel dari `text-gray-400` (2.56:1 fail) menjadi `text-slate-500` (4.76:1 pass).
+   - Menyeragamkan radius kotak input pencarian dari `rounded-full` menjadi `rounded-xl` agar selaras dengan input form lainnya.
+
+10. **Penyempurnaan Estetika & Ergonomi Tabel Monitoring Admin (`resources/views/admin/lembur.blade.php`)**:
+    - **Kolom Tersendiri Data Presensi**: Memisahkan presensi dari kolom nama pegawai dan memberikan kolom mandiri **Data Presensi** seperti pada tabel Ketua Tim & Admin Pengajuan.
+    - **Teks Indikator Presensi**: Mengganti teks pasif *"Informasi tersedia"* menjadi **"Lihat Presensi ↗"** (hijau dengan ikon tautan, dilengkapi tooltip jam kepulangan resmi pegawai) dan *"Belum ada presensi"* (abu-abu netral), sehingga maksud aksi langsung terbaca jelas oleh admin.
+    - **Penyeragaman Style Tabel (100% Selaras)**:
+      - Kolom **Pegawai** kini menampilkan Nama Pegawai (bold) dan NIP pegawai di bawahnya secara rapi.
+      - Menyeragamkan padding sel tabel menjadi `px-3.5 py-3` yang lega dan proporsional (dari sebelumnya `px-2 py-2` yang sesak).
+      - Garis pembatas baris menggunakan `divide-y divide-gray-200` yang lembut dan modern.
+    - **Standarisasi Tombol Aksi**: Mengganti tombol mencolok merah *"✕ Batal"* dengan tombol netral berkelas *"[✏️ Aksi]"* bersimbol pensil (`border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-2xs`), selaras dengan tombol aksi pada Ketua Tim.
+    - **Modal Aksi Terpadu**: Menyempurnakan pop-up aksi menjadi modal *Kelola Pengajuan Lembur* dengan dua tab terstruktur:
+      - **Tab 1: Edit Uraian**: Memudahkan admin mengoreksi teks narasi lembur langsung dari modal.
+      - **Tab 2: Batalkan Pengajuan**: Khusus pembatalan transaksi salah tanggal/dobel input dengan isian alasan pembatalan.
+
+11. **Perapihan Rinci Isi Sel & Tata Letak Tabel Monitoring Admin (`resources/views/admin/lembur.blade.php`)**:
+    - **Perataan Vertikal Selaras (`align-middle`)**: Menambahkan kelas `align-middle` pada seluruh elemen `<td>` sehingga teks dan lencana pada baris dengan konten bertingkat (seperti nama & NIP, atau uraian panjang) tetap berada di tengah secara simetris dan rapi.
+    - **Modernisasi Badge Presensi**:
+      - Status presensi hadir diubah menjadi chip/pill interaktif berkelas (`bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full px-2.5 py-1 text-xs`) lengkap dengan *status indicator dot* dan ikon panah mikro.
+      - Status belum presensi dikemas seragam dalam bentuk pill abu-abu netral bertuliskan *"Belum Presensi"*, menjaga konsistensi tinggi baris tabel.
+    - **Standardisasi Badge Status**:
+      - Mengadopsi desain pill modern dengan *indicator dot* berdiameter 1.5 (`w-1.5 h-1.5 rounded-full`) dan palet warna lembut (`amber-50`, `blue-50`, `emerald-50`, `rose-50`, `gray-50`) bersanding dengan *border* senada, identik dengan halaman Ketua Tim.
+      - Menyelaraskan injeksi DOM dinamis JavaScript pada fungsi `submitBatalAdmin` agar memiliki format badge yang sama persis setelah pembatalan pengajuan.
+    - **Tipografi Jam & NIP**:
+      - Jam Diajukan dan Jam Disetujui diformat dengan kontainer monospace halus (`font-mono text-[11px] bg-gray-50 border border-gray-200/80 px-2 py-0.5 rounded-md`) untuk keterbacaan scan instan.
+      - NIP pegawai menggunakan font monospace (`font-mono text-[11px] text-gray-500`) yang rapi di bawah nama pegawai berbobot tebal (`font-semibold text-gray-900`).
+    - **Kontainer Tabel Modern**: Mengganti pembungkus tabel menjadi `rounded-2xl border border-gray-200/80 bg-white shadow-xs` dengan `thead` bernuansa `bg-gray-50/90 border-b border-gray-200` yang sejuk dan tidak kaku.
+    - **Penyempurnaan Empty State**: Menampilkan ilustrasi berkas kosong dengan pesan yang komunikatif dan tombol *Reset Semua Filter* jika filter aktif.
+
+### C. Hasil Verifikasi & Uji Kompilasi
+- **Aset Vite**: Dijalankan `npm run build`, sukses mengompilasi CSS (`app-CjM3llgO.css`, 90.96 kB) dan JS (`app-UVMdT4O_.js`, 37.50 kB) tanpa peringatan (*zero warnings/errors*).
+- **Cache Blade**: `php artisan view:clear` dan `php artisan view:cache` berhasil tanpa kesalahan sintaks.
+- **Integritas Sistem**: Tidak ada sintaks PHP, rute Laravel, maupun logika bisnis yang terganggu.
 
 

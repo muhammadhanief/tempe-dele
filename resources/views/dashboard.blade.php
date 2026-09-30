@@ -83,7 +83,7 @@
                 {{ $stats['total'] }}
             </p>
 
-            <p class="mt-1 text-xs text-gray-400">
+            <p class="mt-1 text-xs text-slate-500">
                 Bulan ini
             </p>
         </div>
@@ -99,7 +99,7 @@
                 {{ $stats['diproses'] }}
             </p>
 
-            <p class="mt-1 text-xs text-gray-400">
+            <p class="mt-1 text-xs text-slate-500">
                 Menunggu review
             </p>
         </div>
@@ -115,7 +115,7 @@
                 {{ $stats['disetujui'] }}
             </p>
 
-            <p class="mt-1 text-xs text-gray-400">
+            <p class="mt-1 text-xs text-slate-500">
                 Pengajuan bulan ini
             </p>
         </div>
@@ -131,7 +131,7 @@
                 {{ $stats['ditolak'] }}
             </p>
 
-            <p class="mt-1 text-xs text-gray-400">
+            <p class="mt-1 text-xs text-slate-500">
                 Pengajuan bulan ini
             </p>
         </div>
@@ -245,16 +245,12 @@
                         </span>
 
                         @endif
-
-                        <span class="text-sm text-gray-400">
-                            ›
-                        </span>
                     </div>
                 </div>
 
                 @empty
 
-                <div class="p-5 text-center text-sm text-gray-400">
+                <div class="p-5 text-center text-sm text-slate-500 font-medium">
 
                     Belum ada pengajuan lembur.
                 </div>
@@ -399,7 +395,7 @@
 
                 @empty
 
-                <div class="p-5 text-center text-sm text-gray-400">
+                <div class="p-5 text-center text-sm text-slate-500 font-medium">
 
                     Tidak ada jadwal lembur mendatang.
                 </div>
@@ -425,9 +421,6 @@
             `${getGreeting(new Date().getHours())},
             {{ session('user')['nama'] ?? 'User' }}`;
     }
-
-    console.log("DEBUG TIMKERJA:",
-        @json(session('debug_timkerja')));
 </script>
 
 @endsection

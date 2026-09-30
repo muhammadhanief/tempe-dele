@@ -33,9 +33,7 @@
                 </a>
 
                 <a href="{{ route('login') }}"
-                   class="inline-flex items-center justify-center rounded-full bg-[#fd9a10] px-4 py-2 text-sm font-semibold text-white
-                          shadow-[0_4px_14px_rgba(253,154,16,0.28)]
-                          transition-all duration-300 hover:bg-[#f6960f] hover:shadow-[0_6px_20px_rgba(253,154,16,0.38)]">
+                   class="inline-flex items-center justify-center rounded-xl bg-[#fd9a10] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#e08507] hover:shadow-md">
                     Masuk
                 </a>
 
@@ -45,11 +43,11 @@
 
     {{-- Hero --}}
     <section id="hero" class="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-6 pt-24 text-center">
-        <p class="animate-fade-up text-base font-medium tracking-tight text-slate-700 sm:text-lg">
+        <p class="text-base font-medium tracking-tight text-slate-700 sm:text-lg">
             Badan Pusat Statistik Provinsi Jawa Tengah
         </p>
 
-        <h1 class="animate-fade-up animation-delay-200 mx-auto mt-4 max-w-4xl text-5xl font-semibold tracking-tight text-slate-950 sm:text-7xl">
+        <h1 class="mx-auto mt-4 max-w-4xl text-5xl font-semibold tracking-tight text-slate-950 sm:text-7xl">
             <span class="inline-block">Sistem</span>
 
             <span class="relative inline-block whitespace-nowrap text-[#faa938]">
@@ -64,15 +62,13 @@
             <span class="block">Dokumen Lembur</span>
         </h1>
 
-        <p class="animate-fade-up animation-delay-400 mx-auto mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
+        <p class="mx-auto mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
             Permudah pengajuan dan kelola berkas lembur dalam satu sistem terintegrasi.
         </p>
 
-        <div class="animate-fade-up animation-delay-600 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a href="{{ asset('documents/panduan_pengguna.pdf') }}" target="_blank"
-               class="group inline-flex items-center justify-center gap-2 rounded-full bg-[#fd9a10] px-5 py-2.5 text-sm font-semibold text-white
-                      shadow-[0_4px_14px_rgba(253,154,16,0.35)]
-                      transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#f6960f] hover:shadow-[0_6px_20px_rgba(253,154,16,0.45)]">
+               class="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#fd9a10] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#e08507] hover:shadow-md">
                 <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" class="h-5 w-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                 </svg>
@@ -80,11 +76,10 @@
             </a>
 
             <a href="#fitur"
-               class="group inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-slate-700
-                      ring-1 ring-slate-200 transition-all duration-300 hover:text-slate-900 hover:ring-slate-300 hover:shadow-md">
+               class="group inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-slate-700 ring-1 ring-slate-200 transition-all duration-200 hover:text-slate-900 hover:ring-slate-300 hover:shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                      stroke-width="2" stroke="currentColor"
-                     class="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5">
+                     class="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                 </svg>
                 <span>Lihat Fitur</span>
@@ -191,12 +186,9 @@
 
 
     {{-- CTA --}}
-<section id="akses" class="mx-auto max-w-6xl px-6 py-40">
+<section id="akses" class="mx-auto max-w-6xl px-6 py-32">
 
-    <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white px-8 py-16 text-center shadow-xl sm:px-16">
-
-        <!-- subtle glow -->
-        <div class="pointer-events-none absolute -top-16 left-1/2 h-60 w-60 -translate-x-1/2 rounded-full bg-orange-200 opacity-20 blur-3xl"></div>
+    <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white px-8 py-16 text-center shadow-lg sm:px-16">
 
         <div class="relative">
 
@@ -216,9 +208,7 @@
 
                 <!-- Primary CTA -->
                 <a href="{{ route('login') }}"
-                   class="inline-flex items-center justify-center rounded-full bg-[#fd9a10] px-6 py-3 text-sm font-semibold text-white
-                          shadow-[0_4px_14px_rgba(253,154,16,0.35)]
-                          transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#f6960f] hover:shadow-[0_6px_20px_rgba(253,154,16,0.45)]">
+                   class="inline-flex items-center justify-center rounded-xl bg-[#fd9a10] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#e08507] hover:shadow-md">
                     Masuk ke Sistem
                 </a>
 
@@ -229,17 +219,17 @@
 
 </section>
 
-<footer class="px-8 py-5 flex items-center justify-between flex-wrap gap-3">
+<footer class="px-8 py-5 flex items-center justify-between flex-wrap gap-3 border-t border-slate-100">
 
     {{-- Tengah: Copyright --}}
-    <p class="text-center text-xs text-slate-400">
+    <p class="text-center text-xs text-slate-500 font-medium">
         &copy; {{ date('Y') }} Badan Pusat Statistik Provinsi Jawa Tengah. Hak cipta dilindungi.
     </p>
 
     {{-- Kanan: Tim SID --}}
     <div class="flex items-center gap-1.5">
-        <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
-        <span class="text-xs text-slate-400">Tim SID &mdash; BPS Provinsi Jawa Tengah</span>
+        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+        <span class="text-xs text-slate-500 font-medium">Tim SID - BPS Provinsi Jawa Tengah</span>
     </div>
 
 </footer>

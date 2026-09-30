@@ -72,7 +72,7 @@
         <div class="relative w-full sm:w-[22rem]">
             <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
                 onclick="toggleDropdownPegawai()" oninput="filterDropdownPegawai()" autocomplete="off"
-                class="h-10 w-full rounded-full border border-gray-200 bg-white pl-4 pr-8 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
+                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-4 pr-8 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
 
             <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3 text-gray-400">
@@ -170,7 +170,7 @@
                             <div class="max-w-[180px] whitespace-normal break-words">
                                 {{ $p->nama_pegawai }}
                             </div>
-                            <div class="text-xs text-gray-400">
+                            <div class="text-xs text-slate-500">
                                 {{ $p->nip_pegawai }}
                             </div>
                         </td>
@@ -200,7 +200,7 @@
                         <td class="px-3 py-3 text-center">
                             <button type="button" onclick="openModalPresensi({{ $p->id_transaksi }})"
                                 class="inline-flex items-center justify-center gap-1 text-xs font-medium
-                                {{ $p->has_presensi ? 'text-green-600 underline' : 'text-gray-400' }}">
+                                {{ $p->has_presensi ? 'text-green-600 underline' : 'text-slate-500' }}">
                                 {{ $p->has_presensi ? 'Informasi tersedia' : 'Tidak ada informasi' }}
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/>
@@ -210,7 +210,7 @@
 
                         <td class="px-3 py-3 text-center" id="status-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
-                                <span class="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Menunggu</span>
+                                <span class="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">Menunggu</span>
                             @elseif($p->status === 'menunggu_kabag')
                                 <span class="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">Menunggu Kabag</span>
                             @elseif($p->status === 'approved')
@@ -233,12 +233,12 @@
                                     <span>Proses</span>
                                 </button>
                             @elseif($p->status === 'cancelled')
-                                <span class="text-gray-400 text-xs italic">Dibatalkan</span>
+                                <span class="text-slate-500 text-xs italic">Dibatalkan</span>
                             @else
                                 <button type="button"
                                     onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}')"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                                     </svg>
                                     <span>Koreksi</span>
@@ -248,8 +248,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="px-3 py-8 text-center text-sm text-gray-400">
-                            Belum ada pengajuan lembur.
+                        <td colspan="9" class="px-3 py-10 text-center text-sm text-slate-500 font-medium">
+                            Belum ada pengajuan lembur yang sesuai dengan kriteria yang dipilih.
                         </td>
                     </tr>
                 @endforelse
