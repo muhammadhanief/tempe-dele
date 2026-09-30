@@ -53,7 +53,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <span id="periodLabel">
-                        {{ \Carbon\Carbon::parse($bulan.'-01')->translatedFormat('F Y') }}
+                        @if(empty($selectedMonth))
+                            Semua Bulan {{ $selectedYear }}
+                        @else
+                            {{ \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->translatedFormat('F Y') }}
+                        @endif
                     </span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-40 shrink-0">
                         <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
@@ -69,12 +73,19 @@
                                 <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
                             </svg>
                         </button>
-                        <span id="yearLabel" class="text-sm font-bold text-gray-900">2026</span>
+                        <span id="yearLabel" class="text-sm font-bold text-gray-900">{{ $selectedYear }}</span>
                         <button type="button" id="yearNext"
                             class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                                 <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
                             </svg>
+                        </button>
+                    </div>
+
+                    <div class="mb-2.5">
+                        <button type="button" id="btnAllMonthsOfYearKabag"
+                            class="w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center {{ empty($selectedMonth) ? 'bg-[#faa938] text-slate-950 font-bold border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]' }}">
+                            Semua Bulan (<span id="allMonthsYearLabelKabag">{{ $selectedYear }}</span>)
                         </button>
                     </div>
 
@@ -138,9 +149,25 @@
         </div>
     </div>
 
+    {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
+    <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
+        <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                <span>Geser tabel ke kiri / kanan</span>
+            </span>
+            <span class="table-scroll-pct text-[10px] font-mono text-slate-400 shrink-0">Geser »</span>
+        </div>
+        <div class="table-scroll-track w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
+            <div class="table-scroll-thumb absolute top-0 left-0 h-full bg-[#faa938] rounded-full" style="width: 30%; transform: translateX(0px);"></div>
+        </div>
+    </div>
+
     {{-- Tabel Pengajuan --}}
     <div class="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-200">
-        <table class="w-full table-auto">
+        <table class="w-full min-w-[1100px] table-auto">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200 text-left">
                     <th class="w-9 px-2 py-3 text-center text-xs font-semibold text-gray-700">No</th>
@@ -152,9 +179,9 @@
                             <div class="relative inline-block text-left">
                                 <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
                                     class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[10px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
-                                    <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
-                                    <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
-                                    <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                    <option value="desc" {{ (($sort ?? 'desc') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                    <option value="asc" {{ (($sort ?? 'desc') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                    <option value="priority" {{ (($sort ?? 'desc') === 'priority') ? 'selected' : '' }}>Prioritas</option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -340,14 +367,14 @@
 </div>
 
 {{-- Modal Keputusan Kabag Umum --}}
-<div id="modalKabag" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs" onclick="closeModalKabag()"></div>
+<div id="modalKabag" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalKabag()"></div>
 
-    <div class="relative flex min-h-full items-center justify-center p-4">
-        <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100">
+    <div class="relative flex min-h-screen items-center justify-center p-3 sm:p-4 my-auto">
+        <div class="relative w-full max-w-lg flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100 my-auto">
 
             {{-- Modal Header --}}
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 px-6 py-4 text-white flex items-center justify-between">
+            <div class="shrink-0 bg-gradient-to-r from-slate-900 to-indigo-950 px-4 sm:px-6 py-3 text-white flex items-center justify-between">
                 <div>
                     <h3 class="text-base font-bold" id="mModalTitle">Persetujuan Akhir Kabag Umum</h3>
                     <p class="text-xs text-slate-300 mt-0.5" id="mModalSubtitle">Berikan persetujuan atau penolakan final atas lembur pegawai</p>
@@ -355,27 +382,23 @@
                 <button type="button" onclick="closeModalKabag()" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
             </div>
 
-            {{-- Modal Body --}}
-            <div class="p-6 space-y-4">
-                {{-- Info Ringkas --}}
-                <div class="rounded-xl bg-slate-50 p-4 border border-slate-200 text-xs space-y-1.5">
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Nama Pegawai:</span>
-                        <span class="font-semibold text-gray-900" id="mNamaPegawai">-</span>
+            {{-- Modal Body (Compact & Langsung Terlihat Semua Tanpa Scroll) --}}
+            <div class="p-4 sm:p-5 space-y-2.5">
+                {{-- Info Ringkas Pegawai & Tim --}}
+                <div class="rounded-xl bg-slate-50 p-2.5 border border-slate-200 text-xs space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-500">Pegawai: <strong class="text-gray-900 font-semibold" id="mNamaPegawai">-</strong></span>
+                        <span class="text-indigo-700 font-medium" id="mNamaTim">-</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-500">Tim Kerja:</span>
-                        <span class="font-medium text-indigo-700" id="mNamaTim">-</span>
-                    </div>
-                    <div id="mWrapperNoteKetua" class="pt-1 border-t border-slate-200">
-                        <span class="text-gray-500 font-semibold block mb-0.5">Catatan Ketua Tim:</span>
-                        <span class="text-slate-700 italic bg-white p-2 rounded-lg border border-slate-200 block" id="mNoteKetua">-</span>
+                    <div id="mWrapperNoteKetua" class="pt-1 border-t border-slate-200 hidden">
+                        <span class="text-gray-500 font-semibold block text-[11px]">Catatan Ketua Tim:</span>
+                        <span class="text-slate-700 italic bg-white px-2 py-1 rounded border border-slate-200 block text-xs" id="mNoteKetua">-</span>
                     </div>
                 </div>
 
                 {{-- Status Terkunci Banner (Jika status sudah approved / rejected) --}}
                 <div id="mWrapperStatusLocked" class="hidden">
-                    <div id="mStatusLockedBanner" class="flex items-center gap-2 rounded-xl p-3 border text-xs font-medium">
+                    <div id="mStatusLockedBanner" class="flex items-center gap-2 rounded-xl p-2.5 border text-xs font-medium">
                         <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
                         </svg>
@@ -383,89 +406,87 @@
                     </div>
                 </div>
 
-                {{-- Jam Disetujui --}}
-                <div id="mWrapperJamDisetujui" class="grid grid-cols-2 gap-3">
+                {{-- 1. Jam Disetujui (2 Kolom Rapi) --}}
+                <div id="mWrapperJamDisetujui" class="grid grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Jam Mulai Disetujui</label>
                         <input id="mJamMulai" type="time"
-                            class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none">
+                            class="w-full rounded-xl border border-gray-300 px-2.5 py-1.5 text-xs sm:text-sm focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Jam Selesai Disetujui</label>
                         <input id="mJamSelesai" type="time"
-                            class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none">
+                            class="w-full rounded-xl border border-gray-300 px-2.5 py-1.5 text-xs sm:text-sm focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30 outline-none">
                         <p id="mJamSelesaiPresensiHint" class="mt-1 hidden flex items-center gap-1 text-[11px] text-blue-700 font-medium">
-                            <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            <span>Maksimal jam selesai: <strong id="mJamSelesaiPresensiVal">-</strong> (sesuai presensi pulang)</span>
+                            <span class="truncate">Maks: <strong id="mJamSelesaiPresensiVal">-</strong> (presensi)</span>
                         </p>
                     </div>
                 </div>
 
-                {{-- Uraian Kegiatan (Di atas Catatan Kabag Umum) --}}
+                {{-- 2. Uraian Kegiatan --}}
                 <div>
                     <div class="mb-1 flex items-center justify-between">
-                        <label class="block text-xs font-semibold text-gray-700">
-                            Uraian Kegiatan
-                        </label>
-                        <div class="flex items-center gap-2">
+                        <label class="block text-xs font-semibold text-gray-700">Uraian Kegiatan</label>
+                        <div class="flex items-center gap-1.5">
                             <span id="mUraianCount" class="text-[10px] text-gray-400">0 / 2000</span>
-                            <span id="mUraianBadge" class="rounded-full px-2 py-0.5 text-[10px] font-medium"></span>
+                            <span id="mUraianBadge" class="rounded-full px-1.5 py-0.2 text-[10px] font-medium"></span>
                         </div>
                     </div>
-                    <textarea id="mUraian" rows="4" maxlength="2000"
-                        class="w-full resize-y rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none transition-all"
+                    <textarea id="mUraian" rows="2" maxlength="2000"
+                        class="w-full resize-y rounded-xl border border-gray-300 px-2.5 py-1.5 text-xs sm:text-sm focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30 outline-none transition-all"
                         placeholder="Uraian kegiatan lembur..."></textarea>
                     <p id="mUraianHint" class="mt-1 hidden flex items-center gap-1 text-[11px] text-amber-700">
-                        <svg class="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="h-3 w-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
                         </svg>
                         <span id="mUraianHintText"></span>
                     </p>
                 </div>
 
-                {{-- Catatan Kabag Umum --}}
+                {{-- 3. Catatan Kabag Umum --}}
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1">
                         Catatan / Arahan Kabag Umum <span class="text-gray-400 font-normal" id="mNoteWajibHint">(Wajib jika menolak)</span>
                     </label>
-                    <textarea id="mNoteKabag" rows="3"
-                        class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-[#faa938] focus:ring-2 focus:ring-[#faa938]/20 outline-none"
+                    <textarea id="mNoteKabag" rows="2"
+                        class="w-full rounded-xl border border-gray-300 px-2.5 py-1.5 text-xs sm:text-sm focus:border-[#faa938] focus:ring-1 focus:ring-[#faa938]/30 outline-none"
                         placeholder="Tuliskan catatan, arahan, atau alasan penolakan..."></textarea>
                 </div>
 
-                {{-- Pilihan Keputusan (Hanya tampil saat status menunggu_kabag) --}}
-                <div id="mWrapperPilihanKeputusan">
-                    <label class="block text-xs font-semibold text-gray-700 mb-2">Keputusan Akhir</label>
-                    <div class="grid grid-cols-2 gap-3">
+                {{-- 4. Pilihan Keputusan: DI BAWAH (ALUR NATURAL SETELAH REVIEW DATA) --}}
+                <div id="mWrapperPilihanKeputusan" class="space-y-1 pt-1 border-t border-gray-100">
+                    <label class="block text-xs font-semibold text-gray-700">Keputusan Akhir:</label>
+                    <div class="grid grid-cols-2 gap-2.5">
                         <button type="button" onclick="setKeputusanKabag('approved')" id="btnPilihSetuju"
-                            class="flex items-center justify-center gap-2 rounded-xl border-2 border-emerald-300 bg-emerald-50/50 p-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-all">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            class="flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-800 transition-all hover:bg-emerald-100">
+                            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            Setujui Final
+                            <span>Setujui Final</span>
                         </button>
 
                         <button type="button" onclick="setKeputusanKabag('rejected')" id="btnPilihTolak"
-                            class="flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white p-3 text-sm font-semibold text-gray-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 transition-all">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            class="flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">
+                            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
                             </svg>
-                            Tolak
+                            <span>Tolak</span>
                         </button>
                     </div>
                 </div>
             </div>
 
             {{-- Modal Footer --}}
-            <div class="bg-gray-50 px-6 py-4 flex justify-end gap-2 border-t border-gray-100">
+            <div class="shrink-0 bg-gray-50 px-4 sm:px-6 py-2.5 sm:py-3 flex justify-end gap-2 border-t border-gray-100">
                 <button type="button" onclick="closeModalKabag()"
-                    class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    class="rounded-xl border border-gray-300 bg-white px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50">
                     Batal
                 </button>
                 <button type="button" onclick="simpanKeputusanKabag()" id="btnSimpanKabag"
-                    class="rounded-xl bg-[#faa938] px-5 py-2 text-sm font-bold text-slate-950 hover:bg-[#fd9a10] shadow-sm">
+                    class="rounded-xl bg-[#faa938] px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold text-slate-950 hover:bg-[#fd9a10] shadow-sm">
                     Simpan Keputusan
                 </button>
             </div>
@@ -475,18 +496,18 @@
 </div>
 
 {{-- Modal Presensi --}}
-<div id="modalPresensi" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs" onclick="closeModalPresensi()"></div>
-    <div class="relative flex min-h-full items-center justify-center p-4">
-        <div class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl border border-gray-100">
-            <div class="flex items-center justify-between border-b px-5 py-4 bg-slate-50">
+<div id="modalPresensi" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalPresensi()"></div>
+    <div class="relative flex min-h-full items-center justify-center p-3 sm:p-4 my-auto">
+        <div class="relative w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-gray-100 my-auto">
+            <div class="shrink-0 flex items-center justify-between border-b px-5 py-4 bg-slate-50">
                 <div>
                     <h3 class="text-sm font-bold text-gray-900">Informasi Kehadiran Presensi</h3>
                     <p class="text-xs text-gray-500 mt-0.5" id="presensiSubtitle">-</p>
                 </div>
                 <button type="button" onclick="closeModalPresensi()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
             </div>
-            <div class="p-5" id="presensiBody">
+            <div class="p-5 flex-1 overflow-y-auto" id="presensiBody">
                 <p class="py-4 text-center text-sm text-gray-400">Memuat data presensi...</p>
             </div>
         </div>
@@ -651,12 +672,12 @@ window.setKeputusanKabag = function(val) {
     const wrapperJam = document.getElementById('mWrapperJamDisetujui');
 
     if (val === 'approved') {
-        btnSetuju.className = 'flex items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 bg-emerald-100 p-3 text-sm font-bold text-emerald-800 shadow-sm transition-all';
-        btnTolak.className = 'flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white p-3 text-sm font-semibold text-gray-500 hover:border-rose-300 hover:bg-rose-50 transition-all';
+        btnSetuju.className = 'flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-800 transition-all shadow-xs';
+        btnTolak.className = 'flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700';
         wrapperJam.classList.remove('hidden');
     } else {
-        btnTolak.className = 'flex items-center justify-center gap-2 rounded-xl border-2 border-rose-500 bg-rose-100 p-3 text-sm font-bold text-rose-800 shadow-sm transition-all';
-        btnSetuju.className = 'flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white p-3 text-sm font-semibold text-gray-500 hover:border-emerald-300 hover:bg-emerald-50 transition-all';
+        btnTolak.className = 'flex items-center justify-center gap-1.5 rounded-xl border-2 border-rose-500 bg-rose-50 px-3 py-2 text-xs sm:text-sm font-bold text-rose-700 transition-all shadow-xs';
+        btnSetuju.className = 'flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700';
         wrapperJam.classList.add('hidden');
     }
 };
@@ -806,7 +827,7 @@ window.openModalPresensi = function(id) {
     fetch(`/kabag-umum/pengajuan/${id}/presensi`)
         .then(r => r.json())
         .then(d => {
-            subtitle.textContent = `${d.nama} (${d.nip}) — ${d.tanggal}`;
+            subtitle.textContent = `${d.nama} (${d.nip}) - ${d.tanggal}`;
             body.innerHTML = `
                 <div class="space-y-3 text-xs">
                     <div class="flex justify-between items-center py-2 border-b border-gray-100">
@@ -839,7 +860,11 @@ window.closeModalPresensi = function() {
 // =====================
 window.onHeaderSortChange = function(val) {
     const url = new URL(window.location.href);
-    url.searchParams.set('sort', val);
+    if (val && val !== 'desc') {
+        url.searchParams.set('sort', val);
+    } else {
+        url.searchParams.delete('sort');
+    }
     url.searchParams.delete('page');
     window.location.href = url.toString();
 };
@@ -903,27 +928,47 @@ window.clearSearchInput = function() {
     const yearNext = document.getElementById('yearNext');
     const monthGrid = document.getElementById('monthGrid');
     const btnThisMonth = document.getElementById('btnThisMonth');
+    const btnAllMonths = document.getElementById('btnAllMonthsOfYearKabag');
+    const allMonthsYearLabel = document.getElementById('allMonthsYearLabelKabag');
 
-    let currentBulanStr = "{{ $bulan }}"; // YYYY-MM
-    let [currY, currM] = currentBulanStr.split('-').map(Number);
-    let viewYear = currY;
+    let selYear = {{ $selectedYear }};
+    let selMonth = {{ $selectedMonth !== null ? $selectedMonth : 'null' }};
+    let viewYear = selYear;
 
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
     function renderMonths() {
         yearLabel.textContent = viewYear;
+        if (allMonthsYearLabel) allMonthsYearLabel.textContent = viewYear;
+        if (btnAllMonths) {
+            const isAllSelected = (selMonth === null && viewYear === selYear);
+            btnAllMonths.className = `w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center ${isAllSelected ? 'bg-[#faa938] text-slate-950 font-bold border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]'}`;
+            btnAllMonths.onclick = () => {
+                const now = new Date();
+                const url = new URL(window.location.href);
+                if (viewYear === now.getFullYear()) {
+                    url.searchParams.set('bulan', 'all');
+                } else {
+                    url.searchParams.set('bulan', `${viewYear}-all`);
+                }
+                url.searchParams.delete('page');
+                window.location.href = url.toString();
+            };
+        }
+
         monthGrid.innerHTML = '';
         monthNames.forEach((name, idx) => {
             const m = idx + 1;
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.textContent = name;
-            const isSelected = (viewYear === currY && m === currM);
-            btn.className = `py-2 rounded-lg text-xs font-semibold transition-colors ${isSelected ? 'bg-[#faa938] text-slate-950 shadow-sm' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`;
+            const isSelected = (viewYear === selYear && m === selMonth);
+            btn.className = `py-2 rounded-lg text-xs font-semibold transition-colors ${isSelected ? 'bg-[#faa938] text-slate-950 font-bold shadow-sm' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`;
             btn.onclick = () => {
                 const targetM = String(m).padStart(2, '0');
                 const url = new URL(window.location.href);
                 url.searchParams.set('bulan', `${viewYear}-${targetM}`);
+                url.searchParams.delete('page');
                 window.location.href = url.toString();
             };
             monthGrid.appendChild(btn);
@@ -947,6 +992,7 @@ window.clearSearchInput = function() {
                 const target = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}`;
                 const url = new URL(window.location.href);
                 url.searchParams.set('bulan', target);
+                url.searchParams.delete('page');
                 window.location.href = url.toString();
             };
         }

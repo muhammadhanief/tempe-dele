@@ -6,13 +6,19 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Traits\KoreksiLembur;
 
 class RekapitulasiController extends Controller
 {
-        public function index(Request $request)
+    use KoreksiLembur;
+
+    public function index(Request $request)
     {
         $bulan = $request->get('bulan', now()->format('Y-m'));
         [$tahun, $bln] = explode('-', $bulan);
+
+        // Sinkronisasi otomatis kelayakan (eligible) untuk seluruh pengajuan approved di bulan ini
+        $this->koreksiUntukBulan((int) $tahun, (int) $bln);
 
         $nip = session('user')['nip'];
 

@@ -13,125 +13,150 @@
         </div>
     @endif
 
+    {{-- Page Header --}}
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-800">
+                Monitoring & Pengajuan Lembur
+            </h1>
+            <p class="text-xs text-slate-500 mt-0.5">
+                Kelola, monitor status verifikasi, dan rekapitulasi data lembur seluruh pegawai.
+            </p>
+        </div>
+
+        {{-- Action Buttons --}}
+        <div class="flex items-center gap-2 shrink-0">
+            {{-- Unduh Rekapitulasi --}}
+            <a id="btnExport"
+                href="{{ route('admin.lembur.export', ['bulan' => now()->format('Y-m'), 'tim' => request('tim'), 'nip' => request('nip'), 'status' => request('status'), 'sort' => request('sort')]) }}"
+                title="Unduh Rekapitulasi"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 text-xs sm:text-sm font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                </svg>
+                <span>Unduh Excel</span>
+            </a>
+
+            {{-- Tombol Ajukan --}}
+            <a href="javascript:void(0)" id="btnAjukan"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow-sm transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                <span>Ajukan Lembur</span>
+            </a>
+        </div>
+    </div>
+
     <div class="overflow-visible">
 
         {{-- Toolbar --}}
-        <div class="max-w-7xl mx-auto w-full my-4 sm:my-5">
-            <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+        <div class="mb-4 flex flex-wrap items-center gap-2.5">
 
-                {{-- Filter Periode --}}
-                <div class="relative w-full sm:w-auto shrink-0" id="datePicker">
-                    <button type="button" id="dateBtn"
-                        class="inline-flex w-full sm:w-auto items-center justify-between sm:justify-start h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors">
-                        <span class="inline-flex items-center gap-2 min-w-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current shrink-0">
-                                <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7 64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
+            {{-- Filter Periode --}}
+            <div class="relative" id="datePicker">
+                <button type="button" id="dateBtn"
+                    class="inline-flex h-10 items-center justify-between gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all whitespace-nowrap">
+                    <span class="inline-flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3.5 w-3.5 fill-current text-[#faa938] shrink-0">
+                            <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
+                        </svg>
+                        <span id="dateLabel" class="whitespace-nowrap leading-none">Semua Tanggal</span>
+                    </span>
+
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-3 w-3 fill-current opacity-40 shrink-0">
+                        <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                    </svg>
+                </button>
+
+                <input type="hidden" id="dateValue" value="">
+
+                <div id="datePanel"
+                    class="hidden absolute z-50 mt-2 left-0 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 bg-white shadow-xl p-3.5">
+                    <div class="flex items-center justify-between mb-3">
+                        <button type="button" id="datePrev"
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
                             </svg>
-                            <span id="dateLabel" class="leading-none truncate">Semua Tanggal</span>
+                        </button>
+
+                        <span id="dateNavLabel"
+                            class="text-xs font-bold text-gray-900 cursor-pointer hover:text-[#faa938] select-none">
                         </span>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-50 shrink-0">
-                            <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
-                        </svg>
-                    </button>
 
-                    <input type="hidden" id="dateValue" value="">
-
-                    <div id="datePanel"
-                        class="hidden absolute z-50 mt-2 left-0 w-full sm:w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white shadow-lg p-3">
-                        <div class="flex items-center justify-between mb-3">
-                            <button type="button" id="datePrev"
-                                class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
-                                    <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
-                                </svg>
-                            </button>
-
-                            <span id="dateNavLabel"
-                                class="text-sm font-medium text-gray-900 cursor-pointer hover:text-[#faa938] select-none">
-                            </span>
-
-                            <button type="button" id="dateNext"
-                                class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
-                                    <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div id="dateGrid"></div>
-
-                        <div class="flex items-center justify-between mt-3">
-                            <button type="button" id="btnToday"
-                                class="text-sm font-medium text-gray-500 hover:text-[#faa938]">
-                                Hari ini
-                            </button>
-                            <button type="button" id="btnDateClose"
-                                class="px-3 py-1 text-sm font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">
-                                Tutup
-                            </button>
-                        </div>
+                        <button type="button" id="dateNext"
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
+                            </svg>
+                        </button>
                     </div>
-                </div>
 
-                {{-- Filter Pegawai --}}
-                <div class="relative w-full lg:flex-1 lg:min-w-[260px]">
-                    <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
-                        onclick="toggleDropdown()" oninput="filterDropdown()" autocomplete="off"
-                        class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-4 pr-8 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"/>
-                    <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3 text-gray-400">
-                            <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                        </svg>
+                    <div id="dateGrid"></div>
+
+                    <div class="flex items-center justify-between mt-3 border-t border-gray-100 pt-2.5">
+                        <button type="button" id="btnToday"
+                            class="text-xs font-semibold text-gray-600 hover:text-[#faa938] transition-colors">
+                            Hari ini
+                        </button>
+                        <button type="button" id="btnDateClose"
+                            class="px-3 py-1 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
+                            Tutup
+                        </button>
                     </div>
-                    <div id="dropdownPegawai"
-                        class="hidden absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
-                        <ul id="listPegawai"></ul>
-                    </div>
-                </div>
-
-                {{-- Filter Tim --}}
-                <div class="relative w-full lg:w-60 shrink-0">
-                    <input type="text" id="searchTim" placeholder="Cari nama tim..."
-                        onclick="toggleDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
-                        value="{{ request('search') }}"
-                        class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-4 pr-8 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"/>
-                    <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3 text-gray-400">
-                            <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                        </svg>
-                    </div>
-                    <div id="dropdownTim"
-                        class="hidden absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
-                        <ul id="listTim"></ul>
-                    </div>
-                </div>
-
-                {{-- Action Buttons --}}
-                <div class="flex items-center gap-2 w-full lg:w-auto lg:pl-3 lg:border-l lg:border-gray-200">
-
-                    {{-- Unduh Rekapitulasi --}}
-                    <a id="btnExport"
-                        href="{{ route('admin.lembur.export', ['bulan' => now()->format('Y-m'), 'tim' => request('tim'), 'nip' => request('nip'), 'status' => request('status'), 'sort' => request('sort')]) }}"
-                        title="Unduh Rekapitulasi"
-                        class="inline-flex h-10 flex-1 lg:flex-none lg:w-10 items-center justify-center gap-2 rounded-xl lg:rounded-full border border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
-                        </svg>
-                        <span class="text-sm font-medium lg:hidden">Unduh</span>
-                    </a>
-
-                    {{-- Tombol Ajukan --}}
-                    <a href="javascript:void(0)" id="btnAjukan"
-                        class="inline-flex h-10 flex-1 lg:flex-none lg:w-10 items-center justify-center gap-2 rounded-xl lg:rounded-full bg-[#faa938] text-white hover:brightness-95 transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
-                        </svg>
-                        <span class="text-sm font-medium lg:hidden">Ajukan</span>
-                    </a>
-
                 </div>
             </div>
+
+            {{-- Filter Pegawai --}}
+            <div class="relative w-full sm:w-64" id="wrapSearchPegawai">
+                <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
+                    onclick="openDropdown()" onfocus="openDropdown()" oninput="filterDropdown()" autocomplete="off"
+                    class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
+
+                <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                    <button type="button" id="btnClearPegawai" onclick="pilihPegawai(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter pegawai">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    <button type="button" onclick="toggleDropdown()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar pegawai">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                            <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="dropdownPegawai"
+                    class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                    <ul id="listPegawai"></ul>
+                </div>
+            </div>
+
+            {{-- Filter Tim --}}
+            <div class="relative w-full sm:w-60" id="wrapSearchTim">
+                <input type="text" id="searchTim" placeholder="Cari nama tim..."
+                    onclick="openDropdownTim()" onfocus="openDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
+                    value="{{ request('search') }}"
+                    class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
+
+                <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                    <button type="button" id="btnClearTim" onclick="pilihTim(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter tim">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    <button type="button" onclick="toggleDropdownTim()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar tim">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                            <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                        </svg>
+                    </button>
+                </div>
+                </div>
+
+                <div id="dropdownTim"
+                    class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                    <ul id="listTim"></ul>
+                </div>
+            </div>
+
         </div>
 
         {{-- Status Filter Tabs / Monitoring Pills --}}
@@ -202,229 +227,287 @@
             </button>
         </div>
 
+        {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
+        <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
+            <div class="flex items-center justify-between">
+                <span class="inline-flex items-center gap-1.5">
+                    <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                    <span>Geser tabel ke kiri / kanan</span>
+                </span>
+                <span class="table-scroll-pct text-[10px] font-mono text-slate-400 shrink-0">Geser »</span>
+            </div>
+            <div class="table-scroll-track w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
+                <div class="table-scroll-thumb absolute top-0 left-0 h-full bg-[#faa938] rounded-full" style="width: 30%; transform: translateX(0px);"></div>
+            </div>
+        </div>
+
         {{-- Tabel --}}
-        <div class="w-full overflow-x-auto rounded-xl ring-1 ring-gray-200 bg-white">
-            <table class="min-w-[1180px] lg:min-w-full table-auto">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tl-xl w-32">
-                            <div class="inline-flex items-center justify-center gap-1.5 w-full">
-                                <span>Tanggal</span>
-                                <div class="relative inline-block text-left">
-                                    <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
-                                        class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
-                                        <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
-                                        <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
-                                        <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                                        </svg>
+        <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[1240px] table-auto divide-y divide-gray-200">
+                    <thead class="bg-gray-50/90 border-b border-gray-200">
+                        <tr>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl w-32">
+                                <div class="inline-flex items-center justify-center gap-1.5 w-full">
+                                    <span>Tanggal</span>
+                                    <div class="relative inline-block text-left">
+                                        <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                                            class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                            <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
+                                            <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                            <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
+                                        </select>
+                                        <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Pegawai</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Jam Diajukan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Jam Disetujui</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize">Uraian Kegiatan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-36">Tim & Ketua</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-32">Status</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-20">Catatan</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize w-24">Dokumentasi</th>
-                        <th class="px-2 py-2 text-center text-xs font-semibold text-gray-900 capitalize rounded-tr-xl w-24">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-300" id="tabelLembur">
-                    @forelse($transaksi as $t)
-                        <tr class="bg-white transition-all duration-500 hover:bg-gray-50"
-                            data-tanggal="{{ $t->date }}"
-                            data-tim="{{ $t->tim_kode_tim }}"
-                            data-nip="{{ $t->submitted_by_NIP }}">
+                            </th>
+                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize w-44">Pegawai</th>
+                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize w-40">Tim &amp; Ketua</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-32">Jam Diajukan</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-32">Jam Disetujui</th>
+                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-36">Data Presensi</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-36">Status</th>
+                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize w-32">Catatan</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-24">Dokumentasi</th>
+                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl w-24">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white" id="tabelLembur">
+                        @forelse($transaksi as $t)
+                            <tr class="transition-colors hover:bg-slate-50/80"
+                                data-tanggal="{{ $t->date }}"
+                                data-tim="{{ $t->tim_kode_tim }}"
+                                data-nip="{{ $t->submitted_by_NIP }}">
 
-                            <td class="px-2 py-2 text-xs text-gray-900">
-                                {{ \Carbon\Carbon::parse($t->date)->translatedFormat('d F Y') }}
-                            </td>
+                                <td class="px-3.5 py-3.5 text-xs text-gray-700 whitespace-nowrap text-center align-middle">
+                                    <span class="font-medium text-gray-900">{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}</span>
+                                </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left">
-                                <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $t->nama_pegawai ?? '-' }}</div>
-                                <div class="mt-0.5">
+                                <td class="px-3.5 py-3.5 text-xs text-left align-middle">
+                                    <div class="font-semibold text-gray-900 leading-snug">{{ $t->nama_pegawai ?? '-' }}</div>
+                                    <div class="text-[11px] font-mono text-gray-500 mt-0.5">{{ $t->submitted_by_NIP }}</div>
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-left align-middle">
+                                    <div class="font-medium text-gray-800 leading-snug max-w-[150px] break-words">{{ $t->nama_tim ?? '-' }}</div>
+                                    <div class="text-[11px] text-gray-500 mt-0.5">Ketua: <span class="text-gray-700">{{ $t->nama_ketua ?? '-' }}</span></div>
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
+                                    @if($t->jam_mulai && $t->jam_selesai)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] font-medium text-gray-700 bg-gray-50 border border-gray-200/80">
+                                            {{ substr($t->jam_mulai, 0, 5) }} &ndash; {{ substr($t->jam_selesai, 0, 5) }}
+                                        </span>
+                                    @elseif($t->jam_mulai)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-600 bg-gray-50 border border-gray-200/80">
+                                            {{ substr($t->jam_mulai, 0, 5) }} &ndash; <span class="text-gray-400 font-sans italic text-[10px] ml-1">menunggu</span>
+                                        </span>
+                                    @else
+                                        <span class="text-gray-300 font-mono">-</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
+                                    @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200/80">
+                                            {{ substr($t->jam_mulai_disetujui, 0, 5) }} &ndash; {{ substr($t->jam_selesai_disetujui, 0, 5) }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-300 font-mono">-</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-gray-800 group relative align-middle">
+                                    {{-- Mode tampil --}}
+                                    <div class="flex items-start gap-1.5" id="view-{{ $t->id_transaksi }}">
+                                        <div class="flex-1 max-w-[240px] whitespace-normal break-words leading-relaxed text-gray-700">
+                                            {{ $t->uraian ?? '-' }}
+                                        </div>
+                                        <button type="button"
+                                            onclick="startEditUraian({{ $t->id_transaksi }})"
+                                            class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-amber-500 rounded p-0.5 transition-all duration-150 cursor-pointer"
+                                            title="Edit uraian cepat">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    {{-- Mode edit --}}
+                                    <div class="hidden" id="edit-{{ $t->id_transaksi }}">
+                                        <textarea
+                                            id="textarea-{{ $t->id_transaksi }}"
+                                            rows="3"
+                                            maxlength="2000"
+                                            class="w-full text-xs border border-[#faa938] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#faa938] resize-y text-gray-800"
+                                            placeholder="Isi uraian kegiatan...">{{ $t->uraian }}</textarea>
+                                        <div class="flex gap-1.5 mt-1 justify-end">
+                                            <button type="button"
+                                                onclick="cancelEditUraian({{ $t->id_transaksi }})"
+                                                class="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:bg-gray-50">
+                                                Batal
+                                            </button>
+                                            <button type="button"
+                                                onclick="submitEditUraian({{ $t->id_transaksi }})"
+                                                class="text-xs px-2 py-0.5 rounded border border-[#faa938] text-orange-500 hover:bg-amber-50">
+                                                Simpan
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                {{-- Kolom Data Presensi (Lihat Presensi) --}}
+                                <td class="px-3.5 py-3.5 text-center whitespace-nowrap align-middle">
                                     @if($t->has_presensi)
                                         <button type="button"
                                             onclick="openModalPresensiAdmin({{ $t->id_transaksi }})"
-                                            class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
-                                            title="Klik untuk melihat detail presensi pegawai">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            <span>Presensi: {{ $t->jam_selesai_presensi ? 'Pulang ' . $t->jam_selesai_presensi : 'Ada' }}</span>
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer shadow-2xs group"
+                                            title="Presensi Pulang: {{ $t->jam_selesai_presensi ?? '-' }} • Klik untuk rincian">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span>Lihat Presensi</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                                            </svg>
                                         </button>
                                     @else
-                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-gray-50 text-gray-400 border border-gray-200"
-                                            title="Data presensi pegawai pada tanggal ini belum tersedia di sistem">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] text-gray-400 bg-gray-50 border border-gray-200/60">
                                             <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                                             <span>Belum Presensi</span>
                                         </span>
                                     @endif
-                                </div>
-                            </td>
+                                </td>
 
-                            <td class="px-2 py-2 text-xs text-gray-900 text-center">
-                                @if($t->jam_mulai && $t->jam_selesai)
-                                    {{ substr($t->jam_mulai, 0, 5) }} - {{ substr($t->jam_selesai, 0, 5) }}
-                                @elseif($t->jam_mulai)
-                                    {{ substr($t->jam_mulai, 0, 5) }} - <span class="text-gray-400 italic">menunggu</span>
-                                @else
-                                    -
-                                @endif
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 text-center">
-                                @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
-                                    {{ substr($t->jam_mulai_disetujui, 0, 5) }} - {{ substr($t->jam_selesai_disetujui, 0, 5) }}
-                                @else
-                                    -
-                                @endif
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 group relative">
-                                {{-- Mode tampil --}}
-                                <div class="flex items-start gap-1" id="view-{{ $t->id_transaksi }}">
-                                    <span class="flex-1">{{ $t->uraian ?? '-' }}</span>
-                                    <button type="button"
-                                        onclick="startEditUraian({{ $t->id_transaksi }})"
-                                        class="flex-shrink-0 invisible group-hover:visible text-gray-300 hover:text-amber-500 rounded-full p-1.5 transition-all duration-150"
-                                        title="Edit uraian">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/>
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {{-- Mode edit --}}
-                                <div class="hidden" id="edit-{{ $t->id_transaksi }}">
-                                    <textarea
-                                        id="textarea-{{ $t->id_transaksi }}"
-                                        rows="4"
-                                        maxlength="2000"
-                                        class="w-full text-xs border border-[#faa938] rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#faa938] resize-y text-gray-800"
-                                        placeholder="Isi uraian kegiatan...">{{ $t->uraian }}</textarea>
-                                    <div class="flex gap-1.5 mt-1 justify-end">
-                                        <button type="button"
-                                            onclick="cancelEditUraian({{ $t->id_transaksi }})"
-                                            class="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:bg-gray-50">
-                                            Batal
-                                        </button>
-                                        <button type="button"
-                                            onclick="submitEditUraian({{ $t->id_transaksi }})"
-                                            class="text-xs px-2 py-0.5 rounded border border-[#faa938] text-orange-500 hover:bg-amber-50">
-                                            Simpan
-                                        </button>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <td class="px-2.5 py-2 text-xs text-gray-900 text-left">
-                                <div class="font-medium text-gray-900 max-w-[150px] break-words">{{ $t->nama_tim ?? '-' }}</div>
-                                <div class="text-[11px] text-gray-500 mt-0.5">Ketua: {{ $t->nama_ketua ?? '-' }}</div>
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 text-center" id="status-cell-{{ $t->id_transaksi }}">
-                                @if($t->status === 'pending')
-                                    <span class="bg-amber-100 rounded-full px-2.5 text-xs text-amber-700 py-0.5 whitespace-nowrap font-medium">Menunggu Ketua</span>
-                                @elseif($t->status === 'menunggu_kabag')
-                                    <span class="bg-blue-100 rounded-full px-2.5 text-xs text-blue-700 py-0.5 whitespace-nowrap font-medium">Menunggu Kabag</span>
-                                @elseif($t->status === 'approved')
-                                    <span class="bg-emerald-100 rounded-full px-2.5 text-xs text-emerald-700 py-0.5 whitespace-nowrap font-medium">Disetujui</span>
-                                @elseif($t->status === 'rejected')
-                                    <span class="bg-rose-100 rounded-full px-2.5 text-xs text-rose-700 py-0.5 whitespace-nowrap font-medium">Ditolak</span>
-                                @elseif($t->status === 'cancelled')
-                                    <span class="bg-gray-100 rounded-full px-2.5 text-xs text-gray-700 py-0.5 whitespace-nowrap font-medium border border-gray-300">Dibatalkan</span>
-                                @else
-                                    <span class="text-gray-400 text-xs">-</span>
-                                @endif
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-gray-900 text-left" id="note-cell-{{ $t->id_transaksi }}">
-                                {{ $t->note ?? '-' }}
-                            </td>
-
-                            <td class="px-2 py-2 text-xs text-center">
-                                @if($t->status === 'approved')
-                                    @if($t->file_dokumentasi)
-                                        <div class="flex items-center justify-center gap-2">
-                                            <a href="{{ $t->file_dokumentasi }}" target="_blank"
-                                                class="inline-flex items-center gap-1 text-blue-500 hover:text-blue-700 underline">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                                </svg>
-                                                Lihat
-                                            </a>
-                                            @if($t->submitted_by_NIP === session('user')['nip'])
-                                                <form action="{{ route('admin.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
-                                                    onsubmit="return confirm('Hapus dokumentasi ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-400 hover:text-red-600">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                        </svg>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
+                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle" id="status-cell-{{ $t->id_transaksi }}">
+                                    @if($t->status === 'pending')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            <span>Menunggu Ketua</span>
+                                        </span>
+                                    @elseif($t->status === 'menunggu_kabag')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                            <span>Menunggu Kabag</span>
+                                        </span>
+                                    @elseif($t->status === 'approved')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span>Disetujui</span>
+                                        </span>
+                                    @elseif($t->status === 'rejected')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                            <span>Ditolak</span>
+                                        </span>
+                                    @elseif($t->status === 'cancelled')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                            <span>Dibatalkan</span>
+                                        </span>
                                     @else
-                                        @if($t->submitted_by_NIP === session('user')['nip'])
-                                            <button type="button"
-                                                onclick="openModalDok({{ $t->id_transaksi }})"
-                                                class="text-[#faa938] hover:text-[#fd9a10] text-xs underline">
-                                                + Tambah
-                                            </button>
-                                        @else
-                                            <span class="text-gray-300">-</span>
-                                        @endif
+                                        <span class="text-gray-300 text-xs">-</span>
                                     @endif
-                                @else
-                                    <span class="text-gray-300">-</span>
-                                @endif
-                            </td>
+                                </td>
 
-                            <td class="px-2 py-2 text-center text-xs whitespace-nowrap" id="aksi-cell-{{ $t->id_transaksi }}">
-                                @if($t->status !== 'cancelled')
-                                    <button type="button"
-                                        onclick="openModalBatalAdmin({{ $t->id_transaksi }}, {{ json_encode($t->nama_pegawai ?? '-') }}, '{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}')"
-                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer"
-                                        title="Batalkan pengajuan ini">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                        <span>Batal</span>
-                                    </button>
-                                @else
-                                    <span class="text-gray-400 text-xs italic">Dibatalkan</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="10" class="px-3 py-10 text-center">
-                                <div class="flex flex-col items-center justify-center gap-1.5 text-gray-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                    <span class="text-sm font-medium text-gray-500">Tidak ada pengajuan lembur yang sesuai.</span>
-                                    @if(request()->hasAny(['tanggal', 'bulan', 'tim', 'nip', 'status']))
-                                        <a href="{{ route('admin.lembur') }}" class="text-xs text-[#faa938] hover:underline font-semibold mt-1">
-                                            Reset semua filter
-                                        </a>
+                                <td class="px-3.5 py-3.5 text-xs text-gray-600 text-left max-w-[140px] break-words align-middle" id="note-cell-{{ $t->id_transaksi }}">
+                                    @if(!empty($t->note))
+                                        <span class="italic text-gray-600 leading-relaxed">{{ $t->note }}</span>
+                                    @else
+                                        <span class="text-gray-300">-</span>
                                     @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
+                                    @if($t->status === 'approved')
+                                        @if($t->file_dokumentasi)
+                                            <div class="inline-flex items-center justify-center gap-1.5">
+                                                <a href="{{ $t->file_dokumentasi }}" target="_blank"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200/80 hover:bg-blue-100 hover:text-blue-800 transition-colors shadow-2xs">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                                    </svg>
+                                                    <span>Lihat</span>
+                                                </a>
+                                                @if($t->submitted_by_NIP === session('user')['nip'])
+                                                    <form action="{{ route('admin.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
+                                                        onsubmit="return confirm('Hapus dokumentasi ini?')" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="p-1 text-gray-400 hover:text-red-600 rounded transition-colors" title="Hapus dokumentasi">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        @else
+                                            @if($t->submitted_by_NIP === session('user')['nip'])
+                                                <button type="button"
+                                                    onclick="openModalDok({{ $t->id_transaksi }})"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200/80 hover:bg-amber-100 transition-colors shadow-2xs">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                                    </svg>
+                                                    <span>Unggah</span>
+                                                </button>
+                                            @else
+                                                <span class="text-gray-300">-</span>
+                                            @endif
+                                        @endif
+                                    @else
+                                        <span class="text-gray-300">-</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-center text-xs whitespace-nowrap align-middle" id="aksi-cell-{{ $t->id_transaksi }}">
+                                    @if($t->status !== 'cancelled')
+                                        <button type="button"
+                                            onclick="openModalAksiAdmin({{ $t->id_transaksi }}, {{ json_encode($t->nama_pegawai ?? '-') }}, '{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}', {{ json_encode($t->uraian ?? '') }})"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs transition-all cursor-pointer group"
+                                            title="Kelola & Aksi Pengajuan">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 group-hover:text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                                            </svg>
+                                            <span>Aksi</span>
+                                        </button>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-400 bg-gray-50 border border-gray-200/60 italic">Dibatalkan</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="11" class="px-4 py-16 text-center">
+                                    <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-[#faa938] mb-3 border border-amber-100/80 shadow-xs">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                        </div>
+                                        <h3 class="text-sm font-bold text-gray-900 mb-1">Tidak Ada Pengajuan Lembur</h3>
+                                        <p class="text-xs text-gray-500 mb-3 text-center leading-relaxed">
+                                            Tidak ada data pengajuan lembur yang sesuai dengan kriteria filter saat ini.
+                                        </p>
+                                        @if(request()->hasAny(['tanggal', 'bulan', 'tim', 'nip', 'status']))
+                                            <a href="{{ route('admin.lembur') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-2xs transition-all">
+                                                Reset Semua Filter
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-5">
@@ -542,9 +625,9 @@
     </div>
 </div>
 
-{{-- MODAL BATALKAN PENGAJUAN (ADMIN) --}}
-<div id="modalBatalAdmin" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalBatalAdmin()"></div>
+{{-- MODAL AKSI & KELOLA PENGAJUAN (ADMIN) --}}
+<div id="modalAksiAdmin" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-xs" onclick="closeModalAksiAdmin()"></div>
 
     <div class="relative flex min-h-screen items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] overflow-y-auto">
@@ -554,61 +637,112 @@
             </div>
 
             <div class="flex items-center justify-between border-b px-4 sm:px-6 py-4 sticky top-0 bg-white z-10">
-                <div class="flex items-center gap-2 text-rose-600">
-                    <div class="p-1.5 bg-rose-100 rounded-lg">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-1.5 bg-amber-50 text-[#faa938] border border-amber-200 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                         </svg>
                     </div>
-                    <h2 class="text-base font-bold text-gray-900">Batalkan Pengajuan Lembur</h2>
+                    <div>
+                        <h2 class="text-sm sm:text-base font-bold text-gray-900">Kelola Pengajuan Lembur</h2>
+                        <p class="text-xs text-gray-500 mt-0.5" id="aksiSubtitleAdmin">-</p>
+                    </div>
                 </div>
-                <button type="button" onclick="closeModalBatalAdmin()"
-                    class="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                <button type="button" onclick="closeModalAksiAdmin()"
+                    class="text-gray-400 hover:text-gray-600 text-xl leading-none cursor-pointer">
                     &times;
                 </button>
             </div>
 
-            <form id="formBatalAdmin" onsubmit="submitBatalAdmin(event)" class="px-4 sm:px-6 py-5 space-y-4">
-                @csrf
+            <div class="px-4 sm:px-6 py-4 space-y-4">
+                <input type="hidden" id="aksiIdTransaksi" value="">
                 <input type="hidden" id="batalIdTransaksi" value="">
 
-                <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-xs text-rose-900">
-                    <p class="font-medium text-rose-800">
-                        Anda akan membatalkan pengajuan lembur:
-                    </p>
-                    <div class="grid grid-cols-3 gap-1 pt-1 text-gray-700">
-                        <span class="text-gray-500">Pegawai:</span>
-                        <span class="col-span-2 font-semibold text-gray-900" id="batalNamaPegawai">-</span>
-                        <span class="text-gray-500">Tanggal:</span>
-                        <span class="col-span-2 font-semibold text-gray-900" id="batalTanggal">-</span>
+                {{-- Tab Navigasi Aksi --}}
+                <div class="flex border-b border-gray-200 gap-2">
+                    <button type="button" id="tabBtnEditUraian" onclick="switchAksiTab('edit')"
+                        class="pb-2.5 px-3 text-xs font-semibold border-b-2 border-[#faa938] text-gray-900 transition-colors cursor-pointer flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        <span>Edit Uraian</span>
+                    </button>
+                    <button type="button" id="tabBtnBatalPengajuan" onclick="switchAksiTab('batal')"
+                        class="pb-2.5 px-3 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span>Batalkan Pengajuan</span>
+                    </button>
+                </div>
+
+                {{-- PANEL 1: EDIT URAIAN --}}
+                <div id="panelEditUraian" class="space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="aksiUraianInput" class="block text-xs font-semibold text-gray-800">
+                                Uraian Kegiatan Lembur
+                            </label>
+                            <span id="aksiUraianCounter" class="text-[11px] text-gray-400">0 / 2000</span>
+                        </div>
+                        <textarea id="aksiUraianInput" rows="4" maxlength="2000"
+                            class="w-full rounded-xl border border-gray-300 p-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 resize-y transition-all"
+                            placeholder="Tulis uraian kegiatan lembur..."></textarea>
+                        <p id="aksiUraianError" class="text-xs text-rose-600 mt-1 hidden"></p>
                     </div>
-                    <p class="text-[11px] text-rose-700/90 pt-1 leading-relaxed">
-                        Pengajuan ini akan diubah statusnya menjadi <b>Dibatalkan</b> dan jam lembur tidak akan dihitung pada rekapitulasi/uang lembur. Data tetap tersimpan rapi untuk histori audit.
-                    </p>
+
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 border-t">
+                        <button type="button" onclick="closeModalAksiAdmin()"
+                            class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">
+                            Tutup
+                        </button>
+                        <button type="button" onclick="submitAksiEditUraian()" id="btnSubmitEditUraian"
+                            class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Simpan Uraian</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div>
-                    <label for="batalAlasan" class="block text-xs font-semibold text-gray-800 mb-1.5">
-                        Alasan Pembatalan <span class="text-rose-500">*</span>
-                    </label>
-                    <textarea id="batalAlasan" name="alasan" rows="3" required
-                        placeholder="Contoh: Dobel input pengajuan lembur / Salah input tanggal pengajuan"
-                        class="w-full rounded-xl border border-gray-300 p-3 text-xs text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"></textarea>
-                    <p id="batalAlasanError" class="text-xs text-rose-600 mt-1 hidden"></p>
+                {{-- PANEL 2: BATALKAN PENGAJUAN --}}
+                <div id="panelBatalPengajuan" class="space-y-4 hidden">
+                    <form id="formBatalAdmin" onsubmit="submitBatalAdmin(event)" class="space-y-4">
+                        @csrf
+                        <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-xs text-rose-900">
+                            <p class="font-medium text-rose-800">
+                                Fitur ini digunakan jika pengajuan lembur salah tanggal atau dobel input:
+                            </p>
+                            <p class="text-[11px] text-rose-700/90 leading-relaxed">
+                                Pengajuan akan diubah statusnya menjadi <b>Dibatalkan</b> dan tidak akan masuk dalam perhitungan lembur/keuangan. Riwayat pengajuan tetap tersimpan untuk transparansi.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="batalAlasan" class="block text-xs font-semibold text-gray-800 mb-1.5">
+                                Alasan Pembatalan <span class="text-rose-500">*</span>
+                            </label>
+                            <textarea id="batalAlasan" name="alasan" rows="3" required
+                                placeholder="Contoh: Dobel input pengajuan lembur / Salah input tanggal pengajuan"
+                                class="w-full rounded-xl border border-gray-300 p-3 text-xs text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"></textarea>
+                            <p id="batalAlasanError" class="text-xs text-rose-600 mt-1 hidden"></p>
+                        </div>
+
+                        <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 border-t">
+                            <button type="button" onclick="closeModalAksiAdmin()"
+                                class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">
+                                Tutup
+                            </button>
+                            <button type="submit" id="btnSubmitBatalAdmin"
+                                class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-rose-600/20 cursor-pointer">
+                                <span>Ya, Batalkan Pengajuan</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
-                <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2 border-t">
-                    <button type="button" onclick="closeModalBatalAdmin()"
-                        class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all">
-                        Tutup
-                    </button>
-
-                    <button type="submit" id="btnSubmitBatalAdmin"
-                        class="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-rose-600/20">
-                        <span>Ya, Batalkan Pengajuan</span>
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -1078,43 +1212,88 @@
     // =====================
     function populateDropdownTim(filter = '', data = []) {
         const list = document.getElementById('listTim');
+        if (!list) return;
         list.innerHTML = '';
 
         const liSemua = document.createElement('li');
-        liSemua.className   = 'cursor-pointer px-4 py-2 text-sm text-gray-400 hover:bg-gray-50';
-        liSemua.textContent = 'Semua tim';
+        liSemua.className   = 'cursor-pointer px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-50 flex items-center justify-between ' + (!selectedTimId ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+        liSemua.innerHTML   = '<span>Semua tim</span>' + (!selectedTimId ? '<svg class="w-3.5 h-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
         liSemua.addEventListener('mousedown', (e) => { e.preventDefault(); pilihTim(null); });
         list.appendChild(liSemua);
 
-        data
-            .filter(t => t.nama_tim.toLowerCase().includes(filter.toLowerCase()))
-            .forEach(tim => {
-                const li = document.createElement('li');
-                li.className   = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-                li.textContent = tim.nama_tim;
-                li.addEventListener('mousedown', (e) => { e.preventDefault(); pilihTim(tim); });
-                list.appendChild(li);
-            });
+        const keyword = (filter || '').toLowerCase().trim();
+        const filtered = data.filter(t => {
+            if (!keyword) return true;
+            return (t.nama_tim || '').toLowerCase().includes(keyword) || (t.kode_tim || '').toLowerCase().includes(keyword);
+        });
+
+        if (filtered.length === 0) {
+            const liEmpty = document.createElement('li');
+            liEmpty.className = 'px-4 py-3 text-xs text-gray-400 text-center';
+            liEmpty.textContent = 'Tim tidak ditemukan';
+            list.appendChild(liEmpty);
+            return;
+        }
+
+        filtered.forEach(tim => {
+            const isSelected = selectedTimId === tim.kode_tim;
+            const li = document.createElement('li');
+            li.className   = 'cursor-pointer px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center justify-between ' + (isSelected ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+            li.innerHTML   = `<span>${tim.nama_tim}</span>` + (isSelected ? '<svg class="w-3.5 h-3.5 text-[#faa938] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
+            li.addEventListener('mousedown', (e) => { e.preventDefault(); pilihTim(tim); });
+            list.appendChild(li);
+        });
     }
 
-    window.toggleDropdownTim = function () {
-        const dd       = document.getElementById('dropdownTim');
-        const isHidden = dd.classList.contains('hidden');
+    window.openDropdownTim = function () {
+        const dd     = document.getElementById('dropdownTim');
+        const search = document.getElementById('searchTim');
+        if (!dd || !search) return;
+
         tutupSemuaDropdown();
-        if (isHidden) { populateDropdownTim('', cachedTim); dd.classList.remove('hidden'); }
+        populateDropdownTim('', cachedTim); // Always full list!
+        dd.classList.remove('hidden');
+        setTimeout(() => search.select(), 10);
+    };
+
+    window.toggleDropdownTim = function () {
+        const dd = document.getElementById('dropdownTim');
+        if (!dd) return;
+
+        if (dd.classList.contains('hidden')) {
+            openDropdownTim();
+        } else {
+            dd.classList.add('hidden');
+        }
     };
 
     window.filterDropdownTim = function () {
-        populateDropdownTim(document.getElementById('searchTim').value, cachedTim);
-        document.getElementById('dropdownTim').classList.remove('hidden');
+        const search = document.getElementById('searchTim');
+        populateDropdownTim(search.value, cachedTim);
+        document.getElementById('dropdownTim')?.classList.remove('hidden');
+
+        const btnClear = document.getElementById('btnClearTim');
+        if (btnClear) {
+            search.value.trim() ? btnClear.classList.remove('hidden') : (selectedTimId ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden'));
+        }
     };
 
     function pilihTim(tim) {
         selectedTimId = tim ? tim.kode_tim : null;
-        document.getElementById('searchTim').value    = tim ? tim.nama_tim : '';
-        document.getElementById('dropdownTim').classList.add('hidden');
+        const search = document.getElementById('searchTim');
+        if (search) search.value = tim ? tim.nama_tim : '';
+        document.getElementById('dropdownTim')?.classList.add('hidden');
+
+        const btnClear = document.getElementById('btnClearTim');
+        if (btnClear) {
+            selectedTimId ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden');
+        }
+
         selectedNip = null;
-        document.getElementById('searchPegawai').value = '';
+        const searchPeg = document.getElementById('searchPegawai');
+        if (searchPeg) searchPeg.value = '';
+        document.getElementById('btnClearPegawai')?.classList.add('hidden');
+
         if (tim) fetchPegawai(tim.kode_tim);
         else     fetchPegawai();
         applyFilter();
@@ -1125,43 +1304,114 @@
     // =====================
     function populateDropdown(filter = '', data = []) {
         const list = document.getElementById('listPegawai');
+        if (!list) return;
         list.innerHTML = '';
 
         const liSemua = document.createElement('li');
-        liSemua.className   = 'cursor-pointer px-4 py-2 text-sm text-gray-400 hover:bg-gray-50';
-        liSemua.textContent = 'Semua pegawai';
+        liSemua.className   = 'cursor-pointer px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-50 flex items-center justify-between ' + (!selectedNip ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+        liSemua.innerHTML   = '<span>Semua pegawai</span>' + (!selectedNip ? '<svg class="w-3.5 h-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
         liSemua.addEventListener('mousedown', (e) => { e.preventDefault(); pilihPegawai(null); });
         list.appendChild(liSemua);
 
-        data
-            .filter(e => `${e.nama} ${e.nip}`.toLowerCase().includes(filter.toLowerCase()))
-            .forEach(emp => {
-                const li = document.createElement('li');
-                li.className   = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-                li.textContent = `${emp.nama} - ${emp.nip}`;
-                li.addEventListener('mousedown', (e) => { e.preventDefault(); pilihPegawai(emp); });
-                list.appendChild(li);
-            });
+        const keyword = (filter || '').toLowerCase().trim();
+        const filtered = data.filter(e => {
+            if (!keyword) return true;
+            return `${e.nama || ''} ${e.nip || ''}`.toLowerCase().includes(keyword);
+        });
+
+        if (filtered.length === 0) {
+            const liEmpty = document.createElement('li');
+            liEmpty.className = 'px-4 py-3 text-xs text-gray-400 text-center';
+            liEmpty.textContent = 'Pegawai tidak ditemukan';
+            list.appendChild(liEmpty);
+            return;
+        }
+
+        filtered.forEach(emp => {
+            const isSelected = selectedNip === emp.nip;
+            const li = document.createElement('li');
+            li.className   = 'cursor-pointer px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center justify-between ' + (isSelected ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+            li.innerHTML   = `<span>${emp.nama} (${emp.nip})</span>` + (isSelected ? '<svg class="w-3.5 h-3.5 text-[#faa938] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
+            li.addEventListener('mousedown', (e) => { e.preventDefault(); pilihPegawai(emp); });
+            list.appendChild(li);
+        });
     }
 
-    window.toggleDropdown = function () {
-        const dd       = document.getElementById('dropdownPegawai');
-        const isHidden = dd.classList.contains('hidden');
+    window.openDropdown = function () {
+        const dd     = document.getElementById('dropdownPegawai');
+        const search = document.getElementById('searchPegawai');
+        if (!dd || !search) return;
+
         tutupSemuaDropdown();
-        if (isHidden) { populateDropdown('', cachedPegawai); dd.classList.remove('hidden'); }
+        populateDropdown('', cachedPegawai); // Always full list!
+        dd.classList.remove('hidden');
+        setTimeout(() => search.select(), 10);
+    };
+
+    window.toggleDropdown = function () {
+        const dd = document.getElementById('dropdownPegawai');
+        if (!dd) return;
+
+        if (dd.classList.contains('hidden')) {
+            openDropdown();
+        } else {
+            dd.classList.add('hidden');
+        }
     };
 
     window.filterDropdown = function () {
-        populateDropdown(document.getElementById('searchPegawai').value, cachedPegawai);
-        document.getElementById('dropdownPegawai').classList.remove('hidden');
+        const search = document.getElementById('searchPegawai');
+        populateDropdown(search.value, cachedPegawai);
+        document.getElementById('dropdownPegawai')?.classList.remove('hidden');
+
+        const btnClear = document.getElementById('btnClearPegawai');
+        if (btnClear) {
+            search.value.trim() ? btnClear.classList.remove('hidden') : (selectedNip ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden'));
+        }
     };
 
     function pilihPegawai(emp) {
         selectedNip = emp ? emp.nip : null;
-        document.getElementById('searchPegawai').value = emp ? `${emp.nama} - ${emp.nip}` : '';
-        document.getElementById('dropdownPegawai').classList.add('hidden');
+        const search = document.getElementById('searchPegawai');
+        if (search) search.value = emp ? `${emp.nama} (${emp.nip})` : '';
+        document.getElementById('dropdownPegawai')?.classList.add('hidden');
+
+        const btnClear = document.getElementById('btnClearPegawai');
+        if (btnClear) {
+            selectedNip ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden');
+        }
+
         applyFilter();
     }
+
+    // Close dropdowns when clicked outside and restore active selection text if untouched
+    document.addEventListener('click', (e) => {
+        const wrapPeg = document.getElementById('wrapSearchPegawai');
+        const ddPeg = document.getElementById('dropdownPegawai');
+        const searchPeg = document.getElementById('searchPegawai');
+        if (wrapPeg && ddPeg && searchPeg && !wrapPeg.contains(e.target)) {
+            ddPeg.classList.add('hidden');
+            if (selectedNip) {
+                const emp = cachedPegawai.find(emp => emp.nip === selectedNip);
+                if (emp) searchPeg.value = `${emp.nama} (${emp.nip})`;
+            } else {
+                searchPeg.value = '';
+            }
+        }
+
+        const wrapTim = document.getElementById('wrapSearchTim');
+        const ddTim = document.getElementById('dropdownTim');
+        const searchTim = document.getElementById('searchTim');
+        if (wrapTim && ddTim && searchTim && !wrapTim.contains(e.target)) {
+            ddTim.classList.add('hidden');
+            if (selectedTimId) {
+                const tim = cachedTim.find(tim => tim.kode_tim === selectedTimId);
+                if (tim) searchTim.value = tim.nama_tim;
+            } else {
+                searchTim.value = '';
+            }
+        }
+    });
 
     // =====================
     // DATE PICKER
@@ -1389,40 +1639,150 @@
     // =====================
     window.openModalDok = function (idTransaksi) {
         const base = "{{ url('admin/lembur') }}";
-        document.getElementById('formDok').action = `${base}/${idTransaksi}/dokumentasi`;
-        document.getElementById('modalDok').classList.remove('hidden');
+        const form = document.getElementById('formDok');
+        if (form) {
+            form.action = `${base}/${idTransaksi}/dokumentasi`;
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
+        }
+        document.getElementById('modalDok')?.classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
     };
 
     window.closeModalDok = function () {
-        document.getElementById('modalDok').classList.add('hidden');
+        const form = document.getElementById('formDok');
+        if (form) {
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
+        }
+        document.getElementById('modalDok')?.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
 
+    const formDokAdmin = document.getElementById('formDok');
+    if (formDokAdmin) {
+        const inputDok = formDokAdmin.querySelector('[name="file_path"]');
+        if (inputDok) {
+            inputDok.addEventListener('blur', function () {
+                let val = this.value.trim();
+                if (val && !/^https?:\/\//i.test(val)) {
+                    this.value = 'https://' + val;
+                }
+            });
+        }
+
+        formDokAdmin.addEventListener('submit', function () {
+            const input = formDokAdmin.querySelector('[name="file_path"]');
+            if (!input) return;
+            let val = input.value.trim();
+            if (!val) return;
+            if (!/^https?:\/\//i.test(val)) {
+                val = 'https://' + val;
+            }
+            try {
+                input.type = 'text';
+                input.value = 'b64:' + btoa(unescape(encodeURIComponent(val)));
+            } catch (err) {
+                console.error('Encode error:', err);
+            }
+        });
+    }
+
     // =====================
-    // MODAL BATALKAN PENGAJUAN (ADMIN)
+    // MODAL AKSI & KELOLA PENGAJUAN (ADMIN)
     // =====================
-    window.openModalBatalAdmin = function (idTransaksi, namaPegawai, tanggal) {
+    window.switchAksiTab = function (tab) {
+        const tabEdit = document.getElementById('tabBtnEditUraian');
+        const tabBatal = document.getElementById('tabBtnBatalPengajuan');
+        const panelEdit = document.getElementById('panelEditUraian');
+        const panelBatal = document.getElementById('panelBatalPengajuan');
+
+        if (tab === 'edit') {
+            tabEdit.className = 'pb-2.5 px-3 text-xs font-semibold border-b-2 border-[#faa938] text-gray-900 transition-colors cursor-pointer flex items-center gap-1.5';
+            tabBatal.className = 'pb-2.5 px-3 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-rose-600 transition-colors cursor-pointer flex items-center gap-1.5';
+            panelEdit.classList.remove('hidden');
+            panelBatal.classList.add('hidden');
+        } else {
+            tabBatal.className = 'pb-2.5 px-3 text-xs font-semibold border-b-2 border-rose-500 text-rose-600 transition-colors cursor-pointer flex items-center gap-1.5';
+            tabEdit.className = 'pb-2.5 px-3 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition-colors cursor-pointer flex items-center gap-1.5';
+            panelBatal.classList.remove('hidden');
+            panelEdit.classList.add('hidden');
+            setTimeout(() => document.getElementById('batalAlasan').focus(), 50);
+        }
+    };
+
+    window.openModalAksiAdmin = function (idTransaksi, namaPegawai, tanggal, uraian) {
+        document.getElementById('aksiIdTransaksi').value = idTransaksi;
         document.getElementById('batalIdTransaksi').value = idTransaksi;
-        document.getElementById('batalNamaPegawai').textContent = namaPegawai || '-';
-        document.getElementById('batalTanggal').textContent = tanggal || '-';
+        document.getElementById('aksiSubtitleAdmin').textContent = `${namaPegawai || '-'} • ${tanggal || '-'}`;
+
+        const uraianInput = document.getElementById('aksiUraianInput');
+        uraianInput.value = uraian || '';
+        document.getElementById('aksiUraianCounter').textContent = `${(uraian || '').length} / 2000`;
+        document.getElementById('aksiUraianError').classList.add('hidden');
+
         document.getElementById('batalAlasan').value = '';
         document.getElementById('batalAlasanError').classList.add('hidden');
-        document.getElementById('batalAlasanError').textContent = '';
-        
-        const btnSubmit = document.getElementById('btnSubmitBatalAdmin');
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = '<span>Ya, Batalkan Pengajuan</span>';
 
-        document.getElementById('modalBatalAdmin').classList.remove('hidden');
+        const btnSubmitBatal = document.getElementById('btnSubmitBatalAdmin');
+        btnSubmitBatal.disabled = false;
+        btnSubmitBatal.innerHTML = '<span>Ya, Batalkan Pengajuan</span>';
+
+        const btnSubmitEdit = document.getElementById('btnSubmitEditUraian');
+        btnSubmitEdit.disabled = false;
+        btnSubmitEdit.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Simpan Uraian</span>
+        `;
+
+        switchAksiTab('edit');
+
+        document.getElementById('modalAksiAdmin').classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
-        setTimeout(() => document.getElementById('batalAlasan').focus(), 100);
     };
 
-    window.closeModalBatalAdmin = function () {
-        document.getElementById('modalBatalAdmin').classList.add('hidden');
+    window.closeModalAksiAdmin = function () {
+        document.getElementById('modalAksiAdmin').classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
+
+    // Alias backward-compatibility
+    window.openModalBatalAdmin = function (idTransaksi, namaPegawai, tanggal) {
+        openModalAksiAdmin(idTransaksi, namaPegawai, tanggal, '');
+        switchAksiTab('batal');
+    };
+    window.closeModalBatalAdmin = window.closeModalAksiAdmin;
+
+    window.submitAksiEditUraian = function () {
+        const id = document.getElementById('aksiIdTransaksi').value;
+        const uraian = document.getElementById('aksiUraianInput').value.trim();
+        const errorEl = document.getElementById('aksiUraianError');
+
+        if (!uraian) {
+            errorEl.textContent = 'Uraian kegiatan wajib diisi.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        const base = "{{ url('admin/lembur') }}";
+        const form = document.getElementById('formEditUraian');
+        form.action = `${base}/${id}/uraian`;
+        document.getElementById('inputUraian').value = uraian;
+        form.submit();
+    };
+
+    document.getElementById('aksiUraianInput')?.addEventListener('input', function () {
+        const counter = document.getElementById('aksiUraianCounter');
+        if (counter) counter.textContent = `${this.value.length} / 2000`;
+    });
 
     window.submitBatalAdmin = async function (e) {
         e.preventDefault();
@@ -1469,20 +1829,20 @@
 
             const statusCell = document.getElementById(`status-cell-${id}`);
             if (statusCell) {
-                statusCell.innerHTML = `<span class="bg-gray-100 rounded-full px-2.5 text-xs text-gray-700 py-0.5 whitespace-nowrap font-medium border border-gray-300">Dibatalkan</span>`;
+                statusCell.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200"><span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span><span>Dibatalkan</span></span>`;
             }
 
             const noteCell = document.getElementById(`note-cell-${id}`);
             if (noteCell) {
-                noteCell.textContent = data.note || `[Dibatalkan Admin] ${alasan}`;
+                noteCell.innerHTML = `<span class="italic text-gray-600 leading-relaxed">${data.note || `[Dibatalkan Admin] ${alasan}`}</span>`;
             }
 
             const aksiCell = document.getElementById(`aksi-cell-${id}`);
             if (aksiCell) {
-                aksiCell.innerHTML = `<span class="text-gray-400 text-xs italic">Dibatalkan</span>`;
+                aksiCell.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-400 bg-gray-50 border border-gray-200/60 italic">Dibatalkan</span>`;
             }
 
-            closeModalBatalAdmin();
+            closeModalAksiAdmin();
 
             const alertBox = document.createElement('div');
             alertBox.className = 'fixed bottom-5 right-5 z-50 bg-emerald-600 text-white text-xs px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all duration-300';

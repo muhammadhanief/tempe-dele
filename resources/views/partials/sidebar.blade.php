@@ -14,24 +14,41 @@
            -translate-x-full lg:translate-x-0
            transition-transform duration-300 ease-in-out"
 >
-    {{-- Brand --}}
-    <a href="#" class="flex items-center gap-2 px-4 mb-8 mt-2 lg:mt-0">
-        <div class="w-16 h-16 flex items-center justify-center shrink-0">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo OverTime" class="w-full h-auto" />
-        </div>
-        <div class="flex flex-col leading-tight">
-            <span class="text-base font-bold text-white tracking-wide mb-1.5">TEMPE DELE</span>
-            <span class="text-[12px] text-slate-300">
-                sisTEM PEngelolaan <br>DokumEn LEmbur
-            </span>
-        </div>
-    </a>
-
     @php
         $role = session('user')
             ? \DB::table('m_pegawai')->where('nip', session('user')['nip'])->value('role')
             : null;
 
+        $brandRoute = match($role) {
+            'superadmin', 'admin' => route('admin.dashboard'),
+            'ketua_tim'           => route('ketua-tim.dashboard'),
+            'pimpinan'            => route('pimpinan.dashboard'),
+            default               => route('pegawai.dashboard'),
+        };
+    @endphp
+
+    {{-- Brand & Mobile Close --}}
+    <div class="flex items-center justify-between px-4 mb-8 mt-2 lg:mt-0">
+        <a href="{{ $brandRoute }}" class="flex items-center gap-2 transition-opacity hover:opacity-90">
+            <div class="w-14 h-14 flex items-center justify-center shrink-0">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo OverTime" class="w-full h-auto" />
+            </div>
+            <div class="flex flex-col leading-tight">
+                <span class="text-base font-bold text-white tracking-wide mb-1">TEMPE DELE</span>
+                <span class="text-[11px] text-slate-300">
+                    sisTEM PEngelolaan <br>DokumEn LEmbur
+                </span>
+            </div>
+        </a>
+        <button type="button" onclick="closeSidebar()" aria-label="Tutup menu navigasi"
+            class="lg:hidden p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    @php
         $nipSess = session('user')['nip'] ?? null;
         $nipLamaSess = session('user')['nip_lama'] ?? null;
 
@@ -272,7 +289,7 @@
         @foreach ($sections as $index => $section)
             @if(!empty($section['items']))
                 <div class="flex flex-col">
-                    <p class="px-3 mb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    <p class="px-3 mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         {{ $section['title'] }}
                     </p>
 
@@ -283,7 +300,7 @@
                             class="relative flex items-center gap-3 w-full h-12 px-4 rounded-xl text-sm transition-colors
                                 {{ $item['active']
                                     ? 'bg-[#faa938]/15 text-[#faa938] font-semibold'
-                                    : 'text-slate-500 hover:bg-white/5 hover:text-slate-300 font-medium' }}"
+                                    : 'text-slate-400 hover:bg-white/10 hover:text-white font-medium' }}"
                         >
                             @if ($item['active'])
                                 <span class="absolute left-0 top-3 bottom-3 w-0.5 bg-[#faa938] rounded-full"></span>

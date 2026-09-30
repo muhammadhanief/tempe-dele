@@ -27,19 +27,32 @@ class PengajuanController extends Controller
             return redirect()->route('kabag-umum.pengajuan');
         }
 
-        $bulan  = $request->get('bulan', now()->format('Y-m'));
+        $bulanParam = $request->get('bulan');
+        $currentYear = (int) now()->year;
+        $selectedYear = $currentYear;
+        $selectedMonth = null; // null = semua bulan tahun berjalan
+
+        if ($bulanParam && $bulanParam !== 'all') {
+            if (preg_match('/^(\d{4})-all$/i', $bulanParam, $matches)) {
+                $selectedYear = (int) $matches[1];
+                $selectedMonth = null;
+                $bulan = $selectedYear . '-all';
+            } elseif (preg_match('/^(\d{4})-(\d{2})$/', $bulanParam, $matches)) {
+                $selectedYear = (int) $matches[1];
+                $selectedMonth = (int) $matches[2];
+                $bulan = sprintf('%04d-%02d', $selectedYear, $selectedMonth);
+            } else {
+                $bulan = 'all';
+            }
+        } else {
+            $bulan = 'all';
+        }
+
         $search = trim((string) $request->get('nip'));
         $status = $request->get('status', 'all');
-        $sort   = in_array(strtolower($request->get('sort', 'priority')), ['priority', 'desc', 'asc'])
-            ? strtolower($request->get('sort', 'priority'))
-            : 'priority';
-
-        try {
-            $periode = Carbon::parse($bulan . '-01');
-        } catch (\Exception $e) {
-            $periode = Carbon::now();
-            $bulan = $periode->format('Y-m');
-        }
+        $sort   = in_array(strtolower($request->get('sort', 'desc')), ['desc', 'asc', 'priority'])
+            ? strtolower($request->get('sort', 'desc'))
+            : 'desc';
 
         $tim = DB::table('m_tim')
             ->where('nipbaru_ketua', $nipKetua)
@@ -69,8 +82,11 @@ class PengajuanController extends Controller
                     LIMIT 1
                 ) as jam_selesai_presensi')
             ])
-            ->whereYear('t.date', $periode->year)
-            ->whereMonth('t.date', $periode->month);
+            ->whereYear('t.date', $selectedYear);
+
+        if ($selectedMonth !== null) {
+            $query->whereMonth('t.date', $selectedMonth);
+        }
 
         if ($search !== '') {
             $query->where('p.nip', $search);
@@ -82,12 +98,12 @@ class PengajuanController extends Controller
 
         if ($sort === 'asc') {
             $query->orderBy('t.date', 'asc')->orderBy('t.id_transaksi', 'asc');
-        } elseif ($sort === 'desc') {
-            $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
-        } else { // priority
+        } elseif ($sort === 'priority') {
             $query->orderByRaw("CASE WHEN t.status = 'pending' THEN 0 WHEN t.status = 'menunggu_kabag' THEN 1 WHEN t.status = 'approved' THEN 2 ELSE 3 END")
                 ->orderBy('t.date', 'desc')
                 ->orderBy('t.id_transaksi', 'desc');
+        } else { // desc (default: terbaru ke terlama)
+            $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
         }
 
         $pengajuan = $query
@@ -98,7 +114,7 @@ class PengajuanController extends Controller
             ->orderBy('tanggal', 'asc')
             ->get();
 
-        return view('ketua-tim.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'tim', 'search', 'status', 'sort'));
+        return view('ketua-tim.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'search', 'status', 'tim', 'sort', 'selectedYear', 'selectedMonth'));
     }
 
     public function approve(Request $request, $id)

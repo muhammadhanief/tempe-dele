@@ -40,12 +40,12 @@
         {{-- Filter Periode --}}
         <div class="relative" id="datePicker">
             <button type="button" id="dateBtn"
-                class="inline-flex h-10 items-center justify-between gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                class="inline-flex h-10 items-center justify-between gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all whitespace-nowrap">
                 <span class="inline-flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3.5 w-3.5 fill-current text-[#faa938]">
                         <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
                     </svg>
-                    <span id="dateLabel" class="truncate leading-none">Semua Tanggal</span>
+                    <span id="dateLabel" class="whitespace-nowrap truncate leading-none">Semua Tanggal</span>
                 </span>
 
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-3 w-3 fill-current opacity-40 shrink-0">
@@ -123,6 +123,20 @@
             Reset
         </button>
 
+    {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
+    <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
+        <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                <span>Geser tabel ke kiri / kanan</span>
+            </span>
+            <span class="table-scroll-pct text-[10px] font-mono text-slate-400 shrink-0">Geser »</span>
+        </div>
+        <div class="table-scroll-track w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
+            <div class="table-scroll-thumb absolute top-0 left-0 h-full bg-[#faa938] rounded-full" style="width: 30%; transform: translateX(0px);"></div>
+        </div>
     </div>
 
     {{-- Card Tabel --}}
@@ -746,8 +760,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('formDok');
         const modalDok = document.getElementById('modalDok');
 
-        if (form && el) {
-            form.action = el.getAttribute('data-action');
+        if (form) {
+            if (el) form.action = el.getAttribute('data-action');
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
         }
 
         modalDok?.classList.remove('hidden');
@@ -755,9 +774,46 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.closeModalDok = function () {
+        const form = document.getElementById('formDok');
+        if (form) {
+            const input = form.querySelector('[name="file_path"]');
+            if (input) {
+                input.type = 'url';
+                input.value = '';
+            }
+        }
         document.getElementById('modalDok')?.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
+
+    const formDokKetua = document.getElementById('formDok');
+    if (formDokKetua) {
+        const inputDok = formDokKetua.querySelector('[name="file_path"]');
+        if (inputDok) {
+            inputDok.addEventListener('blur', function () {
+                let val = this.value.trim();
+                if (val && !/^https?:\/\//i.test(val)) {
+                    this.value = 'https://' + val;
+                }
+            });
+        }
+
+        formDokKetua.addEventListener('submit', function () {
+            const input = formDokKetua.querySelector('[name="file_path"]');
+            if (!input) return;
+            let val = input.value.trim();
+            if (!val) return;
+            if (!/^https?:\/\//i.test(val)) {
+                val = 'https://' + val;
+            }
+            try {
+                input.type = 'text';
+                input.value = 'b64:' + btoa(unescape(encodeURIComponent(val)));
+            } catch (err) {
+                console.error('Encode error:', err);
+            }
+        });
+    }
 
     @if ($errors->has('file_path'))
         window.openModalDok(document.querySelector('#tabelLembur [data-action]') ?? document.querySelector('[data-action]'));

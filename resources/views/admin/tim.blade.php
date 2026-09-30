@@ -9,16 +9,21 @@
     <div class="flex flex-col sm:flex-row sm:items-center gap-3">
 
         {{-- Filter Tim --}}
-        <div class="relative w-full sm:flex-1 sm:min-w-[260px]">
+        <div class="relative w-full sm:flex-1 sm:min-w-[260px]" id="wrapSearchTim">
             <input type="text" id="searchTim" placeholder="Cari nama tim..."
-                onclick="toggleDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
+                onclick="openDropdownTim()" onfocus="openDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
                 value="{{ request('search') }}"
-                class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-4 pr-8 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"/>
+                class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-4 pr-12 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
 
-            <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3 text-gray-400">
-                    <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                </svg>
+            <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                <button type="button" id="btnClearTim" onclick="pilihTim(null)" class="{{ request('search') ? '' : 'hidden' }} p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter tim">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <button type="button" onclick="toggleDropdownTim()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar tim">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                        <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                    </svg>
+                </button>
             </div>
 
             <div id="dropdownTim"
@@ -497,29 +502,57 @@ function populateDropdownTim(filter = '', data = []) {
     const list = document.getElementById('listTim');
     list.innerHTML = '';
 
+    const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
+
+    const isSemua = !currentSearch;
+    const liSemua = document.createElement('li');
+    liSemua.className = 'cursor-pointer px-4 py-2.5 text-xs text-gray-500 hover:bg-gray-50 flex items-center justify-between ' + (isSemua ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+    liSemua.innerHTML = '<span>Semua tim</span>' + (isSemua ? '<svg class="w-3.5 h-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
+    liSemua.onclick = () => pilihTim(null);
+    list.appendChild(liSemua);
+
+    const keyword = (filter || '').toLowerCase().trim();
     const filtered = data.filter(tim =>
-        String(tim.nama_tim ?? '').toLowerCase().includes(filter.toLowerCase())
+        String(tim.nama_tim ?? '').toLowerCase().includes(keyword)
     );
 
     if (filtered.length === 0) {
-        list.innerHTML = '<li class="px-4 py-2 text-sm text-gray-400">Tidak ditemukan</li>';
+        const li = document.createElement('li');
+        li.className = 'px-4 py-3 text-xs text-gray-400 text-center';
+        li.textContent = 'Tim tidak ditemukan';
+        list.appendChild(li);
         return;
     }
 
     filtered.forEach(tim => {
+        const isSelected = currentSearch.toLowerCase() === String(tim.nama_tim ?? '').toLowerCase();
         const li = document.createElement('li');
-        li.className = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-        li.textContent = tim.nama_tim ?? '—';
+        li.className = 'cursor-pointer px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center justify-between ' + (isSelected ? 'bg-amber-50/70 font-semibold text-amber-700' : '');
+        li.innerHTML = `<span>${tim.nama_tim ?? '—'}</span>` + (isSelected ? '<svg class="w-3.5 h-3.5 text-[#faa938] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '');
         li.onclick = () => pilihTim(tim);
         list.appendChild(li);
     });
 }
 
+window.openDropdownTim = function () {
+    const dropdown = document.getElementById('dropdownTim');
+    const search = document.getElementById('searchTim');
+    if (!dropdown || !search) return;
+
+    populateDropdownTim('', cachedTim);
+    dropdown.classList.remove('hidden');
+    setTimeout(() => search.select(), 10);
+};
+
 window.toggleDropdownTim = function () {
     const dropdown = document.getElementById('dropdownTim');
-    dropdown.classList.toggle('hidden');
+    if (!dropdown) return;
 
-    populateDropdownTim(document.getElementById('searchTim').value, cachedTim);
+    if (dropdown.classList.contains('hidden')) {
+        openDropdownTim();
+    } else {
+        dropdown.classList.add('hidden');
+    }
 };
 
 window.filterDropdownTim = function () {
@@ -529,17 +562,32 @@ window.filterDropdownTim = function () {
     populateDropdownTim(search, cachedTim);
     dropdown.classList.remove('hidden');
 
-    if (search === '') {
-        window.location.href = '{{ route("admin.tim") }}';
+    const btnClear = document.getElementById('btnClearTim');
+    if (btnClear) {
+        search.trim() ? btnClear.classList.remove('hidden') : (new URLSearchParams(window.location.search).get('search') ? btnClear.classList.remove('hidden') : btnClear.classList.add('hidden'));
     }
 };
 
 window.pilihTim = function (tim) {
-    document.getElementById('searchTim').value = tim.nama_tim ?? '';
-    document.getElementById('dropdownTim').classList.add('hidden');
+    const dropdown = document.getElementById('dropdownTim');
+    if (dropdown) dropdown.classList.add('hidden');
 
-    window.location.href = '{{ route("admin.tim") }}?search=' + encodeURIComponent(tim.nama_tim ?? '');
+    if (!tim) {
+        window.location.href = '{{ route("admin.tim") }}';
+    } else {
+        window.location.href = '{{ route("admin.tim") }}?search=' + encodeURIComponent(tim.nama_tim ?? '');
+    }
 };
+
+document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('wrapSearchTim');
+    const dropdown = document.getElementById('dropdownTim');
+    const search = document.getElementById('searchTim');
+    if (wrap && dropdown && search && !wrap.contains(e.target)) {
+        dropdown.classList.add('hidden');
+        search.value = new URLSearchParams(window.location.search).get('search') || '';
+    }
+});
 
 // =====================
 // MODAL TAMBAH TIM

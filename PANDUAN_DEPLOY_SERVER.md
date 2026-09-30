@@ -9,7 +9,7 @@ Dokumen ini berisi panduan teknis langkah demi langkah untuk menerapkan perubaha
 Di database server produksi, tabel `t_transaksi` perlu diperbarui untuk mendukung kolom catatan Kabag, tanggal persetujuan Kabag, dan pelebaran kolom status.
 
 ### A. Cara Rekomendasi (Lewat phpMyAdmin / Database Client cPanel)
-Buka phpMyAdmin di cPanel server produksi Anda, pilih database lembur, buka tab **SQL**, lalu jalankan kueri berikut:
+Buka phpMyAdmin di cPanel server produksi Anda, pilih database lembur, buka tab **SQL**, lalu jalankan kueri berikut (atau impor berkas [database/update_v2.sql](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/database/update_v2.sql)):
 
 ```sql
 -- 1. Pembaruan Alur Persetujuan Kabag Umum
@@ -67,7 +67,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 4. 📄 **`app/Traits/KoreksiLembur.php`** *(Kalkulasi lembur presisi, penambahan method `koreksiUntukTransaksi` & `koreksiUntukBulan` untuk otomatisasi status `eligible=1`)*.
 5. 📄 **`app/Exports/RekapitulasiExport.php`** *(Ekspor Excel rekapitulasi + auto-sweep evaluasi eligible lembur bulan berjalan)*.
 6. 📄 **`app/Http/Controllers/admin/RekapitulasiController.php`** *(Tampilan rekapitulasi admin + auto-sweep evaluasi eligible lembur bulan berjalan)*.
-7. 📄 **`app/Http/Middleware/CheckRole.php`** *(Wajib ada, jika tertinggal aplikasi akan error Class Not Found)*.
+7. 📄 **`app/Http/Controllers/pegawai/RekapitulasiController.php`** *(Tampilan rekapitulasi pegawai + auto-sweep evaluasi eligible lembur bulan berjalan)*.
+8. 📄 **`app/Http/Middleware/CheckRole.php`** *(Wajib ada, jika tertinggal aplikasi akan error Class Not Found)*.
 8. 📄 **`bootstrap/app.php`** *(Memuat pendaftaran alias middleware `role`)*.
 9. 📄 **`routes/web.php`** *(Memuat rute pembatalan lembur admin: `/admin/lembur/{id}/cancel` dan `/admin/pengajuan/{id}/cancel`)*.
 10. 📄 **`app/Http/Controllers/LemburController.php`** *(Form pegawai + validasi max:2000 + batas pengajuan presensi)*.
@@ -81,12 +82,38 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 18. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(View persetujuan Ketua Tim + badge Dibatalkan + proteksi aksi)*.
 19. 📄 **`resources/views/ketua-tim/dashboard.blade.php`** *(View dashboard Ketua Tim + badge status menunggu_kabag)*.
 20. 📄 **`app/Http/Controllers/ketuatim/DashboardController.php`** *(Controller dashboard Ketua Tim + sinkronisasi status disetujui & presensi)*.
-21. 📄 **`resources/views/admin/dashboard.blade.php`** *(View dashboard Admin + badge menunggu_kabag + tag modal pending)*.
-22. 📄 **`resources/views/admin/pengajuan.blade.php`** *(View persetujuan Admin + tombol keputusan Batalkan + badge Dibatalkan)*.
-23. 📄 **`resources/views/admin/lembur.blade.php`** *(View lembur Admin + badge indikator presensi + modal detail presensi + modal konfirmasi pembatalan + tombol Aksi Batal + filter tab Dibatalkan)*.
+21. 📄 **`resources/views/admin/dashboard.blade.php`** *(View dashboard Admin + badge menunggu_kabag + tag modal pending + standarisasi istilah pegawai & kontras)*.
+22. 📄 **`resources/views/admin/pengajuan.blade.php`** *(View persetujuan Admin + tombol keputusan Batalkan + badge Dibatalkan + kontras NIP & ikon tabel)*.
+23. 📄 **`resources/views/admin/lembur.blade.php`** *(View monitoring Admin + perapihan tata letak isi sel tabel, kolom mandiri Data Presensi dengan pill badge hijau Lihat Presensi ↗ & abu-abu Belum Presensi, perataan vertikal align-middle, badge status modern dengan indicator dot, jam & NIP ber-font monospace, modal aksi terpadu)*.
 24. 📄 **`resources/views/pimpinan/pengajuan.blade.php`** *(View persetujuan Pimpinan + badge Menunggu Kabag & Dibatalkan)*.
-25. 📄 **`resources/views/partials/sidebar.blade.php`** *(Navigasi menu Kabag)*.
-26. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
+25. 📄 **`resources/views/partials/sidebar.blade.php`** *(Navigasi menu Kabag + rute brand aktif + kontras menu & header WCAG AA)*.
+26. 📄 **`resources/views/layouts/app.blade.php`** *(Layout utama + padding kontainer mobile responsif + escape keyboard handler modal)*.
+27. 📄 **`resources/views/partials/footer.blade.php`** *(Footer resmi BPS Provinsi Riau)*.
+28. 📄 **`resources/views/partials/navbar.blade.php`** *(Aksesibilitas tombol sidebar toggle + kontras avatar)*.
+29. 📄 **`resources/views/login.blade.php`** *(Form login bersih tanpa glow neon + penghapusan scale clipping)*.
+30. 📄 **`resources/views/welcome.blade.php`** *(Landing page rapi + pembersihan blob dekoratif + penyetaraan rounded-xl)*.
+31. 📄 **`resources/views/dashboard.blade.php`** *(Dashboard pegawai + pembersihan console.log debug + kontras empty state)*.
+32. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Persetujuan Ketua Tim + standarisasi search bar rounded-xl & kontras NIP)*.
+33. 📁 **`public/build/`** *(Folder bundle asset CSS & JS hasil npm run build terbaru)*.
+34. 📄 **`app/Http/Controllers/LemburController.php`** *(Penanganan HTTP 403 Forbidden WAF server BPS pada `storeDoc` dengan dekripsi Base64 & normalisasi URL)*.
+35. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Penanganan HTTP 403 Forbidden WAF server BPS pada `storeDoc` Admin dengan dekripsi Base64 & normalisasi URL)*.
+36. 📄 **`resources/views/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi pegawai)*.
+37. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Ketua Tim)*.
+38. 📄 **`resources/views/admin/lembur.blade.php`** *(Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Admin)*.
+39. 📄 **`resources/views/partials/navbar.blade.php`** *(Pemindahan hamburger toggle button ke pojok kiri atas bilah navigasi mendampingi judul)*.
+40. 📄 **`resources/views/partials/sidebar.blade.php`** *(Penambahan tombol silang tutup mobile pada header drawer navigasi)*.
+41. 📄 **`resources/css/app.css`** *(Styling scrollbar kontras tinggi 8px, track slate-200, thumb slate-400/amber, dan kelas scrollbar visual mobile)*.
+42. 📄 **`resources/js/app.js`** *(Fungsi `initTableScrollbars` untuk sinkronisasi realtime thumb visual scrollbar mobile, seek interaktif sentuh, dan desktop drag)*.
+43. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Penambahan `min-w-[1100px]` dan petunjuk visual geser tabel mobile)*.
+44. 📄 Seluruh file blade tabel lainnya (`ketua-tim`, `lembur`, `admin`, `akumulasi`, `rekapitulasi`, `daftar_hadir`, `pimpinan`) yang dilengkapi petunjuk geser mobile.
+45. 📄 Seluruh file controller, model, dan views lainnya yang telah dimodifikasi.
+46. 📄 **`resources/views/lembur.blade.php`** *(Page Header terstruktur H1 + subjudul + tombol Ajukan Lembur, modernisasi filter rounded-xl, dan perbaikan text-wrap whitespace-nowrap pada dateBtn/dateLabel)*.
+47. 📄 **`resources/views/admin/lembur.blade.php`** *(Page Header terstruktur H1 + subjudul + tombol Unduh Excel & Ajukan Lembur, modernisasi filter rounded-xl, dan perbaikan text-wrap whitespace-nowrap)*.
+48. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penambahan whitespace-nowrap pada dateBtn dan dateLabel untuk proteksi konsisten di layar kecil)*.
+49. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil npm run build: manifest.json, CSS, JS)*.
+50. 📄 Seluruh view tabel (11 file blade) yang telah dilengkapi komponen bilah scrollbar visual interaktif (`.table-scroll-hint`, `.table-scroll-track`, `.table-scroll-thumb`).
+51. 📄 **Seluruh View Filter Pencarian Pegawai & Tim (10 file)**: `resources/views/ketua-tim/pengajuan.blade.php`, `resources/views/pimpinan/pengajuan.blade.php`, `resources/views/admin/pengajuan.blade.php`, `resources/views/admin/lembur.blade.php`, `resources/views/lembur.blade.php`, `resources/views/admin/tim.blade.php`, `resources/views/admin/akumulasi.blade.php`, `resources/views/admin/presensi.blade.php`, `resources/views/admin/spkl.blade.php`, `resources/views/admin/pengguna.blade.php` *(Perbaikan dropdown tampil penuh otomatis saat dibuka, auto-select teks untuk pengetikan cepat, tombol clear `(×)`, sorotan centang pilihan aktif, dan clickable chevron)*.
+52. 📁 **`public/build/`** *(Aset bundle frontend produksi Vite terbaru: manifest.json, app-vIdj2UmY.css, app-DbISuP7_.js)*.
 
 ---
 
@@ -112,25 +139,18 @@ Pastikan file `.env` di server produksi:
 
 ## 📦 4. Asset Frontend (`public/build`)
 
-Aplikasi menggunakan Vite untuk mem-bundle aset CSS dan JavaScript (TailwindCSS). Karena folder `public/build` diabaikan oleh `.gitignore`, perhatikan metode berikut:
+Aplikasi menggunakan Vite untuk mem-bundle aset CSS dan JavaScript (TailwindCSS). 
 
-* **Skenario A: Server memiliki Terminal SSH & Node.js**
-  Jalankan perintah berikut di direktori proyek server:
-  ```bash
-  npm install
-  npm run build
-  ```
+> [!TIP]
+> **Otomatis Tersinkron via Git!**  
+> Folder `public/build` (berisi `manifest.json`, CSS, dan JS terkompilasi) **sudah dimasukkan ke dalam tracking Git**.  
+> Jadi, ketika server produksi menjalankan `git pull`, berkas aset terbaru **langsung otomatis terunduh ke server**. Anda **TIDAK PERLU** menginstal Node.js / NPM atau menjalankan `npm run build` di server produksi!
 
-* **Skenario B: Server cPanel / Shared Hosting (Tanpa Node.js)**
-  Di komputer lokal Anda, jalankan `npm run build` terlebih dahulu. Setelah selesai, salin/upload folder lokal:
-  ```
-  public/build/
-  ```
-  ke dalam direktori:
-  ```
-  public/build/
-  ```
-  pada server cPanel produksi Anda.
+* **Jika Menggunakan Git (`git pull`)**:
+  Cukup jalankan `git pull`, aset tampilan langsung sinkron 100%.
+
+* **Jika Unggah Manual (File Manager cPanel / FTP)**:
+  Unggah folder `public/build/` dari komputer lokal ke direktori `public/build/` di cPanel server.
 
 ---
 
@@ -268,12 +288,103 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Buka menu **Admin $\rightarrow$ Rekapitulasi** (`/admin/rekapitulasi`) untuk bulan terkait atau klik **Download Excel Rekapitulasi**.
   - Sistem secara otomatis menjalankan *sweep* batch (`koreksiUntukBulan`) untuk memastikan semua pengajuan `approved` yang belum memiliki nilai `eligible` langsung dihitung dan diperbarui menjadi `eligible = 1`.
   - Pastikan nominal uang lembur dan uang makan pada tabel rekapitulasi serta file Excel terhitung lengkap tanpa ada pengajuan sah yang tertinggal.
-- [ ] **Indikator Presensi pada Tabel Monitoring Lembur Admin (`/admin/lembur`)**:
+- [ ] **Indikator Presensi & Tampilan Tabel Monitoring Lembur Admin (`/admin/lembur`)**:
   - Buka halaman **Admin $\rightarrow$ Lembur** (`/admin/lembur`).
-  - Periksa kolom **Pegawai**:
-    - Untuk pengajuan yang **sudah ada presensi**: muncul badge interaktif berwarna hijau 🟢 **`Presensi: Pulang HH:MM`** (contoh: `Presensi: Pulang 18:30`).
-    - Untuk pengajuan yang **belum ada presensi**: muncul badge abu-abu ⚪ **`Belum Presensi`**.
-  - Klik badge hijau 🟢 **`Presensi: Pulang HH:MM`**:
-    - Modal popup **"Detail Presensi Pegawai"** muncul menampilkan NIP, Nama, Tanggal, Jam Masuk, Jam Pulang, Total Jam Kerja, serta Status Hari (Hari Kerja / Hari Libur).
-    - Klik tombol Tutup atau klik di luar modal untuk menutup popup.
+  - Periksa kolom **Data Presensi**:
+    - Untuk pengajuan yang **sudah ada presensi**: muncul pill badge interaktif berkelas hijau 🟢 **`Lihat Presensi ↗`** lengkap dengan titik status dan ikon panah. Tooltip hover menampilkan jam kepulangan resmi pegawai.
+    - Untuk pengajuan yang **belum ada presensi**: muncul pill badge abu-abu rapi ⚪ **`Belum Presensi`**.
+  - Klik badge hijau 🟢 **`Lihat Presensi ↗`**:
+    - Modal popup **"Detail Presensi Pegawai"** muncul menampilkan tanggal, status kehadiran, jam masuk, dan jam pulang.
+    - Tutup modal menggunakan tombol tutup atau tekan tombol **`Escape`**.
+  - Periksa keselarasan baris tabel: semua sel tersusun rapi di posisi tengah (`align-middle`), jam lembur & NIP tampil tajam dengan font monospace, badge status memiliki titik warna teratur, dan tombol **`[Aksi]`** tersaji rapi dan konsisten.
 
+### J. Uji Aksesibilitas WCAG AA & Tampilan Responsif (Anti-Slop Visual & Mobile)
+- [ ] **Responsivitas Tampilan Mobile**:
+  - Buka aplikasi di layar smartphone atau gunakan *Device Mode* pada DevTools browser (lebar layar <= 420px).
+  - Pastikan halaman memiliki margin/padding yang proporsional (`px-4 sm:px-6 lg:px-8`), tabel tidak meluap keluar layar secara berantakan, dan form nyaman diisi.
+- [ ] **Navigasi Keyboard Aksesibel**:
+  - Buka salah satu modal pop-up (misal: modal presensi, modal koreksi, atau modal pembatalan).
+  - Tekan tombol **`Escape`** pada keyboard: modal harus langsung menutup secara halus tanpa harus mengklik tombol silang.
+- [ ] **Keterbacaan & Rasio Kontras Teks (WCAG AA)**:
+  - Periksa teks nomor NIP pegawai pada tabel pengajuan: warna teks abu-abu gelap (`text-slate-500`) kontras dan mudah terbaca di latar putih.
+  - Periksa sidebar mode gelap: label grup navigasi dan menu non-aktif (`text-slate-400`) kontras jelas di atas latar biru gelap (`bg-slate-900`).
+  - Periksa avatar profil di navbar: inisial huruf terlihat kontras dan tegas (`text-amber-800`).
+- [ ] **Pembersihan Boilerplate & Console Debug**:
+  - Periksa bagian bawah halaman (footer): tertulis identitas resmi *"Badan Pusat Statistik Provinsi Riau • Hak Cipta Dilindungi"*.
+  - Buka Developer Console (F12 -> Tab Console): pastikan tidak ada log debug kotor seperti `DEBUG TIMKERJA`.
+
+### K. Uji Filter Periode "Semua Bulan (Tahun Berjalan)" & Urutan Bawaan Terbaru (Ketua Tim, Kabag Umum, & Admin)
+- [ ] **Buka Halaman Persetujuan Tanpa Parameter**:
+  - Akses menu **Persetujuan Lembur** pada role Ketua Tim (`/ketua-tim/pengajuan`), Kabag Umum (`/kabag-umum/pengajuan`), atau Admin (`/admin/pengajuan`).
+  - Pastikan tombol periode pada toolbar langsung menampilkan label **"Semua Bulan {Tahun}"** (contoh: *"Semua Bulan 2026"*).
+- [ ] **Verifikasi Visibilitas Pengajuan Lintas Bulan Kalender ($N+1$)**:
+  - Pastikan pengajuan lembur anggota tim di bulan sebelumnya (misal: lembur bulan September saat ditinjau pada bulan Oktober) langsung tampil utuh di tabel tanpa tersembunyi.
+- [ ] **Verifikasi Urutan Bawaan (*Default Sort*)**:
+  - Periksa kolom header **Tanggal Lembur**: dropdown urutan secara otomatis terpilih ke opsi **"Terbaru"** (`desc`).
+  - Pengajuan dengan tanggal paling baru langsung berada di baris pertama tabel.
+- [ ] **Uji Interaksi Panel Period Picker**:
+  - Klik tombol periode untuk membuka panel: tombol **"Semua Bulan ({Tahun})"** berada di posisi atas dan ter-highlight aktif oranye amber.
+  - Klik salah satu bulan spesifik (misal: *"Sep"*): halaman memfilter hanya untuk bulan September dan label berubah menjadi *"September {Tahun}"*.
+### L. Uji Unggah Link Dokumentasi Lembur (Bypass WAF / ModSecurity 403 Forbidden Server BPS)
+- [ ] **Buka Modal Tambah Dokumentasi**:
+  - Masuk ke menu lembur berstatus **Disetujui** pada role Pegawai (`/lembur`), Ketua Tim, atau Admin (`/admin/lembur`).
+  - Klik tautan **`+ Tambah`** pada kolom Dokumentasi untuk menampilkan modal pop-up.
+- [ ] **Kirim Tautan Google Drive**:
+  - Masukkan tautan Google Drive (contoh: `https://drive.google.com/drive/folders/...` atau format tanpa protokol `drive.google.com/...`).
+  - Klik tombol **Simpan**.
+- [ ] **Verifikasi Respon Jaringan (Network) & Hasil**:
+  - Buka DevTools (F12 -> Tab Network): pastikan request POST `.../dokumentasi` berhasil dengan kode **HTTP 302 / 200 OK** (tidak lagi diblokir **HTTP 403 Forbidden** oleh WAF server BPS).
+  - Muncul notifikasi sukses: *"Dokumentasi berhasil disimpan."*
+  - Pada baris tabel, muncul tombol **"Lihat ↗"** berwarna biru yang ketika diklik membuka tautan Google Drive asli di tab baru (*target _blank*).
+- [ ] **Uji Hapus Dokumentasi**:
+  - Klik tombol silang (hapus) di samping tautan *Lihat* dan konfirmasi: data dokumentasi berhasil terhapus dan kolom kembali ke tombol *+ Tambah*.
+
+### M. Uji Tampilan Mobile & Geser Horizontal Tabel (Swipe & Drag-to-Scroll ala SIMANTIK)
+- [ ] **Posisi Hamburger Button di Kiri Atas**:
+  - Buka aplikasi di layar smartphone atau aktifkan *Device Mode* pada browser DevTools (lebar <= 420px).
+  - Pastikan tombol Hamburger (garis tiga) berada di **pojok KIRI atas**, mendampingi judul halaman (bukan lagi di sisi kanan).
+  - Sentuh/klik tombol Hamburger: drawer menu navigasi terbuka mulus dari kiri ke kanan.
+  - Tekan tombol silang `(X)` di samping brand logo atau sentuh area gelap luar untuk menutup kembali navigasi.
+- [ ] **Fitur Geser Tabel Horizontal (Swipe & Drag-to-Scroll)**:
+  - Akses halaman pengajuan lembur (Pegawai, Ketua Tim, Kabag Umum, Admin, atau Akumulasi).
+  - Di atas tabel muncul petunjuk sentuh: *"Geser tabel ke kiri / kanan untuk melihat kolom lengkap"*.
+  - Geser tabel dengan jari ke kanan: tabel bergeser mulus tanpa patah-patah (*touch momentum scrolling*).
+  - Kolom-kolom lebar (Nama, Tanggal, Jam, Uraian, Presensi Pulang, Status, dan Tombol Aksi) tersaji proporsional dan tidak saling menghimpit.
+  - Pada browser desktop, pengguna dapat menahan klik kiri mouse pada ruang kosong tabel lalu menariknya (*drag-to-scroll*) untuk menggeser kolom secara instan.
+
+### N. Uji Penyeragaman Header & Toolbar Halaman Lembur (Pegawai, Ketua Tim, & Admin)
+- [ ] **Tampilan Page Header & Tombol Aksi**:
+  - Akses menu Pengajuan Lembur Pegawai (`/lembur`), Ketua Tim (`/ketua-tim/lembur`), dan Admin (`/admin/lembur`).
+  - Pastikan seluruh halaman memiliki Page Header terstruktur (`<h1>` semantik + subjudul deskriptif).
+  - Tombol aksi utama (*Ajukan Lembur* dan *Unduh Excel*) berada rapi di pojok kanan atas header, bukan lagi terdesak di dalam baris toolbar filter.
+- [ ] **Uji Tombol Tanggal Bebas Text-Wrapping**:
+  - Periksa tombol filter tanggal pada toolbar: teks label **"Semua Tanggal"** tampil rapi dalam 1 baris utuh dan tidak terpotong ke 2 baris vertikal.
+  - Uji pada tampilan layar sempit / mobile: tombol tanggal tetap mempertahankan teks 1 baris berkat kelas `whitespace-nowrap`.
+  - Semua kontrol toolbar (Date Picker, Filter Bulan, Per Halaman, Search) seragam dalam bentuk kartu modern `rounded-xl shadow-2xs`.
+
+### O. Uji Scrollbar Visual Interaktif pada Tabel Mobile
+- [ ] **Bilah Scrollbar Visual di Layar HP**:
+  - Buka menu lembur/pengajuan/rekapitulasi pada smartphone atau aktifkan Device Mode peramban (lebar <= 420px).
+  - Di atas tabel terlihat bilah scrollbar horizontal (`h-1.5`) dengan track abu-abu lembut dan thumb oranye amber BPS `#faa938`.
+  - Indikator teks di sebelah kanan menunjukkan status geser (*"Geser »"*, persentase posisi, atau *"« Geser kiri"*).
+- [ ] **Sinkronisasi Gestur Sentuh & Seek Interaktif**:
+  - Geser tabel dengan jari: bilah thumb oranye meluncur mulus mengikuti pergerakan tabel secara realtime.
+  - Ketuk atau geser langsung bilah scrollbar: tabel langsung melompat (*smooth scroll*) ke posisi kolom yang dipilih.
+  - Pada peramban desktop, scrollbar bawah tabel memiliki ketebalan 8px dengan kontras tinggi sehingga mudah dilihat dan digeser.
+
+### P. Uji Fitur Dropdown Pencarian Pegawai & Tim (Tampil Penuh Otomatis & Ganti Cepat 1-Langkah)
+- [ ] **Pembukaan Daftar Lengkap Otomatis Saat Dropdown Diklik (Single-Step Switching)**:
+  - Buka halaman Persetujuan Pengajuan (Ketua Tim, Pimpinan, atau Admin), atau halaman Monitoring Lembur (`/admin/lembur`).
+  - Pilih salah satu pegawai (misal: "Pegawai A"). Halaman me-reload dan kotak pencarian terisi nama Pegawai A.
+  - Klik kembali kotak input pencarian: dropdown langsung terbuka menyajikan **SELURUH** nama pegawai secara lengkap (tidak terfilter sendiri hanya menjadi Pegawai A).
+  - Pengguna dapat langsung mengklik *Pegawai C* dalam 1 kali klik tanpa harus mereset ke *"Semua pegawai"* terlebih dahulu.
+- [ ] **Fitur Auto-Select Teks untuk Pengetikan Instan**:
+  - Saat kotak input pencarian yang sudah terisi diklik/difokuskan, teks nama pegawai yang lama otomatis terblok/terseleksi (`select()`).
+  - Ketik huruf baru (misal huruf `'C'`): teks nama lama langsung terhapus otomatis dan dropdown seketika memfilter nama yang mengandung huruf `'C'`.
+- [ ] **Tombol Clear Cepat `(×)`**:
+  - Saat ada nama pegawai/tim yang sedang terpilih, tombol silang `(×)` muncul di sebelah kanan input.
+  - Klik tombol `(×)`: filter seketika ter-reset ke *"Semua"* dalam 1 kali klik.
+- [ ] **Sorotan Visual Centang & Tombol Panah Buka/Tutup**:
+  - Item pegawai/tim yang sedang aktif ditandai dengan latar belakang oranye lembut dan ikon centang resmi BPS.
+  - Klik tombol panah bawah (chevron): dropdown dapat dibuka-tutup secara fleksibel.
+  - Klik di luar area kotak pencarian: dropdown tertutup rapi dan nama aktif tetap utuh tanpa merusak pencarian.

@@ -1257,12 +1257,488 @@ php artisan up
      - **Modal Presensi Terintegrasi (`#modalPresensiAdmin`)**:
        - Mengklik badge hijau presensi akan langsung membuka modal informasi presensi pegawai tanpa berpindah halaman, menampilkan status kehadiran (WFO/WFOL), jam masuk, dan jam pulang secara instan via endpoint `/admin/pengajuan/{id}/presensi`.
 
+---
 
+## 17. Audit & Remedi Antislop UI/UX, Aksesibilitas WCAG AA, dan Standarisasi Tampilan (29 September 2026)
 
+> [!IMPORTANT]
+> **Jaminan Integritas Alur & Logika Bisnis:**
+> Pembaruan pada bagian ini **100% murni perbaikan tampilan (UI/UX), aksesibilitas pengguna, dan standarisasi visual**.
+> **Tidak ada perubahan alur kerja bisnis, logika controller backend, skema migrasi database, kueri SQL, atau logika persetujuan pengajuan lembur yang dimodifikasi.**
 
+### A. Latar Belakang & Audit Antislop v3.2.19
+Dilakukan audit komprehensif tampilan menggunakan rulebook Antislop v3.2.19 (`antislop.md`) dan modul-modul pendukung (`antislop-ui`, `antislop-human`, `antislop-layoutmobile`, `antislop-copywriting`, `antislop-code`).
+Seluruh teks dan rasio kontras warna divalidasi langsung menggunakan alat penguji kontras WCAG AA (`contrast-check.py`) dengan batas aman minimal rasio kontras 4.5:1 untuk teks normal. Laporan audit lengkap tersimpan pada berkas `anti-slop/audit-001-2026-09-29.md`.
 
+### B. Rincian Remediasi Visual & Aksesibilitas
 
+1. **Tata Letak & Responsivitas Mobile (`resources/views/layouts/app.blade.php`)**:
+   - Menambahkan padding kontainer konten responsif (`px-4 sm:px-6 lg:px-8`) agar tampilan tabel dan form di layar smartphone tidak mepet ke tepi layar atau terpotong.
+   - Mengganti teks keterangan kontras rendah dari `text-slate-400` (2.56:1 fail) menjadi `text-slate-500` (4.76:1 pass WCAG AA).
+   - Menghapus karakter dekoratif em dash (`—`).
+   - Mendaftarkan *global keyboard event listener* tombol `Escape` untuk menutup modal atau dropdown yang sedang terbuka secara aksesibel (memenuhi aturan R-32 Antislop).
 
+2. **Pembersihan Footer Boilerplate (`resources/views/partials/footer.blade.php`)**:
+   - Menghapus teks bawaan template pihak ketiga (*"Company Ltd. All rights reservered"*) yang tidak profesional.
+   - Menggantikannya dengan identitas resmi instansi: *"Badan Pusat Statistik Provinsi Riau • Hak Cipta Dilindungi"*.
 
+3. **Aksesibilitas Navbar & Avatar (`resources/views/partials/navbar.blade.php`)**:
+   - Mengubah elemen pembungkus tombol toggle sidebar dari elemen non-interaktif `<div>` menjadi `<button>` semantik lengkap dengan atribut `aria-label="Toggle menu navigasi"`.
+   - Memperbaiki kontras ikon avatar profil dan teks peran pengguna: mengubah latar dari kontras rendah menjadi `text-amber-800` pada `bg-amber-100` (rasio 4.52:1 pass) serta `text-slate-500` untuk label status peran.
 
+4. **Perbaikan Tautan Mati & Kontras Sidebar (`resources/views/partials/sidebar.blade.php`)**:
+   - Mengubah tautan mati (*ghost link*) `href="#"` pada header logo/brand menjadi tautan aktif ke rute dashboard dinamis pengguna (`{{ route(auth()->user()->role . '.dashboard') }}`).
+   - Meningkatkan rasio kontras teks tajuk navigasi (*nav group headers*) dan teks item menu non-aktif dari `text-slate-500` (3.75:1 fail pada latar `bg-slate-900`) menjadi `text-slate-400` (6.96:1 pass WCAG AA).
 
+5. **Form Autentikasi Bersih & Ergonomis (`resources/views/login.blade.php`)**:
+   - Menghapus efek `scale-125` pada gambar ilustrasi halaman login yang berisiko menyebabkan *layout clipping* atau pergeseran tak terduga pada layar beresolusi sedang/kecil.
+   - Menghilangkan efek *neon glowing box-shadow* berlebihan pada tombol utama, digantikan dengan elevasi bayangan Tailwind yang teratur dan bersih (`shadow-sm hover:shadow-md`).
+   - Menambahkan atribut aksesibilitas `aria-label="Tampilkan atau sembunyikan kata sandi"` pada tombol intip sandi.
+   - Merapikan gaya visual tombol bantuan login cepat pengembang agar lebih tenang dan serasi.
+
+6. **Halaman Sambutan / Landing Page Bebas Efek Berlebihan (`resources/views/welcome.blade.php`)**:
+   - Menghapus elemen dekoratif tanpa struktur (*radial blur blob* oranye mengambang).
+   - Menghapus bayangan bercahaya warna-warni (*glow drop-shadows*) pada tombol navigasi utama.
+   - Menyeragamkan radius sudut kartu (*border-radius*) dari campur aduk `rounded-3xl` menjadi `rounded-xl` yang konsisten di seluruh desain sistem.
+   - Mengganti tanda hubung dekoratif em dash dengan tanda hubung bersih.
+
+7. **Pembersihan Log Pengembang & Mikro-Interaksi Dashboard Pegawai (`resources/views/dashboard.blade.php`)**:
+   - Menghapus sisa kode debug pengembang `console.log("DEBUG TIMKERJA:", ...)` dari skrip JavaScript halaman.
+   - Menghilangkan karakter panah dekoratif chevron `›` yang tidak bernilai semantik pada kartu status.
+   - Memperbaiki rasio kontras teks keadaan kosong (*empty state*) dari `text-gray-400` menjadi `text-slate-500`.
+
+8. **Standarisasi Istilah & Tipografi Dashboard Admin (`resources/views/admin/dashboard.blade.php`)**:
+   - Memperbaiki terminologi instansi dari "karyawan" menjadi "pegawai" sesuai standar baku Aparatur Sipil Negara / BPS.
+   - Menghapus tanda em dash pada judul kartu.
+   - Memperbaiki kontras teks keterangan metrik dari `text-slate-400` menjadi `text-slate-500`.
+
+9. **Penyempurnaan Aksesibilitas Form Pengajuan Admin & Ketua Tim (`resources/views/admin/pengajuan.blade.php` & `resources/views/ketua-tim/pengajuan.blade.php`)**:
+   - Meningkatkan keterbacaan teks nomor NIP dan ikon aksi tabel dari `text-gray-400` (2.56:1 fail) menjadi `text-slate-500` (4.76:1 pass).
+   - Menyeragamkan radius kotak input pencarian dari `rounded-full` menjadi `rounded-xl` agar selaras dengan input form lainnya.
+
+10. **Penyempurnaan Estetika & Ergonomi Tabel Monitoring Admin (`resources/views/admin/lembur.blade.php`)**:
+    - **Kolom Tersendiri Data Presensi**: Memisahkan presensi dari kolom nama pegawai dan memberikan kolom mandiri **Data Presensi** seperti pada tabel Ketua Tim & Admin Pengajuan.
+    - **Teks Indikator Presensi**: Mengganti teks pasif *"Informasi tersedia"* menjadi **"Lihat Presensi ↗"** (hijau dengan ikon tautan, dilengkapi tooltip jam kepulangan resmi pegawai) dan *"Belum ada presensi"* (abu-abu netral), sehingga maksud aksi langsung terbaca jelas oleh admin.
+    - **Penyeragaman Style Tabel (100% Selaras)**:
+      - Kolom **Pegawai** kini menampilkan Nama Pegawai (bold) dan NIP pegawai di bawahnya secara rapi.
+      - Menyeragamkan padding sel tabel menjadi `px-3.5 py-3` yang lega dan proporsional (dari sebelumnya `px-2 py-2` yang sesak).
+      - Garis pembatas baris menggunakan `divide-y divide-gray-200` yang lembut dan modern.
+    - **Standarisasi Tombol Aksi**: Mengganti tombol mencolok merah *"✕ Batal"* dengan tombol netral berkelas *"[✏️ Aksi]"* bersimbol pensil (`border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-2xs`), selaras dengan tombol aksi pada Ketua Tim.
+    - **Modal Aksi Terpadu**: Menyempurnakan pop-up aksi menjadi modal *Kelola Pengajuan Lembur* dengan dua tab terstruktur:
+      - **Tab 1: Edit Uraian**: Memudahkan admin mengoreksi teks narasi lembur langsung dari modal.
+      - **Tab 2: Batalkan Pengajuan**: Khusus pembatalan transaksi salah tanggal/dobel input dengan isian alasan pembatalan.
+
+11. **Perapihan Rinci Isi Sel & Tata Letak Tabel Monitoring Admin (`resources/views/admin/lembur.blade.php`)**:
+    - **Perataan Vertikal Selaras (`align-middle`)**: Menambahkan kelas `align-middle` pada seluruh elemen `<td>` sehingga teks dan lencana pada baris dengan konten bertingkat (seperti nama & NIP, atau uraian panjang) tetap berada di tengah secara simetris dan rapi.
+    - **Modernisasi Badge Presensi**:
+      - Status presensi hadir diubah menjadi chip/pill interaktif berkelas (`bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full px-2.5 py-1 text-xs`) lengkap dengan *status indicator dot* dan ikon panah mikro.
+      - Status belum presensi dikemas seragam dalam bentuk pill abu-abu netral bertuliskan *"Belum Presensi"*, menjaga konsistensi tinggi baris tabel.
+    - **Standardisasi Badge Status**:
+      - Mengadopsi desain pill modern dengan *indicator dot* berdiameter 1.5 (`w-1.5 h-1.5 rounded-full`) dan palet warna lembut (`amber-50`, `blue-50`, `emerald-50`, `rose-50`, `gray-50`) bersanding dengan *border* senada, identik dengan halaman Ketua Tim.
+      - Menyelaraskan injeksi DOM dinamis JavaScript pada fungsi `submitBatalAdmin` agar memiliki format badge yang sama persis setelah pembatalan pengajuan.
+    - **Tipografi Jam & NIP**:
+      - Jam Diajukan dan Jam Disetujui diformat dengan kontainer monospace halus (`font-mono text-[11px] bg-gray-50 border border-gray-200/80 px-2 py-0.5 rounded-md`) untuk keterbacaan scan instan.
+      - NIP pegawai menggunakan font monospace (`font-mono text-[11px] text-gray-500`) yang rapi di bawah nama pegawai berbobot tebal (`font-semibold text-gray-900`).
+    - **Kontainer Tabel Modern**: Mengganti pembungkus tabel menjadi `rounded-2xl border border-gray-200/80 bg-white shadow-xs` dengan `thead` bernuansa `bg-gray-50/90 border-b border-gray-200` yang sejuk dan tidak kaku.
+    - **Penyempurnaan Empty State**: Menampilkan ilustrasi berkas kosong dengan pesan yang komunikatif dan tombol *Reset Semua Filter* jika filter aktif.
+
+### C. Hasil Verifikasi & Uji Kompilasi
+- **Aset Vite**: Dijalankan `npm run build`, sukses mengompilasi CSS (`app-CjM3llgO.css`, 90.96 kB) dan JS (`app-UVMdT4O_.js`, 37.50 kB) tanpa peringatan (*zero warnings/errors*).
+- **Cache Blade**: `php artisan view:clear` dan `php artisan view:cache` berhasil tanpa kesalahan sintaks.
+- **Integritas Sistem**: Tidak ada sintaks PHP, rute Laravel, maupun logika bisnis yang terganggu.
+
+---
+
+## 18. Sinkronisasi Otomatis Kelayakan (`eligible`) pada Rekapitulasi Pegawai (`app/Http/Controllers/pegawai/RekapitulasiController.php`)
+
+### A. Latar Belakang Masalah
+1. Sebelumnya, method `koreksiUntukBulan` baru terpasang pada modul Admin (`admin/RekapitulasiController.php` dan `app/Exports/RekapitulasiExport.php`).
+2. Pada modul Pegawai (`app/Http/Controllers/pegawai/RekapitulasiController.php`), kueri langsung memfilter:
+   `->where('submitted_by_NIP', $nip)->where('status', 'approved')->where('eligible', 1)`.
+3. Jika pengajuan lembur pegawai telah disetujui (`status = 'approved'`) namun nilai `eligible`-nya masih `NULL` (karena belum dievaluasi oleh sistem), data tersebut tidak muncul di halaman rekapitulasi pegawai (`/rekapitulasi`).
+
+### B. Solusi & Perbaikan
+1. Mengintegrasikan trait `App\Traits\KoreksiLembur` pada `App\Http\Controllers\pegawai\RekapitulasiController`.
+2. Menambahkan pemanggilan `$this->koreksiUntukBulan((int) $tahun, (int) $bln);` sesaat sebelum mengeksekusi kueri rekapitulasi pegawai.
+3. *Hasil*: Begitu pegawai membuka menu `/rekapitulasi`, sistem secara otomatis menyapu (*sweep*) seluruh pengajuan `approved` pada bulan tersebut yang `eligible`-nya masih `NULL`, mengevaluasinya terhadap presensi riil, dan menampilkannya seketika pada tabel rekapitulasi.
+
+---
+
+## 19. Perbaikan Scrolling & Responsivitas Modal Persetujuan (Kabag Umum, Admin, & Ketua Tim)
+
+### A. Latar Belakang Masalah
+Pada layar monitor/laptop dengan tinggi viewport terbatas (misal 674px - 768px atau laptop dengan display scaling Windows 125%/150%), dialog modal persetujuan Kabag Umum (`#modalKabag`) sebelumnya tidak memiliki batas tinggi maksimal (`max-h-[...]`) dan tidak memiliki scrolling mandiri pada body (`overflow-y-auto`).
+Akibatnya:
+1. Kartu modal terpusat secara kaku (`items-center`) dengan tinggi melebihi tinggi layar.
+2. Bagian header dialog terdorong ke atas keluar layar.
+3. Bagian footer aksi ("Batal" dan "Simpan Keputusan") terpotong di bawah batas layar (*off-screen*).
+4. Pengguna tidak dapat men-scroll tampilan dan terpaksa memperkecil ukuran layar / zoom out browser untuk menjangkau tombol aksi.
+
+### B. Solusi & Perubahan Arsitektur Modal (*Docked Header & Footer*)
+Menerapkan standar desain dialog enterprise responsif:
+1. **Batas Tinggi & Flexbox Vertikal**:
+   - Kontainer kartu modal menggunakan `max-h-[90vh] flex flex-col overflow-hidden my-auto`, menjamin dialog selalu muat di dalam viewport layar dengan margin simetris di atas dan bawah.
+2. **Pinned / Docked Header (`shrink-0`)**:
+   - Header modal (judul, subjudul deskriptif, dan tombol tutup silang `×`) tetap tersemat di bagian paling atas dan tidak pernah tergulung hilang saat pengguna memeriksa data.
+3. **Scrollable Body (`flex-1 overflow-y-auto`)**:
+   - Konten isian (ringkasan pegawai, jam disetujui, hint presensi pulang, textarea uraian kegiatan, catatan arahan, dan tombol opsi keputusan) diletakkan dalam kontainer `flex-1 overflow-y-auto` dengan scrollbar vertikal mandiri yang halus.
+4. **Pinned / Docked Footer (`shrink-0`)**:
+   - Footer tombol aksi ("Batal" dan "Simpan Keputusan") selalu terlihat (*always in view*) dan siap diklik di bagian bawah tanpa mengharuskan pengguna menggulung layar ke dasar.
+5. **Safety Net Outer Scroll**:
+   - Pembungkus modal terluar (`#modalKabag`, `#modalKeputusan`) ditambahkan kelas `overflow-y-auto` untuk memastikan fleksibilitas penuh jika diakses pada viewport ultra-kecil atau saat keyboard virtual mobile aktif.
+
+### C. File yang Diperbarui
+1. `resources/views/kabag-umum/pengajuan.blade.php`: Modal Keputusan Kabag Umum (`#modalKabag`) dan Modal Presensi (`#modalPresensi`).
+2. `resources/views/admin/pengajuan.blade.php`: Modal Keputusan Admin (`#modalKeputusan`).
+3. `resources/views/ketua-tim/pengajuan.blade.php`: Modal Keputusan Ketua Tim (`#modalKeputusan`).
+
+---
+
+## 20. Pelacakan Bundel Aset Produksi (`public/build`) dalam Repositori Git
+
+### A. Latar Belakang Masalah
+1. Secara default pada Laravel 11/Vite, direktori `/public/build` dimasukkan ke dalam berkas `.gitignore`.
+2. Pada server cPanel / shared hosting institusi (BPS), umumnya tidak tersedia akses Node.js / NPM atau terminal shell untuk mengeksekusi perintah `npm run build` secara mandiri.
+3. Dampaknya, jika aset terkompilasi tidak diikutsertakan ke dalam repositori Git:
+   - Server produksi tidak akan menerima berkas CSS dan JavaScript terbaru saat `git pull` dijalankan.
+   - Tampilan UI di server produksi dapat mengalami *broken layout* atau error pemanggilan manifest Vite (`Vite manifest not found at: .../public/build/manifest.json`).
+
+### B. Solusi & Implementasi
+1. **Penyesuaian `.gitignore`**:
+   - Menghapus aturan `/public/build` dari file `.gitignore` agar bundel produksi Vite (`manifest.json`, CSS, dan JS) otomatis terlacak oleh Git.
+   - **Tetap Mengabaikan `/public/hot`**: Aturan `/public/hot` tetap wajib diabaikan oleh Git. Berkas `public/hot` hanya tercipta saat lokal menjalankan `npm run dev` (Vite Hot Module Replacement). Jika berkas `public/hot` terbawa ke server produksi, directive `@vite` pada Blade akan keliru mengarahkan aset ke `http://localhost:5173` yang menyebabkan tampilan produksi rusak.
+2. **Kompilasi Aset Produksi**:
+   - Menjalankan `npm run build` di lingkungan lokal.
+   - Hasil kompilasi:
+     - `public/build/manifest.json` (peta aset Vite).
+     - `public/build/assets/app-*.css` (91 kB berkas CSS terkompilasi TailwindCSS).
+     - `public/build/assets/app-*.js` (37.5 kB berkas JavaScript terkompilasi).
+3. **Hasil untuk Lingkungan Produksi**:
+   - Begitu server produksi mengeksekusi `git pull`, seluruh aset tampilan yang sudah terkompilasi langsung terunduh secara instan.
+   - Server tidak lagi memerlukan Node.js atau NPM, dan tampilan UI di server dipastikan 100% identik dengan tampilan lokal.
+
+---
+
+## 21. Rekayasa Ulang Modal Keputusan Lembur (*Zero-Scroll UX*) & Optimalisasi Responsivitas Mobile
+
+### A. Latar Belakang Masalah
+1. Sebelumnya pada modal aksi persetujuan lembur (`#modalKeputusan` di Ketua Tim & Admin, serta `#modalKabag` di Kabag Umum), opsi **Pilihan Keputusan (Setujui / Tolak)** diletakkan di bagian paling bawah formulir, di bawah textarea Uraian Kegiatan (`rows="4"`) dan Catatan (`rows="3"`).
+2. Akibat penumpukan vertikal tersebut:
+   - Tombol keputusan terdorong ke bawah batas tampilan (*below the fold*) dan tertutup oleh footer modal.
+   - Muncul scrollbar vertikal pada modal. Pengguna sering kali tidak menyadari keberadaan tombol "Setujui" / "Tolak" karena harus menggulung layar ke bawah terlebih dahulu.
+   - Saat pengguna langsung mengklik tombol "Simpan Keputusan" di footer, sistem memunculkan peringatan *"Pilih keputusan terlebih dahulu"*, membingungkan pejabat peninjau.
+3. Pada layar smartphone sempit (< 400px), judul navbar yang panjang berpotensi mendorong tombol profil dan toggle drawer.
+
+### B. Solusi Desain & Implementasi
+1. **Penataan Alur Natural dari Atas ke Bawah (*Top-to-Bottom Natural Reading Flow*)**:
+   - Berdasarkan hierarki UX kedinasan, pejabat membaca dan meninjau data terlebih dahulu (*Jam Disetujui* $\rightarrow$ *Uraian Tugas* $\rightarrow$ *Catatan*), baru kemudian menetapkan **Pilihan Keputusan (*Setujui* / *Tolak* / *Batalkan*) di bagian bawah sebelum tombol simpan**.
+   - Blok pilihan keputusan (`Setujui` / `Tolak` / `Batalkan`) diletakkan tepat di bawah kolom Catatan (tepat di atas tombol aksi footer), dengan pembatas garis halus `border-t border-gray-100`.
+   - Menggunakan komponen *segmented pill buttons* yang jelas, modern, dan mudah diklik/ditekan (kontras warna tegas: hijau emerald untuk Setujui, merah mawar untuk Tolak, dan amber untuk Batalkan).
+   - **Default Otomatis `Setujui`**: Untuk pengajuan baru/pending, pilihan `Setujui` langsung aktif secara bawaan saat modal dibuka, sehingga pejabat dapat langsung memverifikasi jam/uraian dan menyimpannya dalam 1 klik tanpa kebingungan.
+2. **Desain Kompak Bebas Gulir (*Zero-Scroll Fit*)**:
+   - Input jam mulai dan jam selesai disetujui ditata berdampingan rapi dalam format `grid grid-cols-2`.
+   - Textarea Uraian Kegiatan dan Catatan diatur ke `rows="2"` (kompak dan proporsional, namun tetap mempertahankan fleksibilitas tarik vertikal `resize-y`).
+   - Pengetatan padding dan jarak vertikal (`space-y-2.5` / `space-y-3` dan `p-4 sm:p-5`), sehingga total tinggi modal hanya **~330px - 340px**.
+   - **Hasil**: Bahkan di layar monitor dengan viewport terbatas (506px), seluruh isi modal dari atas sampai tombol Simpan di footer **100% langsung terlihat utuh tanpa ada scrollbar sama sekali**.
+3. **Peningkatan Responsivitas Mobile (*Mobile-Friendly Touch*)**:
+   - Seluruh tombol aksi modal memiliki tinggi sentuh ergonomis (*thumb-friendly tap targets* $\ge 42$px).
+   - Judul halaman pada navbar ditambahkan kelas `truncate max-w-[190px] xs:max-w-[260px] sm:max-w-none` agar tidak meluap (*overflow*) pada layar smartphone 360px - 390px.
+   - Seluruh tabel pengajuan telah terlindungi oleh pembungkus `overflow-x-auto` yang mulus.
+
+### C. File yang Dimodifikasi
+1. `resources/views/ketua-tim/pengajuan.blade.php`: Modal Keputusan Ketua Tim (`#modalKeputusan`).
+2. `resources/views/kabag-umum/pengajuan.blade.php`: Modal Keputusan Kabag Umum (`#modalKabag`).
+3. `resources/views/admin/pengajuan.blade.php`: Modal Keputusan Admin (`#modalKeputusan`).
+4. `resources/views/partials/navbar.blade.php`: Responsivitas judul halaman pada layar mobile.
+
+---
+
+## 22. Optimalisasi Filter Periode "Semua Bulan (Tahun Berjalan)" & Urutan Bawaan Terbaru ke Terlama (Ketua Tim, Kabag Umum, & Admin)
+
+### A. Latar Belakang Masalah & Alur Proses Bisnis
+1. **Masalah Bulan Berjalan vs Approval Bulan Berjalan + 1**:
+   - Berdasarkan proses bisnis riil di BPS, Ketua Tim melakukan persetujuan lembur pada bulan berikutnya (bulan berjalan + 1). Contohnya: di bulan Oktober, Ketua Tim perlu menyetujui pengajuan lembur yang dilakukan anggota pada bulan September.
+   - Pada implementasi sebelumnya, saat halaman dibuka tanpa parameter, sistem secara otomatis mengunci kueri ke bulan berjalan saat itu (`$bulan = now()->format('Y-m')`), yaitu Oktober.
+   - Akibatnya, saat Ketua Tim membuka akun di awal bulan Oktober, pengajuan lembur bulan September tidak muncul di tabel. Hal ini memicu kebingungan Ketua Tim yang mengira anggotanya belum mengajukan lembur (*"Kok tidak ada pengajuan kamu di akun saya"*).
+2. **Karakteristik Volume Data**:
+   - Volume lembur per bulan tidak terlalu banyak (hanya berkisar beberapa pengajuan per pegawai), sehingga pembatasan kaku per bulan kalender justru menyulitkan monitoring riwayat lembur.
+3. **Kebutuhan Sorting**:
+   - Pejabat peninjau membutuhkan pengajuan lembur bertanggal paling baru (*newest*) langsung tampil di baris paling atas agar tidak terlewatkan (*"sortnya dari terbaru ke terlama"*).
+
+### B. Solusi Desain & Implementasi (Menerapkan Standar Anti-Slop & Human UX)
+1. **Default Periode: Semua Bulan Tahun Berjalan (`now()->year`)**:
+   - Jika parameter `bulan` tidak dikirim (atau bernilai `'all'`): Sistem memfilter data berdasarkan tahun kalender berjalan (`whereYear('t.date', $currentYear)`), tanpa menyaring bulan (`whereMonth` tidak dipanggil).
+   - Label Period Picker pada toolbar menampilkan teks dinamis: **"Semua Bulan {Tahun}"** (contoh: **"Semua Bulan 2026"**).
+   - Di dalam panel Period Picker, ditambahkan tombol utama yang menonjol dan ergonomis: **"Semua Bulan ({Tahun})"** di atas grid 12 bulan (Jan - Des). Tombol ini memiliki status aktif berwarna oranye amber BPS (`#faa938`) saat filter Semua Bulan aktif.
+   - Pengguna tetap memiliki kebebasan penuh untuk memilih bulan spesifik (misal: "Sep 2026") kapan pun diperlukan, dan dapat kembali ke "Semua Bulan" hanya dengan 1 klik.
+2. **Default Sorting: Tanggal Terbaru ke Terlama (`desc`)**:
+   - Mengubah urutan bawaan (*default sort*) dari `priority` menjadi `desc` (`t.date desc, t.id_transaksi desc`).
+   - Opsi `desc` ("Terbaru") menjadi pilihan pertama dan teratas pada dropdown kolom Tanggal Lembur di tabel.
+   - Pejabat tetap dapat mengubah urutan ke "Terlama" (`asc`) atau "Prioritas Status" (`priority`) sesuai preferensi.
+3. **Penerapan Serentak & Konsisten Lintas Peran Approval**:
+   - Diterapkan secara simetris pada 3 controller dan view approval:
+     1. **Ketua Tim**: `app/Http/Controllers/ketuatim/PengajuanController.php` & `resources/views/ketua-tim/pengajuan.blade.php`.
+     2. **Kabag Umum**: `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` & `resources/views/kabag-umum/pengajuan.blade.php`.
+     3. **Admin**: `app/Http/Controllers/admin/PengajuanController.php` & `resources/views/admin/pengajuan.blade.php`.
+4. **Kepatuhan Prinsip Anti-Slop (Rule R-02, R-03, R-25, R-26, R-31)**:
+   - **R-02 (Copywriting Alami)**: Membersihkan seluruh karakter em dash (`—`) pada teks pencarian pegawai dan modal presensi menjadi tanda kurung atau strip biasa (`Nama (NIP)`).
+   - **R-03 (Mobile Responsiveness)**: Tombol "Semua Bulan" memiliki target sentuh min 42px dengan padding yang nyaman untuk jari jemari.
+   - **R-25 (Color Contrast WCAG AA)**: Teks tombol aktif menggunakan kontras tinggi terhadap latar belakang amber (`text-white` / `text-slate-950`).
+   - **R-26 (Interactive Elements)**: Semua tombol panel memiliki event handler riil tanpa dead control.
+   - **R-31 (Articulated Reason)**: Logika filter secara eksplisit menyelesaikan kendala persetujuan lintas bulan kalender $N+1$.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Filter default semua bulan tahun berjalan (`$bulan = 'all'`) dan default sort `desc`. |
+| 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Label Period Picker dinamis, tombol Semua Bulan tahun berjalan di panel, default sort Terbaru, dan pembersihan em dash. |
+| 3 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Filter default semua bulan tahun berjalan dan default sort `desc` untuk Kabag Umum. |
+| 4 | `resources/views/kabag-umum/pengajuan.blade.php` | Label Period Picker dinamis, tombol Semua Bulan di panel, default sort Terbaru, dan pembersihan em dash. |
+| 5 | `app/Http/Controllers/admin/PengajuanController.php` | Filter default semua bulan tahun berjalan dan default sort `desc` untuk Admin. |
+| 6 | `resources/views/admin/pengajuan.blade.php` | Label Period Picker dinamis, tombol Semua Bulan di panel, default sort Terbaru, dan pembersihan em dash. |---
+
+## 23. Penanganan HTTP 403 Forbidden Firewall BPS (WAF / ModSecurity) pada Form Dokumentasi Lembur
+
+### A. Latar Belakang Masalah
+1. **Error HTTP 403 Forbidden di Server BPS**:
+   - Saat pengujian di server BPS (`...bps.go.id`), penambahan dokumentasi bukti lembur melalui modal "Tambah Dokumentasi" selalu gagal dan memunculkan error **HTTP 403 Forbidden** di browser DevTools (*Network Tab*).
+2. **Penyebab Utama (WAF / ModSecurity URL Filter)**:
+   - Server BPS dilindungi oleh Web Application Firewall (WAF) / ModSecurity dengan aturan OWASP CRS (seperti aturan deteksi RFI - *Remote File Inclusion* dan SSRF - *Server-Side Request Forgery*).
+   - Firewall secara ketat memindai isi badan formulir (*POST request body*). Ketika parameter `file_path` memuat teks skema URL mentah (`https://`, `http://`, `drive.google.com/`, dll.), WAF memblokir koneksi secara langsung sebelum permintaan sampai ke aplikasi Laravel.
+3. **Arahan Mentor BPS**:
+   - Melakukan enkripsi/obfuskasi nilai link pada sisi frontend sebelum data dikirim melalui HTTP POST, lalu melakukan dekripsi kembali pada controller backend sebelum divalidasi dan disimpan ke basis data.
+
+### B. Solusi Desain & Implementasi
+1. **Frontend Client-Side Encoding (`b64:`)**:
+   - Menambahkan *event listener submit* pada formulir modal dokumentasi (`#formDok`).
+   - Sebelum formulir dikirim, link URL dibersihkan dan otomatis dilengkapi skema `https://` jika pengguna mengetik tanpa protokol.
+   - Nilai input diubah menjadi format Base64 dengan awalan `b64:` menggunakan fungsi standar UTF-8:
+     ```javascript
+     input.type = 'text'; // Mencegah benturan validasi tipe URL bawaan browser terhadap string b64:...
+     input.value = 'b64:' + btoa(unescape(encodeURIComponent(val)));
+     ```
+   - Payload yang dikirim melalui jaringan tidak lagi memuat karakter URL mentah (`https://` atau `drive.google.com/`), sehingga lolos dari filter WAF server BPS.
+   - Menambahkan *event listener blur* pada kotak input agar otomatis menyematkan awalan `https://` jika pengguna hanya menyalin `drive.google.com/...`.
+2. **Backend Automatic Decoding & Normalisasi**:
+   - Pada method `storeDoc` di `LemburController` dan `admin/LemburController`:
+     - Mendeteksi apakah input `file_path` memiliki awalan `b64:` atau `enc:`, atau merupakan string Base64.
+     - Jika terenkripsi/Base64, dilakukan `base64_decode` untuk mengembalikan string URL asli yang bersih.
+     - Melakukan normalisasi protokol jika diperlukan, lalu melakukan `$request->merge(['file_path' => $filePath])`.
+     - Validasi Laravel (`$request->validate(['file_path' => 'required|url|max:255'])`) dijalankan terhadap URL asli yang sudah didekode.
+     - Nilai URL asli yang tersimpan ke tabel `m_dokumentasi.file_path` tetap berupa tautan bersih (`https://drive.google.com/...`), sehingga tautan "Lihat" di tabel riwayat lembur tetap dapat diklik normal tanpa perubahan skema database.
+3. **Kompatibilitas Penuh (*Backward Compatibility*)**:
+   - Backend tetap menerima pengiriman URL biasa tanpa Base64 (misalnya pada pengujian lokal atau API), sehingga tidak merusak fungsionalitas yang sudah ada.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Penambahan dekripsi Base64 dan normalisasi URL pada method `storeDoc`. |
+| 2 | `app/Http/Controllers/admin/LemburController.php` | Penambahan dekripsi Base64 dan normalisasi URL pada method `storeDoc` Admin. |
+| 3 | `resources/views/lembur.blade.php` | Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi pegawai. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Ketua Tim. |
+| 5 | `resources/views/admin/lembur.blade.php` | Listener submit & blur encoding Base64 dan reset input pada modal dokumentasi Admin. |
+
+---
+
+## 24. Optimalisasi Tampilan Mobile: Pemindahan Hamburger Button ke Kiri Atas & Fitur Geser Horizontal Tabel (Swipe & Drag-to-Scroll ala SIMANTIK)
+
+### A. Latar Belakang Masalah & Kebutuhan Pengguna Mobile
+1. **Posisi Ikon Hamburger Button (Navigasi Mobile)**:
+   - Sebelumnya, tombol *hamburger toggle* navigasi terletak di sisi kanan atas (berdampingan dengan dropdown profil pengguna).
+   - Pengguna meminta agar tombol Hamburger dipindahkan ke **kiri atas** sesuai konvensi umum aplikasi mobile dan sistem administrasi BPS, mendampingi judul halaman secara natural.
+2. **Keterbacaan Tabel Lembur pada Layar Smartphone**:
+   - Tabel administrasi lembur memiliki banyak kolom penting (*Tanggal, Nama/NIP, Jam Diajukan, Jam Disetujui, Durasi, Presensi Pulang, Uraian Kegiatan, Status, Aksi*).
+   - Pada layar smartphone (lebar 360px - 414px), beberapa tabel (terutama tabel Persetujuan Kabag Umum dan Akumulasi) belum memiliki lebar minimum (`min-w-[...]`) yang memadai, sehingga teks kolom terhimpit vertikal (*text squishing*) dan tidak nyaman dibaca.
+   - Merujuk pada implementasi di aplikasi saudara (**SIMANTIK BPS**), pengguna menginginkan tabel dapat **digeser ke kiri dan ke kanan secara leluasa (*horizontal swipe & drag-to-scroll*)** sehingga seluruh data tabel dapat terlihat utuh dan lega.
+
+### B. Solusi Desain & Implementasi (Menerapkan Standar Anti-Slop & Mobile UX)
+1. **Pemindahan Hamburger Button ke Kiri Atas (`navbar.blade.php`)**:
+   - Mereposisi tombol `#sidebar-toggle` ke sisi paling kiri pada bilah navbar, tepat sebelum komponen judul halaman (`@yield('title')`).
+   - Struktur navbar mobile kini tersusun rapi: `[ Hamburger Icon ] [ Judul Halaman ] ...................... [ Avatar & Profil ]`.
+   - Menambahkan tombol tutup silang `(X)` di dalam header drawer sidebar mobile (`sidebar.blade.php`) agar pengguna dapat menutup menu secara intuitif selain dengan menekan area latar belakang (*overlay backdrop*).
+2. **Styling Geser Horizontal Universal (`app.css` & Standar SIMANTIK)**:
+   - Mengadopsi konfigurasi CSS responsive table dari SIMANTIK ke `resources/css/app.css` untuk kelas `.table-responsive` dan `.overflow-x-auto`:
+     - `-webkit-overflow-scrolling: touch !important` (akselerasi *hardware momentum scrolling* pada iOS dan Android).
+     - `touch-action: pan-x pan-y !important` (mencegah konflik scroll vertikal halaman dengan gestur swipe horizontal tabel).
+     - `overscroll-behavior-x: contain` (mencegah navigasi browser *back/forward gesture* terpicu saat swipe tabel).
+     - Scrollbar ramping modern berukuran 6px bertema warna slate halus (`#cbd5e1` / `#f1f5f9`).
+3. **Fitur Drag-to-Scroll Desktop & Touch Momentum (`app.js`)**:
+   - Menambahkan utilitas `initDragAndSwipeScroll` pada `resources/js/app.js` yang otomatis mendeteksi semua kontainer tabel:
+     - Di komputer/laptop (desktop), pengguna dapat menahan klik kiri mouse (*mouse drag*) untuk menggeser tabel ke kiri-kanan secara instan.
+     - Otomatis mengabaikan elemen klik interaktif (*tombol, tautan, input, dropdown select*) agar fungsi tombol Aksi dan Lihat Dokumentasi tetap bekerja normal tanpa terpicu gestur drag.
+4. **Standarisasi Lebar Minimum Tabel & Petunjuk Sentuh Visual**:
+   - Menetapkan batas lebar minimum proporsional pada semua tabel (misal: `min-w-[1100px]` pada tabel persetujuan Kabag Umum, `min-w-[950px]` pada Daftar Hadir dan Akumulasi) agar kolom tabel tidak pernah termampatkan di layar kecil.
+   - Menambahkan teks petunjuk visual ergonomis di atas tabel khusus layar ponsel (`sm:hidden`):
+     $$\text{👉 "Geser tabel ke kiri / kanan untuk melihat kolom lengkap"}$$
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/partials/navbar.blade.php` | Pemindahan tombol hamburger toggle ke kiri atas sebelum judul halaman. |
+| 2 | `resources/views/partials/sidebar.blade.php` | Penambahan tombol tutup silang `(X)` pada header drawer sidebar mobile. |
+| 3 | `resources/css/app.css` | Styling geser tabel horizontal ala SIMANTIK, touch momentum, dan scrollbar ramping. |
+| 4 | `resources/js/app.js` | Script `initDragAndSwipeScroll` untuk drag-to-scroll mouse desktop dan swipe sentuh mobile. |
+| 5 | `resources/views/kabag-umum/pengajuan.blade.php` | Penambahan `min-w-[1100px]` dan petunjuk geser mobile pada tabel Kabag Umum. |
+| 6 | `resources/views/ketua-tim/pengajuan.blade.php` | Penambahan petunjuk geser mobile pada tabel persetujuan Ketua Tim. |
+| 7 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan petunjuk geser mobile pada tabel lembur Ketua Tim. |
+| 8 | `resources/views/lembur.blade.php` | Penambahan petunjuk geser mobile pada tabel lembur pegawai. |
+| 9 | `resources/views/admin/lembur.blade.php` | Penambahan petunjuk geser mobile pada tabel monitoring lembur Admin. |
+| 10 | `resources/views/admin/pengajuan.blade.php` | Penambahan petunjuk geser mobile pada tabel persetujuan Admin. |
+| 11 | `resources/views/admin/daftar_hadir.blade.php` | Penambahan `min-w-[950px]` dan petunjuk geser mobile pada tabel Daftar Hadir. |
+| 12 | `resources/views/admin/riwayat_presensi.blade.php` | Penggantian wrapper `overflow-x-auto`, `min-w-[700px]`, dan petunjuk geser mobile. |
+| 13 | `resources/views/akumulasi.blade.php` | Penggantian wrapper `overflow-x-auto`, `min-w-[950px]`, dan petunjuk geser mobile. |
+| 14 | `resources/views/rekapitulasi.blade.php` | Penambahan petunjuk geser mobile pada tabel rekapitulasi pegawai. |
+| 15 | `resources/views/pimpinan/pengajuan.blade.php` | Penambahan petunjuk geser mobile pada tabel persetujuan Pimpinan. |
+| 16 | `resources/views/admin/akumulasi.blade.php` | Penambahan petunjuk geser mobile pada tabel akumulasi Admin. |
+
+---
+
+## 25. Penyeragaman Desain Header & Toolbar Halaman Lembur (Pegawai & Admin Mengikuti Pola Ketua Tim, Perbaikan Text-Wrapping "Semua Tanggal")
+
+### A. Latar Belakang & Identifikasi Masalah
+1. **Pemotongan Teks / Awkward Text-Wrapping pada Tombol Tanggal**:
+   - Pada halaman **Pengajuan Lembur Pegawai** (`resources/views/lembur.blade.php`), tombol filter tanggal (`#dateBtn`) sebelumnya tidak memiliki kelas `whitespace-nowrap`.
+   - Ketika halaman dibuka pada layar perangkat mobile, layar laptop beresolusi sedang, atau saat kontainer flexbox menyempit, teks label **"Semua Tanggal"** terpotong/terbungkus secara canggung ke 2 baris vertikal (*"Semua"* di baris atas dan *"Tanggal"* di baris bawah), merusak kerapian antarmuka.
+2. **Inkonsistensi Pola Tata Letak Antar Peran (*Design Pattern Discrepancy*)**:
+   - Pada halaman **Ketua Tim** (`resources/views/ketua-tim/lembur.blade.php`), telah diterapkan struktur **Page Header modern**: judul `<h1>` semantik + subjudul deskriptif + tombol aksi primer `+ Ajukan Lembur` di kanan atas header, serta tombol filter toolbar berbentuk kartu modern `rounded-xl` dengan bayangan lembut `shadow-2xs`.
+   - Sebaliknya pada halaman **Pegawai** (`lembur.blade.php`) dan **Admin** (`admin/lembur.blade.php`), antarmuka masih menggunakan pola lawas: tombol filter berbentuk pil lonjong `rounded-full` dan tombol aksi utama (*"Ajukan Lembur"* dan *"Unduh Excel"*) diletakkan berdesakan di ujung kanan toolbar filter.
+3. **Kebutuhan Pengguna**:
+   - Memperbaiki teks tanggal agar tidak terpotong ke 2 baris.
+   - Menyeragamkan desain antarmuka Pegawai dan Admin agar mengikuti pola modern Ketua Tim, menciptakan *single unified design system* di seluruh aplikasi.
+
+### B. Rincian Implementasi & Perbaikan Teknis
+
+1. **Halaman Pengajuan Lembur Pegawai (`resources/views/lembur.blade.php`)**:
+   - **Page Header Terstruktur**:
+     - Menambahkan judul `<h1>` semantik *"Pengajuan Lembur Pribadi"* dan subjudul *"Kelola dan pantau riwayat pengajuan kegiatan lembur mandiri Anda."*.
+     - Menempatkan tombol utama **"+ Ajukan Lembur"** (`#btnAjukan`) di sisi kanan header dengan gaya oranye amber BPS (`bg-[#faa938] hover:bg-[#fd9a10] rounded-xl font-semibold shadow-xs`).
+   - **Modernisasi Toolbar Filter**:
+     - Mengubah seluruh elemen tombol kontrol (Date Picker, Filter Bulan, Per Halaman, Search Tim, dan Reset Filter) dari bentuk pil lonjong (`rounded-full`) menjadi kartu modern bersudut halus (`rounded-xl border border-gray-200 bg-white shadow-2xs`).
+     - Menyematkan kelas `whitespace-nowrap` pada tombol `#dateBtn` dan elemen `<span id="dateLabel">`, menjamin teks *"Semua Tanggal"* atau tanggal spesifik yang dipilih selalu berada dalam 1 baris utuh di semua ukuran layar.
+   - **Integritas Selektor & Fungsionalitas**:
+     - Seluruh ID elemen DOM (`datePicker`, `dateBtn`, `dateLabel`, `dateValue`, `datePanel`, `filterBulan`, `perHalaman`, `searchTim`, `dropdownTim`, `listTim`, `btnResetFilter`, `btnAjukan`) dipertahankan 100% tanpa mengubah alur JavaScript maupun AJAX modal pengajuan.
+
+2. **Halaman Monitoring & Pengajuan Lembur Admin (`resources/views/admin/lembur.blade.php`)**:
+   - **Page Header Terstruktur**:
+     - Menambahkan judul `<h1>` semantik *"Monitoring & Pengajuan Lembur"* dan subjudul *"Kelola, monitor status verifikasi, dan rekapitulasi data lembur seluruh pegawai."*.
+     - Menyematkan sekelompok tombol aksi (*Action Buttons*) di kanan atas header:
+       - **Unduh Excel** (`#btnExport`): tombol netral berkelas (`border border-gray-200 bg-white text-gray-700 hover:border-[#faa938] hover:text-[#faa938] rounded-xl shadow-2xs`).
+       - **Ajukan Lembur** (`#btnAjukan`): tombol primer oranye amber BPS (`bg-[#faa938] rounded-xl shadow-xs`).
+   - **Modernisasi Toolbar Filter**:
+     - Mengubah Date Picker dan input pencarian Pegawai serta Tim menjadi `rounded-xl shadow-2xs` yang selaras.
+     - Menyematkan `whitespace-nowrap` pada tombol `#dateBtn` dan `<span id="dateLabel">`.
+
+3. **Halaman Pengajuan Lembur Ketua Tim (`resources/views/ketua-tim/lembur.blade.php`)**:
+   - Menyematkan pengaman `whitespace-nowrap` pada tombol `#dateBtn` dan `<span id="dateLabel">` agar kebal terhadap pemotongan teks di layar mobile/responsif ultra-sempit.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Page Header semantik (H1 + subjudul + tombol Ajukan Lembur), modernisasi filter `rounded-xl`, dan perbaikan text-wrap `whitespace-nowrap` pada `dateBtn`/`dateLabel`. |
+| 2 | `resources/views/admin/lembur.blade.php` | Page Header semantik (H1 + subjudul + tombol Unduh Excel & Ajukan Lembur), modernisasi filter `rounded-xl`, dan perbaikan text-wrap `whitespace-nowrap`. |
+| 3 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan `whitespace-nowrap` pada `dateBtn` dan `dateLabel` untuk proteksi konsisten di layar kecil. |
+
+---
+
+## 26. Implementasi Scrollbar Visual Interaktif pada Tabel Mobile & Peningkatan Kontras Scrollbar Universal (Anti-Confusion UX)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Kebiasaan OS Mobile Menyembunyikan Scrollbar (*Hidden Overlay Scrollbar*)**:
+   - Pada perangkat smartphone (iOS Safari & Android Chrome), peramban web secara bawaan menyembunyikan scrollbar saat layar dalam keadaan diam (tidak sedang disentuh).
+   - Pengguna menyampaikan masukan bahwa meskipun sudah ada teks *"Geser tabel ke kiri / kanan untuk melihat kolom lengkap"*, ketiadaan scrollbar visual tetap menimbulkan kebingungan bagi pengguna awam di ponsel.
+2. **Keterbacaan Scrollbar Desktop**:
+   - Pada layar laptop/PC, scrollbar 6px dengan warna abu-abu pudar sebelumnya kurang mencolok di atas latar belakang tabel putih.
+
+### B. Rincian Solusi & Implementasi Teknis
+
+1. **Scrollbar Visual Interaktif Khusus Mobile (`.table-scroll-hint`, `.table-scroll-track`, `.table-scroll-thumb`)**:
+   - Menambahkan bilah scrollbar visual horizontal yang diletakkan tepat di atas tabel (pada blok helper mobile `sm:hidden`).
+   - Struktur komponen:
+     - **Header Bar**: Ikon gestur horizontal + teks *"Geser tabel ke kiri / kanan"* di sisi kiri, dan indikator dinamis di sisi kanan (*"Geser »"*, persentase posisi scroll $0\%-100\%$, atau *"« Geser kiri"*).
+     - **Track Scrollbar**: Bilah `h-1.5` berwarna abu-abu lembut `bg-slate-200/90` bersudut membulat penuh (`rounded-full`).
+     - **Thumb Scrollbar**: Indikator posisi oranye amber BPS `#faa938` dengan lebar proporsional terhadap rasio layar vs lebar tabel (`clientWidth / scrollWidth`).
+   - **Interaktivitas Penuh**:
+     - Saat tabel digeser dengan jari (touch swipe/momentum), thumb bar meluncur secara realtime mengikuti posisi scroll.
+     - Pengguna juga dapat mengetuk (*tap*) atau menggeser (*drag*) langsung pada bilah scrollbar untuk melompat ke kolom tertentu secara instan.
+     - Bilah scrollbar ini langsung terlihat sejak detik pertama halaman terbuka di smartphone tanpa harus menunggu pengguna menyentuh layar.
+
+2. **Peningkatan Kontras & Dimensi Scrollbar Universal (`resources/css/app.css`)**:
+   - Memperbesar ketebalan scrollbar tabel dari `6px` menjadi `8px`.
+   - Memberikan kontras tinggi: track `background: #e2e8f0` (slate-200) dengan thumb `background: #94a3b8` (slate-400), border `1.5px solid #e2e8f0`, dan efek hover oranye amber BPS `#faa938`.
+   - Menambahkan `padding-bottom: 2px` agar scrollbar tabel memiliki ruang gerak yang rapi dan tidak terpotong radius sudut tabel.
+
+3. **Universal Auto-Initializer & Sinkronisasi Realtime (`resources/js/app.js`)**:
+   - Fungsi `initTableScrollbars` otomatis mendeteksi setiap tabel di dalam `.overflow-x-auto` atau `.table-responsive`.
+   - Menggunakan `requestAnimationFrame` untuk sinkronisasi posisi thumb yang mulus tanpa hambatan performa (*60fps smooth*).
+   - Menggunakan `ResizeObserver` untuk mendeteksi perubahan orientasi layar smartphone (portrait/landscape) atau perubahan lebar tabel secara dinamis.
+   - Tetap mendukung desktop mouse drag-to-scroll dengan mengabaikan elemen klik interaktif (tombol, tautan, input).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `resources/css/app.css` | Peningkatan dimensi scrollbar 8px, kontras warna slate-400 / amber, dan styling track/thumb mobile. |
+| 2 | `resources/js/app.js` | Fungsi `initTableScrollbars` untuk sinkronisasi realtime, seek interaktif, touch tracking, dan desktop drag. |
+| 3 | `resources/views/lembur.blade.php` | Komponen visual scrollbar mobile pada tabel lembur pegawai. |
+| 4 | `resources/views/admin/lembur.blade.php` | Komponen visual scrollbar mobile pada tabel monitoring lembur admin. |
+| 5 | `resources/views/ketua-tim/lembur.blade.php` | Komponen visual scrollbar mobile pada tabel lembur ketua tim. |
+| 6 | `resources/views/kabag-umum/pengajuan.blade.php` | Komponen visual scrollbar mobile pada tabel persetujuan kabag umum. |
+| 7 | `resources/views/ketua-tim/pengajuan.blade.php` | Komponen visual scrollbar mobile pada tabel persetujuan ketua tim. |
+| 8 | `resources/views/admin/pengajuan.blade.php` | Komponen visual scrollbar mobile pada tabel persetujuan admin. |
+| 9 | `resources/views/rekapitulasi.blade.php` | Komponen visual scrollbar mobile pada tabel rekapitulasi pegawai. |
+| 10 | `resources/views/admin/daftar_hadir.blade.php` | Komponen visual scrollbar mobile pada tabel daftar hadir admin. |
+| 11 | `resources/views/pimpinan/pengajuan.blade.php` | Komponen visual scrollbar mobile pada tabel persetujuan pimpinan. |
+| 12 | `resources/views/admin/akumulasi.blade.php` | Komponen visual scrollbar mobile pada tabel akumulasi admin. |
+| 13 | `resources/views/akumulasi.blade.php` | Komponen visual scrollbar mobile pada tabel akumulasi pegawai. |
+| 14 | `resources/views/admin/riwayat_presensi.blade.php` | Komponen visual scrollbar mobile pada tabel riwayat presensi admin. |
+
+---
+
+## 27. Perbaikan Menyeluruh Dropdown Pencarian Pegawai & Tim: Tampil Penuh Otomatis, Seleksi Teks Instan, dan Tombol Clear Cepat (Single-Step Switching)
+
+### A. Latar Belakang & Masalah Pengguna
+1. **Dropdown Terfilter Sendiri Saat Dibuka Kembali (*Self-Filtering Dropdown Trap*)**:
+   - Ketika pengguna memfilter pegawai tertentu (misal: memilih *Pegawai A*), nama pegawai tersebut terisi ke dalam kotak input pencarian: `"Nama Pegawai A (NIP)"`.
+   - Ketika pengguna ingin berpindah atau memilih pegawai lain (misal: *Pegawai C*), mereka mengklik kembali kotak input tersebut.
+   - Pada implementasi sebelumnya, pemanggilan `toggleDropdownPegawai()` mengoper nilai yang sedang ada di dalam input (`search.value`) ke fungsi `renderDropdownPegawai(search.value)`.
+   - Akibatnya, fungsi pencarian melakukan filter teks terhadap string lengkap `"Nama Pegawai A (NIP)"`. Semua pegawai lainnya tereliminasi dari daftar sehingga dropdown hanya menampilkan *Pegawai A* dan opsi *"Semua pegawai"*.
+   - **Keluhan Pengguna**: Pengguna terpaksa harus mengklik *"Semua pegawai"* terlebih dahulu (yang me-refresh halaman), baru kemudian bisa mengklik dan mencari *Pegawai C*. Masalah ini terjadi pada desktop maupun mobile di seluruh aplikasi.
+2. **Ketiadaan Fitur Auto-Select & Tombol Reset Cepat**:
+   - Saat pengguna mengklik kotak input yang sudah berisi nama pegawai, kursor hanya diletakkan di akhir teks tanpa menyeleksi seluruh teks. Jika pengguna langsung mengetik huruf baru, teks lama tidak terhapus dan pencarian menjadi rusak.
+   - Tidak ada tombol silang cepat `(×)` untuk mengosongkan pilihan dalam 1 klik tanpa harus menekan tombol backspace berulang kali.
+
+### B. Solusi & Rincian Implementasi Teknis
+
+1. **Prinsip Universal: Selalu Tampilkan Daftar Lengkap Saat Dropdown Dibuka**:
+   - Seluruh fungsi pembuka dropdown (`openDropdownPegawai()`, `openDropdownTim()`, `openDropdown()`) diubah agar **selalu mengoper parameter kosong `''`** ke fungsi perender (`renderDropdownPegawai('')`, `populateDropdownTim('', ...)`).
+   - Dengan begitu, saat pengguna mengklik input atau tombol panah, dropdown **selalu menyajikan seluruh daftar pegawai/tim secara lengkap**, memungkinkan pengguna langsung beralih ke pegawai/tim mana pun dalam 1 langkah mudah (*single-step switching*).
+
+2. **Auto-Select Teks untuk Pengetikan Instan (`search.select()`)**:
+   - Setiap kali input pencarian diklik atau difokuskan (`onclick` & `onfocus`), sistem secara otomatis menjalankan `setTimeout(() => search.select(), 10)`.
+   - Seluruh teks nama pegawai/tim yang sedang aktif otomatis terblok/terseleksi. Begitu pengguna mengetik satu karakter baru (misalnya huruf `'C'`), teks lama langsung tergantikan dan daftar secara instan terfilter hanya untuk nama yang mengandung huruf tersebut via event `oninput`.
+
+3. **Indikator Visual Elegan & Sorotan Pilihan Aktif**:
+   - Opsi default (*"Semua pegawai"* / *"Semua tim"*) dan nama pegawai/tim yang sedang aktif kini diberi latar belakang oranye lembut (`bg-amber-50/70`), teks tebal berkarakter (`font-semibold text-amber-700`), serta **ikon centang resmi BPS** (`<svg> checkmark`).
+   - Pengguna dengan mudah mengetahui item apa yang sedang aktif sambil tetap leluasa menelusuri seluruh opsi lainnya.
+   - Jika hasil pengetikan tidak cocok dengan data mana pun, sistem menampilkan baris status informatif (*"Pegawai/Tim tidak ditemukan"*).
+
+4. **Tombol Hapus Cepat Cerdas `(×)` (`#btnClearPegawai` & `#btnClearTim`)**:
+   - Menyematkan tombol silang mini di sisi kanan kotak pencarian yang otomatis muncul ketika ada item yang terpilih atau ketika pengguna sedang mengetik.
+   - Mengklik tombol silang langsung mereset pencarian ke *"Semua"* dalam 1 kali klik.
+
+5. **Tombol Panah Interaktif & Penanganan Klik Luar (*Click-Outside Handler*)**:
+   - Ikon chevron panah bawah diubah menjadi tombol yang dapat diklik (`toggleDropdown...()`) untuk membuka/menutup dropdown secara fleksibel.
+   - Penanganan klik di luar elemen (`document.addEventListener('click', ...)`) menutup dropdown secara rapi dan otomatis mengembalikan teks input ke nama yang sedang aktif jika pengguna membatalkan pengetikan tanpa memilih.
+
+### C. Berkas yang Diperbarui (10 File)
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Filter Pegawai: `openDropdownPegawai('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, clickable chevron. |
+| 2 | `resources/views/pimpinan/pengajuan.blade.php` | Filter Pegawai: `openDropdownPegawai('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, clickable chevron. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Filter Pegawai: `openDropdownPegawai('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, clickable chevron. |
+| 4 | `resources/views/admin/lembur.blade.php` | Filter Pegawai & Filter Tim: `openDropdown('')` & `openDropdownTim('')`, auto-select teks, tombol clear `(×)` kedua input, sorotan centang aktif. |
+| 5 | `resources/views/lembur.blade.php` | Filter Tim Pegawai: `openDropdownTim('')`, auto-select teks, tombol `#btnClearTim`, sorotan centang aktif, click-outside handler. |
+| 6 | `resources/views/admin/tim.blade.php` | Filter Tim Admin: opsi *"Semua tim"*, `openDropdownTim('')`, auto-select teks, tombol `#btnClearTim`, sorotan centang aktif, click-outside. |
+| 7 | `resources/views/admin/akumulasi.blade.php` | Filter Pegawai Akumulasi: `openDropdown('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, click-outside. |
+| 8 | `resources/views/admin/presensi.blade.php` | Filter Pegawai Presensi: `openDropdown('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, click-outside. |
+| 9 | `resources/views/admin/spkl.blade.php` | Filter Pegawai SPKL: `openDropdown('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, click-outside. |
+| 10 | `resources/views/admin/pengguna.blade.php` | Filter Pegawai Pengguna: opsi *"Semua pegawai"*, `openDropdown('')`, auto-select teks, tombol `#btnClearPegawai`, sorotan centang aktif, click-outside. |

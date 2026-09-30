@@ -61,15 +61,28 @@ class KabagUmumPengajuanController extends Controller
             abort(403, 'Akses khusus Kepala Bagian Umum.');
         }
 
-        $bulan = $request->get('bulan', now()->format('Y-m'));
-        $statusFilter = $request->get('status', 'all');
+        $bulanParam = $request->get('bulan');
+        $currentYear = (int) now()->year;
+        $selectedYear = $currentYear;
+        $selectedMonth = null; // null = semua bulan tahun berjalan
 
-        try {
-            $periode = Carbon::parse($bulan . '-01');
-        } catch (\Exception $e) {
-            $periode = Carbon::now();
-            $bulan = $periode->format('Y-m');
+        if ($bulanParam && $bulanParam !== 'all') {
+            if (preg_match('/^(\d{4})-all$/i', $bulanParam, $matches)) {
+                $selectedYear = (int) $matches[1];
+                $selectedMonth = null;
+                $bulan = $selectedYear . '-all';
+            } elseif (preg_match('/^(\d{4})-(\d{2})$/', $bulanParam, $matches)) {
+                $selectedYear = (int) $matches[1];
+                $selectedMonth = (int) $matches[2];
+                $bulan = sprintf('%04d-%02d', $selectedYear, $selectedMonth);
+            } else {
+                $bulan = 'all';
+            }
+        } else {
+            $bulan = 'all';
         }
+
+        $statusFilter = $request->get('status', 'all');
 
         // Filter pengajuan: Seluruh Tim Kerja BPS (Monitoring Seluruh Satker & Approval Tim Lain)
         $query = DB::table('t_transaksi as t')
@@ -94,10 +107,13 @@ class KabagUmumPengajuanController extends Controller
                     LIMIT 1
                 ) as jam_selesai_presensi')
             ])
-            ->whereYear('t.date', $periode->year)
-            ->whereMonth('t.date', $periode->month);
+            ->whereYear('t.date', $selectedYear);
 
-        // Hitung statistik untuk bulan yang dipilih
+        if ($selectedMonth !== null) {
+            $query->whereMonth('t.date', $selectedMonth);
+        }
+
+        // Hitung statistik untuk periode yang dipilih
         $statsBase = clone $query;
         $allTransactions = $statsBase->get();
         $stats = [
@@ -113,19 +129,19 @@ class KabagUmumPengajuanController extends Controller
             $query->where('t.status', $statusFilter);
         }
 
-        // Opsi sorting tanggal: priority (default), desc (terbaru), asc (terlama)
-        $sort = in_array(strtolower($request->get('sort', 'priority')), ['priority', 'desc', 'asc'])
-            ? strtolower($request->get('sort', 'priority'))
-            : 'priority';
+        // Opsi sorting tanggal: desc (default: terbaru), asc (terlama), priority
+        $sort = in_array(strtolower($request->get('sort', 'desc')), ['desc', 'asc', 'priority'])
+            ? strtolower($request->get('sort', 'desc'))
+            : 'desc';
 
         if ($sort === 'asc') {
             $query->orderBy('t.date', 'asc')->orderBy('t.id_transaksi', 'asc');
-        } elseif ($sort === 'desc') {
-            $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
-        } else { // priority
+        } elseif ($sort === 'priority') {
             $query->orderByRaw("CASE WHEN t.status = 'menunggu_kabag' THEN 0 WHEN t.status = 'pending' THEN 1 WHEN t.status = 'approved' THEN 2 ELSE 3 END")
                 ->orderBy('t.date', 'desc')
                 ->orderBy('t.id_transaksi', 'desc');
+        } else { // desc (default: terbaru ke terlama)
+            $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
         }
 
         $pengajuan = $query
@@ -136,7 +152,7 @@ class KabagUmumPengajuanController extends Controller
             ->orderBy('tanggal', 'asc')
             ->get();
 
-        return view('kabag-umum.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'statusFilter', 'stats', 'sort'));
+        return view('kabag-umum.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'statusFilter', 'stats', 'sort', 'selectedYear', 'selectedMonth'));
     }
 
     public function approve(Request $request, $id)

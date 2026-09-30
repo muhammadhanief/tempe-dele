@@ -419,6 +419,31 @@ class LemburController extends Controller
 
     public function storeDoc(Request $request, $id_transaksi)
     {
+        $filePath = trim((string) $request->input('file_path'));
+
+        if (str_starts_with($filePath, 'b64:')) {
+            $decoded = base64_decode(substr($filePath, 4), true);
+            if ($decoded !== false) {
+                $filePath = trim($decoded);
+            }
+        } elseif (str_starts_with($filePath, 'enc:')) {
+            $decoded = base64_decode(substr($filePath, 4), true);
+            if ($decoded !== false) {
+                $filePath = trim($decoded);
+            }
+        } elseif (!str_starts_with($filePath, 'http://') && !str_starts_with($filePath, 'https://')) {
+            $decoded = base64_decode($filePath, true);
+            if ($decoded !== false && (str_starts_with($decoded, 'http://') || str_starts_with($decoded, 'https://'))) {
+                $filePath = trim($decoded);
+            }
+        }
+
+        if (!preg_match('~^https?://~i', $filePath) && preg_match('~^[a-z0-9\-\.]+\.[a-z]{2,}~i', $filePath)) {
+            $filePath = 'https://' . $filePath;
+        }
+
+        $request->merge(['file_path' => $filePath]);
+
         $request->validate([
             'file_path' => 'required|url|max:255',
         ]);
@@ -432,7 +457,7 @@ class LemburController extends Controller
         $idDok = DB::table('m_dokumentasi')->insertGetId([
             'transaksi_id' => $id_transaksi,
             'date'         => $transaksi->date,
-            'file_path'    => $request->file_path,
+            'file_path'    => $filePath,
         ]);
 
         DB::table('t_transaksi')
