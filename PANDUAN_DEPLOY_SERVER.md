@@ -113,7 +113,29 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 49. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil npm run build: manifest.json, CSS, JS)*.
 50. 📄 Seluruh view tabel (11 file blade) yang telah dilengkapi komponen bilah scrollbar visual interaktif (`.table-scroll-hint`, `.table-scroll-track`, `.table-scroll-thumb`).
 51. 📄 **Seluruh View Filter Pencarian Pegawai & Tim (10 file)**: `resources/views/ketua-tim/pengajuan.blade.php`, `resources/views/pimpinan/pengajuan.blade.php`, `resources/views/admin/pengajuan.blade.php`, `resources/views/admin/lembur.blade.php`, `resources/views/lembur.blade.php`, `resources/views/admin/tim.blade.php`, `resources/views/admin/akumulasi.blade.php`, `resources/views/admin/presensi.blade.php`, `resources/views/admin/spkl.blade.php`, `resources/views/admin/pengguna.blade.php` *(Perbaikan dropdown tampil penuh otomatis saat dibuka, auto-select teks untuk pengetikan cepat, tombol clear `(×)`, sorotan centang pilihan aktif, dan clickable chevron)*.
-52. 📁 **`public/build/`** *(Aset bundle frontend produksi Vite terbaru: manifest.json, app-vIdj2UmY.css, app-DbISuP7_.js)*.
+52. 📄 **`resources/views/partials/navbar.blade.php`** *(Penambahan class `cursor-pointer` pada tombol trigger profil dan tombol logout, serta deteksi dinamis label Kabag Umum)*.
+53. 📄 **`resources/views/login.blade.php`** *(Penambahan class `cursor-pointer` pada tombol Masuk dan tombol sakelar lihat sandi, serta penutupan tag div grid)*.
+54. 📄 **`resources/css/app.css`** *(Penambahan aturan global universal button `cursor: pointer;`)*.
+55. 📁 **`public/build/`** *(Aset bundle frontend produksi Vite terbaru: manifest.json, app-DjJofEQ_.css, app-DbISuP7_.js)*.
+56. 📄 **`resources/views/admin/lembur.blade.php`** *(Penghapusan tag penutup div duplikat pada `#wrapSearchTim` yang sebelumnya menyebabkan footer melayang ke samping navbar)*.
+57. 📄 **View Lain yang Dirapikan Tag Penutup Div-nya**: `resources/views/ketua-tim/lembur.blade.php`, `resources/views/akumulasi.blade.php`, `resources/views/admin/riwayat_presensi.blade.php`.
+58. 📄 **`app/Http/Controllers/admin/DokumenViewController.php`** *(Dukungan filter query bulan opsional, flag `$isFiltered`, dan default menampilkan semua periode)*.
+59. 📄 **`resources/views/admin/dokumen.blade.php`** *(Penyempurnaan label default 'Filter Bulan', tombol reset filter `(×)`, tombol 'Semua Bulan' di panel kalender, serta empty state tabel)*.
+60. 📄 **`resources/views/partials/sidebar.blade.php`** *(Batasan tinggi viewport `h-[100dvh]`, `min-h-0`, padding bawah `pb-16`, cursor pointer tombol close, dan pengunci scroll body saat drawer terbuka)*.
+61. 📄 **`resources/css/app.css`** *(Styling dark scrollbar `.sidebar-scroll` untuk scrolling halus sidebar di smartphone, isolasi flexbox `.overflow-x-auto:not(.flex):not(.inline-flex)`, dan utilitas `.no-scrollbar`)*.
+62. 📄 **`resources/views/admin/lembur.blade.php`** *(Header kompak mobile, tombol accordion filter pencarian, implementasi Dropdown Status khusus mobile `sm:hidden`, dan proteksi badge pills desktop `hidden sm:flex`)*.
+63. 📄 **`resources/views/admin/dashboard.blade.php`** *(Banner hero horizontal ramping di mobile `flex-row`, tinggi ~110px, dan proteksi layout desktop `lg:`)*.
+64. 📄 **`resources/views/dashboard.blade.php`** *(Banner hero horizontal ramping di mobile untuk dashboard Pegawai)*.
+65. 📄 **`resources/views/ketua-tim/dashboard.blade.php`** *(Banner hero horizontal ramping di mobile untuk dashboard Ketua Tim)*.
+66. 📄 **`resources/views/pimpinan/dashboard.blade.php`** *(Banner hero horizontal ramping di mobile untuk dashboard Pimpinan)*.
+67. 📄 **`resources/views/admin/lembur.blade.php`** *(Penyempurnaan menu popup dropdown status mobile kustom dengan tipografi modern Inter/Sans, badge counter, indikator pulsing dot, dan listener tunggal anti-double-click)*.
+68. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Metode Full Isolation: Toolbar desktop asli `hidden sm:flex` 100% utuh tanpa perubahan, Toolbar mobile `block sm:hidden` 2 kolom 50%-50% Bulan & Status, dan pemisahan ID JavaScript)*.
+69. 📁 **`public/build/`** *(Bundel produksi Vite: manifest.json, app-9gWrLdJH.css, app-DbISuP7_.js)*.
+70. 📄 **`resources/views/dashboard.blade.php`** *(Redesain hero banner Dashboard Pegawai: tata letak Flexbox 2 kolom anti-tabrakan, ambient lighting glow, badge frosted glass, dan tipografi adaptif)*.
+71. 📄 **`resources/views/admin/dashboard.blade.php`** *(Redesain hero banner Dashboard Admin: tata letak Flexbox 2 kolom anti-tabrakan, ambient lighting glow, badge frosted glass, dan tipografi adaptif)*.
+72. 📄 **`resources/views/ketua-tim/dashboard.blade.php`** *(Redesain hero banner Dashboard Ketua Tim: tata letak Flexbox 2 kolom anti-tabrakan, ambient lighting glow, badge frosted glass, dan tipografi adaptif)*.
+73. 📄 **`resources/views/pimpinan/dashboard.blade.php`** *(Redesain hero banner Dashboard Pimpinan: tata letak Flexbox 2 kolom anti-tabrakan, ambient lighting glow, badge frosted glass, dan tipografi adaptif)*.
+74. 📁 **`public/build/`** *(Bundel produksi Vite terbaru: manifest.json, app-Bjr7u1DZ.css, app-DbISuP7_.js)*.
 
 ---
 
@@ -388,3 +410,143 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Item pegawai/tim yang sedang aktif ditandai dengan latar belakang oranye lembut dan ikon centang resmi BPS.
   - Klik tombol panah bawah (chevron): dropdown dapat dibuka-tutup secara fleksibel.
   - Klik di luar area kotak pencarian: dropdown tertutup rapi dan nama aktif tetap utuh tanpa merusak pencarian.
+
+### Q. Uji Properti Kursor Pointer Tombol (Logout, Masuk, & Global Button)
+- [ ] **Tombol Masuk & Toggle Sandi (`/login`)**:
+  - Arahkan kursor mouse ke tombol utama **Masuk** ➔ pastikan kursor berubah menjadi **pointer** (ikon jari/tangan).
+  - Arahkan kursor mouse ke ikon mata penampil sandi ➔ pastikan kursor berubah menjadi **pointer**.
+- [ ] **Tombol Logout di Navbar**:
+  - Klik foto/nama profil di pojok kanan atas untuk membuka dropdown.
+  - Arahkan kursor mouse ke tombol **Logout** ➔ pastikan kursor berubah menjadi **pointer** (ikon jari/tangan) dan baris berubah menjadi latar kemerahan saat di-hover.
+
+### R. Uji Posisi Footer di Fitur Lembur Admin (`/admin/lembur`)
+- [ ] Buka menu **Admin $\rightarrow$ Lembur** (`/admin/lembur`).
+- [ ] Periksa area pojok kanan atas di samping dropdown profil Admin Lembur: pastikan teks footer **tidak ada lagi** di area navbar.
+- [ ] Scroll ke bagian paling bawah halaman: pastikan teks hak cipta `© 2026 BPS Provinsi Jawa Tengah - Tim SID` berada rapi di bagian bawah (*bottom footer*), berpusat di tengah, di bawah tabel dan pagination.
+
+### S. Uji Filter Dropdown Bulan Default 'Filter Bulan' pada Menu Generate Dokumen Admin (`/admin/dokumen`)
+- [ ] **Kondisi Default Saat Halaman Pertama Kali Dibuka**:
+  - Buka menu **Admin $\rightarrow$ Generate Dokumen** (`/admin/dokumen`) tanpa parameter query.
+  - Periksa tombol dropdown periode di atas tabel: teks label menampilkan **"Filter Bulan"** (bukan bulan berjalan seperti "Okt 2026").
+  - Pastikan tombol silang reset `(×)` **tidak muncul** saat filter belum aktif.
+  - Pastikan tabel menyajikan seluruh periode riwayat lembur yang ada di database.
+- [ ] **Memilih Bulan Tertentu**:
+  - Klik dropdown "Filter Bulan", pilih salah satu bulan (misal September 2026).
+  - Halaman memuat ulang dengan URL `?bulan=2026-09`.
+  - Label dropdown berubah menjadi **"Sep 2026"**.
+  - Tombol silang reset `(×)` muncul di sebelah kanan dropdown.
+  - Tabel hanya menampilkan baris dokumen/transaksi untuk bulan September 2026.
+- [ ] **Mereset Kembali ke Semua Bulan**:
+  - Klik tombol `(×)` di samping dropdown atau buka dropdown lalu klik **"Semua Bulan"**:
+  - Halaman seketika kembali ke `/admin/dokumen`, label kembali bertuliskan **"Filter Bulan"**, dan seluruh bulan kembali tampil.
+
+### T. Uji Scrolling Sidebar Drawer pada Layar Smartphone / Mobile Device
+- [ ] **Tampilan Menu Lengkap & Buka/Tutup Drawer di HP**:
+  - Akses aplikasi pada smartphone atau ubah peramban desktop ke mode responsive device (lebar layar $\le 420\text{px}$).
+  - Login menggunakan akun Admin (yang memiliki jumlah menu terbanyak, yaitu 13 menu).
+  - Ketuk tombol Hamburger di pojok kiri atas untuk membuka drawer menu navigasi.
+  - Periksa header sidebar: logo, tulisan *TEMPE DELE*, dan tombol silang `(X)` tampil proporsional tanpa gepeng/tertekan (`shrink-0`).
+- [ ] **Pengujian Scrolling Vertikal**:
+  - Geser/swipe ke atas pada menu sidebar: menu bergeser mulus (*smooth touch scrolling*).
+  - Menu-menu bagian bawah (Pengguna, Tim, Tarif, Pejabat) kini **terlihat lengkap 100%** dan dapat di-scroll sampai tuntas.
+  - Menu paling bawah (Pejabat) memiliki ruang bebas yang cukup di atas gesture bar / navigation bar smartphone berkat padding `pb-16`.
+- [ ] **Pengujian Penguncian Scroll Latar (*Backdrop Lock*)**:
+  - Saat sidebar drawer sedang terbuka, coba gulir area gelap (backdrop/overlay) atau lakukan swipe pada latar belakang: pastikan halaman di balik drawer **terkunci diam dan tidak ikut bergeser**.
+  - Ketuk area gelap atau tombol silang `(X)`: drawer tertutup kembali dengan mulus dan scrolling halaman utama kembali aktif seperti semula.
+- [ ] **Verifikasi Tampilan Desktop / Web**:
+  - Kembalikan ukuran layar ke desktop (lebar $\ge 1024\text{px}$):
+  - Pastikan sidebar desktop tetap berada di posisi sticky kiri layar dengan tampilan penuh normal tanpa ada perubahan layout desktop.
+
+### U. Uji Layout Mobile Ramping & Accordion Filter pada Monitoring & Pengajuan Lembur
+- [ ] **Tampilan Header & Ruang Layar di Ponsel**:
+  - Buka menu **Admin $\rightarrow$ Lembur** (`/admin/lembur`) pada browser ponsel atau mode responsive.
+  - Periksa judul: tampil ringkas tanpa subjudul panjang 2 baris (`hidden sm:block`).
+  - Tombol aksi (*Unduh Excel* dan *Ajukan Lembur*) tersaji kompak (`h-9`).
+- [ ] **Uji Status Filter Dropdown Khusus Mobile (`sm:hidden`)**:
+  - Pada layar smartphone, periksa filter status: ke-6 badge status kini digantikan dengan **1 tombol dropdown ramping** (tinggi 40px) berlabel dinamis `[ 🏷️ Status: Semua Status (21) ▾ ]`.
+  - Ketuk tombol dropdown: menu popup muncul vertikal menyajikan ke-6 pilihan status lengkap dengan dot warna dan counter badge angka.
+  - Pilih salah satu status (misal *Menunggu Kabag*): halaman memuat ulang data terfilter, tombol dropdown menampilkan dot biru dan teks `[ 🔵 Status: Menunggu Kabag (3) ▾ ]`.
+  - Ketuk di luar dropdown: pastikan menu tertutup otomatis.
+- [ ] **Uji Accordion Filter Pencarian Mobile**:
+  - Pada kondisi awal (tanpa pencarian aktif), periksa toolbar: hanya menampilkan tombol Tanggal dan tombol **`[🔍 Cari ▾]`**.
+  - Ketuk tombol **`[🔍 Cari ▾]`**: kotak input *Cari nama pegawai...* dan *Cari nama tim...* terbuka mulus ke bawah.
+  - Pilih salah satu pegawai atau tim: halaman memuat data terfilter, tombol menampilkan indikator badge jumlah filter aktif (misal `1`), dan accordion tetap terbuka.
+  - Ketuk kembali tombol **`[🔍 Cari ▴]`**: kotak pencarian menutup kembali dengan rapi.
+- [ ] **Verifikasi Tampilan Desktop (Tetap Utuh 100%)**:
+  - Buka halaman pada komputer/laptop (lebar $\ge 640\text{px}$):
+  - Tombol accordion pencarian dan dropdown status mobile otomatis tersembunyi (`sm:hidden`).
+  - Filter status di desktop **tetap 100% menggunakan jajaran Badge Pills warna-warni horizontal asli** (`hidden sm:flex`) tanpa perubahan layout.
+
+### V. Uji Banner Hero Dashboard Horizontal Ramping di Layar Mobile
+- [ ] **Tampilan Banner Hero di Layar Smartphone (iPhone/Android)**:
+  - Buka halaman **Dashboard** (`/admin/dashboard`, `/dashboard`, `/ketua-tim/dashboard`, atau `/pimpinan/dashboard`) pada perangkat ponsel.
+  - Periksa kartu hero sapaan (*Selamat Datang*):
+    - Kartu tersusun secara **horizontal sejajar** (`flex-row`): teks di sisi kiri dan gambar ilustrasi meja/komputer di sisi kanan (`max-w-[92px]`).
+    - Lencana sapaan `[ 👋 Selamat Datang ]` tampil rapi di atas nama pengguna.
+    - Tinggi kartu sangat ramping (**hanya ~110px**, hemat 70% dibanding sebelumnya yang mencapai 450px).
+  - Periksa keterlihatan kartu metrik statistik (*Total pengajuan*, *Diproses*, *Disetujui*, *Ditolak*):
+    - Kartu-kartu statistik kini **langsung terlihat jelas di layar pertama smartphone tanpa perlu di-scroll ke bawah**.
+- [ ] **Verifikasi Tampilan Desktop (Tetap Utuh 100%)**:
+  - Buka dashboard di komputer/laptop (lebar $\ge 1024\text{px}$):
+  - Pastikan banner kuning di desktop **tetap tampil besar, luas, dan ilustrasi tetap melayang bebas di kanan atas kartu** persis seperti semula (`lg:absolute lg:right-0 lg:-top-12 lg:max-w-[460px]`). Layout desktop tidak berubah sama sekali.
+
+### W. Uji Filter Status Mobile Custom Popup Dropdown Modern & Anti-Double-Click
+- [ ] **Uji Sentuh / Tap Dropdown Status di Layar Ponsel**:
+  - Buka menu **Admin $\rightarrow$ Lembur** (`/admin/lembur`) di perangkat ponsel atau mode responsive device peramban.
+  - Periksa tombol status visual: tampil elegan sesuai desain `[ ● Status: Semua Status (21) ⌄ ]`.
+  - Ketuk tombol tersebut sekali:
+    - Menu popup kustom langsung muncul mulus di bawah tombol (`#menuMobileStatus`).
+    - Tipografi tampil bersih menggunakan font sans-serif modern (bukan font kaku OS bawaan).
+    - Masing-masing pilihan memiliki titik status warna (dengan efek animasi pulsing dot untuk status *Menunggu*), teks status, dan counter badge angka di sisi kanan.
+    - Ikon panah chevron berputar 180° dengan animasi halus.
+  - Ketuk tombol status sekali lagi atau ketuk di luar menu:
+    - Menu tertutup kembali dan chevron berputar kembali ke posisi awal.
+  - Pilih status lain (misal **"Disetujui"**):
+    - Halaman seketika memuat ulang data dengan parameter `?status=approved`.
+    - Tombol status kini berubah menampilkan titik hijau, teks **"Status: Disetujui"**, dan badge angka pengajuan disetujui.
+- [ ] **Verifikasi Desktop (Tetap Utuh 100%)**:
+  - Buka halaman di komputer / desktop monitor ($\ge 640\text{px}$):
+  - Pastikan filter desktop tetap menggunakan deretan Badge Pills warna-warni horizontal asli (`hidden sm:flex`).
+
+### X. Uji Tata Letak Filter Mobile 2 Kolom Berdampingan & Jaminan 0% Perubahan Desktop (Kabag Umum $\rightarrow$ Pengajuan)
+- [ ] **Verifikasi Tampilan Desktop / Web (Jaminan Mutlak 0% Perubahan)**:
+  - Buka halaman `/kabag-umum/pengajuan` di komputer / laptop (MacBook / PC dengan lebar $\ge 640\text{px}$):
+  - Toolbar desktop dirender melalui blok asli (`hidden sm:flex`):
+    - Tombol filter bulan (`#periodBtn`) tetap berada di posisi aslinya.
+    - Deretan tab status horizontal abu-abu (`Semua`, `Menunggu Kabag`, `Disetujui`, `Ditolak`, `Dibatalkan`) tetap tampil persis seperti semula.
+    - Kotak pencarian pegawai tetap berada di sebelah kanan.
+    - Toolbar mobile (`block sm:hidden`) 100% tidak aktif di desktop (`display: none`).
+- [ ] **Uji Tampilan Filter di Layar Smartphone (Mobile View < 640px)**:
+  - Buka halaman **Persetujuan & Monitoring Lembur Kabag Umum** (`/kabag-umum/pengajuan`) via ponsel atau responsive mode DevTools (lebar 360px - 414px):
+  - Toolbar desktop otomatis tersembunyi (`hidden`).
+  - Tampil **Baris Pertama (Grid 2 Kolom 50% - 50%)**:
+    - **Kolom Kiri**: Tombol Filter Periode Bulan (`[ 📅 Semua Bulan 2026 ⌄ ]`), teks terpotong rapi dengan ellipsis jika ruang terbatas.
+    - **Kolom Kanan**: Tombol Filter Status Mobile (`[ ● Status: Semua (12) ⌄ ]`), menampilkan titik status, label ringkas, dan counter badge.
+  - Tampil **Baris Kedua**: Kotak pencarian pegawai (`[ 🔍 Cari nama pegawai / NIP... ]`) membentang penuh di bawah kedua tombol filter.
+- [ ] **Uji Interaksi Dropdown Status Mobile**:
+  - Ketuk tombol **Status** di ponsel:
+    - Menu popup kustom melayang turun secara mulus (`#menuKabagMobileStatus`).
+    - Chevron berputar 180°.
+    - Pilihan berurutan rapi: *Semua Status*, *Menunggu Kabag* (dengan animasi pulsing dot biru), *Disetujui*, *Ditolak*, *Dibatalkan*.
+  - Ketuk tombol **Bulan** di ponsel:
+    - Menu status mobile otomatis menutup dan panel kalender bulan terbuka (saling bergantian tanpa tabrakan).
+  - Ketuk salah satu status (misal *Menunggu Kabag*):
+    - Halaman berpindah ke `?status=menunggu_kabag`.
+    - Tombol status mobile kini menampilkan dot berkedip biru, teks `Status: Menunggu`, dan angka counter.
+
+### XI. Uji Tampilan Hero Banner Dashboard (Bebas Tabrakan Teks-Ilustrasi & Estetika Elegan)
+- [ ] **Verifikasi Bebas Tabrakan di Layar Komputer / Laptop (MacBook Air / Resolusi 1024px–1366px)**:
+  - Buka halaman Dashboard utama (`/dashboard`) atau Dashboard Admin (`/admin/dashboard`):
+  - Periksa kartu banner kuning-amber:
+    - Teks "👋 Selamat Datang" tampil elegan dalam pill semi-transparan (*frosted glass*).
+    - Nama pengguna tampil tegas dan rapi dalam 1 baris.
+    - Paragraf deskripsi memiliki ruang baca yang lapang.
+    - Ilustrasi meja kantor (`images/2.svg`) berada di sebelah kanan dengan jarak aman yang jelas (*gap*). **Sama sekali tidak menimpa atau menutupi teks, nama, maupun paragraf**.
+    - Catatan memo kuning di atas monitor sedikit menonjol ke atas batas kartu (*breakout illustration*) memberikan efek kedalaman 3D modern.
+- [ ] **Verifikasi Tampilan Responsif di Layar Ponsel (Mobile 360px–414px)**:
+  - Buka halaman Dashboard di layar ponsel:
+    - Kartu banner tampil melengkung halus mengikuti proporsi layar.
+    - Ilustrasi meja kantor berskala otomatis (proporsional 32%–36% lebar kartu).
+    - Teks tersusun rapi di sisi kiri dengan ruang baca nyaman tanpa potongan kata yang canggung.
+    - Tidak ada garis batas hitam kaku maupun *horizontal scrollbar* yang bocor.
+

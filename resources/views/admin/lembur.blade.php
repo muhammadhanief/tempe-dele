@@ -14,12 +14,12 @@
     @endif
 
     {{-- Page Header --}}
-    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="mb-3.5 sm:mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3">
         <div>
-            <h1 class="text-xl font-bold tracking-tight text-slate-800">
+            <h1 class="text-lg sm:text-xl font-bold tracking-tight text-slate-800">
                 Monitoring & Pengajuan Lembur
             </h1>
-            <p class="text-xs text-slate-500 mt-0.5">
+            <p class="hidden sm:block text-xs text-slate-500 mt-0.5">
                 Kelola, monitor status verifikasi, dan rekapitulasi data lembur seluruh pegawai.
             </p>
         </div>
@@ -30,7 +30,7 @@
             <a id="btnExport"
                 href="{{ route('admin.lembur.export', ['bulan' => now()->format('Y-m'), 'tim' => request('tim'), 'nip' => request('nip'), 'status' => request('status'), 'sort' => request('sort')]) }}"
                 title="Unduh Rekapitulasi"
-                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 text-xs sm:text-sm font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                class="inline-flex h-9 sm:h-10 items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-gray-200 bg-white px-3 sm:px-3.5 text-xs sm:text-sm font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
@@ -40,7 +40,7 @@
 
             {{-- Tombol Ajukan --}}
             <a href="javascript:void(0)" id="btnAjukan"
-                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow-sm transition-all">
+                class="inline-flex h-9 sm:h-10 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[#faa938] px-3.5 sm:px-4 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow-sm transition-all cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
                 </svg>
@@ -52,118 +52,282 @@
     <div class="overflow-visible">
 
         {{-- Toolbar --}}
-        <div class="mb-4 flex flex-wrap items-center gap-2.5">
+        {{-- Toolbar --}}
+        <div class="mb-3.5 sm:mb-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5">
 
-            {{-- Filter Periode --}}
-            <div class="relative" id="datePicker">
-                <button type="button" id="dateBtn"
-                    class="inline-flex h-10 items-center justify-between gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all whitespace-nowrap">
-                    <span class="inline-flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3.5 w-3.5 fill-current text-[#faa938] shrink-0">
-                            <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                {{-- Filter Periode --}}
+                <div class="relative flex-1 sm:flex-initial" id="datePicker">
+                    <button type="button" id="dateBtn"
+                        class="inline-flex w-full sm:w-auto h-10 items-center justify-between gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all whitespace-nowrap cursor-pointer">
+                        <span class="inline-flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3.5 w-3.5 fill-current text-[#faa938] shrink-0">
+                                <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
+                            </svg>
+                            <span id="dateLabel" class="whitespace-nowrap leading-none">Semua Tanggal</span>
+                        </span>
+
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-3 w-3 fill-current opacity-40 shrink-0">
+                            <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
                         </svg>
-                        <span id="dateLabel" class="whitespace-nowrap leading-none">Semua Tanggal</span>
-                    </span>
+                    </button>
 
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-3 w-3 fill-current opacity-40 shrink-0">
+                    <input type="hidden" id="dateValue" value="">
+
+                    <div id="datePanel"
+                        class="hidden absolute z-50 mt-2 left-0 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 bg-white shadow-xl p-3.5">
+                        <div class="flex items-center justify-between mb-3">
+                            <button type="button" id="datePrev"
+                                class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                    <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
+                                </svg>
+                            </button>
+
+                            <span id="dateNavLabel"
+                                class="text-xs font-bold text-gray-900 cursor-pointer hover:text-[#faa938] select-none">
+                            </span>
+
+                            <button type="button" id="dateNext"
+                                class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                    <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div id="dateGrid"></div>
+
+                        <div class="flex items-center justify-between mt-3 border-t border-gray-100 pt-2.5">
+                            <button type="button" id="btnToday"
+                                class="text-xs font-semibold text-gray-600 hover:text-[#faa938] transition-colors">
+                                Hari ini
+                            </button>
+                            <button type="button" id="btnDateClose"
+                                class="px-3 py-1 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Toggle Filter Mobile (Accordion) --}}
+                @php
+                    $hasActiveSearchFilter = !empty(request('nip')) || !empty(request('search')) || !empty(request('tim'));
+                    $activeFilterCount = (!empty(request('nip')) ? 1 : 0) + (!empty(request('search')) || !empty(request('tim')) ? 1 : 0);
+                @endphp
+                <button type="button" id="btnToggleMobileFilter" onclick="toggleMobileFilter()"
+                    class="sm:hidden inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all shrink-0 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    <span>Cari</span>
+                    @if($hasActiveSearchFilter)
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#faa938] text-white leading-none">
+                            {{ $activeFilterCount }}
+                        </span>
+                    @endif
+                    <svg id="iconChevronFilter" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-2.5 w-2.5 fill-current opacity-40 transition-transform duration-200 {{ $hasActiveSearchFilter ? 'rotate-180' : '' }}">
                         <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
                     </svg>
                 </button>
+            </div>
 
-                <input type="hidden" id="dateValue" value="">
+            {{-- Collapsible Container Pegawai & Tim --}}
+            <div id="mobileFilterCollapse" class="{{ $hasActiveSearchFilter ? 'flex' : 'hidden' }} sm:!flex flex-col sm:flex-row sm:items-center gap-2.5 w-full sm:w-auto">
+                {{-- Filter Pegawai --}}
+                <div class="relative w-full sm:w-64" id="wrapSearchPegawai">
+                    <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
+                        onclick="openDropdown()" onfocus="openDropdown()" oninput="filterDropdown()" autocomplete="off"
+                        class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
 
-                <div id="datePanel"
-                    class="hidden absolute z-50 mt-2 left-0 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 bg-white shadow-xl p-3.5">
-                    <div class="flex items-center justify-between mb-3">
-                        <button type="button" id="datePrev"
-                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
-                                <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
-                            </svg>
+                    <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                        <button type="button" id="btnClearPegawai" onclick="pilihPegawai(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors cursor-pointer" title="Hapus filter pegawai">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
-
-                        <span id="dateNavLabel"
-                            class="text-xs font-bold text-gray-900 cursor-pointer hover:text-[#faa938] select-none">
-                        </span>
-
-                        <button type="button" id="dateNext"
-                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
-                                <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
+                        <button type="button" onclick="toggleDropdown()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5 cursor-pointer" title="Buka daftar pegawai">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                                <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
                             </svg>
                         </button>
                     </div>
 
-                    <div id="dateGrid"></div>
-
-                    <div class="flex items-center justify-between mt-3 border-t border-gray-100 pt-2.5">
-                        <button type="button" id="btnToday"
-                            class="text-xs font-semibold text-gray-600 hover:text-[#faa938] transition-colors">
-                            Hari ini
-                        </button>
-                        <button type="button" id="btnDateClose"
-                            class="px-3 py-1 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938] transition-colors">
-                            Tutup
-                        </button>
+                    <div id="dropdownPegawai"
+                        class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                        <ul id="listPegawai"></ul>
                     </div>
                 </div>
-            </div>
 
-            {{-- Filter Pegawai --}}
-            <div class="relative w-full sm:w-64" id="wrapSearchPegawai">
-                <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
-                    onclick="openDropdown()" onfocus="openDropdown()" oninput="filterDropdown()" autocomplete="off"
-                    class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
+                {{-- Filter Tim --}}
+                <div class="relative w-full sm:w-60" id="wrapSearchTim">
+                    <input type="text" id="searchTim" placeholder="Cari nama tim..."
+                        onclick="openDropdownTim()" onfocus="openDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
+                        value="{{ request('search') }}"
+                        class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
 
-                <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
-                    <button type="button" id="btnClearPegawai" onclick="pilihPegawai(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter pegawai">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                    <button type="button" onclick="toggleDropdown()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar pegawai">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
-                            <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                        </svg>
-                    </button>
-                </div>
+                    <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                        <button type="button" id="btnClearTim" onclick="pilihTim(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors cursor-pointer" title="Hapus filter tim">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        <button type="button" onclick="toggleDropdownTim()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5 cursor-pointer" title="Buka daftar tim">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                                <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                            </svg>
+                        </button>
+                    </div>
 
-                <div id="dropdownPegawai"
-                    class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
-                    <ul id="listPegawai"></ul>
-                </div>
-            </div>
-
-            {{-- Filter Tim --}}
-            <div class="relative w-full sm:w-60" id="wrapSearchTim">
-                <input type="text" id="searchTim" placeholder="Cari nama tim..."
-                    onclick="openDropdownTim()" onfocus="openDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
-                    value="{{ request('search') }}"
-                    class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
-
-                <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
-                    <button type="button" id="btnClearTim" onclick="pilihTim(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter tim">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                    <button type="button" onclick="toggleDropdownTim()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar tim">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
-                            <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                        </svg>
-                    </button>
-                </div>
-                </div>
-
-                <div id="dropdownTim"
-                    class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
-                    <ul id="listTim"></ul>
+                    <div id="dropdownTim"
+                        class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                        <ul id="listTim"></ul>
+                    </div>
                 </div>
             </div>
 
         </div>
 
-        {{-- Status Filter Tabs / Monitoring Pills --}}
-        <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
+        @php
+            $currentStatusLabel = 'Semua Status';
+            $currentStatusCount = $statusCounts['all'] ?? 0;
+            $currentStatusBadgeClass = 'bg-slate-100 text-slate-700';
+            $currentStatusDotClass = 'bg-slate-800';
+
+            if ($status === 'menunggu_kabag') {
+                $currentStatusLabel = 'Menunggu Kabag';
+                $currentStatusCount = $statusCounts['menunggu_kabag'] ?? 0;
+                $currentStatusBadgeClass = 'bg-blue-100 text-blue-800';
+                $currentStatusDotClass = 'bg-blue-600';
+            } elseif ($status === 'pending') {
+                $currentStatusLabel = 'Menunggu Ketua';
+                $currentStatusCount = $statusCounts['pending'] ?? 0;
+                $currentStatusBadgeClass = 'bg-amber-100 text-amber-800';
+                $currentStatusDotClass = 'bg-amber-500';
+            } elseif ($status === 'approved') {
+                $currentStatusLabel = 'Disetujui';
+                $currentStatusCount = $statusCounts['approved'] ?? 0;
+                $currentStatusBadgeClass = 'bg-emerald-100 text-emerald-800';
+                $currentStatusDotClass = 'bg-emerald-600';
+            } elseif ($status === 'rejected') {
+                $currentStatusLabel = 'Ditolak';
+                $currentStatusCount = $statusCounts['rejected'] ?? 0;
+                $currentStatusBadgeClass = 'bg-rose-100 text-rose-800';
+                $currentStatusDotClass = 'bg-rose-600';
+            } elseif ($status === 'cancelled') {
+                $currentStatusLabel = 'Dibatalkan';
+                $currentStatusCount = $statusCounts['cancelled'] ?? 0;
+                $currentStatusBadgeClass = 'bg-gray-100 text-gray-800';
+                $currentStatusDotClass = 'bg-gray-600';
+            }
+        @endphp
+
+        {{-- Status Filter Mobile: Dropdown Kompak & Elegan (Khusus Layar HP < 640px) --}}
+        <div class="sm:hidden relative w-full mb-3 z-30" id="mobileStatusWrapper">
+            <button type="button" id="btnMobileStatus"
+                class="inline-flex w-full h-10 items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] active:bg-gray-50 transition-all cursor-pointer select-none">
+                <span class="inline-flex items-center gap-2 truncate pointer-events-none">
+                    <span class="h-2.5 w-2.5 rounded-full {{ $currentStatusDotClass }} shrink-0"></span>
+                    <span class="text-slate-400 font-normal">Status:</span>
+                    <span class="font-bold text-slate-800 truncate">{{ $currentStatusLabel }}</span>
+                </span>
+
+                <span class="inline-flex items-center gap-2 shrink-0 pointer-events-none">
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $currentStatusBadgeClass }}">
+                        {{ $currentStatusCount }}
+                    </span>
+                    <svg id="iconChevronStatus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-2.5 w-2.5 fill-current opacity-40 transition-transform duration-200">
+                        <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                    </svg>
+                </span>
+            </button>
+
+            {{-- Custom Menu Popup Pilihan Status dengan Tipografi Cantik & Modern --}}
+            <div id="menuMobileStatus"
+                class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden py-1 divide-y divide-gray-50">
+                
+                {{-- Semua Status --}}
+                <button type="button" onclick="selectStatus('')"
+                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ empty($status) ? 'bg-slate-900 text-white font-semibold' : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100' }}">
+                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                        <span class="h-2 w-2 rounded-full {{ empty($status) ? 'bg-white' : 'bg-slate-800' }}"></span>
+                        <span>Semua Status</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ empty($status) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700' }}">
+                        {{ $statusCounts['all'] ?? 0 }}
+                    </span>
+                </button>
+
+                {{-- Menunggu Kabag --}}
+                <button type="button" onclick="selectStatus('menunggu_kabag')"
+                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'menunggu_kabag' ? 'bg-blue-600 text-white font-semibold' : 'text-blue-900 hover:bg-blue-50/60 active:bg-blue-100/60' }}">
+                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'menunggu_kabag' ? 'bg-white opacity-75' : 'bg-blue-400 opacity-75' }}"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'menunggu_kabag' ? 'bg-white' : 'bg-blue-600' }}"></span>
+                        </span>
+                        <span>Menunggu Kabag</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'menunggu_kabag' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
+                        {{ $statusCounts['menunggu_kabag'] ?? 0 }}
+                    </span>
+                </button>
+
+                {{-- Menunggu Ketua --}}
+                <button type="button" onclick="selectStatus('pending')"
+                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'pending' ? 'bg-amber-500 text-white font-semibold' : 'text-amber-900 hover:bg-amber-50/60 active:bg-amber-100/60' }}">
+                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'pending' ? 'bg-white opacity-75' : 'bg-amber-400 opacity-75' }}"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'pending' ? 'bg-white' : 'bg-amber-500' }}"></span>
+                        </span>
+                        <span>Menunggu Ketua</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }}">
+                        {{ $statusCounts['pending'] ?? 0 }}
+                    </span>
+                </button>
+
+                {{-- Disetujui --}}
+                <button type="button" onclick="selectStatus('approved')"
+                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'approved' ? 'bg-emerald-600 text-white font-semibold' : 'text-emerald-900 hover:bg-emerald-50/60 active:bg-emerald-100/60' }}">
+                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                        <span class="h-2 w-2 rounded-full {{ $status === 'approved' ? 'bg-white' : 'bg-emerald-500' }}"></span>
+                        <span>Disetujui</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
+                        {{ $statusCounts['approved'] ?? 0 }}
+                    </span>
+                </button>
+
+                {{-- Ditolak --}}
+                <button type="button" onclick="selectStatus('rejected')"
+                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'rejected' ? 'bg-rose-600 text-white font-semibold' : 'text-rose-900 hover:bg-rose-50/60 active:bg-rose-100/60' }}">
+                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                        <span class="h-2 w-2 rounded-full {{ $status === 'rejected' ? 'bg-white' : 'bg-rose-500' }}"></span>
+                        <span>Ditolak</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
+                        {{ $statusCounts['rejected'] ?? 0 }}
+                    </span>
+                </button>
+
+                {{-- Dibatalkan --}}
+                <button type="button" onclick="selectStatus('cancelled')"
+                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'cancelled' ? 'bg-gray-600 text-white font-semibold' : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100' }}">
+                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                        <span class="h-2 w-2 rounded-full {{ $status === 'cancelled' ? 'bg-white' : 'bg-gray-500' }}"></span>
+                        <span>Dibatalkan</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'cancelled' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800' }}">
+                        {{ $statusCounts['cancelled'] ?? 0 }}
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        {{-- Desktop Status Filter Tabs / Monitoring Pills (HANYA tampil di Desktop sm:flex) --}}
+        <div class="hidden sm:flex flex-wrap items-center gap-2 mb-3.5 sm:mb-4">
             {{-- Semua Status --}}
             <button type="button" onclick="selectStatus('')"
-                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ empty($status) ? 'bg-slate-900 text-white border-slate-900 shadow-sm shadow-slate-900/20 ring-2 ring-slate-900/10' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300' }}">
+                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ empty($status) ? 'bg-slate-900 text-white border-slate-900 shadow-sm shadow-slate-900/20 ring-2 ring-slate-900/10' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300' }}">
                 <span>Semua Status</span>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ empty($status) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700' }}">
                     {{ $statusCounts['all'] ?? 0 }}
@@ -172,7 +336,7 @@
 
             {{-- Menunggu Kabag --}}
             <button type="button" onclick="selectStatus('menunggu_kabag')"
-                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'menunggu_kabag' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-600/25 ring-2 ring-blue-600/20' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50/80 hover:border-blue-300' }}">
+                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'menunggu_kabag' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-600/25 ring-2 ring-blue-600/20' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50/80 hover:border-blue-300' }}">
                 <span class="relative flex h-2 w-2">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'menunggu_kabag' ? 'bg-white opacity-75' : 'bg-blue-400 opacity-75' }}"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'menunggu_kabag' ? 'bg-white' : 'bg-blue-600' }}"></span>
@@ -185,7 +349,7 @@
 
             {{-- Menunggu Ketua --}}
             <button type="button" onclick="selectStatus('pending')"
-                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'pending' ? 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/25 ring-2 ring-amber-500/20' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50/80 hover:border-amber-300' }}">
+                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'pending' ? 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/25 ring-2 ring-amber-500/20' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50/80 hover:border-amber-300' }}">
                 <span class="relative flex h-2 w-2">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'pending' ? 'bg-white opacity-75' : 'bg-amber-400 opacity-75' }}"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'pending' ? 'bg-white' : 'bg-amber-500' }}"></span>
@@ -198,7 +362,7 @@
 
             {{-- Disetujui --}}
             <button type="button" onclick="selectStatus('approved')"
-                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'approved' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/25 ring-2 ring-emerald-600/20' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50/80 hover:border-emerald-300' }}">
+                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'approved' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/25 ring-2 ring-emerald-600/20' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50/80 hover:border-emerald-300' }}">
                 <span class="h-2 w-2 rounded-full {{ $status === 'approved' ? 'bg-white' : 'bg-emerald-500' }}"></span>
                 <span>Disetujui</span>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
@@ -208,7 +372,7 @@
 
             {{-- Ditolak --}}
             <button type="button" onclick="selectStatus('rejected')"
-                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'rejected' ? 'bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-600/25 ring-2 ring-rose-600/20' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50/80 hover:border-rose-300' }}">
+                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'rejected' ? 'bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-600/25 ring-2 ring-rose-600/20' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50/80 hover:border-rose-300' }}">
                 <span class="h-2 w-2 rounded-full {{ $status === 'rejected' ? 'bg-white' : 'bg-rose-500' }}"></span>
                 <span>Ditolak</span>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
@@ -218,7 +382,7 @@
 
             {{-- Dibatalkan --}}
             <button type="button" onclick="selectStatus('cancelled')"
-                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap {{ $status === 'cancelled' ? 'bg-gray-600 text-white border-gray-600 shadow-sm shadow-gray-600/25 ring-2 ring-gray-600/20' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50/80 hover:border-gray-300' }}">
+                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'cancelled' ? 'bg-gray-600 text-white border-gray-600 shadow-sm shadow-gray-600/25 ring-2 ring-gray-600/20' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50/80 hover:border-gray-300' }}">
                 <span class="h-2 w-2 rounded-full {{ $status === 'cancelled' ? 'bg-white' : 'bg-gray-500' }}"></span>
                 <span>Dibatalkan</span>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'cancelled' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800' }}">
@@ -1949,6 +2113,34 @@
         fetchPegawai();
         updateExportLink();
 
+        // Setup Mobile Status Custom Dropdown
+        const btnMobileStatus     = document.getElementById('btnMobileStatus');
+        const menuMobileStatus    = document.getElementById('menuMobileStatus');
+        const iconChevronStatus   = document.getElementById('iconChevronStatus');
+        const wrapperMobileStatus = document.getElementById('mobileStatusWrapper');
+
+        if (btnMobileStatus && menuMobileStatus) {
+            btnMobileStatus.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const isHidden = menuMobileStatus.classList.contains('hidden');
+                if (isHidden) {
+                    menuMobileStatus.classList.remove('hidden');
+                    iconChevronStatus?.classList.add('rotate-180');
+                } else {
+                    menuMobileStatus.classList.add('hidden');
+                    iconChevronStatus?.classList.remove('rotate-180');
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (wrapperMobileStatus && !wrapperMobileStatus.contains(e.target)) {
+                    menuMobileStatus.classList.add('hidden');
+                    iconChevronStatus?.classList.remove('rotate-180');
+                }
+            });
+        }
+
         // Restore state dari URL
         const params       = new URLSearchParams(window.location.search);
         const timParam     = params.get('tim')     ?? '';
@@ -2038,6 +2230,24 @@
 
     form.submit();
 };
+
+    // Toggle Mobile Filter Accordion
+    window.toggleMobileFilter = function () {
+        const collapse = document.getElementById('mobileFilterCollapse');
+        const chevron  = document.getElementById('iconChevronFilter');
+        if (!collapse) return;
+
+        const isHidden = collapse.classList.contains('hidden');
+        if (isHidden) {
+            collapse.classList.remove('hidden');
+            collapse.classList.add('flex');
+            chevron?.classList.add('rotate-180');
+        } else {
+            collapse.classList.add('hidden');
+            collapse.classList.remove('flex');
+            chevron?.classList.remove('rotate-180');
+        }
+    };
 
     //Paginaation
     function changePerPage(val) {

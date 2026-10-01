@@ -1,16 +1,44 @@
 <nav class="flex h-16 items-center justify-between gap-3 bg-white px-4 sm:px-6 border-b border-slate-100">
     @php
-        $role = session('user')
-            ? \DB::table('m_pegawai')->where('nip', session('user')['nip'])->value('role')
-            : null;
+        $nipSess = session('user')['nip'] ?? null;
+        $nipLamaSess = session('user')['nip_lama'] ?? null;
 
-        $roleLabel = match($role) {
-            'superadmin' => 'Super Admin',
-            'admin'      => 'Admin',
-            'ketua_tim'  => 'Ketua Tim',
-            'pimpinan'   => 'Pimpinan',
-            'user'       => 'Pegawai',
-            default      => 'User',
+        $role = $nipSess
+            ? \DB::table('m_pegawai')->where('nip', $nipSess)->value('role')
+            : (session('user')['role'] ?? null);
+
+        $isKabagUmum = false;
+        if ($nipSess || $nipLamaSess) {
+            $isKabagUmum = \DB::table('m_pejabat')
+                ->where('jabatan', 'Kepala Bagian Umum')
+                ->where('status', 'aktif')
+                ->where(function ($q) use ($nipSess, $nipLamaSess) {
+                    if ($nipSess) $q->where('nip', $nipSess);
+                    if ($nipLamaSess) $q->orWhere('nip_lama', $nipLamaSess);
+                })->exists();
+
+            if (!$isKabagUmum && $role === 'ketua_tim') {
+                $isKabagUmum = \DB::table('m_tim')
+                    ->where(function ($q) use ($nipSess, $nipLamaSess) {
+                        if ($nipSess) $q->where('nipbaru_ketua', $nipSess);
+                        if ($nipLamaSess) $q->orWhere('niplama_ketua', $nipLamaSess);
+                    })
+                    ->where(function ($q) {
+                        $q->where('nama_tim', 'like', '%Bagian Umum%')
+                          ->orWhere('kode_tim', 'QrBzgE3O3lEqVPjy');
+                    })
+                    ->exists();
+            }
+        }
+
+        $roleLabel = match(true) {
+            $isKabagUmum           => 'Kabag Umum',
+            $role === 'superadmin' => 'Super Admin',
+            $role === 'admin'      => 'Admin',
+            $role === 'ketua_tim'  => 'Ketua Tim',
+            $role === 'pimpinan'   => 'Pimpinan',
+            $role === 'user'       => 'Pegawai',
+            default                => 'User',
         };
     @endphp
 
@@ -45,7 +73,7 @@
                 onclick="toggleProfileDropdown(event)"
                 aria-haspopup="true"
                 aria-expanded="false"
-                class="flex h-10 items-center gap-2.5 rounded-xl px-3 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
+                class="flex h-10 items-center gap-2.5 rounded-xl px-3 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-500/20 cursor-pointer">
                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100">
                     <svg class="h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -69,7 +97,7 @@
             <div id="profileDropdownMenu"
                 class="hidden absolute right-0 top-full mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white shadow-lg">
                 <a href="{{ route('profile') }}"
-                    class="flex items-center gap-3 rounded-t-xl border-b border-slate-100 px-3 py-3 transition-colors hover:bg-slate-50">
+                    class="flex items-center gap-3 rounded-t-xl border-b border-slate-100 px-3 py-3 transition-colors hover:bg-slate-50 cursor-pointer">
                     <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
                         <svg class="h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -90,7 +118,7 @@
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
-                            class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-slate-600 transition-colors hover:bg-red-50 hover:text-red-500">
+                            class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-slate-600 transition-colors hover:bg-red-50 hover:text-red-500 cursor-pointer">
                             <svg class="h-4 w-4 stroke-current text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
