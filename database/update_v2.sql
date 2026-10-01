@@ -54,6 +54,24 @@ SET
     `jam_selesai_disetujui` = NULL 
 WHERE `status` = 'pending';
 
+-- -------------------------------------------------------------------------
+-- LANGKAH 6: Sanitasi Pejabat Aktif (Single Active Invariant)
+-- Memastikan tepat 1 pejabat aktif untuk Kepala Bagian Umum dan PPK
+-- -------------------------------------------------------------------------
+UPDATE `m_pejabat` SET `status` = 'nonaktif' WHERE `jabatan` = 'Kepala Bagian Umum' AND `id_pejabat` != 12;
+UPDATE `m_pejabat` SET `status` = 'aktif' WHERE `id_pejabat` = 12;
+UPDATE `m_pejabat` SET `status` = 'nonaktif' WHERE `jabatan` = 'PPK' AND `id_pejabat` != 9;
+UPDATE `m_pejabat` SET `status` = 'aktif' WHERE `id_pejabat` = 9;
+UPDATE `m_pejabat` SET `nip` = '197106131993121001' WHERE `nip` = '197106131993121' OR `id_pejabat` = 12;
+
+-- -------------------------------------------------------------------------
+-- LANGKAH 7: Penyesuaian Role Pak Joko Suwarjo (Flow Baru: Ketua Tim / Kabag Umum)
+-- Di alur baru, Pak Joko memiliki hak persetujuan Kabag Umum & Ketua Tim Bagian Umum,
+-- sehingga role di m_pegawai disesuaikan menjadi 'ketua_tim' (bukan 'admin').
+-- -------------------------------------------------------------------------
+UPDATE `m_pegawai` SET `role` = 'ketua_tim' WHERE `nip` = '197106131993121001' OR `nip_lama` = '340013741';
+
 -- =========================================================================
 -- SELESAI. Seluruh struktur database telah kompatibel 100% dengan v2.
 -- =========================================================================
+

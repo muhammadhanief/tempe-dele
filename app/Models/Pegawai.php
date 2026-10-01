@@ -16,10 +16,13 @@ class Pegawai extends Authenticatable
         'email',
         'password',
         'nama',
-        'niplama',
-        'nipbaru',
+        'nip_lama',
+        'nip',
         'golongan',
         'role',
+        'foto_url',
+        'satker',
+        'kd_satker',
     ];
 
     protected $hidden = [

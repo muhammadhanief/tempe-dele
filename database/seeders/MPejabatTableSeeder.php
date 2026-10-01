@@ -45,7 +45,7 @@ class MPejabatTableSeeder extends Seeder
                 'nama' => 'Joko Suwarjo S.Si, M.Si',
                 'jabatan' => 'Kepala Bagian Umum',
                 'nip_lama' => '340013741',
-                'nip' => '197106131993121',
+                'nip' => '197106131993121001',
                 'status' => 'aktif',
                 'tahun' => '2026',
             ),
