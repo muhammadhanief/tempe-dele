@@ -38,7 +38,7 @@
         <div class="rounded-2xl bg-gray-50 p-4 sm:p-5">
             <p class="mb-2 text-xs text-gray-500">Total pengajuan</p>
             <p class="text-2xl font-semibold text-gray-900 sm:text-3xl">{{ $stats['total'] }}</p>
-            <p class="mt-1 text-xs text-gray-400">Bulan ini</p>
+            <p class="mt-1 text-xs text-gray-400">Tahun {{ date('Y') }}</p>
         </div>
 
         {{-- Diproses --}}
@@ -53,14 +53,14 @@
         <div class="rounded-2xl bg-gray-50 p-4 sm:p-5">
             <p class="mb-2 text-xs text-gray-500">Disetujui</p>
             <p class="text-2xl font-semibold text-green-700 sm:text-3xl">{{ $stats['disetujui'] }}</p>
-            <p class="mt-1 text-xs text-gray-400">Pengajuan bulan ini</p>
+            <p class="mt-1 text-xs text-gray-400">Tahun {{ date('Y') }}</p>
         </div>
 
         {{-- Ditolak --}}
         <div class="rounded-2xl bg-gray-50 p-4 sm:p-5">
             <p class="mb-2 text-xs text-gray-500">Ditolak</p>
             <p class="text-2xl font-semibold text-red-700 sm:text-3xl">{{ $stats['ditolak'] }}</p>
-            <p class="mt-1 text-xs text-gray-400">Pengajuan bulan ini</p>
+            <p class="mt-1 text-xs text-gray-400">Tahun {{ date('Y') }}</p>
         </div>
     </div>
 

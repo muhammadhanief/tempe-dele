@@ -13,16 +13,15 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $bulanIni  = Carbon::now()->month;
         $tahunIni  = Carbon::now()->year;
         $hariIni   = Carbon::today();
 
-        // --- Statistik pengajuan bulan ini ---
+        // --- Statistik pengajuan tahun berjalan ---
         $stats = [
-            'total'     => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->count(),
-            'disetujui' => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'approved')->count(),
-            'diproses'  => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->whereIn('status', ['pending', 'menunggu_kabag'])->count(),
-            'ditolak'   => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
+            'total'     => DB::table('t_transaksi')->whereYear('date', $tahunIni)->count(),
+            'disetujui' => DB::table('t_transaksi')->whereYear('date', $tahunIni)->where('status', 'approved')->count(),
+            'diproses'  => DB::table('t_transaksi')->whereYear('date', $tahunIni)->whereIn('status', ['pending', 'menunggu_kabag'])->count(),
+            'ditolak'   => DB::table('t_transaksi')->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
         ];
 
         // --- Lembur hari ini ---
@@ -56,9 +55,8 @@ class DashboardController extends Controller
             ['label' => 'Laporan PPPK', 'doc' => $dokumenBulanIni->firstWhere('type', 'laporan_pppk_pdf')],
         ];
 
-        // --- Ringkasan bulan ini ---
+        // --- Ringkasan tahun berjalan ---
         $transaksiDisetujui = DB::table('t_transaksi')
-            ->whereMonth('date', $bulanIni)
             ->whereYear('date', $tahunIni)
             ->where('status', 'approved')
             ->select('submitted_by_NIP', 'jam_mulai_disetujui', 'jam_selesai_disetujui')
@@ -126,12 +124,10 @@ class DashboardController extends Controller
 
     public function getPending()
     {
-        $bulanIni = now()->month;
         $tahunIni = now()->year;
 
         $pending = DB::table('t_transaksi')
             ->join('m_pegawai', 't_transaksi.submitted_by_NIP', '=', 'm_pegawai.nip')
-            ->whereMonth('t_transaksi.date', $bulanIni)
             ->whereYear('t_transaksi.date', $tahunIni)
             ->whereIn('t_transaksi.status', ['pending', 'menunggu_kabag'])
             ->select(
@@ -141,7 +137,7 @@ class DashboardController extends Controller
                 't_transaksi.deskripsi',
                 't_transaksi.status'
             )
-            ->orderBy('t_transaksi.date', 'asc')
+            ->orderBy('t_transaksi.date', 'desc')
             ->get();
 
         return response()->json($pending);
