@@ -56,6 +56,12 @@
                     </p>
                 </div>
 
+                @if (session('error'))
+                    <div class="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 @if ($errors->has('login'))
                     <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                         {{ $errors->first('login') }}
@@ -137,28 +143,90 @@
                             {{-- Admin & Superadmin --}}
                             <div>
                                 <span class="text-[10px] font-semibold text-slate-600 block mb-1">Admin & Superadmin:</span>
+                                @php
+                                    $superAdminUser = \DB::table('m_pegawai')->where('role', 'superadmin')->orderByDesc('id_pegawai')->first();
+                                    $pejabatNips = \DB::table('m_pejabat')->where('status', 'aktif')->pluck('nip')->toArray();
+                                    $adminUser = \DB::table('m_pegawai')->where('role', 'admin')->whereNotIn('nip', $pejabatNips)->first() 
+                                                 ?: \DB::table('m_pegawai')->where('role', 'admin')->first();
+                                @endphp
                                 <div class="grid grid-cols-2 gap-1.5">
                                     <a href="{{ route('dev.login', 'superadmin') }}"
-                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-semibold">
-                                        <span>Super Admin</span>
-                                        <span class="text-[10px] text-slate-500 font-medium">Buka</span>
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-semibold"
+                                       title="{{ $superAdminUser->nama ?? 'Super Admin' }}">
+                                        <div class="truncate pr-1">
+                                            <div class="text-[11px] leading-tight">Super Admin</div>
+                                            <div class="text-[9.5px] text-slate-500 font-normal truncate">{{ $superAdminUser ? explode(' ', $superAdminUser->nama)[0] : '' }}</div>
+                                        </div>
+                                        <span class="text-[10px] text-slate-500 font-medium shrink-0">Buka</span>
                                     </a>
                                     <a href="{{ route('dev.login', 'admin') }}"
-                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-semibold">
-                                        <span>Admin Lembur</span>
-                                        <span class="text-[10px] text-slate-500 font-medium">Buka</span>
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-semibold"
+                                       title="{{ $adminUser->nama ?? 'Admin Lembur' }}">
+                                        <div class="truncate pr-1">
+                                            <div class="text-[11px] leading-tight">Admin Lembur</div>
+                                            <div class="text-[9.5px] text-slate-500 font-normal truncate">{{ $adminUser ? explode(' ', $adminUser->nama)[0] : '' }}</div>
+                                        </div>
+                                        <span class="text-[10px] text-slate-500 font-medium shrink-0">Buka</span>
                                     </a>
                                 </div>
                             </div>
 
-                            {{-- Kabag Umum --}}
+                            {{-- Kabag Umum & PPK --}}
+                            @php
+                                $kabagUmumAktif = \DB::table('m_pejabat')
+                                    ->where('jabatan', 'Kepala Bagian Umum')
+                                    ->where('status', 'aktif')
+                                    ->orderByDesc('tahun')
+                                    ->first();
+                                $nipKabag = '197106131993121001';
+                                if ($kabagUmumAktif) {
+                                    $pegKabag = \DB::table('m_pegawai')
+                                        ->where('nip', $kabagUmumAktif->nip)
+                                        ->orWhere('nip_lama', $kabagUmumAktif->nip_lama)
+                                        ->orWhere('nama', $kabagUmumAktif->nama)
+                                        ->first();
+                                    $nipKabag = $pegKabag ? $pegKabag->nip : ($kabagUmumAktif->nip ?: $kabagUmumAktif->nip_lama);
+                                }
+                                $namaKabag = $kabagUmumAktif ? $kabagUmumAktif->nama : 'Joko Suwarjo (Kabag)';
+
+                                $ppkAktif = \DB::table('m_pejabat')
+                                    ->where('jabatan', 'PPK')
+                                    ->where('status', 'aktif')
+                                    ->orderByDesc('tahun')
+                                    ->first();
+                                $nipPpk = '197811262000122001';
+                                if ($ppkAktif) {
+                                    $pegPpk = \DB::table('m_pegawai')
+                                        ->where('nip', $ppkAktif->nip)
+                                        ->orWhere('nip_lama', $ppkAktif->nip_lama)
+                                        ->orWhere('nama', $ppkAktif->nama)
+                                        ->first();
+                                    $nipPpk = $pegPpk ? $pegPpk->nip : ($ppkAktif->nip ?: $ppkAktif->nip_lama);
+                                }
+                                $namaPpk = $ppkAktif ? $ppkAktif->nama : 'Suci Budi Utami (PPK)';
+                            @endphp
                             <div>
-                                <span class="text-[10px] font-semibold text-slate-600 block mb-1">Kepala Bagian Umum:</span>
-                                <a href="{{ route('dev.login', '197106131993121001') }}"
-                                   class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-medium">
-                                    <span>Joko Suwarjo (Kabag Umum)</span>
-                                    <span class="text-[10px] text-slate-500 font-medium">Buka</span>
-                                </a>
+                                <span class="text-[10px] font-semibold text-slate-600 block mb-1">Pejabat Struktural (KBU & PPK):</span>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <a href="{{ route('dev.login', $nipKabag) }}"
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-medium"
+                                       title="{{ $namaKabag }}">
+                                        <div class="truncate pr-1">
+                                            <div class="text-[11px] leading-tight font-semibold">Kabag Umum</div>
+                                            <div class="text-[9.5px] text-slate-500 font-normal truncate">{{ explode(' ', $namaKabag)[0] }}</div>
+                                        </div>
+                                        <span class="text-[10px] text-slate-500 font-medium shrink-0">Buka</span>
+                                    </a>
+                                    <a href="{{ route('dev.login', $nipPpk) }}"
+                                       class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:bg-slate-200 transition-colors font-medium"
+                                       title="{{ $namaPpk }} (PPK / Admin)">
+                                        <div class="truncate pr-1">
+                                            <div class="text-[11px] leading-tight font-semibold">PPK (Admin)</div>
+                                            <div class="text-[9.5px] text-slate-500 font-normal truncate">{{ explode(' ', $namaPpk)[0] }}</div>
+                                        </div>
+                                        <span class="text-[10px] text-slate-500 font-medium shrink-0">Buka</span>
+                                    </a>
+                                </div>
                             </div>
 
                             {{-- Tim SID --}}
