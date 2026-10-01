@@ -27,7 +27,7 @@
             </div>
 
             <div id="dropdownTim"
-                class="hidden absolute z-20 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                class="hidden absolute z-40 mt-1 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
                 <ul id="listTim"></ul>
             </div>
         </div>

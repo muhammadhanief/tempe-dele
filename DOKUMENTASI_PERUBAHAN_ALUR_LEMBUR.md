@@ -2642,6 +2642,47 @@ WHERE nip = '197106131993121001' OR nip_lama = '340013741';
 | 4 | `resources/views/pimpinan/dashboard.blade.php` | Redesain hero banner Dashboard Pimpinan dengan arsitektur anti-tabrakan yang identik. |
 | 5 | `public/build/` | Hasil kompilasi bundel aset produksi Vite terbaru (`app-Bjr7u1DZ.css`). |
 
+---
+
+## 38. Audit Komprehensif Tampilan, Kode, & Alur Kerja: Perbaikan Penutup Tag Div Toolbar, Lebar Search Bar di Tablet/Desktop, dan Elevasi Z-Index Dropdown
+
+### A. Latar Belakang Masalah
+Berdasarkan audit menyeluruh terhadap kode antarmuka Blade, tata letak mobile, dan alur kerja pengajuan lembur, ditemukan 3 anomali struktural:
+1. **Tag `</div>` Toolbar Terbuka / Tidak Tertutup di `ketua-tim/lembur.blade.php`**:
+   - Tag pembuka kontainer toolbar filter `<div class="mb-4 flex flex-wrap items-center gap-2.5">` tidak memiliki tag penutup `</div>` sebelum kontainer `.table-scroll-hint` dan kartu tabel utama.
+   - Akibatnya, seluruh tabel pengajuan mandiri ketua tim terperangkap di dalam flex container toolbar, memicu distorsi lebar dan potensi layout bocor (*broken width*) pada layar tertentu.
+2. **Kolom Pencarian Pegawai Melompat dan Melebar 100% pada Layar Tablet (`admin/pengajuan.blade.php`)**:
+   - Kontainer input pencarian `#wrapSearchPegawai` menggunakan kelas `w-full lg:flex-1 lg:min-w-[260px]`.
+   - Pada rentang resolusi tablet / iPad dan layar sedang (640px hingga 1023px, breakpoint `sm` s.d. `md`), kelas `w-full` tetap berlaku karena tidak ada pembatas `sm:`. Hal ini menyebabkan kolom search mengambil 100% lebar layar dan mendorong kontrol status ke baris baru secara canggung.
+3. **Dropdown Hasil Pencarian Tertutup oleh Tombol Status Mobile (`admin/lembur.blade.php`)**:
+   - Kotak dropdown hasil pencarian pegawai dan tim (`#dropdownPegawai` dan `#dropdownTim`) menggunakan kelas `z-20`.
+   - Di bawah toolbar, pembungkus tombol status mobile (`#mobileStatusWrapper`) memiliki kelas `z-30`.
+   - Saat pengguna di smartphone mengetik nama pegawai atau tim, menu popup dropdown yang meluncur ke bawah tertimpa atau berada di balik tombol filter status mobile. Hal serupa terjadi di beberapa halaman admin lainnya (`akumulasi`, `laporan`, `tim`, dan `pengguna`).
+
+### B. Solusi & Implementasi
+1. **Penutupan Tag Div Toolbar**:
+   - Menambahkan tag penutup `</div>` tepat di bawah tombol reset filter pada `resources/views/ketua-tim/lembur.blade.php`, mengisolasi toolbar dengan kartu tabel secara semantik dan rapi.
+2. **Standardisasi Responsivitas Kolom Pencarian**:
+   - Mengubah kelas kontainer search pada `admin/pengajuan.blade.php` menjadi `w-full sm:flex-1 sm:min-w-[240px]`. Di layar ponsel (<640px) membentang penuh 100%, dan di layar tablet/desktop ($\ge 640\text{px}$) langsung fleksibel mengisi ruang proporsional berdampingan dengan pemilih bulan dan filter status.
+3. **Elevasi Z-Index Dropdown Menjadi `z-40`**:
+   - Menaikkan z-index dropdown pencarian `#dropdownPegawai` dan `#dropdownTim` dari `z-20` menjadi `z-40` pada `admin/lembur.blade.php`, `admin/pengajuan.blade.php`, `admin/akumulasi.blade.php`, `admin/laporan.blade.php`, `admin/tim.blade.php`, dan `admin/pengguna.blade.php`.
+   - Menjamin daftar pencarian selalu melayang di atas seluruh kartu dan tombol status mobile tanpa terhalang.
+4. **Adaptasi Tombol Reset Filter Mobile**:
+   - Menambahkan kelas `w-full sm:w-auto` pada tombol `#btnResetFilter` di `pimpinan/pengajuan.blade.php` agar tampil seragam dengan halaman persetujuan lainnya saat diakses dari smartphone.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perbaikan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/lembur.blade.php` | Menutup tag `</div>` toolbar filter yang hilang sebelum card tabel. |
+| 2 | `resources/views/admin/pengajuan.blade.php` | Mengubah lebar kolom search menjadi `sm:flex-1 sm:min-w-[240px]` dan elevasi dropdown ke `z-40`. |
+| 3 | `resources/views/admin/lembur.blade.php` | Elevasi z-index dropdown pencarian pegawai dan tim ke `z-40` agar tidak tertimpa tombol status mobile. |
+| 4 | `resources/views/admin/akumulasi.blade.php` | Elevasi z-index dropdown pencarian pegawai ke `z-40`. |
+| 5 | `resources/views/admin/laporan.blade.php` | Elevasi z-index dropdown pencarian pegawai ke `z-40`. |
+| 6 | `resources/views/admin/tim.blade.php` | Elevasi z-index dropdown pencarian tim ke `z-40`. |
+| 7 | `resources/views/admin/pengguna.blade.php` | Elevasi z-index dropdown pencarian pegawai ke `z-40`. |
+| 8 | `resources/views/pimpinan/pengajuan.blade.php` | Standardisasi lebar tombol reset filter mobile menjadi `w-full sm:w-auto`. |
+
+
 
 
 

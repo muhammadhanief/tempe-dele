@@ -89,7 +89,7 @@
 
         {{-- Reset filter --}}
         <button type="button" id="btnResetFilter"
-            class="hidden h-10 rounded-full border border-gray-200 bg-white px-4 text-sm font-medium text-gray-500 transition-colors hover:border-red-300 hover:text-red-400">
+            class="hidden h-10 w-full sm:w-auto rounded-xl sm:rounded-full border border-gray-200 bg-white px-4 text-sm font-medium text-gray-500 transition-colors hover:border-red-300 hover:text-red-400">
             Reset
         </button>
     </div>
