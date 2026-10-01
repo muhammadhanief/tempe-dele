@@ -23,35 +23,72 @@
             </div>
         </div>
 
-        {{-- Tombol Download PDF --}}
-        <div class="relative shrink-0" id="downloadPicker">
-            <button type="button" id="downloadBtn"
-                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow transition-all"
-                title="Unduh Daftar Hadir">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-                <span>Unduh PDF</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-2.5 h-2.5 fill-current opacity-70">
-                    <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
-                </svg>
-            </button>
+        <div class="flex items-center gap-2">
+            {{-- Tombol Cetak / Print Otomatis --}}
+            <div class="relative shrink-0" id="printPicker">
+                <button type="button" id="printBtn"
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] hover:shadow-xs transition-all"
+                    title="Cetak Daftar Hadir">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    <span>Cetak</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-2.5 h-2.5 fill-current opacity-50">
+                        <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                    </svg>
+                </button>
 
-            <div id="downloadPanel"
-                class="hidden absolute right-0 mt-2 w-52 rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden z-50 p-1.5">
-                <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 mb-1">
-                    Pilih Kategori Pegawai
+                <div id="printPanel"
+                    class="hidden absolute right-0 mt-2 w-52 rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden z-50 p-1.5">
+                    <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 mb-1 flex items-center justify-between">
+                        <span>Pilih Kategori</span>
+                        <span class="text-[9px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-bold">Auto Print</span>
+                    </div>
+                    <a href="{{ route('admin.daftar_hadir.print', array_filter(['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pns', 'kbu' => request('kbu')])) }}"
+                        target="_blank"
+                        class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-amber-50 hover:text-[#faa938] transition-colors">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                        <span>Cetak Hadir (PNS)</span>
+                    </a>
+                    <a href="{{ route('admin.daftar_hadir.print', array_filter(['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pppk', 'kbu' => request('kbu')])) }}"
+                        target="_blank"
+                        class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-amber-50 hover:text-[#faa938] transition-colors">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                        <span>Cetak Hadir (PPPK)</span>
+                    </a>
                 </div>
-                <a href="{{ route('admin.daftar_hadir.download', ['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pns']) }}"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-amber-50 hover:text-[#faa938] transition-colors">
-                    <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
-                    <span>Daftar Hadir (PNS)</span>
-                </a>
-                <a href="{{ route('admin.daftar_hadir.download', ['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pppk']) }}"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-amber-50 hover:text-[#faa938] transition-colors">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                    <span>Daftar Hadir (PPPK)</span>
-                </a>
+            </div>
+
+            {{-- Tombol Download PDF --}}
+            <div class="relative shrink-0" id="downloadPicker">
+                <button type="button" id="downloadBtn"
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow transition-all"
+                    title="Unduh Daftar Hadir">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    <span>Unduh PDF</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-2.5 h-2.5 fill-current opacity-70">
+                        <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                    </svg>
+                </button>
+
+                <div id="downloadPanel"
+                    class="hidden absolute right-0 mt-2 w-52 rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden z-50 p-1.5">
+                    <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 mb-1">
+                        Pilih Kategori Pegawai
+                    </div>
+                    <a href="{{ route('admin.daftar_hadir.download', array_filter(['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pns', 'kbu' => request('kbu')])) }}"
+                        class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-amber-50 hover:text-[#faa938] transition-colors">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                        <span>Daftar Hadir (PNS)</span>
+                    </a>
+                    <a href="{{ route('admin.daftar_hadir.download', array_filter(['tanggal' => $tanggal, 'tim' => request('tim'), 'nip' => request('nip'), 'jenis' => 'pppk', 'kbu' => request('kbu')])) }}"
+                        class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-amber-50 hover:text-[#faa938] transition-colors">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                        <span>Daftar Hadir (PPPK)</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -233,7 +270,7 @@
                         </td>
 
                         <td class="px-3 py-3 text-center border-r border-gray-100 align-middle font-mono font-medium text-blue-700 whitespace-nowrap">
-                            {{ $d->jam_selesai_disetujui ? substr($d->jam_selesai_disetujui, 0, 5) : '-' }}
+                            {{ $d->jam_pulang ?: '-' }}
                         </td>
 
                         <td class="px-3 py-3 text-center align-middle">
@@ -695,25 +732,44 @@ window.clearSearch = function() {
 })();
 
 // =====================
-// DOWNLOAD DROPDOWN
+// DOWNLOAD & PRINT DROPDOWN
 // =====================
 document.addEventListener('DOMContentLoaded', function () {
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadPanel = document.getElementById('downloadPanel');
     const downloadPicker = document.getElementById('downloadPicker');
 
-    if (!downloadBtn || !downloadPanel || !downloadPicker) return;
+    const printBtn = document.getElementById('printBtn');
+    const printPanel = document.getElementById('printPanel');
+    const printPicker = document.getElementById('printPicker');
 
-    downloadBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        downloadPanel.classList.toggle('hidden');
-    });
+    if (downloadBtn && downloadPanel && downloadPicker) {
+        downloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (printPanel) printPanel.classList.add('hidden');
+            downloadPanel.classList.toggle('hidden');
+        });
 
-    document.addEventListener('click', (e) => {
-        if (!downloadPicker.contains(e.target)) {
-            downloadPanel.classList.add('hidden');
-        }
-    });
+        document.addEventListener('click', (e) => {
+            if (!downloadPicker.contains(e.target)) {
+                downloadPanel.classList.add('hidden');
+            }
+        });
+    }
+
+    if (printBtn && printPanel && printPicker) {
+        printBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (downloadPanel) downloadPanel.classList.add('hidden');
+            printPanel.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!printPicker.contains(e.target)) {
+                printPanel.classList.add('hidden');
+            }
+        });
+    }
 });
 </script>
 @endpush
