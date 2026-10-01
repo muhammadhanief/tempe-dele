@@ -42,8 +42,45 @@
         </div>
     </div>
 
-    {{-- Toolbar Filter & Pencarian --}}
-    <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    @php
+        $currentStatusLabel = 'Semua Status';
+        $currentStatusShortLabel = 'Semua';
+        $currentStatusCount = $stats['total'] ?? 0;
+        $currentStatusDotClass = 'bg-slate-800';
+        $currentStatusBadgeClass = 'bg-slate-100 text-slate-700';
+
+        if ($statusFilter === 'menunggu_kabag') {
+            $currentStatusLabel = 'Menunggu Kabag';
+            $currentStatusShortLabel = 'Menunggu';
+            $currentStatusCount = $stats['menunggu_kabag'] ?? 0;
+            $currentStatusDotClass = 'bg-blue-600';
+            $currentStatusBadgeClass = 'bg-blue-100 text-blue-800';
+        } elseif ($statusFilter === 'approved') {
+            $currentStatusLabel = 'Disetujui';
+            $currentStatusShortLabel = 'Disetujui';
+            $currentStatusCount = $stats['approved'] ?? 0;
+            $currentStatusDotClass = 'bg-emerald-600';
+            $currentStatusBadgeClass = 'bg-emerald-100 text-emerald-800';
+        } elseif ($statusFilter === 'rejected') {
+            $currentStatusLabel = 'Ditolak';
+            $currentStatusShortLabel = 'Ditolak';
+            $currentStatusCount = $stats['rejected'] ?? 0;
+            $currentStatusDotClass = 'bg-rose-600';
+            $currentStatusBadgeClass = 'bg-rose-100 text-rose-800';
+        } elseif ($statusFilter === 'cancelled') {
+            $currentStatusLabel = 'Dibatalkan';
+            $currentStatusShortLabel = 'Dibatalkan';
+            $currentStatusCount = $stats['cancelled'] ?? 0;
+            $currentStatusDotClass = 'bg-gray-600';
+            $currentStatusBadgeClass = 'bg-gray-100 text-gray-800';
+        }
+    @endphp
+
+    {{-- ======================================================== --}}
+    {{-- 1. TOOLBAR DESKTOP (TAMPIL HANYA DI LAYAR sm: / LAPTOP)   --}}
+    {{-- KODE INI 100% IDENTIK ASLI TANPA MERUBAH APAPUN DI DESKTOP--}}
+    {{-- ======================================================== --}}
+    <div class="hidden sm:flex mb-4 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div class="flex flex-wrap items-center gap-2.5">
             {{-- Filter Periode Bulan --}}
             <div class="relative shrink-0">
@@ -140,6 +177,190 @@
                 oninput="filterTableRows()" autocomplete="off"
                 class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-8 text-xs text-gray-700 shadow-xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all placeholder:text-gray-400">
             <button type="button" id="clearSearchBtn" onclick="clearSearchInput()"
+                class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                title="Hapus pencarian">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- 2. TOOLBAR MOBILE (HANYA MUNCUL DI LAYAR HP < 640px)     --}}
+    {{-- ======================================================== --}}
+    <div class="block sm:hidden mb-4 space-y-2.5">
+        {{-- Baris 1: 2 Kolom Berdampingan 50%-50% (Bulan & Status) --}}
+        <div class="grid grid-cols-2 gap-2 w-full">
+            {{-- Kolom 1: Filter Bulan Mobile --}}
+            <div class="relative w-full">
+                <button type="button" id="periodBtnMobile"
+                    class="inline-flex h-10 w-full items-center justify-between gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all cursor-pointer">
+                    <span class="inline-flex items-center gap-1.5 truncate pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#faa938] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span id="periodLabelMobile" class="truncate">
+                            @if(empty($selectedMonth))
+                                Semua Bulan {{ $selectedYear }}
+                            @else
+                                {{ \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->translatedFormat('F Y') }}
+                            @endif
+                        </span>
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-2.5 h-2.5 fill-current opacity-40 shrink-0 pointer-events-none">
+                        <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                    </svg>
+                </button>
+
+                <div id="periodPanelMobile"
+                    class="hidden absolute z-50 mt-1.5 left-0 w-72 max-w-[calc(100vw-24px)] rounded-2xl border border-gray-200 bg-white shadow-xl p-3.5">
+                    <div class="flex items-center justify-between mb-3">
+                        <button type="button" id="yearPrevMobile"
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
+                            </svg>
+                        </button>
+                        <span id="yearLabelMobile" class="text-sm font-bold text-gray-900">{{ $selectedYear }}</span>
+                        <button type="button" id="yearNextMobile"
+                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mb-2.5">
+                        <button type="button" id="btnAllMonthsOfYearKabagMobile"
+                            class="w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center cursor-pointer {{ empty($selectedMonth) ? 'bg-[#faa938] text-slate-950 font-bold border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]' }}">
+                            Semua Bulan (<span id="allMonthsYearLabelKabagMobile">{{ $selectedYear }}</span>)
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2" id="monthGridMobile"></div>
+
+                    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100">
+                        <button type="button" id="btnThisMonthMobile"
+                            class="text-xs font-semibold text-gray-600 hover:text-[#faa938] transition-colors cursor-pointer">
+                            Bulan ini
+                        </button>
+                        <button type="button" id="btnClosePanelMobile"
+                            class="px-3 py-1 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938] transition-colors cursor-pointer">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Kolom 2: Filter Status Dropdown Mobile --}}
+            <div class="relative w-full z-30" id="kabagMobileStatusWrapper">
+                <button type="button" id="btnKabagMobileStatus"
+                    class="inline-flex w-full h-10 items-center justify-between gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] active:bg-gray-50 transition-all cursor-pointer select-none">
+                    <span class="inline-flex items-center gap-1.5 truncate pointer-events-none">
+                        @if($statusFilter === 'menunggu_kabag')
+                            <span class="relative flex h-2 w-2 shrink-0">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                            </span>
+                        @else
+                            <span class="h-2 w-2 rounded-full {{ $currentStatusDotClass }} shrink-0"></span>
+                        @endif
+                        <span class="text-slate-400 font-normal">Status:</span>
+                        <span class="font-bold text-slate-800 truncate">{{ $currentStatusShortLabel }}</span>
+                    </span>
+
+                    <span class="inline-flex items-center gap-1 shrink-0 pointer-events-none">
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold {{ $currentStatusBadgeClass }}">
+                            {{ $currentStatusCount }}
+                        </span>
+                        <svg id="iconChevronKabagStatus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-2.5 w-2.5 fill-current opacity-40 transition-transform duration-200">
+                            <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                        </svg>
+                    </span>
+                </button>
+
+                {{-- Custom Menu Popup Pilihan Status --}}
+                <div id="menuKabagMobileStatus"
+                    class="hidden absolute right-0 top-full mt-1.5 z-50 w-56 max-w-[calc(100vw-24px)] bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden py-1 divide-y divide-gray-50">
+                    
+                    {{-- Semua --}}
+                    <a href="{{ request()->fullUrlWithQuery(['status' => 'all', 'page' => 1]) }}"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ ($statusFilter === 'all' || empty($statusFilter)) ? 'bg-slate-900 text-white font-semibold' : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100' }}">
+                        <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                            <span class="h-2 w-2 rounded-full {{ ($statusFilter === 'all' || empty($statusFilter)) ? 'bg-white' : 'bg-slate-800' }}"></span>
+                            <span>Semua Status</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ ($statusFilter === 'all' || empty($statusFilter)) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700' }}">
+                            {{ $stats['total'] ?? 0 }}
+                        </span>
+                    </a>
+
+                    {{-- Menunggu Kabag --}}
+                    <a href="{{ request()->fullUrlWithQuery(['status' => 'menunggu_kabag', 'page' => 1]) }}"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ ($statusFilter === 'menunggu_kabag') ? 'bg-blue-600 text-white font-semibold' : 'text-blue-900 hover:bg-blue-50/60 active:bg-blue-100/60' }}">
+                        <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ ($statusFilter === 'menunggu_kabag') ? 'bg-white opacity-75' : 'bg-blue-400 opacity-75' }}"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 {{ ($statusFilter === 'menunggu_kabag') ? 'bg-white' : 'bg-blue-600' }}"></span>
+                            </span>
+                            <span>Menunggu Kabag</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ ($statusFilter === 'menunggu_kabag') ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
+                            {{ $stats['menunggu_kabag'] ?? 0 }}
+                        </span>
+                    </a>
+
+                    {{-- Disetujui --}}
+                    <a href="{{ request()->fullUrlWithQuery(['status' => 'approved', 'page' => 1]) }}"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ ($statusFilter === 'approved') ? 'bg-emerald-600 text-white font-semibold' : 'text-emerald-900 hover:bg-emerald-50/60 active:bg-emerald-100/60' }}">
+                        <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                            <span class="h-2 w-2 rounded-full {{ ($statusFilter === 'approved') ? 'bg-white' : 'bg-emerald-500' }}"></span>
+                            <span>Disetujui</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ ($statusFilter === 'approved') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
+                            {{ $stats['approved'] ?? 0 }}
+                        </span>
+                    </a>
+
+                    {{-- Ditolak --}}
+                    <a href="{{ request()->fullUrlWithQuery(['status' => 'rejected', 'page' => 1]) }}"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ ($statusFilter === 'rejected') ? 'bg-rose-600 text-white font-semibold' : 'text-rose-900 hover:bg-rose-50/60 active:bg-rose-100/60' }}">
+                        <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                            <span class="h-2 w-2 rounded-full {{ ($statusFilter === 'rejected') ? 'bg-white' : 'bg-rose-500' }}"></span>
+                            <span>Ditolak</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ ($statusFilter === 'rejected') ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
+                            {{ $stats['rejected'] ?? 0 }}
+                        </span>
+                    </a>
+
+                    {{-- Dibatalkan --}}
+                    <a href="{{ request()->fullUrlWithQuery(['status' => 'cancelled', 'page' => 1]) }}"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ ($statusFilter === 'cancelled') ? 'bg-gray-600 text-white font-semibold' : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100' }}">
+                        <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                            <span class="h-2 w-2 rounded-full {{ ($statusFilter === 'cancelled') ? 'bg-white' : 'bg-gray-500' }}"></span>
+                            <span>Dibatalkan</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ ($statusFilter === 'cancelled') ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800' }}">
+                            {{ $stats['cancelled'] ?? 0 }}
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Baris 2: Pencarian Pegawai Mobile --}}
+        <div class="relative w-full">
+            <div class="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+            <input type="text" id="searchPegawaiMobile" placeholder="Cari nama pegawai / NIP..."
+                oninput="filterTableRows()" autocomplete="off"
+                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-8 text-xs text-gray-700 shadow-xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all placeholder:text-gray-400">
+            <button type="button" id="clearSearchBtnMobile" onclick="clearSearchInput()"
                 class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                 title="Hapus pencarian">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -870,19 +1091,33 @@ window.onHeaderSortChange = function(val) {
 };
 
 // =====================
-// FILTER SEARCH PEGAWAI
+// FILTER SEARCH PEGAWAI (DESKTOP & MOBILE)
 // =====================
 window.filterTableRows = function() {
-    const input = document.getElementById('searchPegawai');
-    const clearBtn = document.getElementById('clearSearchBtn');
-    const query = input.value.toLowerCase().trim();
+    const inputDesktop = document.getElementById('searchPegawai');
+    const inputMobile  = document.getElementById('searchPegawaiMobile');
+    const clearDesktop = document.getElementById('clearSearchBtn');
+    const clearMobile  = document.getElementById('clearSearchBtnMobile');
 
-    if (clearBtn) {
-        if (query.length > 0) {
-            clearBtn.classList.remove('hidden');
-        } else {
-            clearBtn.classList.add('hidden');
-        }
+    // Ambil query dari input yang sedang aktif / memiliki nilai
+    let query = '';
+    if (document.activeElement === inputMobile && inputMobile) {
+        query = inputMobile.value.toLowerCase().trim();
+        if (inputDesktop) inputDesktop.value = inputMobile.value;
+    } else if (inputDesktop) {
+        query = inputDesktop.value.toLowerCase().trim();
+        if (inputMobile) inputMobile.value = inputDesktop.value;
+    } else if (inputMobile) {
+        query = inputMobile.value.toLowerCase().trim();
+    }
+
+    if (clearDesktop) {
+        if (query.length > 0) clearDesktop.classList.remove('hidden');
+        else clearDesktop.classList.add('hidden');
+    }
+    if (clearMobile) {
+        if (query.length > 0) clearMobile.classList.remove('hidden');
+        else clearMobile.classList.add('hidden');
     }
 
     const rows = document.querySelectorAll('#tabelPengajuan tr[data-search]');
@@ -908,76 +1143,91 @@ window.filterTableRows = function() {
 };
 
 window.clearSearchInput = function() {
-    const input = document.getElementById('searchPegawai');
-    if (input) {
-        input.value = '';
-        filterTableRows();
-        input.focus();
+    const inputDesktop = document.getElementById('searchPegawai');
+    const inputMobile  = document.getElementById('searchPegawaiMobile');
+    if (inputDesktop) inputDesktop.value = '';
+    if (inputMobile)  inputMobile.value = '';
+    filterTableRows();
+    if (window.innerWidth >= 640 && inputDesktop) {
+        inputDesktop.focus();
+    } else if (inputMobile) {
+        inputMobile.focus();
     }
 };
 
 // =====================
-// PERIOD PICKER LOGIC
+// PERIOD PICKER LOGIC (DESKTOP & MOBILE ISOLATED)
 // =====================
 (function() {
-    const periodBtn = document.getElementById('periodBtn');
-    const periodPanel = document.getElementById('periodPanel');
-    const btnClose = document.getElementById('btnClosePanel');
-    const yearLabel = document.getElementById('yearLabel');
-    const yearPrev = document.getElementById('yearPrev');
-    const yearNext = document.getElementById('yearNext');
-    const monthGrid = document.getElementById('monthGrid');
-    const btnThisMonth = document.getElementById('btnThisMonth');
-    const btnAllMonths = document.getElementById('btnAllMonthsOfYearKabag');
-    const allMonthsYearLabel = document.getElementById('allMonthsYearLabelKabag');
+    function initPeriodPicker(btnId, panelId, closeId, yLabelId, yPrevId, yNextId, gridId, thisMonthId, allMonthsId, allMonthsLabelId) {
+        const periodBtn    = document.getElementById(btnId);
+        const periodPanel  = document.getElementById(panelId);
+        const btnClose     = document.getElementById(closeId);
+        const yearLabel    = document.getElementById(yLabelId);
+        const yearPrev     = document.getElementById(yPrevId);
+        const yearNext     = document.getElementById(yNextId);
+        const monthGrid    = document.getElementById(gridId);
+        const btnThisMonth = document.getElementById(thisMonthId);
+        const btnAllMonths = document.getElementById(allMonthsId);
+        const allMonthsYearLabel = document.getElementById(allMonthsLabelId);
 
-    let selYear = {{ $selectedYear }};
-    let selMonth = {{ $selectedMonth !== null ? $selectedMonth : 'null' }};
-    let viewYear = selYear;
+        if (!periodBtn || !periodPanel) return;
 
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        let selYear  = {{ $selectedYear }};
+        let selMonth = {{ $selectedMonth !== null ? $selectedMonth : 'null' }};
+        let viewYear = selYear;
 
-    function renderMonths() {
-        yearLabel.textContent = viewYear;
-        if (allMonthsYearLabel) allMonthsYearLabel.textContent = viewYear;
-        if (btnAllMonths) {
-            const isAllSelected = (selMonth === null && viewYear === selYear);
-            btnAllMonths.className = `w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center ${isAllSelected ? 'bg-[#faa938] text-slate-950 font-bold border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]'}`;
-            btnAllMonths.onclick = () => {
-                const now = new Date();
-                const url = new URL(window.location.href);
-                if (viewYear === now.getFullYear()) {
-                    url.searchParams.set('bulan', 'all');
-                } else {
-                    url.searchParams.set('bulan', `${viewYear}-all`);
-                }
-                url.searchParams.delete('page');
-                window.location.href = url.toString();
-            };
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+        function renderMonths() {
+            if (yearLabel) yearLabel.textContent = viewYear;
+            if (allMonthsYearLabel) allMonthsYearLabel.textContent = viewYear;
+            if (btnAllMonths) {
+                const isAllSelected = (selMonth === null && viewYear === selYear);
+                btnAllMonths.className = `w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center ${isAllSelected ? 'bg-[#faa938] text-slate-950 font-bold border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]'}`;
+                btnAllMonths.onclick = () => {
+                    const now = new Date();
+                    const url = new URL(window.location.href);
+                    if (viewYear === now.getFullYear()) {
+                        url.searchParams.set('bulan', 'all');
+                    } else {
+                        url.searchParams.set('bulan', `${viewYear}-all`);
+                    }
+                    url.searchParams.delete('page');
+                    window.location.href = url.toString();
+                };
+            }
+
+            if (monthGrid) {
+                monthGrid.innerHTML = '';
+                monthNames.forEach((name, idx) => {
+                    const m = idx + 1;
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = name;
+                    const isSelected = (viewYear === selYear && m === selMonth);
+                    btn.className = `py-2 rounded-lg text-xs font-semibold transition-colors ${isSelected ? 'bg-[#faa938] text-slate-950 font-bold shadow-sm' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`;
+                    btn.onclick = () => {
+                        const targetM = String(m).padStart(2, '0');
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('bulan', `${viewYear}-${targetM}`);
+                        url.searchParams.delete('page');
+                        window.location.href = url.toString();
+                    };
+                    monthGrid.appendChild(btn);
+                });
+            }
         }
 
-        monthGrid.innerHTML = '';
-        monthNames.forEach((name, idx) => {
-            const m = idx + 1;
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = name;
-            const isSelected = (viewYear === selYear && m === selMonth);
-            btn.className = `py-2 rounded-lg text-xs font-semibold transition-colors ${isSelected ? 'bg-[#faa938] text-slate-950 font-bold shadow-sm' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`;
-            btn.onclick = () => {
-                const targetM = String(m).padStart(2, '0');
-                const url = new URL(window.location.href);
-                url.searchParams.set('bulan', `${viewYear}-${targetM}`);
-                url.searchParams.delete('page');
-                window.location.href = url.toString();
-            };
-            monthGrid.appendChild(btn);
-        });
-    }
-
-    if (periodBtn && periodPanel) {
         periodBtn.onclick = (e) => {
             e.stopPropagation();
+            // Jika mobile, tutup dropdown status mobile jika sedang terbuka
+            const menuMobile = document.getElementById('menuKabagMobileStatus');
+            const iconChevron = document.getElementById('iconChevronKabagStatus');
+            if (menuMobile) {
+                menuMobile.classList.add('hidden');
+                iconChevron?.classList.remove('rotate-180');
+            }
             periodPanel.classList.toggle('hidden');
             renderMonths();
         };
@@ -1000,6 +1250,44 @@ window.clearSearchInput = function() {
         document.addEventListener('click', (e) => {
             if (!periodPanel.contains(e.target) && !periodBtn.contains(e.target)) {
                 periodPanel.classList.add('hidden');
+            }
+        });
+    }
+
+    // Init Desktop Period Picker (100% Identik Asli)
+    initPeriodPicker('periodBtn', 'periodPanel', 'btnClosePanel', 'yearLabel', 'yearPrev', 'yearNext', 'monthGrid', 'btnThisMonth', 'btnAllMonthsOfYearKabag', 'allMonthsYearLabelKabag');
+
+    // Init Mobile Period Picker
+    initPeriodPicker('periodBtnMobile', 'periodPanelMobile', 'btnClosePanelMobile', 'yearLabelMobile', 'yearPrevMobile', 'yearNextMobile', 'monthGridMobile', 'btnThisMonthMobile', 'btnAllMonthsOfYearKabagMobile', 'allMonthsYearLabelKabagMobile');
+
+    // Setup Mobile Status Custom Dropdown
+    const btnKabagMobileStatus     = document.getElementById('btnKabagMobileStatus');
+    const menuKabagMobileStatus    = document.getElementById('menuKabagMobileStatus');
+    const iconChevronKabagStatus   = document.getElementById('iconChevronKabagStatus');
+    const wrapperKabagMobileStatus = document.getElementById('kabagMobileStatusWrapper');
+
+    if (btnKabagMobileStatus && menuKabagMobileStatus) {
+        btnKabagMobileStatus.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Tutup panel kalender mobile jika sedang terbuka
+            const panelMobile = document.getElementById('periodPanelMobile');
+            if (panelMobile) panelMobile.classList.add('hidden');
+
+            const isHidden = menuKabagMobileStatus.classList.contains('hidden');
+            if (isHidden) {
+                menuKabagMobileStatus.classList.remove('hidden');
+                iconChevronKabagStatus?.classList.add('rotate-180');
+            } else {
+                menuKabagMobileStatus.classList.add('hidden');
+                iconChevronKabagStatus?.classList.remove('rotate-180');
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (wrapperKabagMobileStatus && !wrapperKabagMobileStatus.contains(e.target)) {
+                menuKabagMobileStatus.classList.add('hidden');
+                iconChevronKabagStatus?.classList.remove('rotate-180');
             }
         });
     }

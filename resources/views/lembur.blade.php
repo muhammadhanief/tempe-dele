@@ -21,10 +21,10 @@
     {{-- Page Header --}}
     <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-xl font-bold tracking-tight text-slate-800">
+            <h1 class="text-lg sm:text-xl font-bold tracking-tight text-slate-800">
                 Pengajuan Lembur Pribadi
             </h1>
-            <p class="text-xs text-slate-500 mt-0.5">
+            <p class="hidden sm:block text-xs text-slate-500 mt-0.5">
                 Kelola dan pantau riwayat pengajuan kegiatan lembur mandiri Anda.
             </p>
         </div>

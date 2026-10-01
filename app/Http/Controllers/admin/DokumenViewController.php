@@ -10,7 +10,8 @@ class DokumenViewController extends Controller
 {
     public function index(Request $request)
     {
-        $bulan = $request->get('bulan', now()->format('Y-m'));
+        $bulan = $request->get('bulan');
+        $isFiltered = !empty($bulan);
 
         $dokumenList = DB::table('t_dokumen')->orderBy('periode', 'desc')->get();
 
@@ -23,15 +24,13 @@ class DokumenViewController extends Controller
 
         $periodeDokumen = $dokumenList->pluck('periode');
         $allPeriode = $periodeTransaksi->merge($periodeDokumen)
-        ->unique()
-        ->sortDesc()
-        ->values();
+            ->unique()
+            ->sortDesc()
+            ->values();
 
-    $isFiltered = $request->has('bulan');
-
-    $periodeList = $isFiltered
-        ? $allPeriode->filter(fn($p) => $p === $bulan)
-        : $allPeriode;
+        $periodeList = $isFiltered
+            ? $allPeriode->filter(fn($p) => $p === $bulan)
+            : $allPeriode;
 
         $perPage  = 12;
         $page     = $request->get('page', 1);
@@ -50,7 +49,7 @@ class DokumenViewController extends Controller
         $kbps = $pejabat->firstWhere('jabatan', 'Kepala BPS');
         $kbu = $pejabat->firstWhere('jabatan', 'Kepala Bagian Umum');
 
-        return view('admin.dokumen', compact('periodeList', 'dokumenList', 'ppk', 'kbps', 'kbu', 'bulan'));
+        return view('admin.dokumen', compact('periodeList', 'dokumenList', 'ppk', 'kbps', 'kbu', 'bulan', 'isFiltered'));
     }
 
     public function hapus(Request $request)
