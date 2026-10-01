@@ -105,7 +105,7 @@
                             <button type="button"
                                     onclick="togglePassword()"
                                     aria-label="Tampilkan atau sembunyikan kata sandi"
-                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-800">
+                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-800 cursor-pointer">
 
                                 {{-- Eye --}}
                                 <svg id="iconShow" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -127,7 +127,7 @@
                     </div>
 
                     <button type="submit"
-                            class="inline-flex w-full items-center justify-center rounded-xl bg-[#fd9a10] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#e08507] hover:shadow-md active:translate-y-0">
+                            class="inline-flex w-full items-center justify-center rounded-xl bg-[#fd9a10] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#e08507] hover:shadow-md active:translate-y-0 cursor-pointer">
                         Masuk
                     </button>
                 </form>
@@ -278,6 +278,7 @@
                 @endif
             </div>
         </section>
+    </div>
 
     </main>
 

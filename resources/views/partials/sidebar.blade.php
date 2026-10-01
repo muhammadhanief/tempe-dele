@@ -10,7 +10,7 @@
 <aside
     id="main-sidebar"
     class="fixed lg:sticky top-0 left-0 z-55
-           flex flex-col w-64 min-h-screen bg-slate-900 py-5 shrink-0
+           flex flex-col w-64 h-screen h-[100dvh] max-h-screen max-h-[100dvh] bg-slate-900 pt-5 pb-2 lg:py-5 shrink-0
            -translate-x-full lg:translate-x-0
            transition-transform duration-300 ease-in-out"
 >
@@ -28,7 +28,7 @@
     @endphp
 
     {{-- Brand & Mobile Close --}}
-    <div class="flex items-center justify-between px-4 mb-8 mt-2 lg:mt-0">
+    <div class="flex items-center justify-between px-4 mb-6 mt-1 lg:mt-0 shrink-0">
         <a href="{{ $brandRoute }}" class="flex items-center gap-2 transition-opacity hover:opacity-90">
             <div class="w-14 h-14 flex items-center justify-center shrink-0">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo OverTime" class="w-full h-auto" />
@@ -41,7 +41,7 @@
             </div>
         </a>
         <button type="button" onclick="closeSidebar()" aria-label="Tutup menu navigasi"
-            class="lg:hidden p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors">
+            class="lg:hidden p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -294,7 +294,7 @@
     @endphp
 
     {{-- Nav Items --}}
-    <nav class="flex-1 overflow-y-auto px-3 space-y-4 scrollbar-thin scrollbar-thumb-slate-700">
+    <nav class="flex-1 min-h-0 sidebar-scroll px-3 py-1 space-y-4 pb-16 lg:pb-6">
         @foreach ($sections as $index => $section)
             @if(!empty($section['items']))
                 <div class="flex flex-col">
@@ -356,6 +356,7 @@
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('opacity-0', 'pointer-events-none');
         overlay.classList.add('opacity-100');
+        document.body.classList.add('overflow-hidden');
         // Animate to X
         barTop.classList.add('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
         barTop.classList.remove('bg-slate-500');
@@ -368,6 +369,7 @@
         sidebar.classList.add('-translate-x-full');
         overlay.classList.add('opacity-0', 'pointer-events-none');
         overlay.classList.remove('opacity-100');
+        document.body.classList.remove('overflow-hidden');
         // Reset to hamburger
         barTop.classList.remove('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
         barTop.classList.add('bg-slate-500');

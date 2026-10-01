@@ -5,26 +5,43 @@
 @section('content')
 
 {{-- HERO --}}
-<section class="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6 md:px-10 lg:px-20 lg:py-8 mb-10">
-    <div class="relative flex flex-col items-center overflow-visible rounded-[24px] bg-[#f9b800] px-5 py-6 sm:px-8 sm:py-8 lg:flex-row lg:items-center lg:px-10 lg:py-12">
+<section class="mx-auto max-w-7xl pt-4 sm:pt-6 lg:pt-10 pb-2 px-4 sm:px-6 md:px-10 lg:px-20 mb-4 sm:mb-6 lg:mb-10">
+    <div class="relative bg-gradient-to-r from-[#faa938] via-[#f9b800] to-[#f59e0b]
+                rounded-2xl lg:rounded-[28px]
+                p-4 sm:p-6 lg:px-10 lg:py-8
+                shadow-sm
+                overflow-hidden lg:overflow-visible">
 
-        {{-- Text --}}
-        <div class="z-10 text-center lg:flex-1 lg:pr-[420px] lg:text-left">
-            <h2 class="mb-3 text-xl font-semibold leading-snug sm:text-2xl lg:text-3xl">
-                Selamat Datang, {{ session('user')['nama'] }}
-            </h2>
-            <p class="text-sm leading-relaxed text-gray-900 sm:text-base lg:text-[17px]">
-                Kelola pengajuan lembur dan pantau perkembangannya dengan lebih mudah.
-            </p>
+        {{-- Ambient decorative background glows --}}
+        <div class="absolute -top-12 -right-12 w-48 h-48 sm:w-64 sm:h-64 bg-white/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-10 -left-10 w-40 h-40 sm:w-56 sm:h-56 bg-amber-700/10 rounded-full blur-xl pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/[0.02] to-transparent pointer-events-none rounded-2xl lg:rounded-[28px]"></div>
+
+        <div class="relative z-10 flex flex-row items-center sm:items-end justify-between gap-3 sm:gap-6 lg:gap-8">
+            {{-- Text (flex-1 ensures it takes available space and NEVER collides with image) --}}
+            <div class="flex-1 min-w-0 text-left py-1 sm:py-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 mb-2 sm:mb-3 rounded-full text-[11px] sm:text-xs font-bold bg-white/35 text-slate-950 backdrop-blur-md ring-1 ring-white/40 shadow-xs">
+                    <span class="text-xs sm:text-sm">👋</span>
+                    <span>Selamat Datang</span>
+                </span>
+                <h2 class="text-base sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-slate-950 tracking-tight leading-snug mb-1 sm:mb-1.5 break-words">
+                    {{ session('user')['nama'] }}
+                </h2>
+                <p class="text-[11px] sm:text-sm lg:text-[15px] font-medium leading-relaxed text-slate-900/85 line-clamp-2 sm:line-clamp-none max-w-xl">
+                    Kelola pengajuan lembur dan pantau perkembangannya dengan lebih mudah.
+                </p>
+            </div>
+
+            {{-- Hero Image (shrink-0 with proportional scaling prevents collision at all widths) --}}
+            <div class="shrink-0 flex items-end justify-end max-w-[32%] xs:max-w-[36%] sm:max-w-[40%] lg:max-w-[340px] xl:max-w-[380px]">
+                <img
+                    class="w-full h-auto object-contain object-bottom drop-shadow-md lg:drop-shadow-xl select-none pointer-events-none
+                           lg:-mt-10 lg:-mb-4 transform transition-transform duration-300 hover:scale-105"
+                    src="{{ asset('images/2.svg') }}"
+                    alt="Hero"
+                />
+            </div>
         </div>
-
-        {{-- Hero Image --}}
-        <img
-            class="mt-6 w-full max-w-[230px] object-contain drop-shadow-xl sm:max-w-[280px] md:max-w-[340px] lg:absolute lg:-right-6 lg:mt-0 lg:max-w-[450px] xl:max-w-[500px]"
-            style="top: -60px"
-            src="{{ asset('images/2.svg') }}"
-            alt="Hero"
-        />
     </div>
 </section>
 

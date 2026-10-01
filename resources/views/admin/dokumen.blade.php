@@ -10,17 +10,17 @@
     <div class="flex flex-col sm:flex-row sm:items-center gap-3">
 
         {{-- Period Picker --}}
-        <div class="relative w-full sm:w-auto shrink-0" id="periodPicker">
+        <div class="relative w-full sm:w-auto shrink-0 flex items-center gap-1.5" id="periodPicker">
             <button type="button" id="periodBtn"
-                class="inline-flex w-full sm:w-auto items-center justify-between sm:justify-start h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors">
+                class="inline-flex w-full sm:w-auto items-center justify-between sm:justify-start h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors cursor-pointer">
 
                 <span class="inline-flex items-center gap-2 min-w-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current shrink-0 text-slate-500">
                         <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
                     </svg>
 
                     <span id="periodLabel" class="leading-none truncate">
-                        {{ \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('M Y') }}
+                        {{ $isFiltered ? \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('M Y') : 'Filter Bulan' }}
                     </span>
                 </span>
 
@@ -29,6 +29,16 @@
                 </svg>
             </button>
 
+            @if($isFiltered)
+                <a href="{{ route('admin.dokumen') }}"
+                   class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-colors shrink-0 cursor-pointer"
+                   title="Reset filter (tampilkan semua bulan)">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </a>
+            @endif
+
             <input type="hidden" id="periodValue" name="period" value="">
 
             <div id="periodPanel"
@@ -36,16 +46,16 @@
 
                 <div class="flex items-center justify-between mb-3">
                     <button type="button" id="yearPrev"
-                        class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
+                        class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] cursor-pointer">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                             <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
                         </svg>
                     </button>
 
-                    <span id="yearLabel" class="text-sm font-medium text-gray-900">2026</span>
+                    <span id="yearLabel" class="text-sm font-medium text-gray-900 cursor-pointer select-none">2026</span>
 
                     <button type="button" id="yearNext"
-                        class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
+                        class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] cursor-pointer">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
                             <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
                         </svg>
@@ -54,14 +64,21 @@
 
                 <div class="grid grid-cols-3 gap-2" id="monthGrid"></div>
 
-                <div class="flex items-center justify-between mt-3">
-                    <button type="button" id="btnThisMonth"
-                        class="text-sm font-medium text-gray-500 hover:text-[#faa938]">
-                        Bulan ini
-                    </button>
+                <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100">
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnAllMonths"
+                            class="text-xs sm:text-sm font-medium text-gray-500 hover:text-[#faa938] cursor-pointer transition-colors">
+                            Semua Bulan
+                        </button>
+                        <span class="text-gray-300">·</span>
+                        <button type="button" id="btnThisMonth"
+                            class="text-xs sm:text-sm font-medium text-gray-500 hover:text-[#faa938] cursor-pointer transition-colors">
+                            Bulan ini
+                        </button>
+                    </div>
 
                     <button type="button" id="btnClosePanel"
-                        class="px-3 py-1 text-sm font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">
+                        class="px-3 py-1 text-xs sm:text-sm font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938] cursor-pointer transition-colors">
                         Tutup
                     </button>
                 </div>
@@ -107,7 +124,7 @@
             </thead>
 
             <tbody class="divide-y divide-gray-200">
-                @foreach($periodeList as $periode)
+                @forelse($periodeList as $periode)
                     @foreach(['pns', 'pppk'] as $jenis)
                         @php
                             $spklPdf  = $dokumenList->where('type', 'spkl_'    . $jenis . '_pdf') ->where('periode', $periode)->first();
@@ -260,7 +277,13 @@
 
                         </tr>
                     @endforeach
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="4" class="px-4 py-12 text-center text-sm text-gray-400">
+                            Tidak ada dokumen atau transaksi lembur untuk periode yang dipilih.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -589,6 +612,7 @@
         const btnPrev = el('yearPrev');
         const btnNext = el('yearNext');
         const btnThisMonth = el('btnThisMonth');
+        const btnAllMonths = el('btnAllMonths');
         const btnClose = el('btnClosePanel');
 
         if (!picker || !btn || !panel) return;
@@ -596,25 +620,30 @@
         const monthShort = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
         const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
+        const isFiltered = {{ $isFiltered ? 'true' : 'false' }};
         let view = 'month';
-        let selYear  = {{ \Carbon\Carbon::parse($bulan . '-01')->year }};
-        let selMonth = {{ \Carbon\Carbon::parse($bulan . '-01')->month - 1 }};
+        let selYear  = {{ $isFiltered ? (int)\Carbon\Carbon::parse($bulan . '-01')->year : 'now.getFullYear()' }};
+        let selMonth = {{ $isFiltered ? ((int)\Carbon\Carbon::parse($bulan . '-01')->month - 1) : '-1' }};
         let viewYear = selYear;
 
         function updateDisplayOnly(y, m) {
-            periodLabel.textContent = `${monthShort[m]} ${y}`;
-            periodValue.value = `${y}-${pad2(m + 1)}`;
+            if (!isFiltered || m === -1) {
+                periodLabel.textContent = 'Filter Bulan';
+                periodValue.value = '';
+            } else {
+                periodLabel.textContent = `${monthShort[m]} ${y}`;
+                periodValue.value = `${y}-${pad2(m + 1)}`;
+            }
         }
 
         function setPeriod(y, m) {
             selYear = y;
             selMonth = m;
-            updateDisplayOnly(y, m);
-            window.location.href = `?bulan=${y}-${pad2(m + 1)}`;
+            window.location.href = `{{ route('admin.dokumen') }}?bulan=${y}-${pad2(m + 1)}`;
         }
 
         function openPanel() {
-            viewYear = selYear;
+            viewYear = isFiltered ? selYear : now.getFullYear();
             renderMonth();
             panel.classList.remove('hidden');
         }
@@ -630,14 +659,14 @@
             grid.innerHTML = '';
 
             monthNames.forEach((name, m) => {
-                const isSel = (m === selMonth && viewYear === selYear);
+                const isSel = isFiltered && (m === selMonth && viewYear === selYear);
                 const isNow = (m === now.getMonth() && viewYear === now.getFullYear());
 
-                const cls = 'px-2 py-2 text-sm rounded-lg border transition ' + (
+                const cls = 'px-2 py-2 text-sm rounded-lg border transition cursor-pointer ' + (
                     isSel
                         ? 'bg-[#faa938] text-white border-[#faa938]'
                         : isNow
-                            ? 'border-[#faa938] text-[#faa938] bg-white'
+                            ? 'border-[#faa938] text-[#faa938] bg-white hover:bg-amber-50'
                             : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]'
                 );
 
@@ -658,15 +687,15 @@
             grid.innerHTML = '';
 
             for (let y = startYear; y < startYear + 12; y++) {
-                const isSel = (y === selYear);
+                const isSel = isFiltered && (y === selYear);
                 const isNow = (y === now.getFullYear());
                 const _y = y;
 
-                const cls = 'px-2 py-2 text-sm rounded-lg border transition ' + (
+                const cls = 'px-2 py-2 text-sm rounded-lg border transition cursor-pointer ' + (
                     isSel
                         ? 'bg-[#faa938] text-white border-[#faa938]'
                         : isNow
-                            ? 'border-[#faa938] text-[#faa938] bg-white'
+                            ? 'border-[#faa938] text-[#faa938] bg-white hover:bg-amber-50'
                             : 'border-gray-200 text-gray-800 hover:border-[#faa938] hover:text-[#faa938]'
                 );
 
@@ -705,6 +734,11 @@
         btnNext?.addEventListener('click', (e) => {
             e.stopPropagation();
             navigate(1);
+        });
+
+        btnAllMonths?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.location.href = `{{ route('admin.dokumen') }}`;
         });
 
         btnThisMonth?.addEventListener('click', (e) => {

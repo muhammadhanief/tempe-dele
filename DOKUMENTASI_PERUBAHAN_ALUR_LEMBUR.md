@@ -2271,7 +2271,376 @@ WHERE nip = '197106131993121001' OR nip_lama = '340013741';
 - `resources/views/dashboard.blade.php`: Label subtitle kartu metrik Tahun berjalan.
 - `resources/views/pimpinan/dashboard.blade.php`: Label subtitle kartu metrik Tahun berjalan.
 
+---
 
+## 28. Penambahan Properti CSS Pointer pada Tombol Logout, Tombol Masuk, dan Standarisasi Global Interaksi Tombol
+
+### A. Latar Belakang Masalah
+1. **Feedback Mentor (Pukul 08:20 & 08:21)**:
+   - Pada dropdown profil pengguna di navbar, tombol **Logout** saat diarahkan kursor (*hover*) masih menggunakan kursor panah bawaan (*default arrow cursor*), belum berubah menjadi kursor jari/tangan (*pointer*).
+   - Pada halaman autentikasi (`/login`), tombol utama **Masuk** (*submit login*) dan tombol sakelar lihat sandi (*toggle password visibility*) juga belum menampilkan kursor *pointer*.
+2. **Karakteristik Tailwind CSS v4 Reset**:
+   - Di Tailwind CSS versi 4, CSS reset (*preflight*) menetralkan elemen `<button>` menjadi `cursor: default` secara default.
+   - Akibatnya, elemen tombol yang belum disematkan utility class `cursor-pointer` atau CSS eksplisit tidak menampilkan indikator kursor interaktif yang lazim di peramban web desktop.
+
+### B. Solusi & Rincian Implementasi
+1. **Navbar Dropdown Profil (`resources/views/partials/navbar.blade.php`)**:
+   - Menambahkan utility class `cursor-pointer` pada tombol trigger dropdown profil (`#profileDropdownBtn`) dan tombol submit logout (`<button type="submit">`).
+2. **Form Autentikasi Login (`resources/views/login.blade.php`)**:
+   - Menambahkan utility class `cursor-pointer` pada tombol utama **Masuk** (`<button type="submit">`).
+   - Menambahkan utility class `cursor-pointer` pada tombol ikon sakelar tampilkan/sembunyikan kata sandi.
+3. **Standarisasi CSS Global (`resources/css/app.css`)**:
+   - Menambahkan deklarasi CSS global agar seluruh elemen tombol interaktif yang aktif di seluruh sistem secara konsisten memiliki `cursor: pointer;`:
+     ```css
+     button:not(:disabled),
+     [type='button']:not(:disabled),
+     [type='reset']:not(:disabled),
+     [type='submit']:not(:disabled) {
+         cursor: pointer;
+     }
+     ```
+4. **Kompilasi Aset Produksi**:
+   - Menjalankan `npm run build` untuk memperbarui bundel CSS dan manifest di `public/build/`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/partials/navbar.blade.php` | Penambahan class `cursor-pointer` pada tombol trigger dropdown profil dan tombol Logout, serta deteksi dinamis label Kabag Umum. |
+| 2 | `resources/views/login.blade.php` | Penambahan class `cursor-pointer` pada tombol Masuk dan tombol toggle password. |
+| 3 | `resources/css/app.css` | Penambahan rule CSS universal `cursor: pointer` untuk elemen button dan submit non-disabled. |
+| 4 | `public/build/` | Kompilasi aset frontend hasil build Vite terbaru. |
+
+---
+
+## 29. Perbaikan Bug Layout Footer Melayang ke Navbar Akibat Tag Div Penutup Ganda di Fitur Lembur Admin (`admin/lembur.blade.php`)
+
+### A. Gejala Bug
+* Pada halaman monitoring lembur admin (`/admin/lembur`), elemen footer (`© 2026 BPS Provinsi Jawa Tengah - Tim SID`) melayang ke pojok kanan atas layar sejajar dengan navbar di samping dropdown profil Admin Lembur.
+* Halaman-halaman fitur lainnya berjalan normal dengan footer tetap berada di bawah.
+
+### B. Akar Masalah (*Root Cause*)
+* Pada `resources/views/admin/lembur.blade.php` di dalam kontainer `#wrapSearchTim` baris 151-152, terdapat **dua tag penutup `</div>` yang bertumpuk** secara tidak sengaja:
+  ```blade
+  <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+      ...
+  </div>
+  </div> <!-- DUPLIKAT PENUTUP -->
+  ```
+* Tag penutup ekstra ini menggeser seluruh hierarki penutup div di bawahnya, sehingga kontainer `<main>` pada layout utama (`layouts/app.blade.php`) tertutup sebelum waktunya (*premature close*).
+* Akibatnya elemen `<footer>` yang berada setelah `<main>` tersedot masuk ke dalam struktur flex container navbar dan melayang di pojok kanan atas layar.
+
+### C. Solusi & Audit Menyeluruh
+1. **Penghapusan Div Duplikat (`resources/views/admin/lembur.blade.php`)**:
+   - Menghapus tag penutup `</div>` berlebih pada baris 152 sehingga struktur DOM kembali seimbang (Open: 110, Close: 110).
+2. **Audit Keseimbangan Tag Div Seluruh View Blade**:
+   - Melakukan penelusuran otomatis dengan script parser DOM ke seluruh berkas `.blade.php` di proyek.
+   - Merapikan dan menutup tag div container yang belum tertutup pada `resources/views/ketua-tim/lembur.blade.php`, `resources/views/akumulasi.blade.php`, `resources/views/admin/riwayat_presensi.blade.php`, dan `resources/views/login.blade.php`.
+   - Seluruh view di proyek kini 100% seimbang tanpa ada tag div yang bocor.
+3. **Hasil**: Footer kembali ke posisinya yang semestinya di bagian paling bawah halaman, berpusat di tengah dengan rapi di bawah tabel data.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/lembur.blade.php` | Menghapus tag penutup `</div>` duplikat di `#wrapSearchTim`, memulihkan posisi normal footer. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Menutup tag `</div>` kontainer utama sebelum modal. |
+| 3 | `resources/views/akumulasi.blade.php` | Menutup tag `</div>` pembungkus halaman sebelum tag script. |
+| 4 | `resources/views/admin/riwayat_presensi.blade.php` | Menutup tag `</div>` pembungkus tabel sebelum tag script. |
+| 5 | `resources/views/login.blade.php` | Menutup tag `</div>` grid container sebelum tag `</main>`. |
+
+---
+
+## 30. Penyempurnaan Filter Dropdown Bulan Default 'Filter Bulan' dan Tombol 'Semua Bulan' pada Halaman Generate Dokumen Admin (`admin/dokumen.blade.php`)
+
+### A. Latar Belakang & Masukan Pembimbing (Poin 2)
+* **Masukan Mentor/Pembimbing:**
+  > *"Krn ini pas baru dibuka halamannya tampil semua bulan, utk ini brrti kalau pertama kali buka page brrti dropdown ini bukan bulan berjalan, tapi mungkin 'Filter bulan'"*
+* Sebelumnya, saat admin pertama kali membuka menu **Admin $\rightarrow$ Generate Dokumen** (`/admin/dokumen`), tabel langsung menyajikan daftar arsip dokumen dari seluruh periode bulan yang ada di database. Namun, tombol dropdown periode di atas tabel justru menampilkan nama satu bulan berjalan (misal: "Okt 2026").
+* Hal ini menimbulkan kebingungan bagi pengguna (*misleading UX*), seolah-olah tabel hanya menampilkan data bulan berjalan padahal tabel menyajikan riwayat seluruh bulan.
+
+### B. Rincian Perubahan yang Diterapkan
+1. **Controller (`app/Http/Controllers/admin/DokumenViewController.php`)**:
+   - Membaca parameter query `$bulan = $request->get('bulan');`.
+   - Menghitung status filter `$isFiltered = !empty($bulan);`.
+   - Jika `$bulan` kosong (default saat pertama kali dibuka):
+     - Menampilkan seluruh data periode (`$allPeriode`) secara lengkap dengan paginasi 12 item per halaman.
+   - Jika `$bulan` diisi (misal `?bulan=2026-09`):
+     - Tabel hanya memfilter dan menampilkan baris data untuk bulan yang dipilih (`2026-09`).
+   - Meneruskan variabel `$bulan` dan `$isFiltered` ke view Blade `admin.dokumen`.
+
+2. **Antarmuka & Tombol Reset (`resources/views/admin/dokumen.blade.php`)**:
+   - **Label Tombol Dropdown Default**:
+     - Jika `$isFiltered` adalah `false`: teks label menampilkan **"Filter Bulan"**.
+     - Jika `$isFiltered` adalah `true`: teks label menampilkan nama bulan & tahun yang aktif (misal: **"Sep 2026"**).
+   - **Tombol Hapus Filter Cepat `(×)`**:
+     - Ditambahkan di samping kanan tombol dropdown periode hanya ketika filter aktif (`@if($isFiltered)`).
+     - Mengklik tombol silang `(×)` akan mereset halaman ke `route('admin.dokumen')` tanpa parameter query sehingga seluruh bulan kembali ditampilkan.
+   - **Tombol "Semua Bulan" di Panel Kalender Dropdown**:
+     - Di bagian bawah panel picker ditambahkan opsi **"Semua Bulan"** berdampingan dengan opsi "Bulan ini".
+     - Mengklik "Semua Bulan" akan langsung mengarahkan pengguna kembali ke tampilan seluruh periode.
+   - **Status Seleksi Bulan**:
+     - Jika filter belum aktif, tidak ada tombol bulan di grid kalender yang diberi latar oranye pekat/terpilih (`isSel`). Bulan saat ini tetap diberi penanda garis tepi (*outline*) halus sebagai referensi waktu.
+     - Ketika pengguna mengklik salah satu bulan, halaman langsung diarahkan ke `?bulan=YYYY-MM`.
+   - **Empty State Tabel**:
+     - Menggunakan `@forelse` dan `@empty` sehingga jika periode tertentu belum memiliki SPKL maupun Laporan lembur, tabel menyajikan pesan informatif: *"Tidak ada dokumen atau transaksi lembur untuk periode yang dipilih."*
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/admin/DokumenViewController.php` | Mendukung penyaringan opsional `bulan`, passing boolean flag `isFiltered`. |
+| 2 | `resources/views/admin/dokumen.blade.php` | Label default "Filter Bulan", tombol reset `(×)`, tombol "Semua Bulan", penyesuaian JS picker, dan empty state tabel. |
+
+---
+
+## 31. Optimalisasi Responsif Mobile: Perbaikan Batasan Tinggi & Scrolling Sidebar Drawer pada Layar Smartphone (`partials/sidebar.blade.php` & `app.css`)
+
+### A. Gejala Bug di Layar HP
+* Saat aplikasi diakses menggunakan smartphone / layar mobile (lebar $< 1024\text{px}$), menu sidebar samping (drawer) yang dibuka melalui tombol hamburger tidak menampilkan seluruh daftar menu.
+* Terutama pada akun Administrator/Superadmin yang memiliki 13 menu navigasi (Dashboard s.d. Pejabat), menu-menu di bagian bawah (Pengguna, Tim, Tarif, Pejabat) terpotong dan berada di luar layar ponsel.
+* Pengguna tidak dapat menggulir/menggeser (*scrolling*) sidebar drawer tersebut ke bawah, sedangkan pada perangkat desktop/laptop navigasi berjalan normal.
+
+### B. Akar Masalah (*Root Cause*)
+1. **Ketiadaan Batasan Tinggi Viewport**:
+   - Elemen `<aside id="main-sidebar">` sebelumnya hanya menggunakan class `min-h-screen` tanpa batasan tinggi maksimal atau pasti (`h-screen`, `h-[100dvh]`, `max-h-screen`).
+   - Karena tingginya bersifat dinamis (`height: auto`), elemen `<aside>` memanjang vertikal melebihi tinggi layar smartphone (misal menjadi 950px pada layar ponsel yang tingginya 650px).
+2. **Kegagalan Aktivasi Overflow Flexbox**:
+   - Di dalam CSS Flexbox, elemen anak `<nav>` memiliki default `min-height: auto`. Tanpa deklarasi `min-h-0`, `<nav>` tidak akan menciut di bawah ukuran kontennya.
+   - Karena kontainer `<aside>` membesar mengikuti konten dan `<nav>` tidak dibatasi, mekanisme `overflow-y-auto` tidak pernah aktif. Bagian bawah sidebar yang berada di bawah layar ponsel pun terpotong dan tidak dapat di-scroll.
+
+### C. Solusi yang Diterapkan
+1. **Pembatasan Tinggi Viewport Presisi (`resources/views/partials/sidebar.blade.php`)**:
+   - Menambahkan class `h-screen h-[100dvh] max-h-screen max-h-[100dvh]` pada elemen `<aside>`:
+     - `h-[100dvh]` memastikan drawer secara presisi mengikuti tinggi dinamis layar ponsel (menyesuaikan saat address bar peramban Safari iOS / Chrome Android muncul/hilang).
+     - Menjaga `lg:sticky top-0 lg:translate-x-0` sehingga layout desktop tidak berubah sedikit pun.
+2. **Header Logo & Tombol Close Kebal Penciutan (`shrink-0`)**:
+   - Menambahkan class `shrink-0` pada kontainer brand logo dan tombol silang `(X)` agar proporsi logo tetap stabil dan tidak tertekan saat menu dibuka di ponsel layar kecil.
+3. **Penyusutan Kontainer Navigasi & Momentum Scrolling (`min-h-0` & `.sidebar-scroll`)**:
+   - Menambahkan class `min-h-0` pada `<nav>` sehingga flex child diizinkan menyusut dan memicu scroll internal saat menu lebih tinggi dari layar ponsel.
+   - Menambahkan padding bawah ekstra `pb-16 lg:pb-6` agar menu paling akhir memiliki ruang gerak yang nyaman dan tidak tertutup gesture bar navigasi ponsel.
+   - Menambahkan utility `.sidebar-scroll` dengan `-webkit-overflow-scrolling: touch`, `overscroll-behavior-y: contain`, dan custom dark scrollbar tipis di `resources/css/app.css`.
+4. **Penguncian Latar Belakang (*Backdrop Scroll Lock*)**:
+   - Saat drawer dibuka di HP (`openSidebar()`), menambahkan class `overflow-hidden` pada `document.body` agar halaman di belakang drawer tidak ikut bergeser secara tidak sengaja saat pengguna menggeser menu.
+   - Saat drawer ditutup (`closeSidebar()`), class `overflow-hidden` kembali dilepas otomatis.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/partials/sidebar.blade.php` | Batasan tinggi viewport `h-[100dvh]`, `min-h-0`, padding `pb-16`, cursor pointer tombol close, dan pengunci scroll body. |
+| 2 | `resources/css/app.css` | Penambahan utility styling dark sleek scrollbar `.sidebar-scroll` untuk kenyamanan sentuh mobile. |
+| 3 | `public/build/` | Kompilasi aset bundle produksi frontend terbaru hasil Vite build. |
+
+---
+
+## 32. Optimalisasi Responsif Mobile: Penyederhanaan Header, Swipeable Status Chips 1-Baris, dan Filter Accordion pada Halaman Lembur (`admin/lembur.blade.php`, `ketua-tim/lembur.blade.php`, `lembur.blade.php`, & `app.css`)
+
+### A. Latar Belakang & Masalah Tampilan Bertumpuk di Mobile
+* **Keluhan Tampilan:** Pada layar smartphone (iPhone / Android lebar $< 640\text{px}$), bagian atas halaman lembur terasa **sangat bertumpuk (*numpuk*)**:
+  1. Subjudul deskripsi memakan 2 baris vertikal.
+  2. Dua tombol aksi lebar (*Unduh Excel* dan *Ajukan Lembur*) berada di baris tersendiri.
+  3. Filter toolbar menyajikan 3 kotak input lebar 100% (*Semua Tanggal*, *Cari nama pegawai...*, dan *Cari nama tim...*) yang bertumpuk vertikal satu per satu.
+  4. Enam badge status (*Semua Status* s.d. *Dibatalkan*) membungkus (*wrap*) menjadi **3 baris bertumpuk**.
+* Akibatnya, sekitar **85% area layar ponsel habis termakan oleh kontrol filter dan header**, dan data tabel di bawahnya terdorong ke luar layar sehingga pengguna harus menggeser layar jauh ke bawah hanya untuk melihat data lembur.
+
+### B. Solusi Desain yang Diterapkan
+1. **Header Kompak & Penyesuaian Subjudul**:
+   - Subjudul panjang disembunyikan di mobile (`hidden sm:block`) dan hanya ditampilkan pada layar desktop.
+   - Ukuran tombol aksi disesuaikan menjadi `h-9 sm:h-10` dengan padding proporsional sehingga tetap ramah sentuhan tanpa membuang tinggi layar.
+   - Penyesuaian ini juga diterapkan seragam pada halaman `resources/views/ketua-tim/lembur.blade.php` dan `resources/views/lembur.blade.php`.
+2. **Badge Status Menjadi 1 Baris Geser (*Swipeable Chips*)**:
+   - Mengubah kontainer status badge menjadi `flex-nowrap overflow-x-auto no-scrollbar` dengan horizontal bleed `-mx-4 px-4 sm:mx-0 sm:px-0`.
+   - Menambahkan `shrink-0` dan `cursor-pointer` pada setiap tombol status.
+   - Di mobile, seluruh 6 badge status kini tersaji rapi dalam **1 baris horizontal** yang dapat digeser ke kiri/kanan dengan ibu jari secara mulus, menghemat lebih dari **80px** tinggi layar secara instan.
+3. **Filter Pencarian Pegawai & Tim Model Accordion (Bisa Buka-Tutup)**:
+   - Pada baris pertama di mobile, hanya disajikan tombol Tanggal dan sebuah tombol ringkas: **`[🔍 Cari (N) ▾]`**.
+   - Input `Cari nama pegawai...` dan `Cari nama tim...` dibungkus dalam kontainer collapsible yang dapat dibuka-tutup secara fleksibel melalui fungsi JavaScript `toggleMobileFilter()`.
+   - Jika filter pencarian sedang aktif (ada parameter `nip`, `search`, atau `tim`), kontainer filter otomatis terbuka dan tombol menampilkan badge jumlah filter aktif.
+   - **Tampilan Desktop Tetap 100% Terlindungi**: Pada layar desktop (`sm:`), kontainer menggunakan `sm:!flex sm:flex-row sm:items-center` dan tombol toggle disembunyikan (`sm:hidden`), sehingga susunan filter di komputer/laptop tetap sejajar 1 baris sama persis seperti sebelumnya.
+4. **Utilitas CSS**:
+   - Menambahkan utilitas `.no-scrollbar` dan `.scrollbar-none` di `resources/css/app.css` untuk menyembunyikan scrollbar visual pada chip geser horizontal.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/lembur.blade.php` | Header kompak, tombol accordion filter mobile, status pills 1-baris swipeable, dan script `toggleMobileFilter`. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Header kompak mobile (`hidden sm:block` pada subtitle). |
+| 3 | `resources/views/lembur.blade.php` | Header kompak mobile (`hidden sm:block` pada subtitle). |
+| 4 | `resources/css/app.css` | Utilitas `.no-scrollbar` dan `.scrollbar-none`. |
+| 5 | `public/build/` | Kompilasi bundel aset produksi Vite terbaru. |
+
+---
+
+## 33. Optimalisasi Responsif Mobile: Implementasi Dropdown Filter Status Khusus Mobile & Proteksi Penuh Layout Desktop (`admin/lembur.blade.php` & `app.css`)
+
+### A. Latar Belakang & Masalah Tumpukan Status di Layar HP
+* **Masalah Tumpukan 5 Baris di Mobile Safari/Android:**
+  - Meskipun filter pencarian telah diringkas menggunakan sistem accordion, pada layar smartphone sempit, ke-6 badge status (*Semua Status*, *Menunggu Kabag*, *Menunggu Ketua*, *Disetujui*, *Ditolak*, *Dibatalkan*) membungkus (*wrap*) menjadi **5 baris bertumpuk**.
+  - Tumpukan 5 baris tombol status tersebut memakan area vertikal sangat besar (~200px), sehingga tabel data lembur terdorong jauh ke bawah dan layar ponsel terasa sangat penuh / sesak.
+  - Selain itu, aturan CSS global tabel kustom pada class `.overflow-x-auto` menimpa properti Flexbox menjadi `display: block`, yang menyebabkan tombol-tombol badge turun baris seperti teks biasa.
+
+### B. Solusi Desain yang Diterapkan
+1. **Dropdown Filter Status Khusus Mobile (`sm:hidden`)**:
+   - Di layar mobile smartphone ($< 640\text{px}$), 6 badge status digantikan dengan **1 tombol dropdown kompak** berukuran tinggi 40px:
+     - Menampilkan indikator titik warna (*status dot*), label status aktif, dan lencana angka (*badge counter*) jumlah pengajuan terkini (misal: `[ 🏷️ Status: Semua Status (21) ▾ ]`, `[ 🔵 Status: Menunggu Kabag (3) ▾ ]`, dsb.).
+     - Saat tombol disentuh/tap, muncul menu popup vertikal elegan dengan latar putih, batas halus, bayangan mendalam, dan pemisah garis lembut yang memuat seluruh 6 pilihan status lengkap dengan animasi pulsing dot dan angka counter masing-masing.
+     - Memilih salah satu opsi akan langsung memicu fungsi `selectStatus(status)` dan memperbarui data tabel lembur secara otomatis.
+   - **Perbaikan Race Condition Sentuh / Klik**: Menyematkan `e.stopPropagation()` pada pemicu dropdown dan `e.target.closest('#mobileStatusDropdownWrapper')` pada listener penutup luar untuk mencegah *race condition* di peramban mobile (seperti Safari iOS) yang sempat menutup menu seketika pada saat dibuka. Mengangkat stacking context wrapper ke `z-30` dan menu ke `z-50` agar tidak tertutup kontainer tabel.
+2. **Proteksi Utuh Layout Desktop (`hidden sm:flex`)**:
+   - Pada layar desktop/laptop ($\ge 640\text{px}$), dropdown mobile otomatis disembunyikan (`sm:hidden`).
+   - Tampilan filter status pada komputer/laptop **tetap 100% menggunakan susunan Badge Pills warna-warni horizontal asli** (`hidden sm:flex`) tanpa perubahan tampilan sedikit pun.
+3. **Perbaikan Konflik CSS Flexbox (`resources/css/app.css`)**:
+   - Memodifikasi aturan selektor kustom tabel dari `.overflow-x-auto` menjadi `.overflow-x-auto:not(.flex):not(.inline-flex)`.
+   - Menambahkan pengecualian `:not(.no-scrollbar):not(.scrollbar-none)` pada pseudoelemen `::-webkit-scrollbar` agar utilitas scrollbar tipis tidak mengganggu kontainer flexbox horizontal di halaman mana pun.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/lembur.blade.php` | Implementasi tombol trigger & popup menu dropdown status mobile (`sm:hidden`), pemisahan badge pills desktop (`hidden sm:flex`), penanganan stopPropagation, pointer-events, dan fungsi JS `toggleMobileStatusDropdown`. |
+| 2 | `resources/css/app.css` | Isolasi styling tabel agar tidak menimpa flexbox `.overflow-x-auto:not(.flex):not(.inline-flex)` dan perbaikan `.no-scrollbar`. |
+| 3 | `public/build/` | Hasil kompilasi bundel aset produksi frontend terbaru dari Vite. |
+
+---
+
+## 34. Optimalisasi Responsif Mobile: Desain Banner Hero Dashboard Horizontal Ramping & Proteksi Layout Desktop (`admin/dashboard`, `dashboard`, `ketua-tim/dashboard`, `pimpinan/dashboard`)
+
+### A. Latar Belakang & Keluhan Pengguna
+* **Tampilan Banner Menumpuk & Terlalu Tinggi di HP:**
+  - Pada layar smartphone/mobile, banner kartu kuning hero sapaan (*"Selamat Datang, Admin Lembur"*) tersusun secara vertikal bertumpuk (*flex-col*): teks sapaan besar di atas dan gambar ilustrasi meja/komputer berada di bawahnya.
+  - Ditambah padding dalam yang tebal (`py-10`) dan margin luar (`py-8`), kartu hero tersebut membengkak hingga tingginya mencapai **~450px**, memakan lebih dari **55% tinggi layar ponsel**.
+  - Akibatnya, kartu metrik statistik pengajuan (*Total pengajuan*, *Diproses*, *Disetujui*, *Ditolak*) terdorong ke luar batas layar bawah (*below the fold*) sehingga pengguna terpaksa scroll jauh untuk melihat data ringkasan.
+
+### B. Solusi Desain yang Diterapkan (Opsi 1: Banner Horizontal Ramping)
+1. **Transformasi Layout Horizontal Sejajar di Layar HP (`flex-row`)**:
+   - Di mobile, susunan elemen diubah dari vertikal menjadi **horizontal berdampingan** (`flex-row items-center justify-between`):
+     - **Sisi Kiri (~70% lebar)**: Menyajikan lencana sapaan manis `[ 👋 Selamat Datang ]`, nama pengguna dengan tipografi proporsional tebal (`text-base` s.d. `text-xl`), dan subjudul ringkas `text-[11px]`.
+     - **Sisi Kanan (~30% lebar)**: Menampilkan gambar ilustrasi SVG berukuran manis dan proporsional (`max-w-[92px]`), menyatu harmonis di samping teks.
+2. **Pengurangan Tinggi Drastis (~70% Lebih Ramping)**:
+   - Tinggi kartu hero di mobile berhasil dipangkas dari ~450px menjadi **hanya ~110px**!
+   - Hasilnya, **kartu metrik statistik pengajuan (Total, Diproses, Disetujui, Ditolak) langsung tampil jelas di layar pertama smartphone tanpa perlu scroll**.
+3. **Penyempurnaan Visual & Estetika**:
+   - Latar belakang kuning diubah menjadi gradasi hangat modern (*warm gradient*: `bg-gradient-to-r from-[#faa938] via-[#f9b800] to-[#f59e0b]`) dengan sudut membulat modern `rounded-2xl` dan bayangan lembut.
+   - Menggunakan `overflow-hidden` di mobile agar grafis tetap rapi di dalam batas kartu.
+4. **Proteksi Penuh Layout Desktop (100% Utuh)**:
+   - Pada layar laptop/desktop (`lg:`), seluruh kelas desktop lama dipertahankan secara presisi: `lg:flex-row lg:rounded-[30px] lg:px-8 lg:py-12 lg:overflow-visible`, teks `lg:text-3xl`, dan gambar ilustrasi besar melayang `lg:absolute lg:right-0 lg:-top-12 lg:max-w-[460px]`.
+   - Tampilan di desktop sama sekali tidak berubah dan tetap 100% identik dengan desain aslinya.
+5. **Penerapan Seragam di Seluruh Role**:
+   - Diterapkan merata pada 4 view dashboard: `admin/dashboard.blade.php`, `dashboard.blade.php` (Pegawai), `ketua-tim/dashboard.blade.php`, dan `pimpinan/dashboard.blade.php`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/dashboard.blade.php` | Banner hero horizontal ramping di mobile (`flex-row`, `max-w-[92px]`, badge sapaan, tinggi ~110px) dan proteksi layout desktop `lg:`. |
+| 2 | `resources/views/dashboard.blade.php` | Hero horizontal kompak mobile pada dashboard Pegawai. |
+| 3 | `resources/views/ketua-tim/dashboard.blade.php` | Hero horizontal kompak mobile pada dashboard Ketua Tim. |
+| 4 | `resources/views/pimpinan/dashboard.blade.php` | Hero horizontal kompak mobile pada dashboard Pimpinan. |
+| 5 | `public/build/` | Hasil kompilasi bundel aset produksi frontend terbaru dari Vite. |
+
+---
+
+## 35. Penyempurnaan Dropdown Status Filter Mobile: Desain Custom Popup Modern dengan Tipografi Inter & Event Handler Anti-Double-Toggle (`admin/lembur`)
+
+### A. Latar Belakang & Masalah
+1. **Double Event Invocation pada Kode Lama**:
+   - Tombol lama memiliki event inline `onclick="... toggleMobileStatusDropdown(event);"` sekaligus listener runtime di `DOMContentLoaded`: `btnMobile.addEventListener('click', ...)`.
+   - Akibatnya, saat disentuh di layar ponsel, fungsi terpanggil 2 kali berturut-turut dalam hitungan mikrosekon (panggilan 1 membuka menu, panggilan 2 langsung menutupnya kembali sehingga menu tampak tidak terbuka).
+2. **Keterbatasan Native `<select>` pada Desktop Emulation & Browser Tertentu**:
+   - Solusi native `<select>` menghasilkan menu pemilih bawaan OS (pada Chromium Windows/Device mode menampilkan font win32 default yang kaku, tidak serasi dengan font Inter / Plus Jakarta Sans, dan tidak memiliki estetika modern seperti indikator status atau counter badge).
+
+### B. Solusi Teknikal yang Diterapkan: *Custom Styled Mobile Popup Dropdown*
+1. **Desain Popup Khusus Tipografi Modern & Elegan**:
+   - Menu dropdown kustom dengan sudut membulat manis `rounded-2xl`, bayangan mendalam `shadow-xl`, batas halus `border border-gray-200`, dan pembagi garis tipis `divide-y divide-gray-50`.
+   - Tipografi menggunakan font sans-serif konsisten dengan hierarki teks yang rapi (`text-xs font-semibold`).
+   - Setiap pilihan status menyajikan:
+     - **Titik status dinamis**: animasi pulsing dot `animate-ping` untuk status *Menunggu Kabag* & *Menunggu Ketua*, serta dot solid untuk status lainnya.
+     - **Badge Counter**: menampilkan jumlah pengajuan real-time (misal `21`, `3`, `7`, `6`, `5`, `0`) dalam badge bundar berkontras tinggi.
+     - **Active Highlight State**: status yang sedang aktif disorot dengan warna penuh (misal `bg-slate-900 text-white`, `bg-blue-600 text-white`, dsb.).
+2. **Arsitektur Event Handler Bersih & Stabil (*Zero Double-Toggle*)**:
+   - Tombol `#btnMobileStatus` kini **hanya memiliki 1 event listener tunggal** di JavaScript (tanpa inline `onclick`), menghilangkan potensi double trigger secara permanen.
+   - Menggunakan `e.stopPropagation()` pada tombol trigger agar klik tidak langsung memicu penutupan dokumen.
+   - Penutupan klik luar menggunakan pengujian node kontainer `wrapperMobileStatus.contains(e.target)` yang bersih dan bebas konflik touch.
+3. **Proteksi Layout Desktop**:
+   - Layout desktop tetap 100% menggunakan tombol Badge Pills horizontal bawaan (`hidden sm:flex`).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/lembur.blade.php` | Implementasi menu kustom popup `#menuMobileStatus` dengan tipografi modern, badge counter, indikator pulsing dot, dan event listener tunggal anti-double-click. |
+| 2 | `public/build/` | Hasil kompilasi bundel aset frontend produksi Vite terbaru. |
+
+---
+
+## 36. Optimalisasi Filter Mobile Halaman Persetujuan Kabag Umum: Metode Isolasi Penuh (*Full Isolation Block*) & Tata Letak 2 Kolom Berdampingan 50%-50% (`kabag-umum/pengajuan`)
+
+### A. Latar Belakang & Prinsip Utama
+1. **Mandat Perlindungan Tampilan Desktop (0% Perubahan Visual)**:
+   - Tampilan web/desktop (MacBook/PC monitor) **wajib tetap 100% utuh tanpa perubahan sekecil apa pun**.
+   - Sebelumnya, penggabungan elemen desktop dan mobile ke dalam kontainer grid responsif yang sama (`grid grid-cols-2 ... sm:flex`) sempat mempengaruhi perilaku *line wrapping* tab status dan kotak pencarian pada resolusi layar tertentu.
+2. **Solusi Mutlak: Metode Isolasi Penuh (*Full Isolation Block*)**:
+   - Untuk menjamin kepastian bahwa kode desktop tidak berubah sama sekali, toolbar dipisahkan secara fisik menjadi 2 blok independen:
+     - **Blok 1 (Desktop Only - `hidden sm:flex`)**: Mempertahankan seluruh markup HTML asli bawaan repositori secara 100% utuh tanpa mengubah satu pun kelas, tag, maupun hierarki flexbox di dalamnya.
+     - **Blok 2 (Mobile Only - `block sm:hidden`)**: Blok mandiri khusus yang hanya dirender oleh browser saat layar berukuran `< 640px` (smartphone).
+3. **Kebutuhan Pengguna pada Layar Ponsel**:
+   - Mengubah tab status horizontal yang panjang menjadi tombol dropdown ramping dan elegan.
+   - Menggunakan tata letak **Opsi A: 1 Baris Berdampingan (50% Bulan, 50% Status)** yang hemat ruang dan simetris, diikuti kotak pencarian pegawai selebar layar penuh di baris kedua.
+
+### B. Implementasi Teknikal
+1. **Blok Toolbar Desktop (`hidden sm:flex`)**:
+   - Menjalankan *rendering* identik dengan kode aslinya pada layar laptop/PC monitor.
+   - Tidak ada pergeseran posisi tombol bulan, deretan tab status horizontal abu-abu (`Semua`, `Menunggu Kabag`, `Disetujui`, `Ditolak`, `Dibatalkan`), maupun kotak pencarian pegawai.
+2. **Blok Toolbar Mobile (`block sm:hidden`)**:
+   - **Baris 1 (Grid 2 Kolom 50% - 50%)**:
+     - Kolom Kiri: Tombol Filter Periode Bulan (`#periodBtnMobile`) dengan panel pemilih kalender modal popup (`#periodPanelMobile`).
+     - Kolom Kanan: Tombol Filter Status Mobile (`#btnKabagMobileStatus`) dengan popup dropdown kustom (`#menuKabagMobileStatus`).
+   - **Baris 2**: Kotak pencarian pegawai mobile (`#searchPegawaiMobile`) dengan tombol hapus (`#clearSearchBtnMobile`).
+3. **Pemisahan ID Elemen & Sinkronisasi JavaScript (*Zero Collision*)**:
+   - Seluruh ID elemen mobile memiliki akhiran khusus (`*Mobile`) agar tidak terjadi konflik pemanggilan *DOM node* dengan elemen desktop.
+   - Fungsi `filterTableRows()` dan `clearSearchInput()` diselaraskan untuk membaca nilai dari input yang sedang aktif (desktop atau mobile) secara otomatis.
+   - Logika pemilih periode bulan menggunakan inisialisasi terisolasi `initPeriodPicker()` untuk desktop dan mobile secara terpisah.
+   - Tombol status mobile dan tombol bulan mobile saling menutup satu sama lain (*mutual close*) saat dibuka agar tidak terjadi tumpang-tindih visual di layar ponsel.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/kabag-umum/pengajuan.blade.php` | Implementasi metode isolasi penuh (*Full Isolation*): Toolbar desktop asli (`hidden sm:flex`) 100% utuh, Toolbar mobile 2 kolom (`block sm:hidden`), serta sinkronisasi script pencarian & dropdown status mobile. |
+| 2 | `public/build/` | Hasil kompilasi bundel aset produksi Vite terbaru (`app-9gWrLdJH.css`). |
+
+---
+
+## 37. Redesain Hero Banner Dashboard (*Zero Collision Layout*, Estetika Amber Elegan, dan Responsivitas Penuh Mobile-Desktop)
+
+### A. Latar Belakang & Masalah
+1. **Masalah Tumpang-Tindih Teks & Ilustrasi (*Visual Collision*) pada Layar Laptop/MacBook**:
+   - Struktur banner lama menggunakan *hardcoded absolute positioning* (`lg:absolute lg:-right-6` atau `lg:right-0` dengan `style="top: -48px"` dan lebar tetap `lg:max-w-[450px]` serta padding kanan paksa `lg:pr-[420px]`).
+   - Pada resolusi laptop umum (MacBook Air / layar 13–14 inci dengan lebar 1024px–1366px serta sidebar 240px), ruang konten efektif hanya tersisa ~750px–850px.
+   - Akibatnya, ilustrasi meja kantor selebar 450px bertabrakan langsung dan menimpa teks paragraf deskripsi serta nama pegawai (*unintended text overlap*).
+2. **Kebutuhan Estetika Modern & Elegan**:
+   - Tampilan banner sebelumnya dirasa pengguna terlalu datar dan kurang elegan, dengan badge teks yang kaku dan kontras yang kurang seimbang.
+   - Pengguna meminta banner diubah menjadi lebih cantik, elegan, proporsional, serta disesuaikan sempurna untuk mobile maupun desktop tanpa merusak elemen ikon bawaan.
+
+### B. Solusi Teknikal & Implementasi Arsitektur
+1. **Arsitektur Flexbox Terisolasi (*Zero Collision Guarantee*)**:
+   - Menghapus posisi `absolute` yang rentan menimpa elemen lain.
+   - Menggantinya dengan **tata letak dua kolom Flexbox murni dalam aliran dokumen alami** (`flex flex-row items-center sm:items-end justify-between gap-3 sm:gap-6 lg:gap-8`):
+     - **Kolom Kiri (Teks)**: Menggunakan `flex-1 min-w-0` sehingga teks memiliki area bounded mandiri, dapat membungkus secara natural, dan tidak pernah terdesak oleh gambar.
+     - **Kolom Kanan (Ilustrasi)**: Menggunakan `shrink-0` dengan batasan lebar proporsional (`max-w-[32%] xs:max-w-[36%] sm:max-w-[40%] lg:max-w-[340px] xl:max-w-[380px]`).
+   - Dengan jarak pembatas `gap` otomatis antar flex-item, **secara fisik mustahil bagi ilustrasi untuk menimpa teks pada resolusi layar berapa pun**, baik ponsel sempit (360px) maupun layar laptop (1280px).
+2. **Estetika Warna Amber & Ambient Lighting Glow**:
+   - Mempertahankan identitas warna emas-oranye sistem (`bg-gradient-to-r from-[#faa938] via-[#f9b800] to-[#f59e0b]`).
+   - Menambahkan ornamen pencahayaan ambient melayang di sudut kartu (`bg-white/20 blur-2xl` di sudut kanan atas dan `bg-amber-700/10 blur-xl` di sudut kiri bawah) untuk menciptakan kedalaman visual (*layer depth*) yang mewah.
+   - Menghapus garis batas hitam tegas; kartu kini menggunakan bayangan lembut yang elegan (`shadow-sm`) dan sudut membulat modern (`rounded-2xl lg:rounded-[28px]`).
+3. **Penyempurnaan Badge "👋 Selamat Datang" & Tipografi**:
+   - Badge menyapa menggunakan *frosted glass pill* semi-transparan (`bg-white/35 backdrop-blur-md ring-1 ring-white/40 shadow-xs`) lengkap dengan ikon tangan melambai `👋`.
+   - Ukuran font judul dioptimalkan (`text-base sm:text-xl lg:text-2xl xl:text-3xl font-extrabold text-slate-950`) agar nama lengkap dengan gelar akademik dapat tertata rapi dalam 1 baris di layar laptop/MacBook dan membungkus fleksibel di layar ponsel.
+4. **Efek 3D Artistik Meja Kantor (*Breakout Illustration*) di Desktop**:
+   - Di layar desktop/laptop (`lg:`), ilustrasi diposisikan menapak di dasar kartu (`items-end`) dengan catatan memo kuning di atas monitor sedikit menonjol ke atas batas kartu (`lg:-mt-10 lg:-mb-4`), memberikan kesan kedalaman 3D modern tanpa mengganggu tata letak teks di sebelahnya.
+   - Di layar ponsel, ilustrasi secara otomatis berskala proporsional dan tersimpan rapi di dalam kartu (`overflow-hidden`).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/dashboard.blade.php` | Redesain hero banner Dashboard Pegawai dengan flexbox anti-tabrakan, ambient lighting glow, badge frosted glass, dan tipografi adaptif. |
+| 2 | `resources/views/admin/dashboard.blade.php` | Redesain hero banner Dashboard Admin dengan arsitektur anti-tabrakan yang identik. |
+| 3 | `resources/views/ketua-tim/dashboard.blade.php` | Redesain hero banner Dashboard Ketua Tim dengan arsitektur anti-tabrakan yang identik. |
+| 4 | `resources/views/pimpinan/dashboard.blade.php` | Redesain hero banner Dashboard Pimpinan dengan arsitektur anti-tabrakan yang identik. |
+| 5 | `public/build/` | Hasil kompilasi bundel aset produksi Vite terbaru (`app-Bjr7u1DZ.css`). |
 
 
 
