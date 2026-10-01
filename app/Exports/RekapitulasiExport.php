@@ -24,17 +24,31 @@ class RekapitulasiExport implements FromCollection, WithHeadings, WithTitle, Wit
     public function collection()
     {
         $bulan = $this->params['bulan'] ?? now()->format('Y-m');
+        $nip   = $this->params['nip_lama'] ?? null;
+        $jenis = $this->params['jenis'] ?? null;
         [$tahun, $bln] = explode('-', $bulan);
 
         $this->koreksiUntukBulan((int) $tahun, (int) $bln);
 
-        $transaksi = DB::table('t_transaksi as t')
+        $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->where('t.status', 'approved')
             ->where('t.eligible', 1) 
             ->whereYear('t.date', $tahun)
             ->whereMonth('t.date', $bln)
-            ->select('p.nip_lama', 't.date', 't.hari', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui')
+            ->when($nip, fn($q) => $q->where('p.nip_lama', $nip));
+
+        if ($jenis === 'pns') {
+            $query->where(function ($q) {
+                $q->whereNull('p.email')
+                  ->orWhere('p.email', '')
+                  ->orWhere('p.email', 'not like', '%-pppk@bps.go.id');
+            });
+        } elseif ($jenis === 'pppk') {
+            $query->where('p.email', 'like', '%-pppk@bps.go.id');
+        }
+
+        $transaksi = $query->select('p.nip_lama', 't.date', 't.hari', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui')
             ->orderBy('p.nip_lama')
             ->orderBy('t.date')
             ->get();
@@ -89,6 +103,9 @@ class RekapitulasiExport implements FromCollection, WithHeadings, WithTitle, Wit
 
     public function title(): string
     {
+        $jenis = $this->params['jenis'] ?? null;
+        if ($jenis === 'pns') return 'Rekapitulasi PNS';
+        if ($jenis === 'pppk') return 'Rekapitulasi PPPK';
         return 'Rekapitulasi';
     }
 

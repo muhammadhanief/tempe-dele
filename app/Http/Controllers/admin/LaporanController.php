@@ -26,9 +26,8 @@ class LaporanController extends Controller
                 't.jam_mulai_disetujui', 't.jam_selesai_disetujui',
                 'mt.kode_tim', 'mt.nama_tim'
             )
-            ->orderBy('mt.kode_tim')
-            ->orderBy('p.nama')
-            ->orderBy('t.date');
+            ->orderBy('t.date', 'asc')
+            ->orderBy('p.nama', 'asc');
 
         // Filter tim
         if ($request->filled('tim')) {

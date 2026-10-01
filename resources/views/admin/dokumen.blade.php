@@ -357,6 +357,45 @@
                     </p>
                 </div>
 
+                {{-- Penandatangan SPKL Dinamis --}}
+                <div class="space-y-3 pt-1 border-t border-gray-100">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">
+                            Kepala Bagian Umum <span class="text-gray-400 font-normal">(Penandatangan Kanan)</span>
+                        </label>
+                        <select name="kbu" id="selectKbuSpkl"
+                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-gray-900 bg-white">
+                            @if(isset($semuaKbu) && $semuaKbu->count() > 0)
+                                @foreach($semuaKbu as $sk)
+                                    <option value="{{ $sk->id_pejabat }}" {{ ($kbu && $kbu->id_pejabat == $sk->id_pejabat) ? 'selected' : '' }}>
+                                        {{ $sk->nama }} {{ $sk->status === 'aktif' ? '(Aktif)' : '(Nonaktif - Periode ' . ($sk->tahun ?? '-') . ')' }}
+                                    </option>
+                                @endforeach
+                            @elseif($kbu)
+                                <option value="{{ $kbu->id_pejabat }}" selected>{{ $kbu->nama }} (Aktif)</option>
+                            @endif
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">
+                            Pejabat Pembuat Komitmen / PPK <span class="text-gray-400 font-normal">(Penandatangan Kiri)</span>
+                        </label>
+                        <select name="ppk" id="selectPpkSpkl"
+                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-gray-900 bg-white">
+                            @if(isset($semuaPpk) && $semuaPpk->count() > 0)
+                                @foreach($semuaPpk as $sp)
+                                    <option value="{{ $sp->id_pejabat }}" {{ ($ppk && $ppk->id_pejabat == $sp->id_pejabat) ? 'selected' : '' }}>
+                                        {{ $sp->nama }} {{ $sp->status === 'aktif' ? '(Aktif)' : '(Nonaktif - Periode ' . ($sp->tahun ?? '-') . ')' }}
+                                    </option>
+                                @endforeach
+                            @elseif($ppk)
+                                <option value="{{ $ppk->id_pejabat }}" selected>{{ $ppk->nama }} (Aktif)</option>
+                            @endif
+                        </select>
+                    </div>
+                </div>
+
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
                     <button type="button" onclick="closeModalNomor()"
                         class="w-full sm:w-auto px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
@@ -453,6 +492,45 @@
                             <input type="radio" name="modalFormat" value="xlsx" class="accent-[#faa938]">
                             <span class="text-sm text-gray-700">XLSX</span>
                         </label>
+                    </div>
+                </div>
+
+                {{-- Penandatangan Dokumen Dinamis --}}
+                <div class="space-y-3 pt-2 border-t border-gray-100">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">
+                            Kepala Bagian Umum
+                        </label>
+                        <select id="selectKbuGenerate"
+                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-gray-900 bg-white">
+                            @if(isset($semuaKbu) && $semuaKbu->count() > 0)
+                                @foreach($semuaKbu as $sk)
+                                    <option value="{{ $sk->id_pejabat }}" {{ ($kbu && $kbu->id_pejabat == $sk->id_pejabat) ? 'selected' : '' }}>
+                                        {{ $sk->nama }} {{ $sk->status === 'aktif' ? '(Aktif)' : '(Nonaktif - ' . ($sk->tahun ?? '-') . ')' }}
+                                    </option>
+                                @endforeach
+                            @elseif($kbu)
+                                <option value="{{ $kbu->id_pejabat }}" selected>{{ $kbu->nama }} (Aktif)</option>
+                            @endif
+                        </select>
+                    </div>
+
+                    <div id="wrapperPpkGenerate">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">
+                            Pejabat Pembuat Komitmen / PPK <span class="text-gray-400 font-normal">(Khusus SPKL)</span>
+                        </label>
+                        <select id="selectPpkGenerate"
+                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-gray-900 bg-white">
+                            @if(isset($semuaPpk) && $semuaPpk->count() > 0)
+                                @foreach($semuaPpk as $sp)
+                                    <option value="{{ $sp->id_pejabat }}" {{ ($ppk && $ppk->id_pejabat == $sp->id_pejabat) ? 'selected' : '' }}>
+                                        {{ $sp->nama }} {{ $sp->status === 'aktif' ? '(Aktif)' : '(Nonaktif - ' . ($sp->tahun ?? '-') . ')' }}
+                                    </option>
+                                @endforeach
+                            @elseif($ppk)
+                                <option value="{{ $ppk->id_pejabat }}" selected>{{ $ppk->nama }} (Aktif)</option>
+                            @endif
+                        </select>
                     </div>
                 </div>
 
@@ -676,12 +754,27 @@
         document.body.classList.remove('overflow-hidden');
     };
 
+    // Listener sembunyikan/tampilkan PPK saat jenis dokumen diubah
+    const selectDok = document.getElementById('selectDok');
+    const wrapperPpkGenerate = document.getElementById('wrapperPpkGenerate');
+    if (selectDok && wrapperPpkGenerate) {
+        selectDok.addEventListener('change', function () {
+            if (this.value === 'laporan') {
+                wrapperPpkGenerate.classList.add('hidden');
+            } else {
+                wrapperPpkGenerate.classList.remove('hidden');
+            }
+        });
+    }
+
     window.nextStep = function () {
         const bulan = document.getElementById('selectBulan').value;
         const tahun = document.getElementById('inputTahun').value;
         const dok = document.getElementById('selectDok').value;
         const jenis = document.querySelector('input[name="modalJenis"]:checked').value;
         const format = document.querySelector('input[name="modalFormat"]:checked').value;
+        const kbu = document.getElementById('selectKbuGenerate') ? document.getElementById('selectKbuGenerate').value : '';
+        const ppk = document.getElementById('selectPpkGenerate') ? document.getElementById('selectPpkGenerate').value : '';
 
         if (!bulan || !tahun) {
             alert('Pilih bulan dan isi tahun dulu!');
@@ -698,21 +791,32 @@
         closeModalGenerate();
 
         if (dok === 'spkl') {
-            openModalNomor(periodeValue, jenis, format);
+            openModalNomor(periodeValue, jenis, format, kbu, ppk);
         } else {
-            window.location.href = `{{ url('admin/dokumen/generate/laporan') }}/${jenis}?bulan=${periodeValue}&format=${format}`;
+            let url = `{{ url('admin/dokumen/generate/laporan') }}/${jenis}?bulan=${periodeValue}&format=${format}`;
+            if (kbu) {
+                url += `&kbu=${encodeURIComponent(kbu)}`;
+            }
+            window.location.href = url;
         }
     };
 
     // =====================
     // MODAL NOMOR SURAT
     // =====================
-    window.openModalNomor = function (periode, jenis, format) {
+    window.openModalNomor = function (periode, jenis, format, kbu, ppk) {
         const parts = periode.split('-');
 
         document.getElementById('inputBulanSpkl').value = periode;
         document.getElementById('inputJenisSpkl').value = jenis;
         document.getElementById('inputFormatSpkl').value = format;
+
+        if (kbu && document.getElementById('selectKbuSpkl')) {
+            document.getElementById('selectKbuSpkl').value = kbu;
+        }
+        if (ppk && document.getElementById('selectPpkSpkl')) {
+            document.getElementById('selectPpkSpkl').value = ppk;
+        }
 
         document.getElementById('labelPeriodeSpkl').textContent = bulanNama[+parts[1]] + ' ' + parts[0];
         document.getElementById('labelJenisSpkl').textContent = jenis.toUpperCase();
