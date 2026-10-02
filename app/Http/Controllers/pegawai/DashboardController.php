@@ -11,31 +11,37 @@ class DashboardController extends Controller
     public function index()
     {
         $nip       = session('user')['nip'];
-        $bulanIni  = Carbon::now()->month;
+        $nipLama   = session('user')['nip_lama'] ?? null;
         $tahunIni  = Carbon::now()->year;
         $hariIni   = Carbon::today();
         $sekarang  = Carbon::now();
 
-        // --- Statistik pengajuan bulan ini milik pegawai ---
+        $nipFilter = function($q) use ($nip, $nipLama) {
+            $q->where('submitted_by_NIP', $nip);
+            if ($nipLama) $q->orWhere('submitted_by_NIP', $nipLama);
+        };
+
+        // --- Statistik pengajuan tahun berjalan milik pegawai ---
         $stats = [
-            'total'     => DB::table('t_transaksi')->where('submitted_by_NIP', $nip)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->count(),
-            'disetujui' => DB::table('t_transaksi')->where('submitted_by_NIP', $nip)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'approved')->count(),
-            'diproses'  => DB::table('t_transaksi')->where('submitted_by_NIP', $nip)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'pending')->count(),
-            'ditolak'   => DB::table('t_transaksi')->where('submitted_by_NIP', $nip)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
+            'total'     => DB::table('t_transaksi')->where($nipFilter)->whereYear('date', $tahunIni)->count(),
+            'disetujui' => DB::table('t_transaksi')->where($nipFilter)->whereYear('date', $tahunIni)->where('status', 'approved')->count(),
+            'diproses'  => DB::table('t_transaksi')->where($nipFilter)->whereYear('date', $tahunIni)->whereIn('status', ['pending', 'menunggu_kabag'])->count(),
+            'ditolak'   => DB::table('t_transaksi')->where($nipFilter)->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
         ];
 
-        // --- Pengajuan terbaru (5 terakhir) ---
+        // --- Pengajuan terbaru tahun berjalan ---
         $pengajuanTerbaru = DB::table('t_transaksi')
-            ->where('submitted_by_NIP', $nip)
+            ->where($nipFilter)
+            ->whereYear('date', $tahunIni)
             ->orderBy('submitted_at', 'desc')
-            ->limit(3)
+            ->limit(5)
             ->get();
 
         // --- Jadwal lembur yang akan datang ---
         $jadwalMendatang = DB::table('t_transaksi')
-            ->where('submitted_by_NIP', $nip)
+            ->where($nipFilter)
             ->where('status', 'approved')
-            ->whereDate('date', '>', $hariIni)
+            ->whereDate('date', '>=', $hariIni)
             ->orderBy('date', 'asc')
             ->limit(3)
             ->get();
@@ -43,26 +49,26 @@ class DashboardController extends Controller
         // --- Notifikasi pribadi ---
         $notifikasi = collect();
 
-        // Ada pengajuan yang ditolak bulan ini
-        $ditolakBulanIni = DB::table('t_transaksi')
-            ->where('submitted_by_NIP', $nip)
-            ->whereMonth('date', $bulanIni)
+        // Ada pengajuan yang ditolak tahun ini
+        $ditolakTahunIni = DB::table('t_transaksi')
+            ->where($nipFilter)
             ->whereYear('date', $tahunIni)
             ->where('status', 'rejected')
             ->count();
 
-        if ($ditolakBulanIni > 0) {
+        if ($ditolakTahunIni > 0) {
             $notifikasi->push([
-                'pesan' => "{$ditolakBulanIni} pengajuan lembur kamu ditolak bulan ini.",
+                'pesan' => "{$ditolakTahunIni} pengajuan lembur kamu ditolak tahun ini.",
                 'level' => 'danger',
-                'waktu' => Carbon::now()->translatedFormat('F Y'),
+                'waktu' => 'Tahun ' . $tahunIni,
             ]);
         }
 
-        // Ada pengajuan pending
+        // Ada pengajuan pending / menunggu kabag
         $pendingCount = DB::table('t_transaksi')
-            ->where('submitted_by_NIP', $nip)
-            ->where('status', 'pending')
+            ->where($nipFilter)
+            ->whereIn('status', ['pending', 'menunggu_kabag'])
+            ->whereYear('date', $tahunIni)
             ->count();
 
         if ($pendingCount > 0) {

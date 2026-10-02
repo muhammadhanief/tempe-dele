@@ -16,5 +16,6 @@ class Dokumen extends Model
         'nip_lama',
         'nip',
         'status',
+        'tahun',
     ];
 }

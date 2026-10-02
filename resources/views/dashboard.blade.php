@@ -83,7 +83,7 @@
             </p>
 
             <p class="mt-1 text-xs text-slate-500">
-                Bulan ini
+                Tahun {{ date('Y') }}
             </p>
         </div>
 
@@ -115,7 +115,7 @@
             </p>
 
             <p class="mt-1 text-xs text-slate-500">
-                Pengajuan bulan ini
+                Tahun {{ date('Y') }}
             </p>
         </div>
 
@@ -131,7 +131,7 @@
             </p>
 
             <p class="mt-1 text-xs text-slate-500">
-                Pengajuan bulan ini
+                Tahun {{ date('Y') }}
             </p>
         </div>
     </div>

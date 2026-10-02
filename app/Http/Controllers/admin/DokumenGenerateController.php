@@ -13,12 +13,67 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class DokumenGenerateController extends Controller
 {
-    private function getPejabat()
+    private function getPejabat(?Request $request = null, ?int $tahun = null)
     {
-        $pejabat = DB::table('m_pejabat')->where('status', 'aktif')->get();
-        $ppk  = $pejabat->firstWhere('jabatan', 'PPK');
-        $kbps = $pejabat->firstWhere('jabatan', 'Kepala BPS');
-        $kbu  = $pejabat->firstWhere('jabatan', 'Kepala Bagian Umum');
+        // 1. PPK: jika dioper via request, gunakan parameter; jika tidak, ambil yang aktif
+        $ppk = null;
+        if ($request && ($request->filled('ppk') || $request->filled('ppk_id') || $request->filled('id_ppk'))) {
+            $val = $request->get('ppk') ?: ($request->get('ppk_id') ?: $request->get('id_ppk'));
+            $ppk = DB::table('m_pejabat')->where('jabatan', 'PPK')->where(function($q) use ($val) {
+                $q->where('id_pejabat', $val)->orWhere('nip', $val)->orWhere('nip_lama', $val)->orWhere('nama', $val);
+            })->first();
+            if (!$ppk) {
+                $peg = DB::table('m_pegawai')->where('id_pegawai', $val)->orWhere('nip', $val)->orWhere('nip_lama', $val)->first();
+                if ($peg) {
+                    $ppk = (object) [
+                        'nama'     => $peg->nama,
+                        'jabatan'  => 'PPK',
+                        'nip'      => $peg->nip,
+                        'nip_lama' => $peg->nip_lama,
+                    ];
+                }
+            }
+        }
+        if (!$ppk) {
+            $ppkQuery = DB::table('m_pejabat')->where('jabatan', 'PPK')->where('status', 'aktif');
+            if ($tahun) {
+                $ppk = (clone $ppkQuery)->where('tahun', $tahun)->first() ?: $ppkQuery->orderByDesc('tahun')->first();
+            } else {
+                $ppk = $ppkQuery->orderByDesc('tahun')->first();
+            }
+        }
+
+        // 2. Kepala BPS
+        $kbps = DB::table('m_pejabat')->where('jabatan', 'Kepala BPS')->where('status', 'aktif')->orderByDesc('tahun')->first();
+
+        // 3. Kepala Bagian Umum: jika dioper via request, gunakan parameter; jika tidak, ambil yang aktif
+        $kbu = null;
+        if ($request && ($request->filled('kbu') || $request->filled('kbu_id') || $request->filled('id_kbu'))) {
+            $val = $request->get('kbu') ?: ($request->get('kbu_id') ?: $request->get('id_kbu'));
+            $kbu = DB::table('m_pejabat')->where('jabatan', 'Kepala Bagian Umum')->where(function($q) use ($val) {
+                $q->where('id_pejabat', $val)->orWhere('nip', $val)->orWhere('nip_lama', $val)->orWhere('nama', $val);
+            })->first();
+            if (!$kbu) {
+                $peg = DB::table('m_pegawai')->where('id_pegawai', $val)->orWhere('nip', $val)->orWhere('nip_lama', $val)->first();
+                if ($peg) {
+                    $kbu = (object) [
+                        'nama'     => $peg->nama,
+                        'jabatan'  => 'Kepala Bagian Umum',
+                        'nip'      => $peg->nip,
+                        'nip_lama' => $peg->nip_lama,
+                    ];
+                }
+            }
+        }
+        if (!$kbu) {
+            $kbuQuery = DB::table('m_pejabat')->where('jabatan', 'Kepala Bagian Umum')->where('status', 'aktif');
+            if ($tahun) {
+                $kbu = (clone $kbuQuery)->where('tahun', $tahun)->first() ?: $kbuQuery->orderByDesc('tahun')->first();
+            } else {
+                $kbu = $kbuQuery->orderByDesc('tahun')->first();
+            }
+        }
+
         return [$ppk, $kbps, $kbu];
     }
 
@@ -104,14 +159,20 @@ class DokumenGenerateController extends Controller
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->where('t.status', 'approved')
-            ->where('eligible', 1)
+            ->where(function ($q) {
+                $q->where('t.eligible', 1)->orWhereNull('t.eligible');
+            })
             ->whereYear('t.date', $tahun)
             ->whereMonth('t.date', $bln)
             ->select('p.nama', 'p.nip', 'p.nip_lama', 't.date', 't.uraian')
             ->orderBy('p.nama');
 
         if ($jenis === 'pns') {
-            $query->where('p.email', 'not like', '%-pppk@bps.go.id');
+            $query->where(function ($q) {
+                $q->whereNull('p.email')
+                  ->orWhere('p.email', '')
+                  ->orWhere('p.email', 'not like', '%-pppk@bps.go.id');
+            });
         } else {
             $query->where('p.email', 'like', '%-pppk@bps.go.id');
         }
@@ -131,7 +192,7 @@ class DokumenGenerateController extends Controller
             ];
         })->values();
 
-        [$ppk, , $kbu] = $this->getPejabat();
+        [$ppk, , $kbu] = $this->getPejabat($request, (int) $tahun);
         $nomorSurat = $request->get('nomor_surat', $this->getNomorSurat($bulan));
         $bulanLabel = $dt->translatedFormat('F');
         $tahun      = $dt->year;
@@ -190,35 +251,69 @@ class DokumenGenerateController extends Controller
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->where('t.status', 'approved')
-            ->where('eligible', 1)
+            ->where(function ($q) {
+                $q->where('t.eligible', 1)->orWhereNull('t.eligible');
+            })
             ->whereYear('t.date', $tahun)
             ->whereMonth('t.date', $bln)
             ->select('p.nama', 'p.nip', 'p.nip_lama', 't.date', 't.uraian')
-            ->orderBy('p.nama')
-            ->orderBy('t.date');
+            ->orderBy('t.date', 'asc')
+            ->orderBy('p.nama', 'asc');
 
         if ($jenis === 'pns') {
-            $query->where('p.email', 'not like', '%-pppk@bps.go.id');
+            $query->where(function ($q) {
+                $q->whereNull('p.email')
+                  ->orWhere('p.email', '')
+                  ->orWhere('p.email', 'not like', '%-pppk@bps.go.id');
+            });
         } else {
             $query->where('p.email', 'like', '%-pppk@bps.go.id');
         }
 
-        $pegawai = $query->get()->groupBy('nip')->map(function ($rows) {
-            $first   = $rows->first();
-            $tanggal = $rows->pluck('date')
-                ->map(fn($d) => (int) date('j', strtotime($d)))
-                ->sort()->values()->implode(', ');
-            $uraian  = $rows->pluck('uraian')->unique()->filter()
-                ->map(fn($u) => '- ' . $u)->implode("\n");
+        $pegawai = $query->get()->groupBy(function ($item) {
+            return $item->date . '_' . $item->nip;
+        })->map(function ($rows) {
+            $first = $rows->first();
+            $tanggal = (int) date('j', strtotime($first->date)); // Angka tanggal (1, 2, 6, dst)
+
+            $uraianItems = collect();
+            foreach ($rows as $row) {
+                if (!empty($row->uraian)) {
+                    $parts = explode(';', $row->uraian);
+                    foreach ($parts as $p) {
+                        $clean = trim($p);
+                        $clean = ltrim($clean, "- \t\n\r\0\x0B");
+                        if (!empty($clean)) {
+                            $uraianItems->push($clean);
+                        }
+                    }
+                }
+            }
+            $uraianItems = $uraianItems->unique()->values();
+
+            if ($uraianItems->count() > 1) {
+                $uraianFormatted = $uraianItems->map(fn($u) => '- ' . $u)->implode("\n");
+            } elseif ($uraianItems->count() === 1) {
+                $uraianFormatted = $uraianItems->first();
+            } else {
+                $uraianFormatted = '-';
+            }
+
+            $nipDisplay = $first->nip ?: $first->nip_lama;
+
             return (object) [
-                'nama'     => $first->nama,
-                'nip_lama' => $first->nip_lama,
-                'tanggal'  => $tanggal,
-                'uraian'   => $uraian,
+                'nama'        => $first->nama,
+                'nip'         => $first->nip,
+                'nip_lama'    => $first->nip_lama,
+                'nip_display' => $nipDisplay,
+                'nama_nip'    => $first->nama . ' / ' . $nipDisplay,
+                'date'        => $first->date,
+                'tanggal'     => $tanggal,
+                'uraian'      => $uraianFormatted,
             ];
         })->values();
 
-        [$ppk, , $kbu] = $this->getPejabat();
+        [$ppk, , $kbu] = $this->getPejabat($request, (int) $tahun);
         $bulanLabel = $dt->translatedFormat('F');
         $tahun      = $dt->year;
 

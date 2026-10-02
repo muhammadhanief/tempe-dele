@@ -49,7 +49,10 @@ class DokumenViewController extends Controller
         $kbps = $pejabat->firstWhere('jabatan', 'Kepala BPS');
         $kbu = $pejabat->firstWhere('jabatan', 'Kepala Bagian Umum');
 
-        return view('admin.dokumen', compact('periodeList', 'dokumenList', 'ppk', 'kbps', 'kbu', 'bulan', 'isFiltered'));
+        $semuaKbu = DB::table('m_pejabat')->where('jabatan', 'Kepala Bagian Umum')->orderByDesc('status')->orderByDesc('tahun')->get();
+        $semuaPpk = DB::table('m_pejabat')->where('jabatan', 'PPK')->orderByDesc('status')->orderByDesc('tahun')->get();
+
+        return view('admin.dokumen', compact('periodeList', 'dokumenList', 'ppk', 'kbps', 'kbu', 'bulan', 'isFiltered', 'semuaKbu', 'semuaPpk'));
     }
 
     public function hapus(Request $request)

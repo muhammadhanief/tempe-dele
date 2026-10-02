@@ -97,9 +97,9 @@
                 <small>{{ $d->nip }}</small>
             </td>
             <td>{{ $d->jam_mulai_disetujui ? substr($d->jam_mulai_disetujui, 0, 5) : '-' }}</td>
-            <td>{{ $d->jam_selesai_disetujui ? substr($d->jam_selesai_disetujui, 0, 5) : '-' }}</td>
+            <td>{{ $d->jam_pulang ?: '-' }}</td>
             <td class="ttd">
-                @if($d->signature_path)
+                @if($d->signature_path && file_exists(storage_path('app/public/' . $d->signature_path)))
                     <img src="{{ storage_path('app/public/' . $d->signature_path) }}"
                         style="height: 45px; width: auto; display: block; margin: 0 auto;">
                 @endif

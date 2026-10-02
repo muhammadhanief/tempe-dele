@@ -11,31 +11,49 @@ class DashboardController extends Controller
     public function index()
     {
         $nipKetua = session('user')['nip'];
-        $bulanIni = Carbon::now()->month;
+        $nipLamaKetua = session('user')['nip_lama'] ?? null;
         $tahunIni = Carbon::now()->year;
 
-        // --- Statistik pengajuan tim bulan ini ---
+        // --- Statistik pengajuan tim tahun berjalan ---
         $stats = [
-            'total'     => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->count(),
-            'disetujui' => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->whereIn('status', ['approved', 'menunggu_kabag'])->count(),
-            'diproses'  => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'pending')->count(),
-            'ditolak'   => DB::table('t_transaksi')->where('approver_employee_id', $nipKetua)->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
+            'total'     => DB::table('t_transaksi')->where(function($q) use ($nipKetua, $nipLamaKetua) {
+                               $q->where('approver_employee_id', $nipKetua);
+                               if ($nipLamaKetua) $q->orWhere('approver_employee_id', $nipLamaKetua);
+                           })->whereYear('date', $tahunIni)->count(),
+            'disetujui' => DB::table('t_transaksi')->where(function($q) use ($nipKetua, $nipLamaKetua) {
+                               $q->where('approver_employee_id', $nipKetua);
+                               if ($nipLamaKetua) $q->orWhere('approver_employee_id', $nipLamaKetua);
+                           })->whereYear('date', $tahunIni)->whereIn('status', ['approved', 'menunggu_kabag'])->count(),
+            'diproses'  => DB::table('t_transaksi')->where(function($q) use ($nipKetua, $nipLamaKetua) {
+                               $q->where('approver_employee_id', $nipKetua);
+                               if ($nipLamaKetua) $q->orWhere('approver_employee_id', $nipLamaKetua);
+                           })->whereYear('date', $tahunIni)->where('status', 'pending')->count(),
+            'ditolak'   => DB::table('t_transaksi')->where(function($q) use ($nipKetua, $nipLamaKetua) {
+                               $q->where('approver_employee_id', $nipKetua);
+                               if ($nipLamaKetua) $q->orWhere('approver_employee_id', $nipLamaKetua);
+                           })->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
         ];
 
-        // --- pengajuan terbaru dari anggota tim ---
+        // --- pengajuan terbaru dari anggota tim tahun berjalan ---
         $pengajuan = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
-            ->where('t.approver_employee_id', $nipKetua)
-            ->whereMonth('t.date', $bulanIni)
+            ->where(function($q) use ($nipKetua, $nipLamaKetua) {
+                $q->where('t.approver_employee_id', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('t.approver_employee_id', $nipLamaKetua);
+            })
             ->whereYear('t.date', $tahunIni)
             ->select('t.*', 'p.nama as nama_pegawai')
             ->orderBy('t.submitted_at', 'desc')
+            ->limit(5)
             ->get();
 
         // --- Lembur hari ini yang sudah disetujui ketua / kabag ---
         $lemburHariIni = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
-            ->where('t.approver_employee_id', $nipKetua)
+            ->where(function($q) use ($nipKetua, $nipLamaKetua) {
+                $q->where('t.approver_employee_id', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('t.approver_employee_id', $nipLamaKetua);
+            })
             ->whereDate('t.date', today())
             ->whereIn('t.status', ['approved', 'menunggu_kabag'])
             ->select('p.nama as nama_pegawai', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui')
@@ -47,21 +65,23 @@ class DashboardController extends Controller
     public function getPending()
     {
         $nipKetua = session('user')['nip'];
-        $bulanIni = now()->month;
+        $nipLamaKetua = session('user')['nip_lama'] ?? null;
         $tahunIni = now()->year;
 
         $pending = DB::table('t_transaksi')
             ->join('m_pegawai', 't_transaksi.submitted_by_NIP', '=', 'm_pegawai.nip')
-            ->whereMonth('t_transaksi.date', $bulanIni)
             ->whereYear('t_transaksi.date', $tahunIni)
             ->where('t_transaksi.status', 'pending')
-            ->where('t_transaksi.approver_employee_id', $nipKetua) // filter tim ketua
+            ->where(function($q) use ($nipKetua, $nipLamaKetua) {
+                $q->where('t_transaksi.approver_employee_id', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('t_transaksi.approver_employee_id', $nipLamaKetua);
+            })
             ->select(
                 't_transaksi.id_transaksi',
                 'm_pegawai.nama',
                 't_transaksi.date',
             )
-            ->orderBy('t_transaksi.date', 'asc')
+            ->orderBy('t_transaksi.date', 'desc')
             ->get();
 
         return response()->json($pending);

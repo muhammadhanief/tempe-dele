@@ -9,6 +9,7 @@ use App\Http\Controllers\admin\PenggunaController;
 use App\Http\Controllers\admin\RateController;
 use App\Http\Controllers\admin\DokumenController;
 use App\Http\Controllers\admin\PresensiUploadController;
+use App\Http\Controllers\admin\ManajemenUserController;
 
 use App\Http\Controllers\LemburController;
 use App\Http\Controllers\admin\DokumenGenerateController;
@@ -31,9 +32,77 @@ if (app()->environment('local')) {
     })->middleware('checksession');
 
     Route::get('/dev-login/{nip}', function ($nip) {
-        $pegawai = \DB::table('m_pegawai')->where('nip', $nip)->orWhere('id_pegawai', $nip)->orWhere('nip_lama', $nip)->first();
+        $pegawai = null;
+
+        // 1. Dukungan kata kunci khusus role
+        if ($nip === 'superadmin') {
+            $pegawai = \DB::table('m_pegawai')->where('role', 'superadmin')->orderByDesc('id_pegawai')->first();
+        } elseif ($nip === 'admin') {
+            // Ambil admin lembur operasional (bukan Kepala Bagian Umum / PPK)
+            $pejabatNips = \DB::table('m_pejabat')->where('status', 'aktif')->pluck('nip')->toArray();
+            $pegawai = \DB::table('m_pegawai')
+                ->where('role', 'admin')
+                ->whereNotIn('nip', $pejabatNips)
+                ->first();
+            if (!$pegawai) {
+                $pegawai = \DB::table('m_pegawai')->where('role', 'admin')->first();
+            }
+        } elseif ($nip === 'kabag' || $nip === 'kabag_umum') {
+            $pejabat = \DB::table('m_pejabat')->where('jabatan', 'Kepala Bagian Umum')->where('status', 'aktif')->first();
+            if ($pejabat) {
+                $pegawai = \DB::table('m_pegawai')->where('nip', $pejabat->nip)->orWhere('nip_lama', $pejabat->nip_lama)->orWhere('nama', $pejabat->nama)->first();
+            }
+            if (!$pegawai) {
+                $pegawai = \DB::table('m_pegawai')->where('role', 'admin')->first();
+            }
+        } elseif ($nip === 'ppk') {
+            $pejabat = \DB::table('m_pejabat')->where('jabatan', 'PPK')->where('status', 'aktif')->first();
+            if ($pejabat) {
+                $pegawai = \DB::table('m_pegawai')->where('nip', $pejabat->nip)->orWhere('nip_lama', $pejabat->nip_lama)->orWhere('nama', $pejabat->nama)->first();
+            }
+            if (!$pegawai) {
+                $pegawai = \DB::table('m_pegawai')->where('nama', 'like', '%Suci Budi%')->first();
+            }
+        } else {
+            // 2. Pencarian berdasarkan NIP, ID Pegawai, atau NIP Lama
+            $pegawai = \DB::table('m_pegawai')
+                ->where('nip', $nip)
+                ->orWhere('id_pegawai', $nip)
+                ->orWhere('nip_lama', $nip)
+                ->first();
+
+            // 3. Fallback jika NIP kurang digit (seperti 197106131993121) atau mencari berdasarkan prefix
+            if (!$pegawai && strlen($nip) >= 8) {
+                $pegawai = \DB::table('m_pegawai')
+                    ->where('nip', 'like', $nip . '%')
+                    ->orWhere('nip_lama', 'like', $nip . '%')
+                    ->first();
+            }
+
+            // 4. Fallback jika input mengacu ke data di m_pejabat
+            if (!$pegawai) {
+                $pejabat = \DB::table('m_pejabat')
+                    ->where('nip', $nip)
+                    ->orWhere('nip_lama', $nip)
+                    ->orWhere('id_pejabat', $nip)
+                    ->first();
+                if ($pejabat) {
+                    $pegawai = \DB::table('m_pegawai')
+                        ->where('nip', $pejabat->nip)
+                        ->orWhere('nip_lama', $pejabat->nip_lama)
+                        ->orWhere('nama', $pejabat->nama)
+                        ->first();
+                }
+            }
+
+            // 5. Fallback jika input mengacu ke role apa pun di m_pegawai
+            if (!$pegawai) {
+                $pegawai = \DB::table('m_pegawai')->where('role', $nip)->first();
+            }
+        }
+
         if (!$pegawai) {
-            return response("Pegawai dengan NIP/ID {$nip} tidak ditemukan di database m_pegawai.", 404);
+            return response("Pegawai dengan NIP/ID/Role {$nip} tidak ditemukan di database m_pegawai.", 404);
         }
         session()->put('user', [
             'nip'       => $pegawai->nip,
@@ -62,7 +131,10 @@ if (app()->environment('local')) {
 
 Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.proses');
-Route::post('/logout', function () {session()->flush(); return redirect()->route('login'); })->name('logout');
+Route::match(['get', 'post'], '/logout', function () {
+    session()->flush();
+    return redirect()->route('login');
+})->name('logout');
 
 
 Route::get('/lembur', [LemburController::class, 'index'])->name('lembur')->middleware('checksession');
@@ -152,6 +224,7 @@ Route::middleware('checksession')->group(function () {
         // Daftar Hadir
         Route::get('/daftar-hadir', [\App\Http\Controllers\admin\DaftarHadirController::class, 'index'])->name('daftar_hadir');
         Route::get('/daftar-hadir/download', [\App\Http\Controllers\admin\DaftarHadirController::class, 'download'])->name('daftar_hadir.download')->middleware('checksession');
+        Route::get('/daftar-hadir/print', [\App\Http\Controllers\admin\DaftarHadirController::class, 'print'])->name('daftar_hadir.print')->middleware('checksession');
 
         // Presensi
         Route::get('/presensi',           [PresensiUploadController::class, 'index'])->name('presensi');
@@ -204,6 +277,16 @@ Route::middleware('checksession')->group(function () {
         Route::get('/pejabat/{id}/data', [\App\Http\Controllers\admin\PejabatController::class, 'getData'])->name('pejabat.data');
         Route::put('/pejabat/{id}',      [\App\Http\Controllers\admin\PejabatController::class, 'update'])->name('pejabat.update');
         Route::delete('/pejabat/{id}', [\App\Http\Controllers\admin\PejabatController::class, 'destroy'])->name('pejabat.destroy');
+
+        // Manajemen User (Superadmin Only)
+        Route::middleware('role:superadmin')->group(function () {
+            Route::get('/manajemen-user',                     [ManajemenUserController::class, 'index'])->name('manajemen-user');
+            Route::post('/manajemen-user/ganti-kabag',         [ManajemenUserController::class, 'gantiKabag'])->name('manajemen-user.ganti-kabag');
+            Route::post('/manajemen-user/ganti-ppk',           [ManajemenUserController::class, 'gantiPpk'])->name('manajemen-user.ganti-ppk');
+            Route::post('/manajemen-user/tambah-admin',        [ManajemenUserController::class, 'tambahAdmin'])->name('manajemen-user.tambah-admin');
+            Route::delete('/manajemen-user/hapus-admin/{id}',  [ManajemenUserController::class, 'hapusAdmin'])->name('manajemen-user.hapus-admin');
+            Route::post('/manajemen-user/tambah-superadmin',   [ManajemenUserController::class, 'tambahSuperadmin'])->name('manajemen-user.tambah-superadmin');
+        });
     });
 
     // ─── Pimpinan ─────────────────────────────────────────

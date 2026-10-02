@@ -81,7 +81,7 @@
             </div>
 
             {{-- Filter Pegawai --}}
-            <div class="relative w-full lg:flex-1 lg:min-w-[260px]" id="wrapSearchPegawai">
+            <div class="relative w-full sm:flex-1 sm:min-w-[240px]" id="wrapSearchPegawai">
                 <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
                     onclick="openDropdownPegawai()" onfocus="openDropdownPegawai()" oninput="filterDropdownPegawai()" autocomplete="off"
                     class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-4 pr-12 text-sm text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
@@ -98,7 +98,7 @@
                 </div>
 
                 <div id="dropdownPegawai"
-                    class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                    class="hidden absolute z-40 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
                     <ul id="listPegawai"></ul>
                 </div>
             </div>

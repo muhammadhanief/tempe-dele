@@ -92,18 +92,36 @@
 
     {{-- HEADER GAMBAR --}}
     @php
-        $logoPath = '/home/lemburwe/public_html/images/LOGO BPS PROVINSI JATENG.png';
-        $logoBase64 = base64_encode(file_get_contents($logoPath));
-        $logoSrc = 'data:image/png;base64,' . $logoBase64;
+        $logoSrc = null;
+        if (extension_loaded('gd')) {
+            $logoCandidates = [
+                public_path('images/LOGO BPS PROVINSI JATENG.png'),
+                base_path('public/images/LOGO BPS PROVINSI JATENG.png'),
+                base_path('../public_html/images/LOGO BPS PROVINSI JATENG.png'),
+                '/home/lemburwe/public_html/images/LOGO BPS PROVINSI JATENG.png',
+            ];
+            foreach ($logoCandidates as $cand) {
+                if (!empty($cand) && file_exists($cand)) {
+                    $logoSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($cand));
+                    break;
+                }
+            }
+        }
     @endphp
     
-    <img
-        src="{{ $logoSrc }}"
-        alt="Header BPS Provinsi Jawa Tengah"
-        style="width: 80%; display: block; margin-bottom: 6px;"
-    >
-
-    <div style="width: 100%; border-top: 2px solid black; margin: 6px 0;"></div>
+    @if($logoSrc)
+        <img
+            src="{{ $logoSrc }}"
+            alt="Header BPS Provinsi Jawa Tengah"
+            style="width: 80%; display: block; margin-bottom: 6px;"
+        >
+        <div style="width: 100%; border-top: 2px solid black; margin: 6px 0;"></div>
+    @else
+        <div style="text-align: left; margin-bottom: 8px; border-bottom: 2px solid black; padding-bottom: 6px;">
+            <div style="font-size: 14pt; font-weight: bold; letter-spacing: 0.5px;">BADAN PUSAT STATISTIK</div>
+            <div style="font-size: 12pt; font-weight: bold; color: #1e293b;">PROVINSI JAWA TENGAH</div>
+        </div>
+    @endif
 
     {{-- JUDUL SURAT --}}
     <div class="header">

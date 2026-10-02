@@ -30,6 +30,10 @@ class PejabatController extends Controller
             'status'  => 'required|string',
         ]);
 
+        if ($request->status === 'aktif' && in_array($request->jabatan, ['Kepala Bagian Umum', 'PPK', 'Kepala BPS'])) {
+            DB::table('m_pejabat')->where('jabatan', $request->jabatan)->update(['status' => 'nonaktif']);
+        }
+
         DB::table('m_pejabat')->insert([
             'nama'     => $request->nama,
             'jabatan'  => $request->jabatan,
@@ -50,6 +54,11 @@ class PejabatController extends Controller
 
     public function update(Request $request, $id)
     {
+        $pejabat = DB::table('m_pejabat')->where('id_pejabat', $id)->first();
+        if ($request->status === 'aktif' && $pejabat && in_array($pejabat->jabatan, ['Kepala Bagian Umum', 'PPK', 'Kepala BPS'])) {
+            DB::table('m_pejabat')->where('jabatan', $pejabat->jabatan)->where('id_pejabat', '!=', $id)->update(['status' => 'nonaktif']);
+        }
+
         DB::table('m_pejabat')->where('id_pejabat', $id)->update([
             'nama'   => $request->nama,
             'status' => $request->status,

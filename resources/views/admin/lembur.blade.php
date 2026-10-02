@@ -153,7 +153,7 @@
                     </div>
 
                     <div id="dropdownPegawai"
-                        class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                        class="hidden absolute z-40 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
                         <ul id="listPegawai"></ul>
                     </div>
                 </div>
@@ -177,7 +177,7 @@
                     </div>
 
                     <div id="dropdownTim"
-                        class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                        class="hidden absolute z-40 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
                         <ul id="listTim"></ul>
                     </div>
                 </div>

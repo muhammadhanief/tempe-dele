@@ -91,18 +91,54 @@
             </div>
         </div>
 
-        {{-- Tombol Download --}}
-        <a href="{{ route('admin.rekapitulasi.export', ['bulan' => $bulan, 'nip_lama' => request('nip_lama')]) }}"
-            title="Unduh Rekapitulasi"
-            class="inline-flex h-10 w-full sm:w-10 items-center justify-center gap-2 rounded-xl sm:rounded-full bg-[#faa938] text-white hover:brightness-95 transition-all">
+        {{-- Filter Kategori (Semua / PNS / PPPK) --}}
+        <div class="relative w-full sm:w-auto shrink-0">
+            <select id="filterJenis" onchange="updateURL()"
+                class="w-full sm:w-auto h-10 px-3.5 pr-8 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-[#faa938] focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
+                <option value="" {{ empty($jenis) ? 'selected' : '' }}>Semua Pegawai</option>
+                <option value="pns" {{ ($jenis ?? '') === 'pns' ? 'selected' : '' }}>PNS</option>
+                <option value="pppk" {{ ($jenis ?? '') === 'pppk' ? 'selected' : '' }}>PPPK</option>
+            </select>
+        </div>
 
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
-            </svg>
+        {{-- Dropdown Unduh Rekapitulasi (Semua / PNS / PPPK) --}}
+        <div class="relative w-full sm:w-auto shrink-0" id="wrapDownloadDropdown">
+            <button type="button" id="btnDownloadDropdown" onclick="toggleDownloadMenu(event)"
+                class="inline-flex h-10 w-full sm:w-auto items-center justify-between sm:justify-center gap-2 px-4 rounded-xl bg-[#faa938] text-white hover:brightness-95 transition-all shadow-sm text-sm font-medium">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                    </svg>
+                    <span>Unduh Rekap</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-80 shrink-0">
+                    <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                </svg>
+            </button>
 
-            <span class="sm:hidden text-sm font-medium">Unduh Rekapitulasi</span>
-        </a>
+            <div id="downloadMenu"
+                class="hidden absolute right-0 z-50 mt-1.5 w-full sm:w-56 rounded-xl border border-gray-200 bg-white shadow-xl py-1.5 text-sm text-gray-700">
+                <div class="px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100 mb-1">
+                    Pilihan Format Unduh
+                </div>
+                <a href="{{ route('admin.rekapitulasi.export', ['bulan' => $bulan, 'nip_lama' => request('nip_lama')]) }}"
+                    class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-amber-50 hover:text-amber-800 transition-colors">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <span class="font-medium">Unduh Semua Pegawai</span>
+                </a>
+                <a href="{{ route('admin.rekapitulasi.export', ['bulan' => $bulan, 'nip_lama' => request('nip_lama'), 'jenis' => 'pns']) }}"
+                    class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-blue-50 hover:text-blue-800 transition-colors">
+                    <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                    <span>Unduh Rekap PNS</span>
+                </a>
+                <a href="{{ route('admin.rekapitulasi.export', ['bulan' => $bulan, 'nip_lama' => request('nip_lama'), 'jenis' => 'pppk']) }}"
+                    class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-purple-50 hover:text-purple-800 transition-colors">
+                    <span class="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
+                    <span>Unduh Rekap PPPK</span>
+                </a>
+            </div>
+        </div>
 
     </div>
 </div>
@@ -240,6 +276,11 @@
 
         if (selectedNip) {
             params.set('nip_lama', selectedNip);
+        }
+
+        const selJenis = document.getElementById('filterJenis')?.value;
+        if (selJenis) {
+            params.set('jenis', selJenis);
         }
 
         window.location.href = '?' + params.toString();
@@ -541,8 +582,20 @@
                     search.value = '';
                 }
             }
+
+            const wrapDl = document.getElementById('wrapDownloadDropdown');
+            const menuDl = document.getElementById('downloadMenu');
+            if (wrapDl && menuDl && !wrapDl.contains(e.target)) {
+                menuDl.classList.add('hidden');
+            }
         });
     });
+
+    window.toggleDownloadMenu = function (e) {
+        if (e) e.stopPropagation();
+        const menu = document.getElementById('downloadMenu');
+        if (menu) menu.classList.toggle('hidden');
+    };
 </script>
 
 @endsection

@@ -26,7 +26,24 @@ ALTER TABLE t_transaksi MODIFY COLUMN uraian TEXT NULL;
 
 -- 4. (Opsional Pembersihan) Reset Jam Disetujui Pada Status Pending Agar Mengikuti Jam Pengajuan
 UPDATE t_transaksi SET jam_mulai_disetujui = NULL, jam_selesai_disetujui = NULL WHERE status = 'pending';
+
+-- 5. Sanitasi Integritas Pejabat (Memastikan Tepat 1 Pejabat Aktif per Jabatan Struktural)
+-- Pastikan tidak ada data duplikat aktif untuk Kepala Bagian Umum dan PPK:
+UPDATE m_pejabat SET status = 'nonaktif' WHERE jabatan = 'Kepala Bagian Umum' AND id_pejabat != 12;
+UPDATE m_pejabat SET status = 'aktif' WHERE id_pejabat = 12;
+UPDATE m_pejabat SET status = 'nonaktif' WHERE jabatan = 'PPK' AND id_pejabat != 9;
+UPDATE m_pejabat SET status = 'aktif' WHERE id_pejabat = 9;
+
+-- 6. Sanitasi NIP Pejabat Kepala Bagian Umum (Bpk. Joko Suwarjo, pastikan 18 digit lengkap)
+UPDATE m_pejabat SET nip = '197106131993121001' WHERE nip = '197106131993121' OR id_pejabat = 12;
+
+-- 7. Penyesuaian Role Pak Joko Suwarjo (Flow Baru: Ketua Tim / Kabag Umum, Non-Admin)
+UPDATE m_pegawai SET role = 'ketua_tim' WHERE nip = '197106131993121001' OR nip_lama = '340013741';
 ```
+
+> [!NOTE]
+> **Modul Manajemen User, Suksesi PPK & Parameter Dokumen Dinamis (Update Terkini)**:  
+> Modul ini memanfaatkan tabel data master yang telah ada (`m_pejabat`, `m_tim`, `m_pegawai`) secara terintegrasi. **Tidak ada penambahan kolom atau perubahan skema database (`ALTER TABLE`) baru yang diperlukan**. Cukup pastikan sanitasi status pejabat aktif di atas telah dieksekusi agar sistem memiliki tepat 1 pejabat aktif sebagai fallback dokumen.
 
 ### B. Alternatif via Terminal SSH (Artisan Migration Spesifik)
 Jika Anda memiliki akses terminal SSH di server dan ingin menjalankan migrasi via Laravel Migration:
@@ -61,15 +78,28 @@ git pull origin main
 
 ### Skenario B: Unggah Manual (File Manager cPanel / FTP)
 Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan penting berikut ikut terunggah**:
-1. 📄 **`database/migrations/2026_09_25_000001_add_user_edited_to_t_transaksi.php`** *(File migrasi audit edit)*.
-2. 📄 **`database/migrations/2026_09_25_000002_widen_uraian_column_in_t_transaksi.php`** *(File migrasi kapasitas uraian TEXT)*.
-3. 📄 **`app/Models/Transaksi.php`** *(Update $fillable: user_edited, tanggal_edited)*.
-4. 📄 **`app/Traits/KoreksiLembur.php`** *(Kalkulasi lembur presisi, penambahan method `koreksiUntukTransaksi` & `koreksiUntukBulan` untuk otomatisasi status `eligible=1`)*.
-5. 📄 **`app/Exports/RekapitulasiExport.php`** *(Ekspor Excel rekapitulasi + auto-sweep evaluasi eligible lembur bulan berjalan)*.
-6. 📄 **`app/Http/Controllers/admin/RekapitulasiController.php`** *(Tampilan rekapitulasi admin + auto-sweep evaluasi eligible lembur bulan berjalan)*.
-7. 📄 **`app/Http/Controllers/pegawai/RekapitulasiController.php`** *(Tampilan rekapitulasi pegawai + auto-sweep evaluasi eligible lembur bulan berjalan)*.
-8. 📄 **`app/Http/Middleware/CheckRole.php`** *(Wajib ada, jika tertinggal aplikasi akan error Class Not Found)*.
-8. 📄 **`bootstrap/app.php`** *(Memuat pendaftaran alias middleware `role`)*.
+1. 📄 **`app/Http/Controllers/admin/ManajemenUserController.php`** *(Controller baru Superadmin: manajemen user, suksesi Kabag & PPK, tambah/hapus admin, dan promosi superadmin)*.
+2. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(View antarmuka Manajemen User, profil Kabag & PPK aktif, riwayat akordeon, modal suksesi Kabag & PPK, tabel admin, tabel superadmin)*.
+3. 📄 **`app/Http/Controllers/admin/PejabatController.php`** *(Penegakan otomatis single active invariant: penetapan pejabat aktif baru otomatis menonaktifkan pejabat lama)*.
+4. 📄 **`app/Http/Controllers/admin/DokumenGenerateController.php`** *(Parameterisasi penandatangan dinamis KBU & PPK pada generator SPKL dan Laporan Lembur)*.
+5. 📄 **`app/Http/Controllers/admin/DokumenViewController.php`** *(Penyediaan data KBU & PPK untuk opsi penandatangan modal cetak)*.
+6. 📄 **`resources/views/admin/dokumen.blade.php`** *(Form selector KBU & PPK di modal SPKL dan modal generate)*.
+7. 📄 **`app/Http/Controllers/admin/DaftarHadirController.php`** *(Parameterisasi penandatangan KBU pada unduh daftar hadir PDF)*.
+8. 📄 **`resources/views/admin/daftar_hadir.blade.php`** *(Meneruskan parameter kbu pada link download daftar hadir PDF)*.
+9. 📄 **`routes/web.php`** *(Rute baru `/admin/manajemen-user/*` dengan middleware `role:superadmin`)*.
+10. 📄 **`resources/views/partials/sidebar.blade.php`** *(Menu baru Manajemen User di Master, eksklusif untuk role `superadmin`)*.
+11. 📄 **`app/Http/Controllers/admin/PenggunaController.php`** *(Pengamanan anti-downgrade akun superadmin pada aksi edit pengguna)*.
+12. 📄 **`resources/views/admin/pengguna.blade.php`** *(Proteksi dropdown role tabel pengguna untuk akun superadmin)*.
+13. 📄 **`resources/views/login.blade.php`** *(Shortcut dev-login Kabag Umum dinamis membaca database `m_pejabat`)*.
+8. 📄 **`database/migrations/2026_09_25_000001_add_user_edited_to_t_transaksi.php`** *(File migrasi audit edit)*.
+9. 📄 **`database/migrations/2026_09_25_000002_widen_uraian_column_in_t_transaksi.php`** *(File migrasi kapasitas uraian TEXT)*.
+10. 📄 **`app/Models/Transaksi.php`** *(Update $fillable: user_edited, tanggal_edited)*.
+11. 📄 **`app/Traits/KoreksiLembur.php`** *(Kalkulasi lembur presisi, penambahan method `koreksiUntukTransaksi` & `koreksiUntukBulan` untuk otomatisasi status `eligible=1`)*.
+12. 📄 **`app/Exports/RekapitulasiExport.php`** *(Ekspor Excel rekapitulasi + auto-sweep evaluasi eligible lembur bulan berjalan)*.
+13. 📄 **`app/Http/Controllers/admin/RekapitulasiController.php`** *(Tampilan rekapitulasi admin + auto-sweep evaluasi eligible lembur bulan berjalan)*.
+14. 📄 **`app/Http/Controllers/pegawai/RekapitulasiController.php`** *(Tampilan rekapitulasi pegawai + auto-sweep evaluasi eligible lembur bulan berjalan)*.
+15. 📄 **`app/Http/Middleware/CheckRole.php`** *(Wajib ada, jika tertinggal aplikasi akan error Class Not Found)*.
+16. 📄 **`bootstrap/app.php`** *(Memuat pendaftaran alias middleware `role`)*.
 9. 📄 **`routes/web.php`** *(Memuat rute pembatalan lembur admin: `/admin/lembur/{id}/cancel` dan `/admin/pengajuan/{id}/cancel`)*.
 10. 📄 **`app/Http/Controllers/LemburController.php`** *(Form pegawai + validasi max:2000 + batas pengajuan presensi)*.
 11. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`** *(Persetujuan Kabag + auto-trigger `koreksiUntukTransaksi` saat approved)*.
@@ -136,6 +166,28 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 72. 📄 **`resources/views/ketua-tim/dashboard.blade.php`** *(Redesain hero banner Dashboard Ketua Tim: tata letak Flexbox 2 kolom anti-tabrakan, ambient lighting glow, badge frosted glass, dan tipografi adaptif)*.
 73. 📄 **`resources/views/pimpinan/dashboard.blade.php`** *(Redesain hero banner Dashboard Pimpinan: tata letak Flexbox 2 kolom anti-tabrakan, ambient lighting glow, badge frosted glass, dan tipografi adaptif)*.
 74. 📁 **`public/build/`** *(Bundel produksi Vite terbaru: manifest.json, app-Bjr7u1DZ.css, app-DbISuP7_.js)*.
+75. 📄 **`resources/views/dokumen/daftar_hadir_print.blade.php`** *(Template cetak daftar hadir presensi lembur BPS standar A4 portrait, layout tabel bergaris resmi, tanda tangan base64 data URI, dan script auto-print)*.
+76. 📄 **`resources/views/admin/daftar_hadir.blade.php`** *(Penambahan tombol/icon printer "Cetak" berdampingan dengan Unduh PDF, dropdown PNS/PPPK, dan penayangan jam pulang riil presensi)*.
+77. 📄 **`app/Http/Controllers/admin/DaftarHadirController.php`** *(Method `print()` untuk render cetak A4 dan subquery correlated jam pulang presensi riil `t_presensi`)*.
+78. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Perbaikan resolusi path logo kop surat multi-environment dinamis, validasi file_exists, proteksi extension_loaded('gd'), dan fallback kop teks)*.
+79. 📄 **`resources/views/dokumen/daftar_hadir.blade.php`** *(Proteksi file_exists sebelum render gambar tanda tangan pegawai di template PDF)*.
+80. 📄 **`app/Exports/LaporanExport.php`** *(Pembaruan pengurutan kronologis tanggal dan prioritas NIP Baru 18 digit pada ekspor Laporan Hasil Kerja Lembur Excel XLSX)*.
+81. 📄 **`app/Http/Controllers/admin/LaporanController.php`** *(Pembaruan pengurutan kronologis berdasarkan tanggal pada tampilan tabel menu Laporan Admin)*.
+82. 📄 **`app/Http/Controllers/admin/DokumenGenerateController.php`** *(Penerapan prioritas NIP Baru 18 digit pegawai pada pembuatan Laporan Hasil Kerja Lembur)*.
+83. 📄 **`resources/views/dokumen/laporan.blade.php`** *(Perapihan layout PDF A4 portrait, styling anti-cut off page-break tabel & tanda tangan, dan NIP Baru 18 digit)*.
+84. 📄 **`app/Http/Controllers/admin/RekapitulasiController.php`** *(Penyaringan filter kategori PNS/PPPK, proteksi upsert cache agregat, dan penanganan unduh Excel per kategori)*.
+85. 📄 **`app/Exports/RekapitulasiExport.php`** *(Penyaringan query PNS/PPPK dan judul worksheet dinamis pada ekspor rekapitulasi Excel)*.
+86. 📄 **`resources/views/admin/spkl.blade.php`** *(Dropdown filter kategori pegawai di toolbar dan dropdown tombol unduh dengan opsi Semua, PNS, dan PPPK)*.
+87. 📄 **`bootstrap/app.php`** *(Pengecualian CSRF untuk rute logout serta fallback otomatis pengalihan TokenMismatchException / HTTP 419 ke halaman login)*.
+88. 📄 **`routes/web.php`** *(Dukungan method ganda GET dan POST pada rute `/logout` serta rute cetak daftar hadir dan manajemen user)*.
+89. 📄 **`resources/views/login.blade.php`** *(Penambahan kotak notifikasi alert informasi session error jika sesi kedaluwarsa & toleransi dev-login)*.
+90. 📄 **`app/Http/Controllers/admin/ManajemenUserController.php`** *(Controller manajemen user superadmin, suksesi KBU dinamis, promosi admin, dan proteksi role superadmin)*.
+91. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(View antarmuka manajemen user superadmin, modal ganti kabag/ppk, dan tambah admin/superadmin)*.
+92. 📄 **`app/Http/Controllers/admin/DashboardController.php`** *(Pembaruan metrik statistik tahun berjalan & antrean pending aktif tanpa kunci bulan)*.
+93. 📄 **`app/Http/Controllers/ketuatim/DashboardController.php`** *(Pembaruan metrik tim tahun berjalan & antrean pending tim)*.
+94. 📄 **`app/Http/Controllers/pegawai/DashboardController.php`** *(Pembaruan metrik pegawai tahun berjalan & inklusi status menunggu_kabag pada kartu Diproses)*.
+95. 📄 **`app/Http/Controllers/pimpinan/DashboardController.php`** *(Pembaruan metrik pimpinan tahun berjalan & inklusi status menunggu_kabag pada kartu Diproses)*.
+96. 📄 **`resources/views/admin/dashboard.blade.php`**, **`resources/views/ketua-tim/dashboard.blade.php`**, **`resources/views/dashboard.blade.php`**, **`resources/views/pimpinan/dashboard.blade.php`** *(Pembaruan subtitle kartu metrik menjadi Tahun berjalan)*.
 
 ---
 
@@ -534,7 +586,7 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - Halaman berpindah ke `?status=menunggu_kabag`.
     - Tombol status mobile kini menampilkan dot berkedip biru, teks `Status: Menunggu`, dan angka counter.
 
-### XI. Uji Tampilan Hero Banner Dashboard (Bebas Tabrakan Teks-Ilustrasi & Estetika Elegan)
+### Y. Uji Tampilan Hero Banner Dashboard (Bebas Tabrakan Teks-Ilustrasi & Estetika Elegan)
 - [ ] **Verifikasi Bebas Tabrakan di Layar Komputer / Laptop (MacBook Air / Resolusi 1024px–1366px)**:
   - Buka halaman Dashboard utama (`/dashboard`) atau Dashboard Admin (`/admin/dashboard`):
   - Periksa kartu banner kuning-amber:
@@ -549,4 +601,105 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - Ilustrasi meja kantor berskala otomatis (proporsional 32%–36% lebar kartu).
     - Teks tersusun rapi di sisi kiri dengan ruang baca nyaman tanpa potongan kata yang canggung.
     - Tidak ada garis batas hitam kaku maupun *horizontal scrollbar* yang bocor.
+
+### Z. Uji Modul Manajemen User & Hak Akses (Superadmin Only)
+- [ ] **Visibilitas Menu Sidebar Berbasis Peran**:
+  - Login sebagai `admin`: Pastikan menu **Manajemen User** di sidebar TIDAK MUNCUL. Coba akses langsung URL `/admin/manajemen-user`: sistem langsung memblokir dengan status `403 Forbidden`.
+  - Login sebagai `superadmin`: Menu **Manajemen User** muncul di sidebar (kelompok *Master*). Akses halaman: antarmuka terbuka sempurna.
+- [ ] **Pengujian Pergantian Kepala Bagian Umum**:
+  - Buka menu Manajemen User, klik tombol **Ganti Kepala Bagian Umum**.
+  - Pilih salah satu pegawai baru dan tentukan tahun SK/periode berjalan.
+  - Klik simpan: periksa notifikasi sukses.
+  - Verifikasi: profil Kabag Aktif langsung berganti ke nama pegawai baru, Tim Kerja Bagian Umum di `m_tim` ketuanya otomatis terupdate, dan menu shortcut login di halaman depan langsung menampilkan nama Kabag baru.
+- [ ] **Pengujian Penambahan & Pencabutan Admin Lembur**:
+  - Klik **Tambah Admin**, pilih pegawai berstatus `user`, klik konfirmasi: pegawai berhasil naik menjadi `admin`.
+  - Klik tombol **Cabut** pada baris admin tersebut: muncul konfirmasi dialog. Setelah disetujui, hak admin dicabut dan status pegawai kembali ke `user`.
+- [ ] **Pengujian Penambahan Superadmin & Proteksi Permanen**:
+  - Klik **Tambah Superadmin**: modal terbuka dengan **kotak peringatan tegas**: *"beneran mau ngasih superadmin, nanti gabisa dicabut lagi"*.
+  - Tombol simpan terkunci (disabled) hingga *checkbox* persetujuan permanen dicentang.
+  - Setelah dicentang dan disimpan: pegawai sukses dipromosikan ke `superadmin`.
+  - Verifikasi: tidak ada tombol hapus/cabut untuk superadmin (*superadmin tidak bisa mencabut sesama superadmin*), dan dropdown role di tabel `admin/pengguna` terkunci untuk akun superadmin.
+
+### AA. Uji Single Active Pejabat, Suksesi PPK Dinamis, & Parameter Dokumen
+- [ ] **Uji Pejabat Aktif Tunggal (Invarian 1 Kabag Umum & 1 PPK Aktif)**:
+  - Buka phpMyAdmin atau menu Master Pejabat: periksa status pejabat. Pastikan hanya ada 1 pejabat yang berstatus `aktif` untuk `Kepala Bagian Umum` dan 1 untuk `PPK`.
+  - Jika seorang pejabat baru diaktifkan, pejabat lama otomatis ter-set `nonaktif`.
+- [ ] **Uji Pergantian PPK di Manajemen User**:
+  - Login sebagai `superadmin` dan buka `/admin/manajemen-user`.
+  - Di seksi **Pejabat Pembuat Komitmen / PPK (Aktif)**, klik tombol **Ganti PPK**.
+  - Pilih pegawai dari daftar pencarian dan masukkan tahun periode SK.
+  - Klik simpan: profil PPK aktif langsung diperbarui, dan PPK terdahulu masuk ke daftar riwayat arsip.
+- [ ] **Uji Parameter Penandatangan Dokumen (SPKL, Laporan, & Daftar Hadir)**:
+  - Buka menu Dokumen (`/admin/dokumen`).
+  - Klik tombol **Generate Dokumen**: modal menyajikan pilihan penandatangan Kepala Bagian Umum dan PPK (khusus SPKL) dengan default pejabat aktif.
+  - Coba generate SPKL: periksa berkas PDF/XLSX yang dihasilkan, nama PPK di sisi kiri dan nama Kabag Umum di sisi kanan otomatis sesuai pejabat terpilih.
+  - Coba generate Laporan Lembur: periksa nama Kabag Umum pada tanda tangan otomatis sesuai pejabat terpilih.
+  - Buka menu Daftar Hadir (`/admin/daftar_hadir`) dan unduh PDF: tanda tangan mengetahui Kepala Bagian Umum otomatis mengikuti pejabat aktif (atau parameter URL `?kbu=...`).
+
+### AB. Uji Format Laporan Hasil Kerja Lembur (1 Baris per Orang per Tanggal Sesuai Standar BPS)
+- [ ] **Uji Generate Laporan PDF (`dokumen.laporan`)**:
+  - Buka menu Dokumen (`/admin/dokumen`).
+  - Klik tombol **Generate** atau tautan *Generate PDF* pada kolom Laporan untuk salah satu periode yang memiliki data lembur approved.
+  - Buka dokumen PDF hasil unduhan:
+    - Periksa header tabel: `No`, `Nama Pegawai / NIP`, `Tanggal`, dan `Uraian Kegiatan`.
+    - Pastikan jika seorang pegawai lembur beberapa hari dalam sebulan, setiap tanggal lembur muncul **1 baris tersendiri** (bukan digabung dalam 1 baris).
+    - Kolom `Tanggal` menyajikan angka tanggal yang berpusat di tengah (*align center*).
+    - Kolom `Nama Pegawai / NIP` menampilkan nama pegawai dan NIP BPS secara rapi.
+- [ ] **Uji Generate Laporan Excel XLSX (`LaporanExport`)**:
+  - Pada halaman dokumen, generate atau unduh Laporan format **XLSX**.
+  - Buka berkas Excel:
+    - Baris 3 menyajikan header kolom: `No`, `Nama Pegawai / NIP`, `Tanggal`, dan `Uraian Kegiatan`.
+    - Format kolom B: `{Nama} / {NIP BPS}` (misal: `Joko Suwarjo,S.Si, M.Si / 340013741`).
+    - Format kolom C: Angka tanggal (`1`, `2`, `6`, ...) dengan perataan tengah (*center*).
+    - Uraian kegiatan tersusun rapi dengan wrap text dan bullet point.
+    - Nomor urut berlanjut urut: 1, 2, 3, 4, 5...
+
+### AC. Uji Tombol & Icon Cetak A4 Otomatis di Menu Daftar Hadir Admin
+- [ ] **Uji Tombol Cetak A4 di Header Daftar Hadir**:
+  - Login sebagai `admin` atau `superadmin`, lalu buka menu **Daftar Hadir** (`/daftar-hadir`).
+  - Periksa di samping tombol **Unduh PDF** terdapat tombol berikon printer **Cetak A4**.
+  - Klik tombol **Cetak A4**: muncul dropdown pilihan kategori pegawai (*Cetak Hadir (PNS)* dan *Cetak Hadir (PPPK)*) dengan penanda *Auto Print*.
+- [ ] **Uji Dialog Cetak Otomatis & Orientasi Kertas A4**:
+  - Klik salah satu opsi (misal: *Cetak Hadir (PNS)*): tab peramban baru akan terbuka memuat tampilan dokumen resmi presensi lembur.
+  - Periksa dialog cetak bawaan browser (*print dialog*) muncul **secara otomatis**.
+  - Pastikan orientasi kertas default adalah **Portrait** dan ukuran kertas default adalah **A4**.
+  - Periksa bahwa tanda tangan digital pegawai dan nama Kepala Bagian Umum aktif tercetak dengan jelas dan rapi.
+
+### AD. Uji Perbaikan Format Laporan Lembur, Tombol Cetak Daftar Hadir, Jam Pulang Riil, & Rekapitulasi (PNS/PPPK/Semua)
+- [ ] **Uji NIP Baru 18 Digit & Layout PDF Anti-Cut Off Laporan Lembur**:
+  - Buka menu Dokumen (`/admin/dokumen`), pilih periode dan generate **Laporan PDF**.
+  - Periksa baris pegawai: nomor NIP yang tercetak di bawah nama adalah **NIP Baru (18 digit)** (dengan fallback NIP lama jika belum diisi).
+  - Periksa bila uraian pekerjaan panjang atau halaman berganti: layout A4 portrait mengalir rapi tanpa terpotong di tepi bawah (*anti-cut off page break*), dan blok tanda tangan tetap utuh di lembar terakhir.
+- [ ] **Uji Tombol Cetak & Jam Pulang Riil Daftar Hadir**:
+  - Buka menu **Daftar Hadir** (`/daftar-hadir`): tombol printer bertuliskan **Cetak** (tanpa tulisan "A4").
+  - Periksa kolom **Jam Pulang**: menampilkan jam scan kepulangan riil pegawai dari `t_presensi`. Apabila pegawai belum melakukan presensi pulang atau data tidak ada, tampil tanda strip `-`.
+  - Verifikasi bahwa jam pulang riil ini tampil konsisten di tabel web admin, dokumen unduh PDF landscape, dan halaman cetak browser.
+- [ ] **Uji Filter Kategori & Dropdown Unduh Rekapitulasi Lembur**:
+  - Buka menu **Rekapitulasi Lembur** (`/admin/rekapitulasi`): toolbar menyajikan dropdown filter kategori (**Semua Pegawai**, **PNS**, **PPPK**).
+  - Pilih **PNS**: tabel otomatis menyaring hanya pegawai PNS.
+  - Pilih **PPPK**: tabel otomatis menyaring hanya pegawai PPPK.
+  - Klik tombol **Unduh Rekap**: menu dropdown muncul menyajikan 3 opsi:
+    1. **Unduh Semua Pegawai** ➔ Menghasilkan file `Rekapitulasi_Lembur_{periode}.xlsx`.
+    2. **Unduh Rekap PNS** ➔ Menghasilkan file `Rekapitulasi_Lembur_PNS_{periode}.xlsx`.
+    3. **Unduh Rekap PPPK** ➔ Menghasilkan file `Rekapitulasi_Lembur_PPPK_{periode}.xlsx`.
+  - Buka berkas Excel hasil unduhan masing-masing opsi untuk memastikan data pegawai dan judul worksheet sesuai dengan kategori yang dipilih.
+
+### AE. Uji Logout Sesi Kedaluwarsa & Proteksi Anti-419
+- [ ] **Uji Tombol Logout Bebas Error 419**:
+  - Login ke aplikasi dan biarkan beberapa saat hingga token sesi basi, atau hapus cookie sesi di DevTools Application/Storage.
+  - Klik tombol **Logout** di navbar profil kanan atas.
+  - Verifikasi: pengguna **langsung dialihkan secara mulus ke halaman login** (`/login`) tanpa pernah memunculkan layar hitam `419 | PAGE EXPIRED`.
+- [ ] **Uji Akses Langsung URL `/logout`**:
+  - Ketik atau refresh alamat URL `https://domain-kantor/logout` di address bar browser.
+  - Verifikasi: sistem mengeksekusi flush session dan mengarahkan kembali ke `/login` tanpa error `405 Method Not Allowed`.
+
+### AF. Uji Penyesuaian Role Pak Joko Suwarjo (Ketua Tim / Kabag Umum, Non-Admin)
+- [ ] **Uji Role Pak Joko di Database & Sistem**:
+  - Jalankan kueri `SELECT nama, nip, role FROM m_pegawai WHERE nip = '197106131993121001'`: role tercatat sebagai `ketua_tim`.
+  - Login sebagai Pak Joko: sistem mengarahkan ke Dashboard Ketua Tim (`/ketua-tim/dashboard`).
+  - Periksa sidebar Pak Joko: tampil menu khusus **Persetujuan Kabag** (`/kabag-umum/pengajuan`) beserta lencana notifikasi pengajuan masuk.
+  - Periksa menu **Manajemen User** (`/admin/manajemen-user`): Pak Joko tercatat sebagai Kepala Bagian Umum aktif di Seksi 1, dan tidak lagi tercantum di daftar Admin Lembur operasional di Seksi 2.
+- [ ] **Uji 2 Admin Aktif Terdaftar**:
+  - Jalankan kueri `SELECT nama, nip, role FROM m_pegawai WHERE role = 'admin'`.
+  - Pastikan yang terdaftar tepat **2 orang**: Mbak Rizki Dianing Wardhani SST (Admin Operasional) dan Ibu Suci Budi Utami SST, M.Si. (PPK dengan wewenang verifikasi admin).
 

@@ -122,6 +122,7 @@
             class="hidden h-10 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-500 shadow-2xs hover:border-red-300 hover:text-red-500 transition-colors">
             Reset
         </button>
+    </div>
 
     {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
     <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">

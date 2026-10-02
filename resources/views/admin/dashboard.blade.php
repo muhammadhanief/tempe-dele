@@ -53,7 +53,7 @@
     <div class="rounded-2xl bg-gray-50 p-5">
       <p class="text-xs text-gray-500 mb-2">Total pengajuan</p>
       <p class="text-3xl font-semibold text-gray-900">{{ $stats['total'] }}</p>
-      <p class="mt-1 text-xs text-slate-500">Bulan ini</p>
+      <p class="mt-1 text-xs text-slate-500">Tahun {{ date('Y') }}</p>
     </div>
     <div class="rounded-2xl bg-gray-50 p-5 cursor-pointer hover:bg-yellow-50 hover:ring-2 hover:ring-yellow-300 transition"
         onclick="bukaModalPending()">
@@ -64,12 +64,12 @@
     <div class="rounded-2xl bg-gray-50 p-5">
       <p class="text-xs text-gray-500 mb-2">Disetujui</p>
       <p class="text-3xl font-semibold text-green-700">{{ $stats['disetujui'] }}</p>
-      <p class="mt-1 text-xs text-slate-500">Pengajuan bulan ini</p>
+      <p class="mt-1 text-xs text-slate-500">Tahun {{ date('Y') }}</p>
     </div>
     <div class="rounded-2xl bg-gray-50 p-5">
       <p class="text-xs text-gray-500 mb-2">Ditolak</p>
       <p class="text-3xl font-semibold text-red-700">{{ $stats['ditolak'] }}</p>
-      <p class="mt-1 text-xs text-slate-500">Pengajuan bulan ini</p>
+      <p class="mt-1 text-xs text-slate-500">Tahun {{ date('Y') }}</p>
     </div>
   </div>
 

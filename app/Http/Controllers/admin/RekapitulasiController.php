@@ -17,6 +17,7 @@ class RekapitulasiController extends Controller
     {
         $bulan = $request->get('bulan', now()->format('Y-m'));
         $nip   = $request->get('nip_lama');
+        $jenis = $request->get('jenis');
 
         [$tahun, $bln] = explode('-', $bulan);
         $monthDate = $tahun . '-' . $bln . '-01';
@@ -25,14 +26,25 @@ class RekapitulasiController extends Controller
         $this->koreksiUntukBulan((int) $tahun, (int) $bln);
 
         // 1. Ambil transaksi approved + eligible di bulan tsb
-        $transaksi = DB::table('t_transaksi as t')
+        $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->where('t.status', 'approved')
             ->where('t.eligible', 1)
             ->whereYear('t.date', $tahun)
             ->whereMonth('t.date', $bln)
-            ->when($nip, fn($q) => $q->where('p.nip_lama', $nip))
-            ->select(
+            ->when($nip, fn($q) => $q->where('p.nip_lama', $nip));
+
+        if ($jenis === 'pns') {
+            $query->where(function ($q) {
+                $q->whereNull('p.email')
+                  ->orWhere('p.email', '')
+                  ->orWhere('p.email', 'not like', '%-pppk@bps.go.id');
+            });
+        } elseif ($jenis === 'pppk') {
+            $query->where('p.email', 'like', '%-pppk@bps.go.id');
+        }
+
+        $transaksi = $query->select(
                 'p.id_pegawai',
                 'p.nama',
                 'p.nip_lama',
@@ -118,8 +130,8 @@ class RekapitulasiController extends Controller
             ];
         })->values();
 
-        // 3. Upsert ke t_rekapitulasi
-        if (!$nip) {
+        // 3. Upsert ke t_rekapitulasi (hanya jika menampilkan seluruh pegawai tanpa filter spesifik)
+        if (!$nip && !$jenis) {
             DB::table('t_rekapitulasi')
                 ->where('month', $monthDate)
                 ->delete();
@@ -161,19 +173,33 @@ class RekapitulasiController extends Controller
             ]
         );
 
-        return view('admin.spkl', compact('rekapitulasi', 'bulan'));
+        return view('admin.spkl', compact('rekapitulasi', 'bulan', 'jenis'));
     }
 
     public function downloadExcel(Request $request)
     {
-        $bulan    = $request->get('bulan', now()->format('Y-m'));
+        $bulan = $request->get('bulan', now()->format('Y-m'));
+        $nip   = $request->get('nip_lama');
+        $jenis = $request->get('jenis');
+
         [$tahun, $bln] = explode('-', $bulan);
         $this->koreksiUntukBulan((int) $tahun, (int) $bln);
 
-        $filename = 'Rekapitulasi_Lembur_' . $bulan . '.xlsx';
+        $suffix = '';
+        if ($jenis === 'pns') {
+            $suffix = '_PNS';
+        } elseif ($jenis === 'pppk') {
+            $suffix = '_PPPK';
+        }
+
+        $filename = 'Rekapitulasi_Lembur' . $suffix . '_' . $bulan . '.xlsx';
 
         $response = Excel::download(
-            new \App\Exports\RekapitulasiExport(['bulan' => $bulan]),
+            new \App\Exports\RekapitulasiExport([
+                'bulan'    => $bulan,
+                'nip_lama' => $nip,
+                'jenis'    => $jenis,
+            ]),
             $filename
         );
 

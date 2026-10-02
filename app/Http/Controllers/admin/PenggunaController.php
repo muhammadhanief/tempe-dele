@@ -59,7 +59,7 @@ class PenggunaController extends Controller
             'role'     => 'sometimes|in:user,admin,ketua_tim',
         ]);
 
-        if ($roleSaya !== 'superadmin') {
+        if ($roleSaya !== 'superadmin' || $pegawai->role === 'superadmin') {
             unset($validated['role']);
         }
 

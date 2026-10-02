@@ -26,7 +26,7 @@
             </div>
 
             <div id="dropdownPegawai"
-                class="hidden absolute z-20 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                class="hidden absolute z-40 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
                 <ul id="listPegawai"></ul>
             </div>
         </div>
@@ -159,7 +159,7 @@
                         <td class="p-3 sm:p-5 text-xs sm:text-sm text-gray-900 whitespace-nowrap">
                             <span class="cell-display">{{ ucfirst($p->role ?? '—') }}</span>
 
-                            @if($roleSaya === 'superadmin')
+                            @if($roleSaya === 'superadmin' && $p->role !== 'superadmin')
                                 <select name="role"
                                     class="cell-edit hidden w-full min-w-[100px] border border-gray-200 rounded-lg px-2 py-1 text-sm focus:border-[#faa938] focus:outline-none">
                                     <option value="user"  {{ $p->role === 'user'  ? 'selected' : '' }}>User</option>

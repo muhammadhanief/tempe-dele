@@ -10,21 +10,19 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $bulanIni = Carbon::now()->month;
         $tahunIni = Carbon::now()->year;
 
-        // Statistik semua tim
+        // Statistik semua tim tahun berjalan
         $stats = [
-            'total'     => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->count(),
-            'disetujui' => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'approved')->count(),
-            'diproses'  => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'pending')->count(),
-            'ditolak'   => DB::table('t_transaksi')->whereMonth('date', $bulanIni)->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
+            'total'     => DB::table('t_transaksi')->whereYear('date', $tahunIni)->count(),
+            'disetujui' => DB::table('t_transaksi')->whereYear('date', $tahunIni)->where('status', 'approved')->count(),
+            'diproses'  => DB::table('t_transaksi')->whereYear('date', $tahunIni)->whereIn('status', ['pending', 'menunggu_kabag'])->count(),
+            'ditolak'   => DB::table('t_transaksi')->whereYear('date', $tahunIni)->where('status', 'rejected')->count(),
         ];
 
-        // 5 pengajuan terbaru bulan ini, semua tim
+        // 5 pengajuan terbaru tahun berjalan, semua tim
         $pengajuan = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
-            ->whereMonth('t.date', $bulanIni)
             ->whereYear('t.date', $tahunIni)
             ->select('t.*', 'p.nama as nama_pegawai')
             ->orderBy('t.submitted_at', 'desc')

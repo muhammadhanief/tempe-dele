@@ -34,33 +34,65 @@ class LaporanExport implements FromCollection, WithTitle, WithEvents, WithColumn
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
             ->where('t.status', 'approved')
+            ->where(function ($q) {
+                $q->where('t.eligible', 1)->orWhereNull('t.eligible');
+            })
             ->whereYear('t.date', $tahun)
             ->whereMonth('t.date', $bln)
-            ->select('p.nama', 'p.nip', 't.date', 't.uraian')
-            ->orderBy('p.nama')
-            ->orderBy('t.date');
+            ->select('p.nama', 'p.nip', 'p.nip_lama', 't.date', 't.uraian')
+            ->orderBy('t.date', 'asc')
+            ->orderBy('p.nama', 'asc');
 
         if ($jenis === 'pns') {
-            $query->whereRaw('LENGTH(p.nip_lama) = 9');
+            $query->where(function ($q) {
+                $q->whereNull('p.email')
+                  ->orWhere('p.email', '')
+                  ->orWhere('p.email', 'not like', '%-pppk@bps.go.id');
+            });
         } else {
-            $query->whereRaw('LENGTH(p.nip_lama) != 9');
+            $query->where('p.email', 'like', '%-pppk@bps.go.id');
         }
 
         $no = 0;
-        return $query->get()->map(function ($item) use (&$no) {
+        return $query->get()->groupBy(function ($item) {
+            return $item->date . '_' . $item->nip;
+        })->map(function ($rows) use (&$no) {
             $no++;
-            $uraian = collect(explode(';', $item->uraian))
-                ->map(fn($u) => '- ' . trim($u))
-                ->filter()
-                ->implode("\n");
+            $first = $rows->first();
+            $tanggal = (int) date('j', strtotime($first->date));
+
+            $uraianItems = collect();
+            foreach ($rows as $row) {
+                if (!empty($row->uraian)) {
+                    $parts = explode(';', $row->uraian);
+                    foreach ($parts as $p) {
+                        $clean = trim($p);
+                        $clean = ltrim($clean, "- \t\n\r\0\x0B");
+                        if (!empty($clean)) {
+                            $uraianItems->push($clean);
+                        }
+                    }
+                }
+            }
+            $uraianItems = $uraianItems->unique()->values();
+
+            if ($uraianItems->count() > 1) {
+                $uraianFormatted = $uraianItems->map(fn($u) => '- ' . $u)->implode("\n");
+            } elseif ($uraianItems->count() === 1) {
+                $uraianFormatted = $uraianItems->first();
+            } else {
+                $uraianFormatted = '-';
+            }
+
+            $nipDisplay = $first->nip ?: $first->nip_lama;
 
             return [
                 $no,
-                $item->nama . "\n" . $item->nip,
-                Carbon::parse($item->date)->translatedFormat('d F Y'),
-                $uraian,
+                $first->nama . ' / ' . $nipDisplay,
+                $tanggal,
+                $uraianFormatted,
             ];
-        });
+        })->values();
     }
 
     public function title(): string
@@ -104,8 +136,8 @@ class LaporanExport implements FromCollection, WithTitle, WithEvents, WithColumn
 
                 // Baris 3: Header kolom
                 $sheet->setCellValue('A3', 'No');
-                $sheet->setCellValue('B3', 'Nama Pegawai/NIP');
-                $sheet->setCellValue('C3', 'Tanggal Lembur');
+                $sheet->setCellValue('B3', 'Nama Pegawai / NIP');
+                $sheet->setCellValue('C3', 'Tanggal');
                 $sheet->setCellValue('D3', 'Uraian Kegiatan');
                 $sheet->getStyle('A3:D3')->applyFromArray([
                     'font'      => ['bold' => true],
@@ -126,13 +158,17 @@ class LaporanExport implements FromCollection, WithTitle, WithEvents, WithColumn
                         ->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $sheet->getStyle("B4:B{$dataLastRow}")->getAlignment()
                         ->setWrapText(true);
+                    $sheet->getStyle("C4:C{$dataLastRow}")->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("D4:D{$dataLastRow}")->getAlignment()
+                        ->setWrapText(true);
                 }
 
                 // Lebar kolom
-                $sheet->getColumnDimension('A')->setAutoSize(false)->setWidth(5);
-                $sheet->getColumnDimension('B')->setAutoSize(false)->setWidth(30);
-                $sheet->getColumnDimension('C')->setAutoSize(false)->setWidth(22);
-                $sheet->getColumnDimension('D')->setAutoSize(false)->setWidth(55);
+                $sheet->getColumnDimension('A')->setAutoSize(false)->setWidth(6);
+                $sheet->getColumnDimension('B')->setAutoSize(false)->setWidth(35);
+                $sheet->getColumnDimension('C')->setAutoSize(false)->setWidth(12);
+                $sheet->getColumnDimension('D')->setAutoSize(false)->setWidth(65);
             },
         ];
     }
