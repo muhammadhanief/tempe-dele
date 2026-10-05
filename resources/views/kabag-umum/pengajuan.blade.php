@@ -529,7 +529,7 @@
                         <td class="px-2 py-2.5 text-center" id="aksi-kabag-{{ $p->id_transaksi }}">
                             @if($p->status === 'menunggu_kabag')
                                 <button type="button"
-                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->note_kabag ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $isBagianUmum ? 1 : 0 }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}')"
+                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->note_kabag ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $isBagianUmum ? 1 : 0 }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -538,7 +538,7 @@
                                 </button>
                             @elseif(in_array($p->status, ['approved', 'rejected']))
                                 <button type="button"
-                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->note_kabag ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $isBagianUmum ? 1 : 0 }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}')"
+                                    onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->note_kabag ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $isBagianUmum ? 1 : 0 }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
                                     class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
@@ -744,16 +744,44 @@ let currentUraianKabag = '';
 let currentIsBagianUmum = false;
 let currentHasPresensiKabag = false;
 let currentJamSelesaiPresensiKabag = '';
+let currentJamPengajuanMulaiKabag = '';
+let currentJamPengajuanSelesaiKabag = '';
+
+function updateCatatanKabagWajibHint() {
+    const noteWajibHint = document.getElementById('mNoteWajibHint');
+    if (!noteWajibHint) return;
+
+    if (selectedKeputusanKabag === 'rejected') {
+        noteWajibHint.className = 'text-rose-600 font-semibold text-[11px]';
+        noteWajibHint.textContent = '(Wajib jika menolak) *';
+        return;
+    }
+
+    const mulai = document.getElementById('mJamMulai').value;
+    const selesai = document.getElementById('mJamSelesai').value;
+    const isJamDiubah = (currentJamPengajuanMulaiKabag && mulai !== currentJamPengajuanMulaiKabag) ||
+                        (currentJamPengajuanSelesaiKabag && selesai !== currentJamPengajuanSelesaiKabag);
+
+    if (isJamDiubah) {
+        noteWajibHint.className = 'text-rose-600 font-semibold text-[11px]';
+        noteWajibHint.textContent = '(Wajib diisi karena jam disetujui berbeda) *';
+    } else {
+        noteWajibHint.className = 'text-gray-400 font-normal text-xs';
+        noteWajibHint.textContent = '(Opsional)';
+    }
+}
 
 // =====================
 // MODAL KEPUTUSAN KABAG
 // =====================
-window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua, noteKabag, currentStatus, uraian, isBagianUmum, hasPresensi, jamSelesaiPresensi) {
+window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua, noteKabag, currentStatus, uraian, isBagianUmum, hasPresensi, jamSelesaiPresensi, jamPengajuanMulai, jamPengajuanSelesai) {
     currentKabagId = id;
     currentUraianKabag = (uraian !== undefined && uraian !== null) ? uraian : '';
     currentIsBagianUmum = Boolean(isBagianUmum);
     currentHasPresensiKabag = Boolean(hasPresensi);
     currentJamSelesaiPresensiKabag = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
+    currentJamPengajuanMulaiKabag = (jamPengajuanMulai !== undefined && jamPengajuanMulai !== null && String(jamPengajuanMulai).trim() !== '') ? String(jamPengajuanMulai).trim() : (jamMulai || '');
+    currentJamPengajuanSelesaiKabag = (jamPengajuanSelesai !== undefined && jamPengajuanSelesai !== null && String(jamPengajuanSelesai).trim() !== '') ? String(jamPengajuanSelesai).trim() : (jamSelesai || '');
 
     const elJamMulai = document.getElementById('mJamMulai');
     const elJamSelesai = document.getElementById('mJamSelesai');
@@ -828,7 +856,6 @@ window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua,
     const bannerLocked = document.getElementById('mStatusLockedBanner');
     const lockedText = document.getElementById('mStatusLockedText');
     const wrapperJam = document.getElementById('mWrapperJamDisetujui');
-    const noteWajibHint = document.getElementById('mNoteWajibHint');
     const btnSimpan = document.getElementById('btnSimpanKabag');
 
     if (currentStatus === 'approved') {
@@ -841,7 +868,6 @@ window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua,
         bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-emerald-50 p-3 border border-emerald-200 text-xs text-emerald-800 font-medium';
         lockedText.innerHTML = 'Status <b>Disetujui Final</b> terkunci. Anda hanya dapat mengoreksi jam disetujui dan catatan arahan.';
         wrapperJam.classList.remove('hidden');
-        noteWajibHint.textContent = '(Opsional)';
         btnSimpan.textContent = 'Simpan Koreksi';
     } else if (currentStatus === 'rejected') {
         isStatusLocked = true;
@@ -853,7 +879,6 @@ window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua,
         bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800 font-medium';
         lockedText.innerHTML = 'Status <b>Ditolak</b> terkunci. Anda dapat mengoreksi catatan alasan penolakan.';
         wrapperJam.classList.add('hidden');
-        noteWajibHint.textContent = '(Wajib)';
         btnSimpan.textContent = 'Simpan Koreksi';
     } else {
         // Status menunggu_kabag (Proses baru)
@@ -864,10 +889,11 @@ window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua,
         wrapperPilihan.classList.remove('hidden');
         wrapperLocked.classList.add('hidden');
         wrapperJam.classList.remove('hidden');
-        noteWajibHint.textContent = '(Wajib jika menolak)';
         btnSimpan.textContent = 'Simpan Keputusan';
         setKeputusanKabag('approved');
     }
+
+    updateCatatanKabagWajibHint();
 
     document.getElementById('modalKabag').classList.remove('hidden');
     document.body.classList.add('overflow-hidden');
@@ -882,6 +908,8 @@ window.closeModalKabag = function() {
     currentIsBagianUmum = false;
     currentHasPresensiKabag = false;
     currentJamSelesaiPresensiKabag = '';
+    currentJamPengajuanMulaiKabag = '';
+    currentJamPengajuanSelesaiKabag = '';
 };
 
 window.setKeputusanKabag = function(val) {
@@ -901,8 +929,13 @@ window.setKeputusanKabag = function(val) {
         btnSetuju.className = 'flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-gray-600 transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700';
         wrapperJam.classList.add('hidden');
     }
+    updateCatatanKabagWajibHint();
 };
 
+document.getElementById('mJamMulai')?.addEventListener('change', updateCatatanKabagWajibHint);
+document.getElementById('mJamMulai')?.addEventListener('input', updateCatatanKabagWajibHint);
+document.getElementById('mJamSelesai')?.addEventListener('change', updateCatatanKabagWajibHint);
+document.getElementById('mJamSelesai')?.addEventListener('input', updateCatatanKabagWajibHint);
 document.getElementById('mUraian')?.addEventListener('input', function() {
     const elCount = document.getElementById('mUraianCount');
     if (elCount) elCount.textContent = `${this.value.length} / 2000`;
@@ -915,6 +948,16 @@ window.simpanKeputusanKabag = function() {
     const jamSelesai = document.getElementById('mJamSelesai').value;
     const noteKabag = document.getElementById('mNoteKabag').value;
     const uraian = document.getElementById('mUraian').value;
+
+    if (selectedKeputusanKabag === 'approved') {
+        const isJamDiubah = (currentJamPengajuanMulaiKabag && jamMulai !== currentJamPengajuanMulaiKabag) ||
+                            (currentJamPengajuanSelesaiKabag && jamSelesai !== currentJamPengajuanSelesaiKabag);
+        if (isJamDiubah && (!noteKabag || noteKabag.trim() === '')) {
+            alert('Catatan Kabag wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan.');
+            document.getElementById('mNoteKabag').focus();
+            return;
+        }
+    }
 
     if (selectedKeputusanKabag === 'approved' && currentJamSelesaiPresensiKabag && jamSelesai > currentJamSelesaiPresensiKabag) {
         alert(`Jam selesai disetujui (${jamSelesai}) tidak boleh melebihi jam kepulangan presensi pegawai (${currentJamSelesaiPresensiKabag}).`);
@@ -1011,7 +1054,7 @@ window.simpanKeputusanKabag = function() {
 
             aksiEl.innerHTML = `
                 <button type="button"
-                    onclick='openModalKabag(${currentKabagId}, ${safeNama}, ${safeTim}, "${approvedMulai}", "${approvedSelesai}", ${safeNoteKetua}, ${safeNoteKabag}, "${finalStatus}", ${safeUraian}, ${isBagianUmumFlag}, ${presensiFlag}, "${currentJamSelesaiPresensiKabag}")'
+                    onclick='openModalKabag(${currentKabagId}, ${safeNama}, ${safeTim}, "${approvedMulai}", "${approvedSelesai}", ${safeNoteKetua}, ${safeNoteKabag}, "${finalStatus}", ${safeUraian}, ${isBagianUmumFlag}, ${presensiFlag}, "${currentJamSelesaiPresensiKabag}", "${currentJamPengajuanMulaiKabag}", "${currentJamPengajuanSelesaiKabag}")'
                     class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>

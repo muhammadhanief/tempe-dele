@@ -252,7 +252,7 @@
                                 <div class="inline-flex items-center gap-1.5 justify-center">
                                     <span class="bg-green-100 rounded-full px-2 text-xs text-green-700 py-0.5">Disetujui</span>
                                     <button type="button"
-                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'approved')"
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'approved', '{{ substr($p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai,0,5) }}')"
                                         class="text-slate-500 cursor-pointer hover:text-slate-800" title="Koreksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -263,7 +263,7 @@
                                 <div class="inline-flex items-center gap-1.5 justify-center">
                                     <span class="bg-blue-100 rounded-full px-2 text-xs text-blue-700 py-0.5">Menunggu Kabag</span>
                                     <button type="button"
-                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'approved')"
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'approved', '{{ substr($p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai,0,5) }}')"
                                         class="text-blue-600 cursor-pointer hover:text-blue-800" title="Proses / Setujui">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -274,7 +274,7 @@
                                 <div class="inline-flex items-center gap-1.5 justify-center">
                                     <span class="bg-red-100 rounded-full px-2 text-xs text-red-700 py-0.5">Ditolak</span>
                                     <button type="button"
-                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'rejected')"
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'rejected', '{{ substr($p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai,0,5) }}')"
                                         class="text-slate-500 cursor-pointer hover:text-slate-800" title="Lihat / Koreksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -285,7 +285,7 @@
                                 <div class="inline-flex items-center gap-1.5 justify-center">
                                     <span class="bg-gray-100 rounded-full px-2 text-xs text-gray-700 py-0.5 border border-gray-300">Dibatalkan</span>
                                     <button type="button"
-                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'cancelled')"
+                                        onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'cancelled', '{{ substr($p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai,0,5) }}')"
                                         class="text-slate-500 cursor-pointer hover:text-slate-800" title="Lihat / Ubah Keputusan">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -1071,13 +1071,42 @@ let keputusan = null;
 let currentUraian = '';
 let currentHasPresensi = false;
 let currentJamSelesaiPresensi = '';
+let currentJamPengajuanMulaiAdmin = '';
+let currentJamPengajuanSelesaiAdmin = '';
 
-window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, uraian, hasPresensi, jamSelesaiPresensi, initialStatus) {
+function updateCatatanAdminWajibHint() {
+    const labelCatatan = document.getElementById('labelCatatan');
+    if (!labelCatatan) return;
+
+    if (keputusan === 'cancelled') {
+        labelCatatan.innerHTML = 'Catatan / Alasan Pembatalan <span class="text-rose-500 font-semibold">*wajib</span>';
+        return;
+    }
+    if (keputusan === 'rejected') {
+        labelCatatan.textContent = 'Catatan / Alasan Penolakan';
+        return;
+    }
+
+    const mulai = document.getElementById('kJamMulai').value;
+    const selesai = document.getElementById('kJamSelesai').value;
+    const isJamDiubah = (currentJamPengajuanMulaiAdmin && mulai !== currentJamPengajuanMulaiAdmin) ||
+                        (currentJamPengajuanSelesaiAdmin && selesai !== currentJamPengajuanSelesaiAdmin);
+
+    if (isJamDiubah) {
+        labelCatatan.innerHTML = 'Catatan <span class="text-rose-600 font-semibold text-xs">*wajib (jam disetujui berbeda)</span>';
+    } else {
+        labelCatatan.textContent = 'Catatan (Opsional)';
+    }
+}
+
+window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, uraian, hasPresensi, jamSelesaiPresensi, initialStatus, jamPengajuanMulai, jamPengajuanSelesai) {
     currentId = id;
     keputusan = (initialStatus === 'approved' || initialStatus === 'rejected' || initialStatus === 'cancelled') ? initialStatus : null;
     currentUraian = (uraian !== undefined && uraian !== null) ? uraian : '';
     currentHasPresensi = Boolean(hasPresensi);
     currentJamSelesaiPresensi = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
+    currentJamPengajuanMulaiAdmin = (jamPengajuanMulai !== undefined && jamPengajuanMulai !== null && String(jamPengajuanMulai).trim() !== '') ? String(jamPengajuanMulai).trim() : (jamMulai || '');
+    currentJamPengajuanSelesaiAdmin = (jamPengajuanSelesai !== undefined && jamPengajuanSelesai !== null && String(jamPengajuanSelesai).trim() !== '') ? String(jamPengajuanSelesai).trim() : (jamSelesai || '');
 
     const elJamMulai = document.getElementById('kJamMulai');
     const elJamSelesai = document.getElementById('kJamSelesai');
@@ -1133,6 +1162,7 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, uraian, 
         setKeputusan('approved');
     }
     cekWarningDurasi();
+    updateCatatanAdminWajibHint();
 
     document.getElementById('modalKeputusan').classList.remove('hidden');
     document.body.classList.add('overflow-hidden');
@@ -1147,6 +1177,8 @@ window.closeModalKeputusan = function() {
     currentUraian = '';
     currentHasPresensi = false;
     currentJamSelesaiPresensi = '';
+    currentJamPengajuanMulaiAdmin = '';
+    currentJamPengajuanSelesaiAdmin = '';
 };
 
 window.setKeputusan = function(val) {
@@ -1159,16 +1191,14 @@ window.setKeputusan = function(val) {
     if (val === 'rejected') {
         document.getElementById('kBtnTolak').className = 'px-2.5 py-1.5 text-xs sm:text-sm font-bold rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-700 transition-all flex items-center justify-center gap-1 shadow-xs';
         if (wrapperJam) wrapperJam.classList.remove('hidden');
-        if (labelCatatan) labelCatatan.textContent = 'Catatan / Alasan Penolakan';
     } else if (val === 'cancelled') {
         document.getElementById('kBtnBatal').className = 'px-2.5 py-1.5 text-xs sm:text-sm font-bold rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-800 transition-all flex items-center justify-center gap-1 shadow-xs';
         if (wrapperJam) wrapperJam.classList.add('hidden');
-        if (labelCatatan) labelCatatan.innerHTML = 'Catatan / Alasan Pembatalan <span class="text-rose-500 font-semibold">*wajib</span>';
     } else {
         document.getElementById('kBtnSetujui').className = 'px-2.5 py-1.5 text-xs sm:text-sm font-bold rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-800 transition-all flex items-center justify-center gap-1 shadow-xs';
         if (wrapperJam) wrapperJam.classList.remove('hidden');
-        if (labelCatatan) labelCatatan.textContent = 'Catatan (Opsional)';
     }
+    updateCatatanAdminWajibHint();
 };
 
 function resetBtnKeputusan() {
@@ -1207,8 +1237,10 @@ function cekWarningDurasi() {
     }
 }
 
-document.getElementById('kJamMulai')?.addEventListener('change', cekWarningDurasi);
-document.getElementById('kJamSelesai')?.addEventListener('change', cekWarningDurasi);
+document.getElementById('kJamMulai')?.addEventListener('change', () => { cekWarningDurasi(); updateCatatanAdminWajibHint(); });
+document.getElementById('kJamMulai')?.addEventListener('input', updateCatatanAdminWajibHint);
+document.getElementById('kJamSelesai')?.addEventListener('change', () => { cekWarningDurasi(); updateCatatanAdminWajibHint(); });
+document.getElementById('kJamSelesai')?.addEventListener('input', updateCatatanAdminWajibHint);
 document.getElementById('kUraian')?.addEventListener('input', function() {
     const elCount = document.getElementById('kUraianCount');
     if (elCount) elCount.textContent = `${this.value.length} / 2000`;
@@ -1236,6 +1268,15 @@ window.simpanKeputusan = function() {
             alert('Jam mulai dan jam selesai wajib diisi.');
             return;
         }
+
+        const isJamDiubah = (currentJamPengajuanMulaiAdmin && jamMulai !== currentJamPengajuanMulaiAdmin) ||
+                            (currentJamPengajuanSelesaiAdmin && jamSelesai !== currentJamPengajuanSelesaiAdmin);
+        if (isJamDiubah && !catatan.trim()) {
+            alert('Catatan wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan.');
+            document.getElementById('kCatatan').focus();
+            return;
+        }
+
         if (currentJamSelesaiPresensi && jamSelesai > currentJamSelesaiPresensi) {
             alert(`Jam selesai disetujui (${jamSelesai}) tidak boleh melebihi jam kepulangan presensi pegawai (${currentJamSelesaiPresensi}).`);
             document.getElementById('kJamSelesai').focus();
@@ -1294,7 +1335,7 @@ window.simpanKeputusan = function() {
                 <div class="inline-flex items-center gap-1.5 justify-center">
                     <span class="${badgeClass} rounded-full px-2 text-xs py-0.5">${badgeText}</span>
                     <button type="button"
-                        onclick="openModalKeputusan(${currentId}, '${jamMulai}', '${jamSelesai}', ${JSON.stringify(catatan)}, ${JSON.stringify(uraian)}, ${currentHasPresensi ? 1 : 0}, '${currentJamSelesaiPresensi}', '${actionStatus}')"
+                        onclick="openModalKeputusan(${currentId}, '${jamMulai}', '${jamSelesai}', ${JSON.stringify(catatan)}, ${JSON.stringify(uraian)}, ${currentHasPresensi ? 1 : 0}, '${currentJamSelesaiPresensi}', '${actionStatus}', '${currentJamPengajuanMulaiAdmin}', '${currentJamPengajuanSelesaiAdmin}')"
                         class="text-gray-400 cursor-pointer hover:text-gray-600" title="${btnTitle}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

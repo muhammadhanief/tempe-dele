@@ -21,6 +21,11 @@ Dokumen ini berisi aturan kerja (*rules*) wajib bagi AI Agent yang bekerja di re
    * Di server produksi, **hindari** menyarankan perintah `php artisan migrate` secara polosan tanpa parameter `--path`, karena berisiko memunculkan error *Duplicate column* dari migrasi lama bawaan repositori.
    * Selalu prioritaskan penyediaan kueri SQL langsung yang dapat dieksekusi di phpMyAdmin cPanel dan perintah artisan migration yang spesifik per berkas.
 
+4. **Disiplin Git Commit Teratur (Jangan Menumpuk Perubahan):**
+   * Lakukan commit secara berkala dan terpisah per unit fungsional (*discrete logical commits*) segera setelah suatu fitur, perbaikan bug, atau sub-task selesai dikerjakan dan diverifikasi.
+   * **Hindari menumpuk perubahan** terlalu banyak berkas (*uncommitted changes*) secara sekaligus. Selalu pisahkan commit untuk kode fitur/logika, tampilan UI, berkas utilitas/dokumen, dan dokumentasi panduan.
+
+
 <!-- antislop:start -->
 ## antislop
 For UI, copy, people, mobile layout, or code comments work, read `antislop.md` (core) and then the skill for the task:

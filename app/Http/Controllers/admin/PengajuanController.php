@@ -150,8 +150,19 @@ class PengajuanController extends Controller
                 ], 422);
             }
 
-            $jamMulaiDisetujui   = Carbon::parse($transaksi->date . ' ' . $jamMulaiInput);
-            $jamSelesaiDisetujui = Carbon::parse($transaksi->date . ' ' . $jamSelesaiInput);
+            if ($transaksi->jam_mulai && $transaksi->jam_selesai) {
+                $mulaiAwal = substr($transaksi->jam_mulai, 0, 5);
+                $selesaiAwal = substr($transaksi->jam_selesai, 0, 5);
+                $mulaiBaru = substr($jamMulaiInput, 0, 5);
+                $selesaiBaru = substr($jamSelesaiInput, 0, 5);
+
+                if (($mulaiBaru !== $mulaiAwal || $selesaiBaru !== $selesaiAwal) && empty($noteKetua)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Catatan wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan.'
+                    ], 422);
+                }
+            }
 
             if ($jamSelesaiDisetujui->lessThan($jamMulaiDisetujui)) {
                 $jamSelesaiDisetujui->addDay();
@@ -269,7 +280,7 @@ class PengajuanController extends Controller
 
     public function cancel(Request $request, $id)
     {
-        $alasanRaw = $request->alasan ?? $request->alasan_batal ?? $request->note ?? '';
+        $alasanRaw = $request->alasan ?? $request->alasan_batal ?? $request->alasan_pembatalan ?? $request->note ?? '';
         $alasan = trim((string) $alasanRaw);
 
         if ($alasan === '') {

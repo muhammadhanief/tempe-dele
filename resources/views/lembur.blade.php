@@ -171,11 +171,12 @@
 
     {{-- Tabel --}}
     <div class="overflow-x-auto rounded-xl bg-white">
-        <table class="w-full min-w-[1080px] table-auto rounded-xl">
+        <table class="w-full min-w-[1140px] table-auto rounded-xl">
             <thead>
                 <tr class="bg-gray-100">
                     <th class="w-28 rounded-tl-xl px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Tanggal</th>
                     <th class="w-28 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Jam Diajukan</th>
+                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Jam Disetujui</th>
                     <th class="px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Uraian Kegiatan</th>
                     <th class="w-32 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Ketua Tim</th>
                     <th class="w-36 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Nama Tim</th>
@@ -203,6 +204,38 @@
                                 {{ substr($t->jam_mulai, 0, 5) }} - <span class="italic text-gray-400">menunggu</span>
                             @else
                                 -
+                            @endif
+                        </td>
+
+                        <td class="px-3 py-3 text-center text-xs whitespace-nowrap">
+                            @php
+                                $isAdjusted = $t->status === 'approved'
+                                    && $t->jam_mulai_disetujui
+                                    && $t->jam_selesai_disetujui
+                                    && (substr($t->jam_mulai_disetujui, 0, 5) !== substr($t->jam_mulai, 0, 5) || substr($t->jam_selesai_disetujui, 0, 5) !== substr($t->jam_selesai, 0, 5));
+                            @endphp
+
+                            @if($t->status === 'approved')
+                                @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
+                                    <div class="inline-flex flex-col items-center gap-1">
+                                        <span class="font-mono text-xs font-semibold text-emerald-700">
+                                            {{ substr($t->jam_mulai_disetujui, 0, 5) }} - {{ substr($t->jam_selesai_disetujui, 0, 5) }}
+                                        </span>
+                                        @if($isAdjusted)
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Jam disetujui disesuaikan dari jam pengajuan">
+                                                Disesuaikan
+                                            </span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            @elseif($t->status === 'rejected')
+                                <span class="text-xs text-red-500 italic">Ditolak</span>
+                            @elseif($t->status === 'cancelled')
+                                <span class="text-xs text-gray-400 italic">Dibatalkan</span>
+                            @else
+                                <span class="text-xs text-gray-400 italic">Menunggu</span>
                             @endif
                         </td>
 
@@ -328,7 +361,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="px-3 py-8 text-center text-sm text-gray-400">
+                        <td colspan="10" class="px-3 py-8 text-center text-sm text-gray-400">
                             Belum ada pengajuan lembur.
                         </td>
                     </tr>

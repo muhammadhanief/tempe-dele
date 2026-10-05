@@ -91,6 +91,15 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 11. 📄 **`app/Http/Controllers/admin/PenggunaController.php`** *(Pengamanan anti-downgrade akun superadmin pada aksi edit pengguna)*.
 12. 📄 **`resources/views/admin/pengguna.blade.php`** *(Proteksi dropdown role tabel pengguna untuk akun superadmin)*.
 13. 📄 **`resources/views/login.blade.php`** *(Shortcut dev-login Kabag Umum dinamis membaca database `m_pejabat`)*.
+14. 📄 **`app/Http/Controllers/admin/DokumenGenerateController.php`** *(Pengelompokan Laporan per orang per tanggal asc, NIP Baru, dan regenerasi update dinamis tanpa blok error)*.
+15. 📄 **`resources/views/dokumen/laporan.blade.php`** *(Header `Tanggal`, nilai tanggal normal tanpa bold, dan NIP Baru 18 digit)*.
+16. 📄 **`app/Exports/LaporanExport.php`** *(Ekspor Excel Laporan per orang per tanggal asc, header Tanggal)*.
+17. 📄 **`resources/views/dokumen/spkl.blade.php`** *(SPKL PDF layout natural flow DomPDF 2 halaman, NIP Baru 18 digit, dan tanggal lembur terurut koma)*.
+18. 📄 **`app/Exports/SpklExport.php`** *(SPKL XLSX dengan NIP Baru 18 digit dan tanggal terurut koma)*.
+19. 📄 **`resources/views/dokumen/daftar_hadir.blade.php`** *(Unduh PDF Daftar Hadir dengan @page A4 dan penegasan NIP KBU)*.
+20. 📄 **`app/Console/Commands/ResetTransaksiCommand.php`** *(Command artisan pembersih data pengajuan testing `php artisan lembur:reset-transaksi`)*.
+21. 📄 **`app/Console/Commands/ImportCleanDbCommand.php`** *(Command artisan impor database riil mentor `php artisan lembur:import-clean-db`)*.
+22. 📄 **`database/seeders/TestingLemburSeeder.php`** *(Seeder data transaksi testing realistis `php artisan db:seed --class=TestingLemburSeeder`)*.
 8. 📄 **`database/migrations/2026_09_25_000001_add_user_edited_to_t_transaksi.php`** *(File migrasi audit edit)*.
 9. 📄 **`database/migrations/2026_09_25_000002_widen_uraian_column_in_t_transaksi.php`** *(File migrasi kapasitas uraian TEXT)*.
 10. 📄 **`app/Models/Transaksi.php`** *(Update $fillable: user_edited, tanggal_edited)*.
@@ -188,6 +197,23 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 94. 📄 **`app/Http/Controllers/pegawai/DashboardController.php`** *(Pembaruan metrik pegawai tahun berjalan & inklusi status menunggu_kabag pada kartu Diproses)*.
 95. 📄 **`app/Http/Controllers/pimpinan/DashboardController.php`** *(Pembaruan metrik pimpinan tahun berjalan & inklusi status menunggu_kabag pada kartu Diproses)*.
 96. 📄 **`resources/views/admin/dashboard.blade.php`**, **`resources/views/ketua-tim/dashboard.blade.php`**, **`resources/views/dashboard.blade.php`**, **`resources/views/pimpinan/dashboard.blade.php`** *(Pembaruan subtitle kartu metrik menjadi Tahun berjalan)*.
+97. 📄 **`app/Http/Controllers/admin/DokumenGenerateController.php`** *(Pembaruan generator SPKL: adopsi NIP Baru 18 digit, deduplikasi tanggal lembur berurutan naik [contoh: "1, 30", "15, 25"], dan pengurutan daftar pegawai berdasarkan tanggal awal lembur)*.
+98. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Pembaruan tampilan tabel SPKL PDF: menampilkan NIP Baru 18 digit `{{ $p->nip ?? $p->nip_lama }}` di bawah nama pegawai)*.
+99. 📄 **`app/Exports/SpklExport.php`** *(Pembaruan lembar ekspor SPKL Excel: menampilkan NIP Baru 18 digit `$p->nama . "\n" . ($p->nip ?? $p->nip_lama)`)*.
+100. 📄 **`resources/views/dokumen/laporan.blade.php`** *(Pembaruan format Laporan Hasil Kerja Lembur PDF acuan resmi BPS: header Tanggal Lembur Bulan ..., nilai tanggal normal [tidak bold], dan styling nama normal weight)*.
+101. 📄 **`app/Exports/LaporanExport.php`** *(Pembaruan ekspor Laporan Excel: 1 baris per pegawai, tanggal berurutan menaik, dan header kolom C berlebar proporsional)*.
+102. 📄 **`app/Console/Commands/ResetTransaksiCommand.php`** *(Command artisan `lembur:reset-transaksi` untuk mengosongkan transaksi uji coba tanpa merusak data master)*.
+103. 📄 **`database/seeders/TestingLemburSeeder.php`** *(Seeder data lembur uji coba dengan uraian dinas riil BPS seperti SE2026, Sakernas, SPJ, dll.)*.
+104. 📄 **`app/Console/Commands/ImportCleanDbCommand.php`** *(Command artisan `lembur:import-clean-db` untuk mengimpor dump data riil bersih mentor dan auto-apply update struktur v2)*.
+105. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`** *(Validasi wajib isi catatan jika jam disetujui diubah/dipotong dari jam pengajuan & pencatatan audit trail `user_edited`/`tanggal_edited`)*.
+106. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`** *(Validasi wajib isi catatan Kabag jika jam disetujui diubah/dipotong & pencatatan audit trail `user_edited`/`tanggal_edited`)*.
+107. 📄 **`app/Http/Controllers/admin/PengajuanController.php`** *(Validasi wajib isi catatan Admin jika jam disetujui diubah & audit trail `user_edited`/`tanggal_edited`)*.
+108. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Pencatatan audit trail `user_edited`/`tanggal_edited` pada koreksi jam dan pembatalan, serta validasi catatan)*.
+109. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Label bintang merah dinamis dan validasi frontend wajib isi catatan saat jam lembur disesuaikan)*.
+110. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Label bintang merah dinamis dan validasi frontend wajib isi catatan Kabag saat jam lembur disesuaikan)*.
+111. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Label bintang merah dinamis dan validasi frontend wajib isi catatan Admin saat jam lembur disesuaikan)*.
+112. 📄 **`resources/views/lembur.blade.php`** *(Kolom Jam Disetujui, lencana Disesuaikan, dan transparansi catatan terstruktur di sisi pegawai)*.
+113. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Kolom Jam Disetujui, lencana Disesuaikan, dan transparansi catatan terstruktur di sisi Ketua Tim)*.
 
 ---
 
@@ -702,4 +728,80 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji 2 Admin Aktif Terdaftar**:
   - Jalankan kueri `SELECT nama, nip, role FROM m_pegawai WHERE role = 'admin'`.
   - Pastikan yang terdaftar tepat **2 orang**: Mbak Rizki Dianing Wardhani SST (Admin Operasional) dan Ibu Suci Budi Utami SST, M.Si. (PPK dengan wewenang verifikasi admin).
+
+### AG. Uji Standarisasi Dokumen SPKL (NIP Baru 18 Digit, Tanggal Terurut & Unik, Pegawai Kronologis)
+- [ ] **Uji Tampilan NIP Baru 18 Digit di SPKL**:
+  - Buka menu Dokumen Admin (`/admin/dokumen`), lalu cetak atau lihat SPKL (PDF maupun Excel).
+  - Verifikasi: nomor identitas pegawai yang tertera di bawah nama pegawai adalah **NIP Baru (18 digit)** resmi (misal: `196911261989031001`), bukan lagi NIP lama 9 digit.
+- [ ] **Uji Format Tanggal Lembur Terurut & Tanpa Duplikasi**:
+  - Periksa kolom bulan lembur (misal: *Bulan September*):
+    - Jika pegawai lembur di lebih dari satu tanggal (misal tanggal 1 dan 30), tanggal tertulis berurutan menaik: `1, 30` (atau `15, 25`).
+    - Jika pegawai memiliki beberapa pekerjaan di tanggal yang sama (misal 2 kegiatan di tanggal 15), tanggal hanya tertulis satu kali `15` (tidak ada duplikasi `15, 15`).
+- [ ] **Uji Pengurutan Baris Pegawai Berdasarkan Tanggal Awal Lembur**:
+  - Periksa urutan baris pegawai di tabel SPKL: pegawai diurutkan berdasarkan tanggal lembur pertama mereka (pegawai yang lembur di awal bulan seperti tanggal 1 dan 7 otomatis berada di urutan atas). Apabila tanggal lembur pertamanya sama, diurutkan menurut abjad nama pegawai.
+
+### AH. Uji Standar Dokumen Laporan Hasil Kerja Lembur (Per Orang Per Tanggal, Tanggal Ascending, Tanggal Tanpa Bold, & Regenerasi Dokumen)
+- [ ] **Uji Tampilan Dokumen Laporan Lembur Acuan Resmi BPS (PNS & PPPK)**:
+  - Buka menu Dokumen Admin (`/admin/dokumen`), pilih periode (misal: Juli atau September 2026), lalu lihat atau unduh **Laporan PDF / XLSX**.
+  - Verifikasi:
+    1. Tabel disusun **per orang per tanggal**: apabila pegawai lembur di beberapa tanggal, masing-masing tercatat di baris tersendiri dengan uraian pada tanggal tersebut.
+    2. Data diurutkan secara **kronologis tanggal menaik (ascending)**, lalu nama pegawai ascending.
+    3. Kolom tanggal bertuliskan header `Tanggal` dan nilainya dicetak normal (**tidak bold**).
+    4. Nama pegawai dan nomor identitas menampilkan **NIP Baru (18 digit)** resmi.
+- [ ] **Uji Regenerasi Dinamis Dokumen**:
+  - Lakukan klik tombol *Generate* pada dokumen yang sudah pernah digenerate sebelumnya.
+  - Verifikasi: sistem tidak lagi menampilkan pesan error *"Dokumen sudah pernah digenerate"*, melainkan otomatis memperbarui (*update*) isi berkas PDF/Excel di database secara real-time.
+- [ ] **Uji Command Artisan Pembersih Data Testing (`php artisan lembur:reset-transaksi`)**:
+  - Jalankan di terminal: `php artisan lembur:reset-transaksi`.
+  - Verifikasi: muncul konfirmasi interaktif. Setelah dikonfirmasi, tabel transaksi (`t_transaksi`, `t_dokumen`, dll.) dikosongkan secara instan.
+  - Periksa tabel `m_pegawai`, `m_pejabat`, dan `m_tim`: seluruh data master tetap 100% aman dan utuh.
+- [ ] **Uji Seeder Uji Coba Realistis (`php artisan db:seed --class=TestingLemburSeeder`)**:
+  - Jalankan di terminal: `php artisan db:seed --class=TestingLemburSeeder`.
+  - Verifikasi: data transaksi uji coba kegiatan BPS (SE2026, Sakernas, SPJ) otomatis terisi untuk pengujian ulang kapan saja.
+- [ ] **Uji Command Impor Data Riil Bersih (`php artisan lembur:import-clean-db`)**:
+  - Jalankan di terminal: `php artisan lembur:import-clean-db`.
+  - Verifikasi: mengimpor data transaksi riil dari dump mentor dan menyelaraskan seluruh skema database v2 secara otomatis.
+
+### AI. Uji Aliran Alami Tata Letak SPKL (Natural Flow, Anti-Whitespace DomPDF, & Ringkas Tepat 2 Halaman)
+- [ ] **Uji Tampilan Halaman 1 Bebas Ruang Kosong Melompong**:
+  - Buka tautan dokumen SPKL (misal: `/admin/dokumen/view/151` periode September 2026 atau periode lainnya).
+  - Verifikasi: Halaman 1 langsung terisi oleh baris data pegawai (seperti Pak Joko Suwarjo & Bu Meryanti) di bawah kop surat dan judul tabel. Tidak ada lagi ruang kosong melompong (*empty whitespace gap*) di halaman 1.
+- [ ] **Uji Efisiensi Total Halaman (Menyusut Menjadi 2 Halaman)**:
+  - Periksa total halaman dokumen SPKL: berkurang drastis dari sebelumnya 4 halaman menjadi **tepat 2 halaman**.
+  - Halaman 2 memuat sisa baris pegawai dan ditutup oleh blok tanda tangan PPK dan KBU secara rapi tanpa terpotong.
+- [ ] **Uji Pengulangan Header Tabel (`thead`) pada Halaman Lanjutan**:
+  - Periksa bagian atas Halaman 2: baris judul kolom (*No | Nama Pegawai/NIP | Bulan ... | Uraian Kegiatan*) otomatis muncul kembali secara seragam (*repeating table header*).
+
+### AJ. Uji Alur Lengkap End-to-End (Pegawai -> Ketua Tim -> Kabag Umum -> Admin -> Dokumen)
+- [ ] **Uji Pengajuan Pegawai Tim Teknis**:
+  - Login sebagai pegawai tim teknis (misal: Tim Statistik Sektoral), ajukan lembur.
+  - Verifikasi: status awal pengajuan tercatat `pending` (menunggu persetujuan Ketua Tim).
+- [ ] **Uji Persetujuan Ketua Tim Kerja**:
+  - Login sebagai Ketua Tim terkait, buka menu Persetujuan Ketua Tim (`/ketua-tim/pengajuan`), setujui pengajuan.
+  - Verifikasi: status pengajuan berpindah menjadi `menunggu_kabag`.
+- [ ] **Uji Persetujuan Kepala Bagian Umum**:
+  - Login sebagai Kabag Umum, buka menu Persetujuan Kabag (`/kabag-umum/pengajuan`), berikan persetujuan final.
+  - Verifikasi: status pengajuan berpindah menjadi `approved`.
+- [ ] **Uji Monitoring & Regenerasi Dokumen Admin**:
+  - Buka menu Monitoring Lembur Admin (`/admin/lembur`): data transaksi tampil dengan status `approved`.
+  - Buka menu Dokumen Admin (`/admin/dokumen`), klik generate SPKL dan Laporan pada periode bersangkutan.
+  - Verifikasi: data transaksi pegawai otomatis masuk ke dalam tabel SPKL dan Laporan Hasil Lembur.
+
+### AK. Uji Validasi Wajib Catatan Penyesuaian Jam Lembur, Universal Audit Trail, & Transparansi Jam Pegawai
+- [ ] **Uji Validasi Wajib Isi Catatan Saat Jam Diubah (Ketua Tim, Kabag Umum, Admin)**:
+  - Buka modal persetujuan pengajuan lembur pada salah satu menu: Ketua Tim (`/ketua-tim/pengajuan`), Kabag Umum (`/kabag-umum/pengajuan`), atau Admin (`/pengajuan`).
+  - Ubah jam selesai atau jam mulai yang disetujui (misal dari jam 21:00 menjadi jam 20:00).
+  - Periksa: label Catatan otomatis memunculkan tanda bintang merah dan keterangan dinamis: `* Wajib diisi karena jam lembur disesuaikan`.
+  - Kosongkan kolom Catatan lalu klik tombol simpan: sistem mencegah pengiriman form dan memunculkan notifikasi peringatan: *"Catatan wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan."*
+  - Isi catatan (misal: "Disesuaikan dengan presensi riil pulang"), lalu simpan: keputusan berhasil tersimpan.
+- [ ] **Uji Kolom Jam Disetujui & Lencana Disesuaikan di Sisi Pegawai**:
+  - Login sebagai pegawai yang jam lemburnya disesuaikan, buka menu Pengajuan Lembur (`/lembur`).
+  - Periksa tabel: terdapat kolom **Jam Disetujui** berdampingan dengan **Jam Diajukan**.
+  - Jika jam disetujui berbeda dari jam pengajuan, tampil lencana kecil **`Disesuaikan`** di bawah jam disetujui.
+  - Periksa kolom **Catatan**: rincian catatan Ketua Tim dan/atau Kabag Umum terpampang jelas dan terstruktur.
+- [ ] **Uji Universal Audit Trail (`user_edited` & `tanggal_edited`)**:
+  - Jalankan kueri di database: `SELECT id_transaksi, user_edited, tanggal_edited FROM t_transaksi WHERE id_transaksi = ...`.
+  - Verifikasi: kolom `user_edited` terisi nama/NIP aktor penyetuju dan `tanggal_edited` terisi timestamp waktu perubahan.
+
+
 

@@ -201,6 +201,8 @@ class KabagUmumPengajuanController extends Controller
             'status'            => $finalStatus,
             'note_kabag'        => $noteKabag !== '' ? $noteKabag : null,
             'approved_kabag_at' => now(),
+            'user_edited'       => session('user')['nama'] ?? session('user')['nip'],
+            'tanggal_edited'    => now(),
         ];
 
         if ($finalStatus === 'approved') {
@@ -216,6 +218,20 @@ class KabagUmumPengajuanController extends Controller
             $jamSelesai = $request->filled('jam_selesai_disetujui') 
                 ? $request->jam_selesai_disetujui 
                 : ($transaksi->jam_selesai_disetujui ?? $transaksi->jam_selesai);
+
+            if ($transaksi->jam_mulai && $transaksi->jam_selesai) {
+                $mulaiAwal = substr($transaksi->jam_mulai, 0, 5);
+                $selesaiAwal = substr($transaksi->jam_selesai, 0, 5);
+                $mulaiBaru = $jamMulai ? substr($jamMulai, 0, 5) : null;
+                $selesaiBaru = $jamSelesai ? substr($jamSelesai, 0, 5) : null;
+
+                if (($mulaiBaru !== $mulaiAwal || $selesaiBaru !== $selesaiAwal) && empty($noteKabag)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Catatan Kabag wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan.'
+                    ], 422);
+                }
+            }
 
             if ($jamMulai) {
                 $dtMulai = Carbon::parse($transaksi->date . ' ' . $jamMulai);

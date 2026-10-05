@@ -71,7 +71,7 @@ class SpklExport implements FromArray, WithTitle, WithStyles, WithColumnWidths, 
         foreach ($pegawai as $i => $p) {
             $rows[] = [
                 $i + 1,
-                $p->nama . "\n" . $p->nip_lama,
+                $p->nama . "\n" . ($p->nip ?? $p->nip_lama),
                 $p->tanggal_lembur,
                 $p->uraian,
             ];

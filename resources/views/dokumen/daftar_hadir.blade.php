@@ -3,9 +3,16 @@
 <head>
 <meta charset="utf-8">
 <style>
+    @page {
+        size: A4 portrait;
+        margin: 15mm 15mm 15mm 15mm;
+    }
+
     body {
-        font-family: sans-serif;
-        font-size: 11px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 9.5pt;
+        margin: 0;
+        padding: 0;
     }
 
     h2 {
@@ -119,7 +126,11 @@
         Kepala Bagian Umum<br>
         <div class="ttd-space"></div>
         <strong>{{ $kbu->nama ?? '' }}</strong><br>
-        {{-- NIP {{ $kbu->nip_lama ?? '' }} --}}
+        @if(!empty($kbu->nip) || !empty($kbu->nip_lama))
+            <div style="font-size: 8.5pt; color: #374151;">
+                NIP. {{ $kbu->nip ?? $kbu->nip_lama }}
+            </div>
+        @endif
     </div>
 </div>
 
