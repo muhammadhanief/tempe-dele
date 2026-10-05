@@ -190,10 +190,26 @@ class PengajuanController extends Controller
             }
         }
 
+        if ($finalStatus !== 'rejected' && $transaksi->jam_mulai && $transaksi->jam_selesai) {
+            $mulaiAwal = substr($transaksi->jam_mulai, 0, 5);
+            $selesaiAwal = substr($transaksi->jam_selesai, 0, 5);
+            $mulaiBaru = $request->jam_mulai_disetujui ? substr($request->jam_mulai_disetujui, 0, 5) : null;
+            $selesaiBaru = $request->jam_selesai_disetujui ? substr($request->jam_selesai_disetujui, 0, 5) : null;
+
+            if (($mulaiBaru !== $mulaiAwal || $selesaiBaru !== $selesaiAwal) && empty($noteKetua)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Catatan wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan.'
+                ], 422);
+            }
+        }
+
         $updateData = [
-            'status'   => $finalStatus,
-            'note'     => $noteKetua !== '' ? $noteKetua : null,
-            'eligible' => null,
+            'status'         => $finalStatus,
+            'note'           => $noteKetua !== '' ? $noteKetua : null,
+            'eligible'       => null,
+            'user_edited'    => session('user')['nama'] ?? session('user')['nip'],
+            'tanggal_edited' => now(),
         ];
 
         if ($finalStatus === 'rejected') {

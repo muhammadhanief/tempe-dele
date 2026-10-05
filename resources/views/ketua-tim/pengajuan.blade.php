@@ -179,13 +179,16 @@
             <tbody class="divide-y divide-gray-300" id="tabelPengajuan">
                 @forelse($pengajuan as $i => $p)
                     @php
+                        $jamPengajuanMulai = $p->jam_mulai ? substr($p->jam_mulai, 0, 5) : '';
+                        $jamPengajuanSelesai = $p->jam_selesai ? substr($p->jam_selesai, 0, 5) : '';
+
                         // Untuk pengajuan baru/pending, jam persetujuan SELALU default ke jam yang diajukan pegawai
                         $jamMulaiDefault = ($p->status === 'pending' || empty($p->jam_mulai_disetujui))
-                            ? ($p->jam_mulai ? substr($p->jam_mulai, 0, 5) : '')
+                            ? $jamPengajuanMulai
                             : substr($p->jam_mulai_disetujui, 0, 5);
 
                         $jamSelesaiDefault = ($p->status === 'pending' || empty($p->jam_selesai_disetujui))
-                            ? ($p->jam_selesai ? substr($p->jam_selesai, 0, 5) : '')
+                            ? $jamPengajuanSelesai
                             : substr($p->jam_selesai_disetujui, 0, 5);
                     @endphp
 
@@ -257,7 +260,7 @@
                         <td class="px-3 py-3 text-center" id="aksi-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
                                 <button type="button"
-                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}')"
+                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -268,7 +271,7 @@
                                 <span class="text-slate-500 text-xs italic">Dibatalkan</span>
                             @else
                                 <button type="button"
-                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}')"
+                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
@@ -947,8 +950,34 @@ let isStatusLocked = false;
 let currentUraian = '';
 let currentHasPresensi = false;
 let currentJamSelesaiPresensi = '';
+let currentJamPengajuanMulai = '';
+let currentJamPengajuanSelesai = '';
 
-window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, uraian, hasPresensi, jamSelesaiPresensi) {
+function updateCatatanWajibHint() {
+    const catatanHint = document.getElementById('kCatatanHint');
+    if (!catatanHint) return;
+
+    if (keputusan === 'rejected') {
+        catatanHint.className = 'text-rose-600 font-semibold text-[11px]';
+        catatanHint.textContent = '(Wajib jika menolak) *';
+        return;
+    }
+
+    const mulai = document.getElementById('kJamMulai').value;
+    const selesai = document.getElementById('kJamSelesai').value;
+    const isJamDiubah = (currentJamPengajuanMulai && mulai !== currentJamPengajuanMulai) ||
+                        (currentJamPengajuanSelesai && selesai !== currentJamPengajuanSelesai);
+
+    if (isJamDiubah) {
+        catatanHint.className = 'text-rose-600 font-semibold text-[11px]';
+        catatanHint.textContent = '(Wajib diisi karena jam disetujui berbeda) *';
+    } else {
+        catatanHint.className = 'text-gray-400 font-normal text-xs';
+        catatanHint.textContent = '(Opsional)';
+    }
+}
+
+window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, uraian, hasPresensi, jamSelesaiPresensi, jamPengajuanMulai, jamPengajuanSelesai) {
     currentId = id;
     const currentStatus = status || 'pending';
     isStatusLocked = (currentStatus !== 'pending');
@@ -956,6 +985,8 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, 
     currentUraian = (uraian !== undefined && uraian !== null) ? uraian : '';
     currentHasPresensi = Boolean(hasPresensi);
     currentJamSelesaiPresensi = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
+    currentJamPengajuanMulai = (jamPengajuanMulai !== undefined && jamPengajuanMulai !== null && String(jamPengajuanMulai).trim() !== '') ? String(jamPengajuanMulai).trim() : (jamMulai || '');
+    currentJamPengajuanSelesai = (jamPengajuanSelesai !== undefined && jamPengajuanSelesai !== null && String(jamPengajuanSelesai).trim() !== '') ? String(jamPengajuanSelesai).trim() : (jamSelesai || '');
 
     const elJamMulai = document.getElementById('kJamMulai');
     const elJamSelesai = document.getElementById('kJamSelesai');
@@ -1021,7 +1052,6 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, 
         bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-blue-50 p-3 border border-blue-200 text-xs text-blue-800 font-medium';
         lockedText.innerHTML = 'Status <b>Menunggu Kabag</b> terkunci. Pengajuan telah diteruskan ke Kabag Umum. Anda hanya dapat mengoreksi jam disetujui dan catatan.';
         wrapperJam.classList.remove('hidden');
-        catatanHint.textContent = '(Opsional)';
         btnSimpan.textContent = 'Simpan Koreksi';
     } else if (currentStatus === 'approved') {
         modalTitle.textContent = 'Koreksi Jam & Catatan';
@@ -1031,7 +1061,6 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, 
         bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-emerald-50 p-3 border border-emerald-200 text-xs text-emerald-800 font-medium';
         lockedText.innerHTML = 'Status <b>Disetujui Final</b> terkunci. Anda hanya dapat mengoreksi jam disetujui dan catatan.';
         wrapperJam.classList.remove('hidden');
-        catatanHint.textContent = '(Opsional)';
         btnSimpan.textContent = 'Simpan Koreksi';
     } else if (currentStatus === 'rejected') {
         modalTitle.textContent = 'Koreksi Catatan Penolakan';
@@ -1041,7 +1070,6 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, 
         bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800 font-medium';
         lockedText.innerHTML = 'Status <b>Ditolak</b> terkunci. Anda dapat mengoreksi catatan alasan penolakan.';
         wrapperJam.classList.add('hidden');
-        catatanHint.textContent = '(Wajib)';
         btnSimpan.textContent = 'Simpan Koreksi';
     } else {
         // Pending
@@ -1050,12 +1078,12 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, 
         wrapperPilihan.classList.remove('hidden');
         wrapperLocked.classList.add('hidden');
         wrapperJam.classList.remove('hidden');
-        catatanHint.textContent = '(Opsional)';
         btnSimpan.textContent = 'Simpan Keputusan';
         setKeputusan('approved');
     }
 
     cekWarningDurasi();
+    updateCatatanWajibHint();
 
     document.getElementById('modalKeputusan').classList.remove('hidden');
     document.body.classList.add('overflow-hidden');
@@ -1070,6 +1098,8 @@ window.closeModalKeputusan = function() {
     isStatusLocked = false;
     currentUraian = '';
     currentHasPresensi = false;
+    currentJamPengajuanMulai = '';
+    currentJamPengajuanSelesai = '';
 };
 
 window.setKeputusan = function(value) {
@@ -1079,17 +1109,15 @@ window.setKeputusan = function(value) {
     resetBtnKeputusan();
 
     const wrapperJam = document.getElementById('wrapperJamDisetujui');
-    const catatanHint = document.getElementById('kCatatanHint');
 
     if (value === 'rejected') {
         document.getElementById('kBtnTolak').className = 'flex items-center justify-center gap-1.5 rounded-xl border-2 border-rose-500 bg-rose-50 px-3 py-2 text-xs sm:text-sm font-bold text-rose-700 transition-all shadow-xs';
         wrapperJam.classList.add('hidden');
-        catatanHint.textContent = '(Wajib jika menolak)';
     } else {
         document.getElementById('kBtnSetujui').className = 'flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-800 transition-all shadow-xs';
         wrapperJam.classList.remove('hidden');
-        catatanHint.textContent = '(Opsional)';
     }
+    updateCatatanWajibHint();
 };
 
 function resetBtnKeputusan() {
@@ -1130,8 +1158,10 @@ function cekWarningDurasi() {
     }
 }
 
-document.getElementById('kJamMulai')?.addEventListener('change', cekWarningDurasi);
-document.getElementById('kJamSelesai')?.addEventListener('change', cekWarningDurasi);
+document.getElementById('kJamMulai')?.addEventListener('change', () => { cekWarningDurasi(); updateCatatanWajibHint(); });
+document.getElementById('kJamMulai')?.addEventListener('input', updateCatatanWajibHint);
+document.getElementById('kJamSelesai')?.addEventListener('change', () => { cekWarningDurasi(); updateCatatanWajibHint(); });
+document.getElementById('kJamSelesai')?.addEventListener('input', updateCatatanWajibHint);
 document.getElementById('kUraian')?.addEventListener('input', function() {
     const elCount = document.getElementById('kUraianCount');
     if (elCount) elCount.textContent = `${this.value.length} / 2000`;
@@ -1148,9 +1178,19 @@ window.simpanKeputusan = function() {
     const catatan = document.getElementById('kCatatan').value;
     const uraian = document.getElementById('kUraian').value;
 
-    if (keputusan !== 'rejected' && (!jamMulai || !jamSelesai)) {
-        alert('Jam mulai dan jam selesai wajib diisi.');
-        return;
+    if (keputusan !== 'rejected') {
+        if (!jamMulai || !jamSelesai) {
+            alert('Jam mulai dan jam selesai wajib diisi.');
+            return;
+        }
+
+        const isJamDiubah = (currentJamPengajuanMulai && jamMulai !== currentJamPengajuanMulai) ||
+                            (currentJamPengajuanSelesai && jamSelesai !== currentJamPengajuanSelesai);
+        if (isJamDiubah && !catatan.trim()) {
+            alert('Catatan wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan.');
+            document.getElementById('kCatatan').focus();
+            return;
+        }
     }
 
     if (keputusan !== 'rejected' && currentJamSelesaiPresensi && jamSelesai > currentJamSelesaiPresensi) {
@@ -1161,6 +1201,7 @@ window.simpanKeputusan = function() {
 
     if (keputusan === 'rejected' && !catatan.trim()) {
         alert('Catatan/alasan penolakan wajib diisi jika menolak.');
+        document.getElementById('kCatatan').focus();
         return;
     }
 
@@ -1228,7 +1269,7 @@ window.simpanKeputusan = function() {
             const safeUraian = JSON.stringify(currentUraian);
             const presensiFlag = currentHasPresensi ? 1 : 0;
             aksiElement.innerHTML = `
-                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}")'
+                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}")'
                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>

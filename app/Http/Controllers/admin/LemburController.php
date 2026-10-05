@@ -310,6 +310,8 @@ class LemburController extends Controller
                 'eligible'              => null,
                 'approved_at'           => now()->toDateString(),
                 'approved_kabag_at'     => now(),
+                'user_edited'           => session('user')['nama'] ?? session('user')['nip'],
+                'tanggal_edited'        => now(),
             ]);
 
         return response()->json(['success' => true]);
@@ -329,6 +331,20 @@ class LemburController extends Controller
             ->first();
 
         $noteKetua = trim($request->note ?? '');
+
+        if ($request->status === 'approved' && $transaksi && $transaksi->jam_mulai && $transaksi->jam_selesai) {
+            $mulaiAwal = substr($transaksi->jam_mulai, 0, 5);
+            $selesaiAwal = substr($transaksi->jam_selesai, 0, 5);
+            $mulaiBaru = substr($request->jam_mulai_disetujui, 0, 5);
+            $selesaiBaru = $request->jam_selesai_disetujui ? substr($request->jam_selesai_disetujui, 0, 5) : null;
+
+            if (($mulaiBaru !== $mulaiAwal || $selesaiBaru !== $selesaiAwal) && empty($noteKetua)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Catatan wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan.'
+                ], 422);
+            }
+        }
 
         $jamMulaiDisetujui = Carbon::parse(
             $transaksi->date . ' ' . $request->jam_mulai_disetujui
@@ -354,8 +370,10 @@ class LemburController extends Controller
                 'jam_mulai_disetujui'   => $jamMulaiDisetujui->format('H:i:s'),
                 'jam_selesai_disetujui' => $jamSelesaiDisetujui?->format('H:i:s'),
                 'note'                  => $noteKetua !== '' ? $noteKetua : null,
-                'eligible'              => $request->status === 'approved' ? null : null,
+                'eligible'              => null,
                 'approved_at'           => now()->toDateString(),
+                'user_edited'           => session('user')['nama'] ?? session('user')['nip'],
+                'tanggal_edited'        => now(),
             ]);
 
         return response()->json([
@@ -526,7 +544,7 @@ class LemburController extends Controller
 
     public function cancel(Request $request, $id)
     {
-        $alasanRaw = $request->alasan ?? $request->alasan_batal ?? $request->note ?? '';
+        $alasanRaw = $request->alasan ?? $request->alasan_batal ?? $request->alasan_pembatalan ?? $request->note ?? '';
         $alasan = trim((string) $alasanRaw);
 
         if ($alasan === '') {
