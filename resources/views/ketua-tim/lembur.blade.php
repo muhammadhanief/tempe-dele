@@ -226,25 +226,61 @@
                             </td>
 
                             <td class="px-4 py-3.5 text-center text-xs">
-                                @if($t->status === 'pending')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                        Diproses
+                                @php
+                                    $tlPayload = [
+                                        'id' => $t->id_transaksi,
+                                        'tanggal' => \Carbon\Carbon::parse($t->date)->translatedFormat('l, d F Y'),
+                                        'jam_mulai' => $t->jam_mulai ? substr($t->jam_mulai, 0, 5) : '',
+                                        'jam_selesai' => $t->jam_selesai ? substr($t->jam_selesai, 0, 5) : '',
+                                        'jam_mulai_disetujui' => $t->jam_mulai_disetujui ? substr($t->jam_mulai_disetujui, 0, 5) : '',
+                                        'jam_selesai_disetujui' => $t->jam_selesai_disetujui ? substr($t->jam_selesai_disetujui, 0, 5) : '',
+                                        'uraian' => $t->uraian ?? '',
+                                        'status' => $t->status,
+                                        'nama_tim' => $t->nama_tim ?? '-',
+                                        'nama_ketua' => $t->nama_ketua ?? '-',
+                                        'is_bagian_umum' => (str_contains(strtolower($t->nama_tim ?? ''), 'bagian umum') || ($t->tim_kode_tim ?? '') === 'QrBzgE3O3lEqVPjy'),
+                                        'submitted_at' => !empty($t->submitted_at) ? \Carbon\Carbon::parse($t->submitted_at)->translatedFormat('d M Y H:i') : null,
+                                        'approved_at' => !empty($t->approved_at) ? \Carbon\Carbon::parse($t->approved_at)->translatedFormat('d M Y H:i') : null,
+                                        'approved_kabag_at' => !empty($t->approved_kabag_at) ? \Carbon\Carbon::parse($t->approved_kabag_at)->translatedFormat('d M Y H:i') : null,
+                                        'note' => $t->note ?? '',
+                                        'note_kabag' => $t->note_kabag ?? '',
+                                        'eligible' => $t->eligible ?? null,
+                                    ];
+                                @endphp
+
+                                <button type="button"
+                                    onclick="openModalTimeline(this)"
+                                    data-transaksi="{{ json_encode($tlPayload) }}"
+                                    class="group inline-flex flex-col items-center gap-1 cursor-pointer focus:outline-none py-0.5 transition-transform hover:scale-105"
+                                    title="Klik untuk melacak alur & progres persetujuan">
+                                    <div class="inline-flex items-center gap-1">
+                                        @if($t->status === 'pending')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 group-hover:bg-amber-100 transition-colors">
+                                                Diproses
+                                            </span>
+                                        @elseif($t->status === 'menunggu_kabag')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 group-hover:bg-blue-100 transition-colors">
+                                                Menunggu Kabag
+                                            </span>
+                                        @elseif($t->status === 'approved')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 group-hover:bg-emerald-100 transition-colors">
+                                                Disetujui
+                                            </span>
+                                        @elseif($t->status === 'rejected')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 group-hover:bg-rose-100 transition-colors">
+                                                Ditolak
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-gray-400">-</span>
+                                        @endif
+                                    </div>
+                                    <span class="inline-flex items-center gap-0.5 text-[10px] font-medium text-slate-400 group-hover:text-amber-600 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                        <span>Lacak Alur</span>
                                     </span>
-                                @elseif($t->status === 'menunggu_kabag')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                                        Menunggu Kabag
-                                    </span>
-                                @elseif($t->status === 'approved')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        Disetujui
-                                    </span>
-                                @elseif($t->status === 'rejected')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                                        Ditolak
-                                    </span>
-                                @else
-                                    <span class="text-xs text-gray-400">-</span>
-                                @endif
+                                </button>
                             </td>
 
                             <td class="px-4 py-3.5 text-xs text-gray-600">
@@ -563,6 +599,115 @@
                 </div>
             </form>
 
+        </div>
+    </div>
+</div>
+
+{{-- Modal Lacak Alur & Progres Lembur --}}
+<div id="modalTimeline" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="timelineModalTitle">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalTimeline()"></div>
+
+    <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+            <div class="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 transition-all">
+
+                {{-- Modal Header --}}
+                <div class="flex items-start justify-between border-b border-gray-100 bg-slate-50/70 px-5 py-4 sm:px-6">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 id="timelineModalTitle" class="text-base font-bold text-gray-900">
+                                Progres Persetujuan Lembur
+                            </h3>
+                            <p id="timelineModalSubtitle" class="text-xs text-gray-500">
+                                Pantau perjalanan dan riwayat verifikasi pengajuan lembur Anda.
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeModalTimeline()" class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors" title="Tutup modal">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                {{-- Modal Body --}}
+                <div class="max-h-[75vh] overflow-y-auto px-5 py-5 sm:px-6 space-y-6">
+
+                    {{-- Ringkasan Kartu --}}
+                    <div class="rounded-xl border border-gray-200/90 bg-slate-50/60 p-4 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200/70 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal:</span>
+                                <span id="tlTanggal" class="text-xs font-bold text-gray-900">-</span>
+                            </div>
+                            <div id="tlStatusBadge">
+                                <!-- Status badge dinamis -->
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                            <div>
+                                <span class="text-gray-400 block text-[11px]">Tim Kerja</span>
+                                <span id="tlTim" class="font-medium text-gray-800 break-words">-</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 block text-[11px]">Jam Pengajuan</span>
+                                <span id="tlJamDiajukan" class="font-mono font-medium text-gray-800">-</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 block text-[11px]">Jam Disetujui</span>
+                                <span id="tlJamDisetujui" class="font-mono font-bold text-emerald-700">-</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-1">
+                            <span class="text-gray-400 block text-[11px] mb-0.5">Uraian Tugas</span>
+                            <p id="tlUraian" class="text-xs text-gray-700 italic bg-white p-2.5 rounded-lg border border-gray-100 break-words leading-relaxed max-h-24 overflow-y-auto">
+                                -
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Horizontal Stepper Visual (Desktop / Tablet: sm:block) --}}
+                    <div class="hidden sm:block">
+                        <div class="mb-3 flex items-center justify-between">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600">Alur Tahapan Persetujuan</h4>
+                            <span id="tlStepperSummary" class="text-[11px] font-medium text-gray-500">Tahap 1 dari 4</span>
+                        </div>
+                        <div class="relative py-2 px-1" id="horizontalStepperContainer">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+
+                    {{-- Detail Timeline Per Titik (Reflows to Vertical Mobile Card Timeline) --}}
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 mb-3 sm:mb-2">
+                            Detail Riwayat Persetujuan
+                        </h4>
+                        <div id="verticalTimelineList" class="relative pl-6 sm:pl-8 space-y-5 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-gray-200">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- Modal Footer --}}
+                <div class="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-5 py-3.5 sm:px-6">
+                    <p class="text-[11px] text-gray-400 flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Alur resmi berjenjang: Pegawai ➔ Ketua Tim ➔ Kabag Umum.</span>
+                    </p>
+                    <button type="button" onclick="closeModalTimeline()" class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-2xs">
+                        Tutup
+                    </button>
+                </div>
+
+            </div>
         </div>
     </div>
 </div>
@@ -1174,6 +1319,289 @@ document.addEventListener('DOMContentLoaded', function () {
             closePanel();
         }
     });
+
+    // ==========================================
+    // MODAL LACAK ALUR & PROGRES PERSETUJUAN
+    // ==========================================
+    window.openModalTimeline = function(btn) {
+        const raw = btn.getAttribute('data-transaksi');
+        if (!raw) return;
+
+        let t;
+        try {
+            t = JSON.parse(raw);
+        } catch (e) {
+            console.error('Invalid timeline data', e);
+            return;
+        }
+
+        // 1. Populate Ringkasan
+        document.getElementById('tlTanggal').textContent = t.tanggal || '-';
+        document.getElementById('tlTim').textContent = t.nama_tim || '-';
+
+        const jamDiajukan = (t.jam_mulai && t.jam_selesai) ? `${t.jam_mulai} - ${t.jam_selesai}` : (t.jam_mulai ? `${t.jam_mulai} - menunggu` : '-');
+        document.getElementById('tlJamDiajukan').textContent = jamDiajukan;
+
+        const isAdjusted = (t.status === 'approved' && t.jam_mulai_disetujui && t.jam_selesai_disetujui && (t.jam_mulai_disetujui !== t.jam_mulai || t.jam_selesai_disetujui !== t.jam_selesai));
+        const jamDisetujui = (t.status === 'approved' && t.jam_mulai_disetujui && t.jam_selesai_disetujui)
+            ? `${t.jam_mulai_disetujui} - ${t.jam_selesai_disetujui}`
+            : (t.status === 'rejected' ? 'Ditolak' : (t.status === 'cancelled' ? 'Dibatalkan' : 'Menunggu'));
+
+        document.getElementById('tlJamDisetujui').innerHTML = isAdjusted
+            ? `${jamDisetujui} <span class="ml-1 text-[10px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">Disesuaikan</span>`
+            : jamDisetujui;
+
+        document.getElementById('tlUraian').textContent = t.uraian || '-';
+
+        // Badge Status Terkini
+        let statusBadgeHtml = '';
+        if (t.status === 'pending') {
+            statusBadgeHtml = '<span class="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Menunggu Ketua Tim</span>';
+        } else if (t.status === 'menunggu_kabag') {
+            statusBadgeHtml = '<span class="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">Menunggu Kabag Umum</span>';
+        } else if (t.status === 'approved') {
+            statusBadgeHtml = '<span class="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">Disetujui Final</span>';
+        } else if (t.status === 'rejected') {
+            statusBadgeHtml = '<span class="whitespace-nowrap rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-600">Ditolak</span>';
+        } else if (t.status === 'cancelled') {
+            statusBadgeHtml = '<span class="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-300">Dibatalkan Admin</span>';
+        } else {
+            statusBadgeHtml = '<span class="text-xs text-gray-400">-</span>';
+        }
+        document.getElementById('tlStatusBadge').innerHTML = statusBadgeHtml;
+
+        // 2. Data 4 Tahapan
+        const steps = [
+            {
+                number: 1,
+                title: "Pengajuan Lembur",
+                actor: "Pegawai Pemohon",
+                time: t.submitted_at || t.tanggal,
+                badge: "Terkirim",
+                badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                state: "completed",
+                desc: `Pengajuan mandiri telah dikirimkan dengan rentang jam ${t.jam_mulai || '-'} s.d. ${t.jam_selesai || '-'}.`,
+                note: null,
+                iconType: "check"
+            },
+            t.is_bagian_umum ? {
+                number: 2,
+                title: "Persetujuan Ketua Tim",
+                actor: "Kepala Bagian Umum",
+                time: t.submitted_at || t.tanggal,
+                badge: "Diteruskan Langsung",
+                badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
+                state: "completed",
+                desc: "Khusus anggota Tim Bagian Umum, verifikasi Tahap 1 otomatis dilewati dan diteruskan langsung ke antrean keputusan Kepala Bagian Umum.",
+                note: null,
+                iconType: "check"
+            } : {
+                number: 2,
+                title: "Persetujuan Ketua Tim",
+                actor: t.nama_ketua || "Ketua Tim Kerja",
+                time: (t.status === 'menunggu_kabag' || t.status === 'approved')
+                    ? (t.approved_at || 'Telah diverifikasi')
+                    : (t.status === 'pending' ? 'Sedang dalam antrean' : (t.status === 'rejected' && !t.approved_kabag_at ? 'Ditolak pada tahap ini' : '-')),
+                badge: t.status === 'pending'
+                    ? "Sedang Diverifikasi"
+                    : ((t.status === 'menunggu_kabag' || t.status === 'approved') ? "Disetujui" : (t.status === 'rejected' && !t.approved_kabag_at ? "Ditolak" : "Menunggu")),
+                badgeColor: t.status === 'pending'
+                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                    : ((t.status === 'menunggu_kabag' || t.status === 'approved') ? "bg-emerald-50 text-emerald-700 border-emerald-200" : (t.status === 'rejected' && !t.approved_kabag_at ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-slate-100 text-slate-500 border-slate-200")),
+                state: t.status === 'pending'
+                    ? "active"
+                    : ((t.status === 'menunggu_kabag' || t.status === 'approved') ? "completed" : (t.status === 'rejected' && !t.approved_kabag_at ? "rejected" : "upcoming")),
+                desc: t.status === 'pending'
+                    ? "Berkas lembur menunggu pemeriksaan beban kerja dan kesesuaian jam lembur dari Ketua Tim."
+                    : ((t.status === 'menunggu_kabag' || t.status === 'approved') ? (t.jam_mulai_disetujui ? `Disetujui oleh Ketua Tim untuk jam ${t.jam_mulai_disetujui} - ${t.jam_selesai_disetujui}.` : "Telah diverifikasi dan disetujui oleh Ketua Tim.") : (t.status === 'rejected' && !t.approved_kabag_at ? "Pengajuan tidak disetujui oleh Ketua Tim kerja." : "Menunggu giliran verifikasi.")),
+                note: t.note || null,
+                iconType: t.status === 'pending' ? "active" : ((t.status === 'menunggu_kabag' || t.status === 'approved') ? "check" : (t.status === 'rejected' && !t.approved_kabag_at ? "cross" : "number"))
+            },
+            {
+                number: 3,
+                title: "Persetujuan Kabag Umum",
+                actor: "Ir. Joko Suwarjo S.Si, M.Si (Kabag Umum)",
+                time: t.status === 'approved'
+                    ? (t.approved_kabag_at || 'Telah disetujui final')
+                    : (t.status === 'menunggu_kabag' ? 'Sedang dalam antrean' : (t.status === 'rejected' && t.approved_kabag_at ? 'Ditolak Kabag Umum' : (t.status === 'pending' ? 'Menunggu Tahap 1' : '-'))),
+                badge: t.status === 'approved'
+                    ? "Disetujui Final"
+                    : (t.status === 'menunggu_kabag' ? "Sedang Diverifikasi" : (t.status === 'rejected' && t.approved_kabag_at ? "Ditolak" : "Belum Dilalui")),
+                badgeColor: t.status === 'approved'
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : (t.status === 'menunggu_kabag' ? "bg-blue-50 text-blue-700 border-blue-200" : (t.status === 'rejected' && t.approved_kabag_at ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-slate-100 text-slate-500 border-slate-200")),
+                state: t.status === 'approved'
+                    ? "completed"
+                    : (t.status === 'menunggu_kabag' ? "active" : (t.status === 'rejected' && t.approved_kabag_at ? "rejected" : "upcoming")),
+                desc: t.status === 'approved'
+                    ? `Persetujuan final diberikan oleh Kabag Umum untuk jam ${t.jam_mulai_disetujui || '-'} - ${t.jam_selesai_disetujui || '-'}.`
+                    : (t.status === 'menunggu_kabag' ? "Pengajuan telah masuk ke daftar persetujuan Kepala Bagian Umum dan sedang menunggu validasi akhir." : "Tahap persetujuan pimpinan kantor. Menunggu verifikasi Tahap 1 selesai."),
+                note: t.note_kabag || null,
+                iconType: t.status === 'approved' ? "check" : (t.status === 'menunggu_kabag' ? "active" : (t.status === 'rejected' && t.approved_kabag_at ? "cross" : "number"))
+            },
+            {
+                number: 4,
+                title: "Hasil Akhir & SPKL",
+                actor: "Sistem Administrasi BPS",
+                time: t.status === 'approved' ? "Siap SPKL" : (t.status === 'rejected' ? "Selesai (Ditolak)" : (t.status === 'cancelled' ? "Dibatalkan" : "Menunggu")),
+                badge: t.status === 'approved' ? "Selesai (Eligible)" : (t.status === 'rejected' ? "Ditolak" : (t.status === 'cancelled' ? "Dibatalkan Admin" : "Menunggu")),
+                badgeColor: t.status === 'approved' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : (t.status === 'rejected' ? "bg-rose-50 text-rose-700 border-rose-200" : (t.status === 'cancelled' ? "bg-slate-100 text-slate-700 border-slate-300" : "bg-slate-100 text-slate-500 border-slate-200")),
+                state: t.status === 'approved' ? "completed" : (t.status === 'cancelled' ? "rejected" : (t.status === 'rejected' ? "rejected" : "upcoming")),
+                desc: t.status === 'approved'
+                    ? "Seluruh alur persetujuan telah tuntas. Kegiatan lembur ini sah dan masuk ke dalam Surat Perintah Kerja Lembur (SPKL) serta daftar hadir bulanan."
+                    : (t.status === 'cancelled' ? "Kegiatan lembur ini dibatalkan oleh Administrator kantor." : (t.status === 'rejected' ? "Alur pengajuan dihentikan karena pengajuan tidak disetujui." : "Tahapan penutupan dan penerbitan dokumen setelah semua persetujuan rampung.")),
+                note: t.status === 'cancelled' ? (t.note || 'Pengajuan dibatalkan oleh administrator.') : null,
+                iconType: t.status === 'approved' ? "check" : (t.status === 'cancelled' || t.status === 'rejected' ? "cross" : "number")
+            }
+        ];
+
+        // 3. Render Stepper Desktop
+        renderHorizontalStepper(steps, t);
+
+        // 4. Render Vertical Timeline (Mobile & Desktop details)
+        renderVerticalTimeline(steps);
+
+        document.getElementById('modalTimeline').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    };
+
+    window.closeModalTimeline = function() {
+        document.getElementById('modalTimeline').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    function renderHorizontalStepper(steps, t) {
+        const container = document.getElementById('horizontalStepperContainer');
+        if (!container) return;
+
+        let activeStepIdx = 0;
+        if (t.status === 'pending') activeStepIdx = 1;
+        else if (t.status === 'menunggu_kabag') activeStepIdx = 2;
+        else if (t.status === 'approved' || t.status === 'rejected' || t.status === 'cancelled') activeStepIdx = 3;
+
+        document.getElementById('tlStepperSummary').textContent = `Tahap ${activeStepIdx + 1} dari 4`;
+
+        // Progress bar percentage (0%, 33%, 66%, 100%)
+        const progressPct = Math.round((activeStepIdx / 3) * 100);
+
+        let nodesHtml = '';
+        steps.forEach((step, idx) => {
+            let circleClass = '';
+            let iconInner = '';
+
+            if (step.state === 'completed') {
+                circleClass = 'bg-emerald-500 text-white shadow-xs';
+                iconInner = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+            } else if (step.state === 'active') {
+                circleClass = 'bg-blue-600 text-white ring-4 ring-blue-100 shadow-sm animate-pulse';
+                iconInner = `<span class="text-xs font-bold">${step.number}</span>`;
+            } else if (step.state === 'rejected') {
+                circleClass = 'bg-rose-500 text-white shadow-xs';
+                iconInner = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+            } else {
+                circleClass = 'bg-white text-gray-400 border-2 border-gray-300';
+                iconInner = `<span class="text-xs font-semibold">${step.number}</span>`;
+            }
+
+            nodesHtml += `
+                <div class="relative flex flex-col items-center group text-center" style="width: 25%;">
+                    <div class="w-9 h-9 flex items-center justify-center rounded-full transition-transform ${circleClass} z-10">
+                        ${iconInner}
+                    </div>
+                    <div class="mt-2 flex flex-col items-center">
+                        <span class="text-[11px] font-bold ${step.state === 'active' ? 'text-blue-700' : (step.state === 'completed' ? 'text-gray-900' : 'text-gray-400')} line-clamp-1 leading-tight">
+                            ${step.title}
+                        </span>
+                        <span class="text-[10px] ${step.state === 'active' ? 'text-blue-600 font-semibold' : (step.state === 'completed' ? 'text-emerald-600' : (step.state === 'rejected' ? 'text-rose-600' : 'text-gray-400'))}">
+                            ${step.badge}
+                        </span>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = `
+            <div class="relative flex items-center justify-between">
+                <div class="absolute top-4.5 left-8 right-8 h-1 bg-gray-200 -translate-y-1/2 z-0 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 transition-all duration-500" style="width: ${progressPct}%;"></div>
+                </div>
+                ${nodesHtml}
+            </div>
+        `;
+    }
+
+    function renderVerticalTimeline(steps) {
+        const list = document.getElementById('verticalTimelineList');
+        if (!list) return;
+
+        let itemsHtml = '';
+        steps.forEach((step) => {
+            let markerClass = '';
+            let markerIcon = '';
+
+            if (step.state === 'completed') {
+                markerClass = 'bg-emerald-500 text-white';
+                markerIcon = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+            } else if (step.state === 'active') {
+                markerClass = 'bg-blue-600 text-white ring-4 ring-blue-100 animate-pulse';
+                markerIcon = `<span class="w-2 h-2 rounded-full bg-white"></span>`;
+            } else if (step.state === 'rejected') {
+                markerClass = 'bg-rose-500 text-white';
+                markerIcon = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+            } else {
+                markerClass = 'bg-white text-gray-400 border-2 border-gray-300';
+                markerIcon = `<span class="text-[10px] font-bold">${step.number}</span>`;
+            }
+
+            const noteHtml = step.note ? `
+                <div class="mt-2.5 rounded-lg border border-slate-200/90 bg-slate-50/80 p-2.5 text-xs text-slate-700">
+                    <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                        <svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                        <span>Catatan Pejabat:</span>
+                    </div>
+                    <p class="italic break-words text-slate-800 font-sans pl-5 leading-relaxed">"${step.note}"</p>
+                </div>
+            ` : '';
+
+            itemsHtml += `
+                <div class="relative group">
+                    {{-- Dot Marker on Vertical Line --}}
+                    <div class="absolute -left-[30px] sm:-left-[38px] top-1.5 flex h-7 w-7 items-center justify-center rounded-full ${markerClass} shadow-xs z-10 transition-transform">
+                        ${markerIcon}
+                    </div>
+
+                    {{-- Card --}}
+                    <div class="rounded-xl border border-gray-200 bg-white p-3.5 shadow-2xs hover:border-gray-300 transition-colors">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold text-gray-900">${step.number}. ${step.title}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${step.badgeColor}">
+                                ${step.badge}
+                            </span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mb-2">
+                            <span class="inline-flex items-center gap-1 text-gray-700">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span>${step.actor}</span>
+                            </span>
+                            <span class="inline-flex items-center gap-1 text-gray-400 font-mono text-[11px]">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>${step.time}</span>
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            ${step.desc}
+                        </p>
+
+                        ${noteHtml}
+                    </div>
+                </div>
+            `;
+        });
+
+        list.innerHTML = itemsHtml;
+    }
 });
 </script>
 @endpush
