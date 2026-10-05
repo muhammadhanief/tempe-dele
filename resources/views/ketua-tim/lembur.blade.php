@@ -143,11 +143,12 @@
     {{-- Card Tabel --}}
     <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs">
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[1080px] table-auto divide-y divide-gray-200">
+            <table class="w-full min-w-[1140px] table-auto divide-y divide-gray-200">
                 <thead class="bg-gray-50/90 border-b border-gray-200">
                     <tr>
                         <th class="w-32 px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Tanggal</th>
                         <th class="w-32 px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-600">Jam Diajukan</th>
+                        <th class="w-32 px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-gray-600">Jam Disetujui</th>
                         <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Uraian Kegiatan</th>
                         <th class="w-40 px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Ketua Tim</th>
                         <th class="w-44 px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">Nama Tim</th>
@@ -173,6 +174,36 @@
                                     {{ substr($t->jam_mulai, 0, 5) }} - <span class="italic text-gray-400">menunggu</span>
                                 @else
                                     -
+                                @endif
+                            </td>
+
+                            <td class="whitespace-nowrap px-4 py-3.5 text-center text-xs">
+                                @php
+                                    $isAdjusted = $t->status === 'approved'
+                                        && $t->jam_mulai_disetujui
+                                        && $t->jam_selesai_disetujui
+                                        && (substr($t->jam_mulai_disetujui, 0, 5) !== substr($t->jam_mulai, 0, 5) || substr($t->jam_selesai_disetujui, 0, 5) !== substr($t->jam_selesai, 0, 5));
+                                @endphp
+
+                                @if($t->status === 'approved')
+                                    @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
+                                        <div class="inline-flex flex-col items-center gap-1">
+                                            <span class="font-mono text-xs font-semibold text-emerald-700">
+                                                {{ substr($t->jam_mulai_disetujui, 0, 5) }} - {{ substr($t->jam_selesai_disetujui, 0, 5) }}
+                                            </span>
+                                            @if($isAdjusted)
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Jam disetujui disesuaikan dari jam pengajuan">
+                                                    Disesuaikan
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400 font-mono">-</span>
+                                    @endif
+                                @elseif($t->status === 'rejected')
+                                    <span class="text-xs text-rose-500 italic">Ditolak</span>
+                                @else
+                                    <span class="text-xs text-gray-400 italic">Menunggu</span>
                                 @endif
                             </td>
 
@@ -217,8 +248,22 @@
                             </td>
 
                             <td class="px-4 py-3.5 text-xs text-gray-600">
-                                <div class="max-w-[160px] whitespace-normal break-words italic">
-                                    {{ $t->note ?? '-' }}
+                                <div class="max-w-[160px] space-y-1 text-left">
+                                    @if(!empty($t->note))
+                                        <div>
+                                            <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
+                                            <div class="text-[11px] text-gray-700 italic break-words">{{ $t->note }}</div>
+                                        </div>
+                                    @endif
+                                    @if(!empty($t->note_kabag))
+                                        <div>
+                                            <span class="text-[10px] font-bold uppercase text-blue-600">Kabag Umum:</span>
+                                            <div class="text-[11px] text-blue-900 italic break-words">{{ $t->note_kabag }}</div>
+                                        </div>
+                                    @endif
+                                    @if(empty($t->note) && empty($t->note_kabag))
+                                        <span class="text-gray-400">-</span>
+                                    @endif
                                 </div>
                             </td>
 
@@ -265,7 +310,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-16 text-center">
+                            <td colspan="9" class="px-4 py-16 text-center">
                                 <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
                                     <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 text-[#faa938] mb-3 border border-amber-100/80 shadow-xs">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
