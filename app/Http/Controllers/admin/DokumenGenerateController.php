@@ -152,9 +152,6 @@ class DokumenGenerateController extends Controller
             ->where('periode', $bulan)
             ->where('type', $type)
             ->first();
-        if ($existing) {
-            return redirect()->route('admin.dokumen')->with('info', 'Dokumen sudah pernah digenerate.');
-        }
 
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
@@ -178,19 +175,51 @@ class DokumenGenerateController extends Controller
         }
 
         $pegawai = $query->get()->groupBy('nip')->map(function ($rows) {
-            $first   = $rows->first();
-            $tanggal = $rows->pluck('date')
+            $first = $rows->first();
+
+            // Tanggal lembur unik dan diurutkan secara numerik menaik
+            $tanggalList = $rows->pluck('date')
                 ->map(fn($d) => (int) date('j', strtotime($d)))
-                ->sort()->values()->implode(', ');
-            $uraian  = $rows->pluck('uraian')->unique()->filter()
-                ->map(fn($u) => '- ' . $u)->implode("\n");
+                ->unique()
+                ->sort()
+                ->values();
+
+            $tanggal = $tanggalList->implode(', ');
+
+            // Format uraian agar rapi, unik, dan tidak ada duplikasi bullet
+            $uraianItems = collect();
+            foreach ($rows as $row) {
+                if (!empty($row->uraian)) {
+                    $parts = preg_split('/[;\n\r]+/', $row->uraian);
+                    foreach ($parts as $u) {
+                        $clean = trim($u);
+                        $clean = ltrim($clean, "-•* \t\n\r\0\x0B");
+                        if (!empty($clean)) {
+                            $uraianItems->push($clean);
+                        }
+                    }
+                }
+            }
+            $uraian = $uraianItems->unique()->values()->map(fn($u) => '- ' . $u)->implode("\n");
+
+            // NIP Baru (18 digit) dengan fallback ke NIP Lama jika kosong
+            $nipBaru = !empty($first->nip) ? $first->nip : $first->nip_lama;
+
             return (object) [
                 'nama'           => $first->nama,
+                'nip'            => $nipBaru,
+                'nip_baru'       => $nipBaru,
                 'nip_lama'       => $first->nip_lama,
                 'tanggal_lembur' => $tanggal,
                 'uraian'         => $uraian,
+                'min_tanggal'    => $tanggalList->first() ?? 999,
             ];
-        })->values();
+        })
+        ->sortBy([
+            ['min_tanggal', 'asc'],
+            ['nama', 'asc'],
+        ])
+        ->values();
 
         [$ppk, , $kbu] = $this->getPejabat($request, (int) $tahun);
         $nomorSurat = $request->get('nomor_surat', $this->getNomorSurat($bulan));
@@ -204,6 +233,15 @@ class DokumenGenerateController extends Controller
                 new \App\Exports\SpklExport(compact('pegawai', 'ppk', 'kbu', 'nomorSurat', 'bulanLabel', 'tahun', 'tanggalTtd')),
                 \Maatwebsite\Excel\Excel::XLSX
             );
+
+            if ($existing) {
+                DB::table('t_dokumen')->where('id_dokumen', $existing->id_dokumen)->update([
+                    'generated_at' => now(),
+                    'file_blob'    => $fileBlob,
+                ]);
+                return redirect()->route('admin.dokumen')->with('success', 'SPKL XLSX berhasil diperbarui.');
+            }
+
             DB::table('t_dokumen')->insert([
                 'type'         => $type,
                 'periode'      => $bulan,
@@ -220,6 +258,14 @@ class DokumenGenerateController extends Controller
         ))->setPaper('a4', 'portrait');
         
         $pdf->getDomPDF()->add_info('Title', "SPKL_" . strtoupper($jenis) . "_" . $bulan);
+
+        if ($existing) {
+            DB::table('t_dokumen')->where('id_dokumen', $existing->id_dokumen)->update([
+                'generated_at' => now(),
+                'file_blob'    => $pdf->output(),
+            ]);
+            return redirect()->route('admin.dokumen')->with('success', 'SPKL berhasil diperbarui.');
+        }
 
         DB::table('t_dokumen')->insert([
             'type'         => $type,
@@ -244,9 +290,6 @@ class DokumenGenerateController extends Controller
             ->where('periode', $bulan)
             ->where('type', $type)
             ->first();
-        if ($existing) {
-            return redirect()->route('admin.dokumen')->with('info', 'Dokumen sudah pernah digenerate.');
-        }
 
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
@@ -279,10 +322,10 @@ class DokumenGenerateController extends Controller
             $uraianItems = collect();
             foreach ($rows as $row) {
                 if (!empty($row->uraian)) {
-                    $parts = explode(';', $row->uraian);
-                    foreach ($parts as $p) {
-                        $clean = trim($p);
-                        $clean = ltrim($clean, "- \t\n\r\0\x0B");
+                    $parts = preg_split('/[;\n\r]+/', $row->uraian);
+                    foreach ($parts as $u) {
+                        $clean = trim($u);
+                        $clean = ltrim($clean, "-•* \t\n\r\0\x0B");
                         if (!empty($clean)) {
                             $uraianItems->push($clean);
                         }
@@ -299,19 +342,27 @@ class DokumenGenerateController extends Controller
                 $uraianFormatted = '-';
             }
 
-            $nipDisplay = $first->nip ?: $first->nip_lama;
+            // NIP Baru 18 digit resmi, fallback ke NIP lama jika kosong
+            $nipDisplay = !empty($first->nip) ? $first->nip : $first->nip_lama;
 
             return (object) [
-                'nama'        => $first->nama,
-                'nip'         => $first->nip,
-                'nip_lama'    => $first->nip_lama,
-                'nip_display' => $nipDisplay,
-                'nama_nip'    => $first->nama . ' / ' . $nipDisplay,
-                'date'        => $first->date,
-                'tanggal'     => $tanggal,
-                'uraian'      => $uraianFormatted,
+                'nama'           => $first->nama,
+                'nip'            => $first->nip,
+                'nip_baru'       => $first->nip,
+                'nip_lama'       => $first->nip_lama,
+                'nip_display'    => $nipDisplay,
+                'nama_nip'       => $first->nama . ' / ' . $nipDisplay,
+                'date'           => $first->date,
+                'tanggal'        => $tanggal,
+                'tanggal_lembur' => $tanggal,
+                'uraian'         => $uraianFormatted,
             ];
-        })->values();
+        })
+        ->sortBy([
+            ['date', 'asc'],
+            ['nama', 'asc'],
+        ])
+        ->values();
 
         [$ppk, , $kbu] = $this->getPejabat($request, (int) $tahun);
         $bulanLabel = $dt->translatedFormat('F');
@@ -322,6 +373,15 @@ class DokumenGenerateController extends Controller
                 new \App\Exports\LaporanExport(['bulan' => $bulan, 'jenis' => $jenis]),
                 \Maatwebsite\Excel\Excel::XLSX
             );
+
+            if ($existing) {
+                DB::table('t_dokumen')->where('id_dokumen', $existing->id_dokumen)->update([
+                    'generated_at' => now(),
+                    'file_blob'    => $fileBlob,
+                ]);
+                return redirect()->route('admin.dokumen')->with('success', 'Laporan XLSX berhasil diperbarui.');
+            }
+
             DB::table('t_dokumen')->insert([
                 'type'         => $type,
                 'periode'      => $bulan,
@@ -337,6 +397,14 @@ class DokumenGenerateController extends Controller
 
         $pdf->getDomPDF()->add_info('Title', "Laporan_" . strtoupper($jenis) . "_" . $bulan);
         
+        if ($existing) {
+            DB::table('t_dokumen')->where('id_dokumen', $existing->id_dokumen)->update([
+                'generated_at' => now(),
+                'file_blob'    => $pdf->output(),
+            ]);
+            return redirect()->route('admin.dokumen')->with('success', 'Laporan berhasil diperbarui.');
+        }
+
         DB::table('t_dokumen')->insert([
             'type'         => $type,
             'periode'      => $bulan,

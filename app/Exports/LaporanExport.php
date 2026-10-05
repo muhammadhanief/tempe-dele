@@ -53,21 +53,19 @@ class LaporanExport implements FromCollection, WithTitle, WithEvents, WithColumn
             $query->where('p.email', 'like', '%-pppk@bps.go.id');
         }
 
-        $no = 0;
         return $query->get()->groupBy(function ($item) {
             return $item->date . '_' . $item->nip;
-        })->map(function ($rows) use (&$no) {
-            $no++;
+        })->map(function ($rows) {
             $first = $rows->first();
             $tanggal = (int) date('j', strtotime($first->date));
 
             $uraianItems = collect();
             foreach ($rows as $row) {
                 if (!empty($row->uraian)) {
-                    $parts = explode(';', $row->uraian);
-                    foreach ($parts as $p) {
-                        $clean = trim($p);
-                        $clean = ltrim($clean, "- \t\n\r\0\x0B");
+                    $parts = preg_split('/[;\n\r]+/', $row->uraian);
+                    foreach ($parts as $u) {
+                        $clean = trim($u);
+                        $clean = ltrim($clean, "-•* \t\n\r\0\x0B");
                         if (!empty($clean)) {
                             $uraianItems->push($clean);
                         }
@@ -84,15 +82,29 @@ class LaporanExport implements FromCollection, WithTitle, WithEvents, WithColumn
                 $uraianFormatted = '-';
             }
 
-            $nipDisplay = $first->nip ?: $first->nip_lama;
+            $nipDisplay = !empty($first->nip) ? $first->nip : $first->nip_lama;
 
-            return [
-                $no,
-                $first->nama . ' / ' . $nipDisplay,
-                $tanggal,
-                $uraianFormatted,
+            return (object) [
+                'nama'        => $first->nama,
+                'nip_display' => $nipDisplay,
+                'date'        => $first->date,
+                'tanggal'     => $tanggal,
+                'uraian'      => $uraianFormatted,
             ];
-        })->values();
+        })
+        ->sortBy([
+            ['date', 'asc'],
+            ['nama', 'asc'],
+        ])
+        ->values()
+        ->map(function ($p, $idx) {
+            return [
+                $idx + 1,
+                $p->nama . "\n" . $p->nip_display,
+                $p->tanggal,
+                $p->uraian,
+            ];
+        });
     }
 
     public function title(): string
@@ -115,7 +127,7 @@ class LaporanExport implements FromCollection, WithTitle, WithEvents, WithColumn
         $judul = 'LAPORAN HASIL KERJA LEMBUR ' . $jenis . ' BULAN ' . strtoupper($dt->translatedFormat('F Y'));
 
         return [
-            AfterSheet::class => function (AfterSheet $event) use ($judul) {
+            AfterSheet::class => function (AfterSheet $event) use ($judul, $dt) {
                 $sheet = $event->sheet->getDelegate();
                 $lastRow = $sheet->getHighestRow();
 
@@ -136,16 +148,16 @@ class LaporanExport implements FromCollection, WithTitle, WithEvents, WithColumn
 
                 // Baris 3: Header kolom
                 $sheet->setCellValue('A3', 'No');
-                $sheet->setCellValue('B3', 'Nama Pegawai / NIP');
-                $sheet->setCellValue('C3', 'Tanggal');
+                $sheet->setCellValue('B3', "Nama Pegawai / NIP");
+                $sheet->setCellValue('C3', "Tanggal");
                 $sheet->setCellValue('D3', 'Uraian Kegiatan');
                 $sheet->getStyle('A3:D3')->applyFromArray([
                     'font'      => ['bold' => true],
-                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F0F0F0']],
                     'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
                 ]);
-                $sheet->getRowDimension(3)->setRowHeight(20);
+                $sheet->getRowDimension(3)->setRowHeight(32);
 
                 // Data rows mulai dari baris 4
                 $dataLastRow = $lastRow + 3;

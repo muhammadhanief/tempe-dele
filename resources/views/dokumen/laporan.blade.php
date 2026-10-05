@@ -61,14 +61,14 @@
     }
 
     .col-nama {
-        font-weight: bold;
+        font-weight: normal;
         font-size: 9.5pt;
         color: #000;
     }
 
     .col-nip {
-        font-size: 8.5pt;
-        color: #374151;
+        font-size: 9.5pt;
+        color: #000;
         margin-top: 2px;
     }
 
@@ -131,7 +131,7 @@
                 <div class="col-nama">{{ $p->nama }}</div>
                 <div class="col-nip">{{ $p->nip_display ?? ($p->nip ?? $p->nip_lama) }}</div>
             </td>
-            <td class="col-center" style="font-weight: bold;">{{ $p->tanggal }}</td>
+            <td class="col-center">{{ $p->tanggal ?? $p->tanggal_lembur }}</td>
             <td class="col-uraian">{{ $p->uraian }}</td>
         </tr>
         @endforeach

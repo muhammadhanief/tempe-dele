@@ -4,47 +4,57 @@
 <head>
 <meta charset="UTF-8">
 <style>
+    @page {
+        size: A4 portrait;
+        margin: 12mm 15mm 15mm 15mm;
+    }
+
     body {
-        font-family: Arial, sans-serif;
-        font-size: 11pt;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 9.5pt;
+        line-height: 1.3;
         margin: 0;
-        padding: 20px 28px;
+        padding: 0;
         color: #000;
     }
 
     .header {
         text-align: center;
-        margin-bottom: 18px;
+        margin-bottom: 8px;
     }
 
     .title {
-        font-size: 14pt;
+        font-size: 13pt;
         font-weight: bold;
         text-decoration: underline;
         text-transform: uppercase;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
 
     .nomor {
-        margin-bottom: 15px;
+        margin-bottom: 8px;
+        font-size: 9.5pt;
     }
 
     .pembuka {
         text-align: justify;
-        margin-bottom: 15px;
-        line-height: 1.5;
+        text-indent: 28px;
+        margin-bottom: 10px;
+        line-height: 1.35;
+        font-size: 9.5pt;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
 
     th, td {
         border: 1px solid black;
-        padding: 6px 8px;
+        padding: 4px 6px;
         vertical-align: top;
+        font-size: 9pt;
     }
 
     th {
@@ -61,29 +71,34 @@
         display: table-header-group;
     }
 
+    /* Membiarkan baris uraian kegiatan mengalir alami menyambung ke halaman berikutnya */
     tbody tr {
-        page-break-inside: avoid;
+        page-break-inside: auto;
     }
 
     .ttd-table {
         width: 100%;
         border: none;
-        margin-top: 28px;
+        margin-top: 15px;
+        page-break-inside: avoid;
     }
 
     .ttd-table td {
         border: none;
         vertical-align: top;
         width: 50%;
+        page-break-inside: avoid;
+        font-size: 9.5pt;
     }
 
     .ttd-box {
         text-align: center;
-        line-height: 1.5;
+        line-height: 1.35;
+        page-break-inside: avoid;
     }
 
     .ttd-space {
-        height: 70px;
+        height: 50px;
     }
 </style>
 </head>
@@ -113,13 +128,13 @@
         <img
             src="{{ $logoSrc }}"
             alt="Header BPS Provinsi Jawa Tengah"
-            style="width: 80%; display: block; margin-bottom: 6px;"
+            style="width: 70%; display: block; margin-bottom: 4px;"
         >
-        <div style="width: 100%; border-top: 2px solid black; margin: 6px 0;"></div>
+        <div style="width: 100%; border-top: 2px solid black; margin: 4px 0 8px 0;"></div>
     @else
         <div style="text-align: left; margin-bottom: 8px; border-bottom: 2px solid black; padding-bottom: 6px;">
-            <div style="font-size: 14pt; font-weight: bold; letter-spacing: 0.5px;">BADAN PUSAT STATISTIK</div>
-            <div style="font-size: 12pt; font-weight: bold; color: #1e293b;">PROVINSI JAWA TENGAH</div>
+            <div style="font-size: 13pt; font-weight: bold; letter-spacing: 0.5px;">BADAN PUSAT STATISTIK</div>
+            <div style="font-size: 11pt; font-weight: bold; color: #1e293b;">PROVINSI JAWA TENGAH</div>
         </div>
     @endif
 
@@ -131,7 +146,7 @@
 
     {{-- PEMBUKA --}}
     <div class="pembuka">
-        &nbsp;&nbsp;&nbsp;&nbsp;Sehubungan dengan adanya penyelesaian pekerjaan yang dilakukan di luar jam kerja (lembur) pada bulan {{ $bulanLabel }} Tahun {{ $tahun }}, dengan ini kami memerintahkan pegawai tersebut di bawah ini untuk menyelesaikan pekerjaan yang dimaksud.
+        Sehubungan dengan adanya penyelesaian pekerjaan yang dilakukan di luar jam kerja (lembur) pada bulan {{ $bulanLabel }} Tahun {{ $tahun }}, dengan ini kami memerintahkan pegawai tersebut di bawah ini untuk menyelesaikan pekerjaan yang dimaksud.
     </div>
 
     {{-- TABEL --}}
@@ -140,7 +155,7 @@
             <tr>
                 <th style="width:5%">No</th>
                 <th style="width:30%">Nama Pegawai/NIP</th>
-                <th style="width:20%">Bulan {{ $bulanLabel }}</th>
+                <th style="width:18%">Bulan {{ $bulanLabel }}</th>
                 <th>Uraian Kegiatan</th>
             </tr>
         </thead>
@@ -150,7 +165,7 @@
                 <td class="text-center">{{ $i + 1 }}</td>
                 <td>
                     {{ $p->nama }}<br>
-                    <small>{{ $p->nip_lama }}</small>
+                    <small style="color: #374151;">{{ $p->nip ?? $p->nip_lama }}</small>
                 </td>
                 <td class="text-center">{{ $p->tanggal_lembur }}</td>
                 <td style="white-space: pre-line;">{{ $p->uraian }}</td>
@@ -163,19 +178,29 @@
     <table class="ttd-table">
         <tr>
             <td class="ttd-box" style="padding-top: 15px;">
-                <div style="height: 60px;">
+                <div style="height: 50px;">
                     Pejabat Pembuat Komitmen<br>
                     BPS Provinsi Jawa Tengah
                 </div>
                 <div class="ttd-space"></div>
-                <span class="nama-pejabat">{{ $ppk->nama ?? '' }}</span><br>
+                <span class="nama-pejabat" style="font-weight: bold; text-decoration: underline;">{{ $ppk->nama ?? '' }}</span><br>
+                @if(!empty($ppk->nip) || !empty($ppk->nip_lama))
+                    <div style="font-size: 8.5pt; color: #374151;">
+                        NIP. {{ $ppk->nip ?? $ppk->nip_lama }}
+                    </div>
+                @endif
             </td>
             <td class="ttd-box">
                 Mengetahui, {{ $tanggalTtd }}<br>
                 a.n. Kepala BPS Provinsi Jawa Tengah<br>
                 Kepala Bagian Umum
                 <div class="ttd-space"></div>
-                <span class="nama-pejabat">{{ $kbu->nama ?? '' }}</span>
+                <span class="nama-pejabat" style="font-weight: bold; text-decoration: underline;">{{ $kbu->nama ?? '' }}</span><br>
+                @if(!empty($kbu->nip) || !empty($kbu->nip_lama))
+                    <div style="font-size: 8.5pt; color: #374151;">
+                        NIP. {{ $kbu->nip ?? $kbu->nip_lama }}
+                    </div>
+                @endif
             </td>
         </tr>
     </table>
