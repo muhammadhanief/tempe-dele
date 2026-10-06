@@ -196,7 +196,6 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 93. 📄 **`app/Http/Controllers/ketuatim/DashboardController.php`** *(Pembaruan metrik tim tahun berjalan & antrean pending tim)*.
 94. 📄 **`app/Http/Controllers/pegawai/DashboardController.php`** *(Pembaruan metrik pegawai tahun berjalan & inklusi status menunggu_kabag pada kartu Diproses)*.
 95. 📄 **`app/Http/Controllers/pimpinan/DashboardController.php`** *(Pembaruan metrik pimpinan tahun berjalan & inklusi status menunggu_kabag pada kartu Diproses)*.
-96. 📄 **`resources/views/admin/dashboard.blade.php`**, **`resources/views/ketua-tim/dashboard.blade.php`**, **`resources/views/dashboard.blade.php`**, **`resources/views/pimpinan/dashboard.blade.php`** *(Pembaruan subtitle kartu metrik menjadi Tahun berjalan)*.
 97. 📄 **`app/Http/Controllers/admin/DokumenGenerateController.php`** *(Pembaruan generator SPKL: adopsi NIP Baru 18 digit, deduplikasi tanggal lembur berurutan naik [contoh: "1, 30", "15, 25"], dan pengurutan daftar pegawai berdasarkan tanggal awal lembur)*.
 98. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Pembaruan tampilan tabel SPKL PDF: menampilkan NIP Baru 18 digit `{{ $p->nip ?? $p->nip_lama }}` di bawah nama pegawai)*.
 99. 📄 **`app/Exports/SpklExport.php`** *(Pembaruan lembar ekspor SPKL Excel: menampilkan NIP Baru 18 digit `$p->nama . "\n" . ($p->nip ?? $p->nip_lama)`)*.
@@ -214,6 +213,18 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 111. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Label bintang merah dinamis dan validasi frontend wajib isi catatan Admin saat jam lembur disesuaikan)*.
 112. 📄 **`resources/views/lembur.blade.php`** *(Kolom Jam Disetujui, lencana Disesuaikan, dan transparansi catatan terstruktur di sisi pegawai)*.
 113. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Kolom Jam Disetujui, lencana Disesuaikan, dan transparansi catatan terstruktur di sisi Ketua Tim)*.
+114. 📄 **`resources/views/dashboard.blade.php`**, **`resources/views/admin/dashboard.blade.php`**, **`resources/views/ketua-tim/dashboard.blade.php`**, **`resources/views/pimpinan/dashboard.blade.php`** *(Pengaktifan id="greeting" pada badge hero dan fungsi sapaan waktu dinamis real-time: Selamat Pagi, Siang, Sore, Malam)*.
+115. 📄 **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`** *(Redesain toolbar mobile menjadi 2 baris kompak grid 50/50 dan penggantian native select filterStatus menjadi custom floating dropdown card dengan colored status dot & checkmark)*.
+116. 📄 **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/lembur.blade.php`** *(Pembersihan tag div penutup ekstra yang menyebabkan teks hak cipta footer terapung di sebelah kanan navbar, dan perbaikan penataan kartu empty state)*.
+117. 📄 **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Penyatuan struktur tabel selalu tampil dengan thead utuh, pemindahan empty state ke dalam tbody dengan true responsive centering, dan penerapan table-fixed layout anti auto-fit)*.
+118. 📄 **`resources/views/welcome.blade.php`**, **`resources/views/layouts/app.blade.php`** *(Penyelarasan tampilan footer mobile terpusat simetris dan proteksi 100% tata letak desktop)*.
+119. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** *(Penerapan mode Visual Timeline Card Elegan: border-l-4 Accent Bar per status, Date Badge ala Kalender Modern ber-header banner gelap, Pill Status pastel ber-ikon SVG, Callout Card jam disetujui, dan animasi micro-hover)*.
+120. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** *(Redesain Visual Timeline Card gaya SaaS Minimalis ala Linear/Notion: layout super bersih tanpa garis batas tebal/banner warna, kotak tanggal bergaris melingkar `border border-slate-300 rounded-xl bg-white shadow-2xs` ala foto mentor, garis vertikal aksis menyambung utuh tanpa putus antar-item `-bottom-6`, ring aksis 14px, dan shadow halus)*.
+121. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** *(Restorasi Paket Visual Premium Polish: Badge Kalender Modern, Ring Node Glowing, Status Pill Vibrant Gradient, Callout Card disetujui, serta penyempurnaan garis aksis vertikal menyambung tanpa putus `w-0.5 absolute top-0 -bottom-5` dari item teratas hingga terbawah)*.
+122. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** *(Pembaruan Desain Visual Timeline Modern Glowing Node Masterpiece: Date Badge Kalender Digital ber-header gelap font mono, Ring Node Glowing 20px berbingkai pastel pulsing dot, Garis aksis menyambung 100% tanpa celah `-bottom-6`, Status Pill Vibrant Gradient, Callout Card jam disetujui, dan elevasi shadow-xl melayang)*.
+123. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** *(Penyempurnaan Visual Timeline Simple & Elegan Anti-Clutter: Kartu tanggal putih bersih ber-border halus tanpa header hitam berat, Ring Dot aksis smooth 14px ring-white, Status Pill pastel soft anti-gradient, dan tata letak kartu yang sangat tenang & sejuk di mata)*.
+124. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** *(Implementasi garis vertikal kontinu [`.timeline-stem`] penghubung titik bulatan status timeline [oranye, merah, hijau, biru] tanpa celah/putus, penutupan tag card yang presisi, adaptasi dinamis JavaScript `updateTimelineStems()`, dan pesan kosong `#emptyFilterTimeline`)*.
+125. 📁 **`public/build/`** *(Bundel produksi Vite terbaru: `manifest.json`, `assets/app-6pbceLn9.css`, `assets/app-DbISuP7_.js`)*.
 
 ---
 
@@ -802,6 +813,105 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Universal Audit Trail (`user_edited` & `tanggal_edited`)**:
   - Jalankan kueri di database: `SELECT id_transaksi, user_edited, tanggal_edited FROM t_transaksi WHERE id_transaksi = ...`.
   - Verifikasi: kolom `user_edited` terisi nama/NIP aktor penyetuju dan `tanggal_edited` terisi timestamp waktu perubahan.
+
+### AL. Uji Sapaan Dinamis Waktu Nyata (Real-Time Greeting & Dynamic Icons) di Seluruh Dashboard
+- [ ] **Uji Sapaan & Ikon Waktu Sesuai Jam Perangkat**:
+  - Login sebagai Pegawai, Admin, Ketua Tim, atau Pimpinan.
+  - Periksa badge di hero banner paling atas:
+    - Pukul 04.00 - 10.59: Menampilkan **"🌅 Selamat Pagi"**.
+    - Pukul 11.00 - 14.59: Menampilkan **"☀️ Selamat Siang"**.
+    - Pukul 15.00 - 17.59: Menampilkan **"🌇 Selamat Sore"**.
+    - Pukul 18.00 - 03.59: Menampilkan **"🌙 Selamat Malam"**.
+  - Periksa judul utama `<h2>` di bawahnya: Menampilkan sapaan akrab dan hangat **"Hai, [Nama Pengguna]! 👋"** dengan rapi dan tegas.
+
+### AM. Uji Custom Floating Status Dropdown & Toolbar Mobile Kompak pada Pengajuan Lembur (Admin & Ketua Tim)
+- [ ] **Uji Tampilan & Interaksi di Smartphone (Mobile View < 640px)**:
+  - Buka halaman `/admin/pengajuan` atau `/ketua-tim/pengajuan` pada perangkat HP atau mode responsive DevTools.
+  - Periksa baris 1 toolbar: Pemilih Bulan dan Status Dropdown tersusun rapi berdampingan 50%-50%.
+  - Periksa baris 2 toolbar: Kolom Pencarian Pegawai membentang penuh (didampingi tombol icon kompak Kelola Hari Libur pada role Admin).
+  - Ketuk tombol Status: menu melayang *floating card* berpenampilan modern (`rounded-2xl`, bayangan halus, tanpa dialog native browser yang kaku atau seleksi biru kasar `#0066cc`).
+  - Titik status warna tampil dinamis (pulse biru pada Menunggu Kabag, amber pada Menunggu Ketua, hijau pada Disetujui, merah pada Ditolak, abu-abu pada Semua Status).
+  - Pilihan yang sedang aktif ditandai latar oranye lembut dan ikon centang.
+  - Ketuk salah satu pilihan: halaman langsung memfilter data pengajuan sesuai status yang dipilih.
+- [ ] **Verifikasi Tampilan Desktop ($\ge 640\text{px}$)**:
+  - Buka halaman pada komputer/laptop: seluruh kontrol filter (Bulan, Search, Custom Status Dropdown, Hari Libur) kembali berjajar horizontal 1 baris yang luas dan proporsional.
+
+### AN. Uji Perbaikan Empty State Centering & Posisi Footer pada Halaman Pengajuan Lembur Mandiri (Ketua Tim & Pegawai)
+- [ ] **Uji Tampilan Kosong (Empty State) Terpusat Presisi**:
+  - Buka halaman `/ketua-tim/lembur` (atau `/lembur` bagi pegawai) saat belum ada data pengajuan lembur pada periode bulan yang dipilih.
+  - Verifikasi: Kotak "Belum Ada Pengajuan Lembur" (ikon jam amber, judul tebal, deskripsi ramah, tombol "+ Ajukan Lembur Sekarang") **berada tepat 100% di tengah layar** (true centering), baik di layar lebar laptop (MacBook Air/PC) maupun di layar kecil ponsel.
+  - Verifikasi: Tidak ada tabel kosong 1080px dengan kolom header menggantung atau scrollbar horizontal yang tidak perlu ketika data kosong.
+- [ ] **Uji Posisi Footer Rapi di Bawah & Navbar Bersih**:
+  - Periksa bilah navigasi atas (navbar) sebelah kanan: Hanya menampilkan menu profil pengguna dengan aman dan bersih. Teks hak cipta **tidak lagi melayang ke pojok kanan atas navbar**.
+  - Gulir ke bagian paling dasar halaman: Teks `© 2026 BPS Provinsi Jawa Tengah - Tim SID` tampil rapi dan tepat di dasar halaman sebagai footer standar.
+
+### AO. Uji Penyatuan Struktur Tabel Selalu Tampil & Table-Fixed Layout (Ketua Tim, Kabag Umum, & Pegawai)
+- [ ] **Uji Struktur Tabel & Header Kolom Tetap Tampil Saat Data Kosong**:
+  - Buka halaman `/ketua-tim/lembur` atau `/lembur` pada bulan tanpa data pengajuan lembur.
+  - Periksa: Kepala tabel (`<thead>`) tetap tampil rapi di atas kartu dengan pembatas garis halus `border-b border-gray-200` dan latar abu-abu lembut `bg-gray-50/90`.
+  - Di bawah kepala tabel, baris kosong (`@empty`) menampilkan kartu empty state amber ikon jam dan tombol ajukan lembur yang **100% terpusat presisi di tengah layar** tanpa tergeser ke kanan.
+- [ ] **Uji Table-Fixed Layout Bebas Goyang / Anti Auto-Fit**:
+  - Buka halaman `/kabag-umum/pengajuan`, `/ketua-tim/pengajuan`, `/ketua-tim/lembur`, dan `/lembur`.
+  - Periksa lebar kolom-kolom tabel tetap stabil (`table-fixed`) dan tidak lagi meregang / menyusut secara acak (*jittery auto-fit*) saat isi teks uraian kegiatan panjang.
+
+### AP. Uji Tampilan Footer Mobile Terpusat (Welcome & Layout Utama)
+- [ ] **Uji Tampilan Footer di Smartphone (Mobile View < 640px)**:
+  - Buka halaman landing page utama (`/`) di browser smartphone atau mode responsive DevTools (lebar $\le 390\text{px}$).
+  - Periksa footer di bagian bawah:
+    - Teks hak cipta `© 2026 Badan Pusat Statistik Provinsi Jawa Tengah. Hak cipta dilindungi.` dan identitas `• Tim SID - BPS Provinsi Jawa Tengah` tersusun rapi secara vertikal (`flex-col`) dan berada tepat di tengah (*centered*).
+    - Tidak ada ruang kosong timpang di sebelah kanan maupun pemotongan teks di tepi layar ponsel (`px-4`).
+
+### AQ. Uji Header Navbar Edge-to-Edge Full Width (Welcome Page)
+- [ ] **Uji Header Navbar Full Width (Pojok Kiri s.d. Pojok Kanan)**:
+  - Buka halaman utama `http://127.0.0.1:8000/`.
+  - Verifikasi: Kontainer header/navbar membentang penuh dari pojok paling kiri hingga pojok paling kanan (`w-full px-6`) meggunakan tinggi standar `h-16`.
+  - Identitas TEMPE DELE berada di pojok kiri atas dan tombol Masuk berada di pojok kanan atas secara presisi.
+
+### AR. Uji Toggle Switcher Mode Tampilan [📋 Tabel] vs [📍 Visual Timeline Card]
+- [ ] **Uji Beralih Mode Tampilan di Halaman Lembur**:
+  - Buka halaman **Pengajuan Lembur Pegawai** (`/lembur`) atau **Lembur Ketua Tim** (`/ketua-tim/lembur`).
+  - Periksa di header halaman di samping tombol *Ajukan Lembur*: terdapat grup tombol toggle **`[ 📋 Tabel ]`** dan **`[ 📍 Timeline ]`**.
+  - Klik tombol **`[ 📍 Timeline ]`**:
+    - Kontainer tabel menyelesap halus dan digantikan oleh daftar **Visual Timeline Card** vertikal ala Gambar 1 mentor.
+    - Setiap item memiliki titik indikator warna (*dot*) pada garis vertikal di sebelah kiri (`🟢 Disetujui`, `🔵 Menunggu Kabag`, `🟡 Diproses`, `🔴 Ditolak`).
+    - Kartu menyajikan tanggal, status badge, uraian kegiatan, jam pengajuan vs disetujui, nama ketua tim, catatan, serta tombol dokumentasi & aksi.
+  - Klik tombol **`[ 📋 Tabel ]`**:
+    - Tampilan kembali secara instan ke bentuk tabel 2D standar.
+- [ ] **Uji Persistensi Pilihan (`localStorage`)**:
+  - Pilih mode **Timeline**, lalu lakukan refresh peramban (F5):
+  - Halaman tetap mempertahankan tampilan mode **Timeline** tanpa kembali ke Tabel.
+- [ ] **Uji Filter Tanggal & Tim pada Mode Timeline**:
+  - Saat berada di mode **Timeline**, gunakan filter tanggal atau filter pencarian tim:
+  - Kartu-kartu timeline secara otomatis ter-filter secara *real-time*.
+
+### AS. Uji Presisi Garis Vertikal Aksis Tepat Melalui Bulatan Dot Status (Kuning, Merah, Hijau) pada Visual Timeline
+- [ ] **Uji Posisi Garis Vertikal Aksis pada Mode Timeline**:
+  - Buka halaman **Pengajuan Lembur Pegawai** (`/lembur`) atau **Lembur Ketua Tim** (`/ketua-tim/lembur`) dan aktifkan mode **Timeline**.
+  - Periksa kolom bulatan dot status (kuning/amber `Diproses`, merah `Ditolak`, hijau `Disetujui`):
+  - Pastikan garis vertikal aksis (`w-0.5 bg-slate-300`) berjalan lurus dan presisi melintasi pusat bulatan dot warna status (kuning, merah, hijau).
+  - Pastikan garis dimulai dari pusat dot item pertama dan berakhir di pusat dot item terakhir, tanpa menjulur keluar ke atas/bawah area timeline.
+
+### AT. Uji Kerapian Interior Kartu Visual Timeline (*Clean Borderless Layout*)
+- [ ] **Uji Tampilan Interior Kartu Timeline**:
+  - Buka halaman **Pengajuan Lembur Pegawai** (`/lembur`) atau **Lembur Ketua Tim** (`/ketua-tim/lembur`) dalam mode **Timeline**.
+  - Periksa interior kartu:
+    - Tidak ada garis bingkai kotak berlapik (`border border-slate-300` / `border border-blue-200`) yang menumpuk di dalam kartu.
+    - Blok **Jam Lembur Disetujui** tampil berupa banner pastel lembut `bg-emerald-50/80` tanpa garis tepi hitam/biru yang kasar.
+    - Blok **Catatan Ketua** dan **Catatan Kabag** tampil berupa *quote strip* ramping dengan aksen garis vertikal lembut di sisi kiri (`border-l-2`).
+    - Tag nama tim dan nama ketua tim tersusun ringkas dalam 1 baris yang bersih dan sejuk dipandang.
+
+### AU. Uji Garis Vertikal Kontinu Penghubung Bulatan Status Timeline (*Continuous Timeline Connector Line*)
+- [ ] **Uji Keterhubungan Alur Garis Timeline**:
+  - Buka halaman **Pengajuan Lembur Pegawai** (`/lembur`) atau **Lembur Ketua Tim** (`/ketua-tim/lembur`).
+  - Alihkan ke mode tampilan **Timeline**.
+  - Verifikasi: Di antara kotak tanggal (`17 SEP`, `16 SEP`, dst.) dan kartu rincian, terdapat **garis vertikal kontinu (`.timeline-stem`)** berwarna abu-abu rapi (`bg-slate-300`) selebar 2px yang menghubungkan seluruh titik bulatan indikator status pengajuan (oranye, biru, merah, hijau).
+  - Verifikasi: Garis stem melintas mulus di belakang cincin putih (*halo ring*) bulatan status tanpa terputus oleh jarak spasi vertikal antar-kartu.
+  - Verifikasi: Garis dimulai presisi dari titik pusat status dot teratas dan berakhir rapi di titik pusat status dot terbawah.
+- [ ] **Uji Garis Stem Dinamis Saat Menggunakan Filter**:
+  - Pada mode Timeline, pilih salah satu tim atau tanggal tertentu melalui filter.
+  - Verifikasi: Garis timeline menyesuaikan secara otomatis secara *real-time*; jika hanya 1 pengajuan yang cocok, garis disembunyikan secara bersih, dan jika lebih dari 1, garis menyambung antar-item yang tampak.
+  - Verifikasi: Jika filter tidak menemukan data sama sekali, muncul kotak pesan informatif `#emptyFilterTimeline` yang rapi.
+
 
 
 
