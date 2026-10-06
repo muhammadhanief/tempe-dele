@@ -7,138 +7,217 @@
 <div class="w-full max-w-7xl mx-auto flex flex-col px-4 sm:px-6 lg:px-8">
 
     {{-- ===================== TOOLBAR ===================== --}}
+    @php
+        $currentStatus = $status ?? 'all';
+        $statusMap = [
+            'all' => [
+                'label' => 'Semua Status',
+                'dot' => 'bg-slate-400',
+            ],
+            'menunggu_kabag' => [
+                'label' => 'Menunggu Kabag',
+                'dot' => 'bg-blue-600',
+            ],
+            'pending' => [
+                'label' => 'Menunggu Ketua',
+                'dot' => 'bg-amber-500',
+            ],
+            'approved' => [
+                'label' => 'Disetujui Final',
+                'dot' => 'bg-emerald-500',
+            ],
+            'rejected' => [
+                'label' => 'Ditolak',
+                'dot' => 'bg-rose-500',
+            ],
+        ];
+        $activeStatusConfig = $statusMap[$currentStatus] ?? $statusMap['all'];
+        $hasActiveFilter = ($bulan !== 'all' && !empty($bulan)) || !empty($search) || ($currentStatus !== 'all' && !empty($currentStatus));
+    @endphp
+
     <div class="w-full my-4 sm:my-5">
-        <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 sm:gap-3">
 
-            {{-- Period Picker --}}
-            <div class="relative w-full sm:w-auto shrink-0" id="periodPicker">
-                <button type="button" id="periodBtn"
-                    class="inline-flex w-full sm:w-auto items-center justify-between sm:justify-start h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors">
+            {{-- Baris 1 Mobile: Grid 2 Kolom (Bulan 50% & Status 50%) | Desktop: Item Langsung --}}
+            <div class="grid grid-cols-2 gap-2 sm:contents">
+                {{-- Period Picker --}}
+                <div class="relative w-full sm:w-auto shrink-0 sm:order-1" id="periodPicker">
+                    <button type="button" id="periodBtn"
+                        class="inline-flex w-full sm:w-auto items-center justify-between sm:justify-start h-10 gap-1.5 sm:gap-2 px-3 sm:px-4 text-xs sm:text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors cursor-pointer select-none">
 
-                    <span class="inline-flex items-center gap-2 min-w-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current shrink-0">
-                            <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
-                        </svg>
+                        <span class="inline-flex items-center gap-1.5 sm:gap-2 min-w-0 truncate pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-3.5 h-3.5 fill-current text-[#faa938] shrink-0">
+                                <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
+                            </svg>
 
-                        <span id="periodLabel" class="leading-none truncate">
-                            @if(empty($selectedMonth))
-                                Semua Bulan {{ $selectedYear }}
-                            @else
-                                {{ \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->translatedFormat('M Y') }}
-                            @endif
+                            <span id="periodLabel" class="leading-none truncate text-xs sm:text-sm font-medium text-gray-800">
+                                @if(empty($selectedMonth))
+                                    Semua Bulan {{ $selectedYear }}
+                                @else
+                                    {{ \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->translatedFormat('M Y') }}
+                                @endif
+                            </span>
                         </span>
-                    </span>
 
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-50 shrink-0">
-                        <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-2.5 h-2.5 fill-current text-gray-400 shrink-0 pointer-events-none">
+                            <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                        </svg>
+                    </button>
+
+                    <input type="hidden" id="periodValue" name="period" value="{{ $bulan }}">
+
+                    <div id="periodPanel"
+                        class="hidden absolute z-50 mt-1.5 left-0 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 bg-white shadow-xl p-3.5">
+
+                        <div class="flex items-center justify-between mb-3">
+                            <button type="button" id="yearPrev"
+                                class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                    <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
+                                </svg>
+                            </button>
+
+                            <span id="yearLabel" class="text-sm font-semibold text-gray-900">{{ $selectedYear }}</span>
+
+                            <button type="button" id="yearNext"
+                                class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938] transition-colors cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
+                                    <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="mb-2.5">
+                            <button type="button" id="btnAllMonthsOfYearAdmin"
+                                class="w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center cursor-pointer {{ empty($selectedMonth) ? 'bg-[#faa938] text-white border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]' }}">
+                                Semua Bulan (<span id="allMonthsYearLabelAdmin">{{ $selectedYear }}</span>)
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2" id="monthGrid"></div>
+
+                        <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                            <button type="button" id="btnThisMonth"
+                                class="text-xs font-semibold text-gray-500 hover:text-[#faa938] transition-colors cursor-pointer">
+                                Bulan ini
+                            </button>
+
+                            <button type="button" id="btnClosePanel"
+                                class="px-3 py-1 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938] transition-colors cursor-pointer">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Custom Filter Status Dropdown --}}
+                <div class="relative w-full sm:w-52 shrink-0 sm:order-3" id="wrapStatusFilter">
+                    <button type="button" id="btnStatusDropdown" onclick="toggleStatusDropdown(event)"
+                        class="inline-flex w-full h-10 items-center justify-between gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-xs sm:text-sm font-medium text-gray-700 shadow-2xs hover:border-[#faa938] active:bg-gray-50 transition-all cursor-pointer select-none">
+                        <span class="inline-flex items-center gap-1.5 sm:gap-2 min-w-0 truncate pointer-events-none">
+                            @if($currentStatus === 'menunggu_kabag')
+                                <span class="relative flex h-2 w-2 shrink-0">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                                </span>
+                            @else
+                                <span class="h-2 w-2 rounded-full {{ $activeStatusConfig['dot'] }} shrink-0"></span>
+                            @endif
+                            <span class="truncate font-medium text-gray-800">{{ $activeStatusConfig['label'] }}</span>
+                        </span>
+
+                        <svg id="iconChevronStatus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-2.5 w-2.5 fill-current text-gray-400 shrink-0 transition-transform duration-200 pointer-events-none">
+                            <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                        </svg>
+                    </button>
+
+                    <input type="hidden" id="filterStatus" value="{{ $currentStatus }}">
+
+                    {{-- Menu Dropdown Status Custom --}}
+                    <div id="menuStatusDropdown"
+                        class="hidden absolute right-0 sm:left-0 sm:right-auto top-full mt-1.5 z-50 w-56 sm:w-60 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden py-1 divide-y divide-gray-50/80">
+                        @foreach($statusMap as $val => $cfg)
+                            @php $isSelected = ($currentStatus === $val); @endphp
+                            <button type="button" onclick="selectStatusOption('{{ $val }}')"
+                                class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs sm:text-sm text-left transition-colors cursor-pointer group {{ $isSelected ? 'bg-amber-50/70 font-semibold text-amber-900' : 'text-gray-700 hover:bg-gray-50' }}">
+                                <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                                    @if($val === 'menunggu_kabag')
+                                        <span class="relative flex h-2 w-2 shrink-0">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                                        </span>
+                                    @else
+                                        <span class="h-2 w-2 rounded-full {{ $cfg['dot'] }} shrink-0"></span>
+                                    @endif
+                                    <span class="{{ $isSelected ? 'font-semibold text-gray-900' : 'text-gray-700 group-hover:text-gray-900' }}">
+                                        {{ $cfg['label'] }}
+                                    </span>
+                                </span>
+
+                                @if($isSelected)
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#faa938] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                @endif
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Baris 2 Mobile: Search Pegawai + Tombol Hari Libur | Desktop: Item Langsung --}}
+            <div class="flex items-center gap-2 sm:contents">
+                {{-- Filter Pegawai --}}
+                <div class="relative flex-1 sm:min-w-[240px] sm:order-2" id="wrapSearchPegawai">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
+                        onclick="openDropdownPegawai()" onfocus="openDropdownPegawai()" oninput="filterDropdownPegawai()" autocomplete="off"
+                        class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-9 pr-10 text-xs sm:text-sm text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all placeholder:text-gray-400"/>
+
+                    <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                        <button type="button" id="btnClearPegawai" onclick="pilihPegawai(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter pegawai">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        <button type="button" onclick="toggleDropdownPegawai()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar pegawai">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-2.5 w-2.5 fill-current">
+                                <path d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div id="dropdownPegawai"
+                        class="hidden absolute z-40 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
+                        <ul id="listPegawai"></ul>
+                    </div>
+                </div>
+
+                {{-- Tombol Hari Libur --}}
+                <button type="button" onclick="openModalHariLibur()"
+                    class="h-10 w-10 shrink-0 inline-flex items-center justify-center bg-[#faa938] text-white rounded-xl hover:bg-[#fd9a10] active:scale-95 transition-all shadow-2xs sm:order-6"
+                    title="Kelola Hari Libur">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </button>
-
-                <input type="hidden" id="periodValue" name="period" value="{{ $bulan }}">
-
-                <div id="periodPanel"
-                    class="hidden absolute z-50 mt-2 left-0 w-full sm:w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white shadow-lg p-3">
-
-                    <div class="flex items-center justify-between mb-3">
-                        <button type="button" id="yearPrev"
-                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
-                                <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/>
-                            </svg>
-                        </button>
-
-                        <span id="yearLabel" class="text-sm font-medium text-gray-900">{{ $selectedYear }}</span>
-
-                        <button type="button" id="yearNext"
-                            class="p-2 rounded-lg border border-gray-200 hover:border-[#faa938] hover:text-[#faa938]">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current">
-                                <path d="M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c12.5 12.5 12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="mb-2.5">
-                        <button type="button" id="btnAllMonthsOfYearAdmin"
-                            class="w-full py-1.5 px-3 text-xs font-semibold rounded-lg border transition text-center {{ empty($selectedMonth) ? 'bg-[#faa938] text-white border-[#faa938]' : 'border-gray-200 text-gray-700 bg-white hover:border-[#faa938] hover:text-[#faa938]' }}">
-                            Semua Bulan (<span id="allMonthsYearLabelAdmin">{{ $selectedYear }}</span>)
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2" id="monthGrid"></div>
-
-                    <div class="flex items-center justify-between mt-3">
-                        <button type="button" id="btnThisMonth"
-                            class="text-sm font-medium text-gray-500 hover:text-[#faa938]">
-                            Bulan ini
-                        </button>
-
-                        <button type="button" id="btnClosePanel"
-                            class="px-3 py-1 text-sm font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">
-                            Tutup
-                        </button>
-                    </div>
-                </div>
             </div>
 
-            {{-- Filter Pegawai --}}
-            <div class="relative w-full sm:flex-1 sm:min-w-[240px]" id="wrapSearchPegawai">
-                <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
-                    onclick="openDropdownPegawai()" onfocus="openDropdownPegawai()" oninput="filterDropdownPegawai()" autocomplete="off"
-                    class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-4 pr-12 text-sm text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
-
-                <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
-                    <button type="button" id="btnClearPegawai" onclick="pilihPegawai(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter pegawai">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                    <button type="button" onclick="toggleDropdownPegawai()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar pegawai">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
-                            <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <div id="dropdownPegawai"
-                    class="hidden absolute z-40 mt-1 w-full max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl">
-                    <ul id="listPegawai"></ul>
-                </div>
-            </div>
-
-            {{-- Filter Status --}}
-            <div class="relative w-full sm:w-48 shrink-0">
-                <select id="filterStatus" onchange="onFilterStatusChange(this.value)"
-                    class="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-sm font-medium text-gray-700 shadow-2xs hover:border-[#faa938] focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
-                    <option value="all" {{ (($status ?? 'all') === 'all') ? 'selected' : '' }}>Semua Status</option>
-                    <option value="menunggu_kabag" {{ (($status ?? '') === 'menunggu_kabag') ? 'selected' : '' }}>Menunggu Kabag</option>
-                    <option value="pending" {{ (($status ?? '') === 'pending') ? 'selected' : '' }}>Menunggu Ketua</option>
-                    <option value="approved" {{ (($status ?? '') === 'approved') ? 'selected' : '' }}>Disetujui Final</option>
-                    <option value="rejected" {{ (($status ?? '') === 'rejected') ? 'selected' : '' }}>Ditolak</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            {{-- Reset Filter (hanya muncul jika ada filter yang aktif) --}}
+            @if($hasActiveFilter)
+                <a href="{{ url()->current() }}"
+                    class="h-10 w-full sm:w-auto px-3.5 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium border border-rose-200 bg-rose-50/70 text-rose-600 rounded-xl hover:bg-rose-100 hover:border-rose-300 transition-colors sm:order-4 cursor-pointer"
+                    title="Reset semua filter">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                </div>
-            </div>
+                    <span>Reset Filter</span>
+                </a>
+            @endif
 
-            {{-- Reset Filter --}}
-            <button type="button" id="btnResetFilter"
-                class="hidden h-10 w-full sm:w-auto px-4 text-sm font-medium border border-gray-200 bg-white text-gray-500 rounded-xl sm:rounded-full hover:border-[#faa938] hover:text-[#faa938] transition-colors">
-                Reset
-            </button>
-
-            <div class="hidden sm:block flex-1"></div>
-
-            {{-- Tombol Hari Libur --}}
-            <button type="button" onclick="openModalHariLibur()"
-                class="h-10 w-full sm:w-10 inline-flex items-center justify-center gap-2 bg-[#faa938] text-white rounded-xl sm:rounded-full hover:bg-[#fd9a10] transition-colors"
-                title="Kelola Hari Libur">
-
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-
-                <span class="sm:hidden text-sm font-medium">Kelola Hari Libur</span>
-            </button>
+            <div class="hidden sm:block flex-1 sm:order-5"></div>
         </div>
     </div>
 
@@ -708,6 +787,11 @@ window.openDropdownPegawai = function () {
     const search = document.getElementById('searchPegawai');
     if (!dropdown || !search) return;
 
+    const menuStatus = document.getElementById('menuStatusDropdown');
+    if (menuStatus) menuStatus.classList.add('hidden');
+    const chevronStatus = document.getElementById('iconChevronStatus');
+    if (chevronStatus) chevronStatus.classList.remove('rotate-180');
+
     renderDropdownPegawai(''); // Always render full list when opened
     dropdown.classList.remove('hidden');
     setTimeout(() => search.select(), 10);
@@ -776,6 +860,47 @@ function pilihPegawai(emp) {
 // =====================
 // FILTER STATUS & SORT TANGGAL
 // =====================
+window.toggleStatusDropdown = function(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('menuStatusDropdown');
+    const chevron = document.getElementById('iconChevronStatus');
+    if (!menu) return;
+
+    const isHidden = menu.classList.contains('hidden');
+    // Tutup panel lain jika terbuka
+    const periodPanel = document.getElementById('periodPanel');
+    if (periodPanel) periodPanel.classList.add('hidden');
+    const dropdownPegawai = document.getElementById('dropdownPegawai');
+    if (dropdownPegawai) dropdownPegawai.classList.add('hidden');
+
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        if (chevron) chevron.classList.add('rotate-180');
+    } else {
+        menu.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+    }
+};
+
+window.selectStatusOption = function(statusVal) {
+    const menu = document.getElementById('menuStatusDropdown');
+    const chevron = document.getElementById('iconChevronStatus');
+    if (menu) menu.classList.add('hidden');
+    if (chevron) chevron.classList.remove('rotate-180');
+    window.onFilterStatusChange(statusVal);
+};
+
+// Tutup dropdown status jika klik di luar
+document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('wrapStatusFilter');
+    const menu = document.getElementById('menuStatusDropdown');
+    const chevron = document.getElementById('iconChevronStatus');
+    if (wrap && menu && !wrap.contains(e.target)) {
+        menu.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+    }
+});
+
 window.onFilterStatusChange = function(statusVal) {
     const params = new URLSearchParams(window.location.search);
     if (statusVal && statusVal !== 'all') {
@@ -863,6 +988,13 @@ window.onHeaderSortChange = function(sortVal) {
             viewYear = selYear;
             renderMonth();
             panel.classList.remove('hidden');
+
+            const menuStatus = document.getElementById('menuStatusDropdown');
+            if (menuStatus) menuStatus.classList.add('hidden');
+            const chevronStatus = document.getElementById('iconChevronStatus');
+            if (chevronStatus) chevronStatus.classList.remove('rotate-180');
+            const dropPegawai = document.getElementById('dropdownPegawai');
+            if (dropPegawai) dropPegawai.classList.add('hidden');
         }
 
         function closePanel() {

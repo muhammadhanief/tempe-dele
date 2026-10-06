@@ -29,14 +29,30 @@
             </p>
         </div>
 
-        {{-- Tombol Ajukan Lembur --}}
-        <a href="javascript:void(0)" id="btnAjukan"
-            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow-sm transition-all shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
-            </svg>
-            <span>Ajukan Lembur</span>
-        </a>
+        <div class="flex items-center gap-2.5">
+            {{-- Toggle Mode Tampilan (Tabel vs Timeline) --}}
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/80 shadow-2xs shrink-0">
+                <button type="button" id="btnViewTable" onclick="switchViewMode('table')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-white text-slate-800 shadow-2xs">
+                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Tabel</span>
+                </button>
+                <button type="button" id="btnViewTimeline" onclick="switchViewMode('timeline')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Timeline</span>
+                </button>
+            </div>
+
+            {{-- Tombol Ajukan Lembur --}}
+            <a href="javascript:void(0)" id="btnAjukan"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow-sm transition-all shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                <span>Ajukan Lembur</span>
+            </a>
+        </div>
     </div>
 
     {{-- Toolbar --}}
@@ -109,17 +125,17 @@
                     $valBulan  = \Carbon\Carbon::create($tahunBulan, $m, 1)->format('Y-m');
                     $namaBulan = \Carbon\Carbon::create($tahunBulan, $m, 1)->translatedFormat('F');
                 @endphp
-                <option value="{{ $valBulan }}" @selected(($bulan ?? '') === $valBulan)>{{ ucfirst($namaBulan) }} {{ $tahunBulan }}</option>
+                <option value="{{ $valBulan }}" @selected($bulan ?? $valBulan)>{{ ucfirst($namaBulan) }} {{ $tahunBulan }}</option>
             @endfor
         </select>
 
         {{-- Jumlah per Halaman --}}
         <select id="perHalaman" onchange="gantiFilter('perPage', this.value)"
             class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
-            <option value="10"  @selected(($perPage ?? 10) == 10)>10 / hal</option>
-            <option value="25"  @selected(($perPage ?? 10) == 25)>25 / hal</option>
-            <option value="50"  @selected(($perPage ?? 10) == 50)>50 / hal</option>
-            <option value="100" @selected(($perPage ?? 10) == 100)>100 / hal</option>
+            <option value="10"  @selected($perPage ?? 10) = 10)>10 / hal</option>
+            <option value="25"  @selected($perPage ?? 10) = 25)>25 / hal</option>
+            <option value="50"  @selected($perPage ?? 10) = 50)>50 / hal</option>
+            <option value="100" @selected($perPage ?? 10) = 100)>100 / hal</option>
         </select>
 
         {{-- Filter Tim --}}
@@ -153,259 +169,510 @@
 
     </div>
 
-    {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
-    <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
-        <div class="flex items-center justify-between">
-            <span class="inline-flex items-center gap-1.5">
-                <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                </svg>
-                <span>Geser tabel ke kiri / kanan</span>
-            </span>
-            <span class="table-scroll-pct text-[10px] font-mono text-slate-400 shrink-0">Geser »</span>
+    {{-- Container 1: Tampilan Tabel --}}
+    <div id="viewContainerTable">
+        {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
+        <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
+            <div class="flex items-center justify-between">
+                <span class="inline-flex items-center gap-1.5">
+                    <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                    <span>Geser tabel ke kiri / kanan</span>
+                </span>
+                <span class="table-scroll-pct text-[10px] font-mono text-slate-400 shrink-0">Geser »</span>
+            </div>
+            <div class="table-scroll-track w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
+                <div class="table-scroll-thumb absolute top-0 left-0 h-full bg-[#faa938] rounded-full" style="width: 30%; transform: translateX(0px);"></div>
+            </div>
         </div>
-        <div class="table-scroll-track w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
-            <div class="table-scroll-thumb absolute top-0 left-0 h-full bg-[#faa938] rounded-full" style="width: 30%; transform: translateX(0px);"></div>
+
+        {{-- Card Tabel --}}
+        <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs">
+            <div class="overflow-x-auto">
+                <table class="w-full {{ $transaksi->isEmpty() ? 'min-w-[840px] sm:min-w-full' : 'min-w-[1280px]' }} table-fixed divide-y divide-gray-200">
+                    <thead class="bg-gray-50/90 border-b border-gray-200">
+                        <tr>
+                            <th class="w-32 px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl">Tanggal</th>
+                            <th class="w-32 px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize">Jam Diajukan</th>
+                            <th class="w-32 px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize">Jam Disetujui</th>
+                            <th class="w-64 px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
+                            <th class="w-40 px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Ketua Tim</th>
+                            <th class="w-44 px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Nama Tim</th>
+                            <th class="w-32 px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize">Status</th>
+                            <th class="w-44 px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Catatan</th>
+                            <th class="w-32 px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize">Dokumentasi</th>
+                            <th class="w-28 px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl">Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-gray-100 bg-white" id="tabelLembur">
+                        @forelse($transaksi as $t)
+                                <tr class="transition-colors hover:bg-slate-50/80"
+                                    data-tanggal="{{ $t->date }}"
+                                    data-tim="{{ $t->tim_kode_tim }}">
+
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-xs font-medium text-gray-900">
+                                        {{ \Carbon\Carbon::parse($t->date)->translatedFormat('d F Y') }}
+                                    </td>
+
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center text-xs font-mono text-gray-700">
+                                        @if($t->jam_mulai && $t->jam_selesai)
+                                            {{ substr($t->jam_mulai, 0, 5) }} - {{ substr($t->jam_selesai, 0, 5) }}
+                                        @elseif($t->jam_mulai)
+                                            {{ substr($t->jam_mulai, 0, 5) }} - <span class="italic text-gray-400">menunggu</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center text-xs">
+                                        @php
+                                            $isAdjusted = $t->status === 'approved'
+                                                && $t->jam_mulai_disetujui
+                                                && $t->jam_selesai_disetujui
+                                                && (substr($t->jam_mulai_disetujui, 0, 5) !== substr($t->jam_mulai, 0, 5) || substr($t->jam_selesai_disetujui, 0, 5) !== substr($t->jam_selesai, 0, 5));
+                                        @endphp
+
+                                        @if($t->status === 'approved')
+                                            @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
+                                                <div class="inline-flex flex-col items-center gap-1">
+                                                    <span class="font-mono text-xs font-semibold text-emerald-700">
+                                                        {{ substr($t->jam_mulai_disetujui, 0, 5) }} - {{ substr($t->jam_selesai_disetujui, 0, 5) }}
+                                                    </span>
+                                                    @if($isAdjusted)
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Jam disetujui disesuaikan dari jam pengajuan">
+                                                            Disesuaikan
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="text-gray-400 font-mono">-</span>
+                                            @endif
+                                        @elseif($t->status === 'rejected')
+                                            <span class="text-xs text-rose-500 italic">Ditolak</span>
+                                        @elseif($t->status === 'cancelled')
+                                            <span class="text-xs text-gray-400 italic">Dibatalkan</span>
+                                        @else
+                                            <span class="text-xs text-gray-400 italic">Menunggu</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-4 py-3.5 text-xs text-gray-800">
+                                        <div class="max-w-[280px] whitespace-normal break-words leading-relaxed">
+                                            {{ $t->uraian ?? '-' }}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-4 py-3.5 text-xs text-gray-700">
+                                        <div class="max-w-[140px] whitespace-normal break-words font-medium">
+                                            {{ $t->nama_ketua ?? '-' }}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-4 py-3.5 text-xs text-gray-600">
+                                        <div class="max-w-[160px] whitespace-normal break-words">
+                                            {{ $t->nama_tim ?? '-' }}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-4 py-3.5 text-center text-xs">
+                                        @if($t->status === 'pending')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                                Menunggu Ketua
+                                            </span>
+                                        @elseif($t->status === 'menunggu_kabag')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                                Menunggu Kabag
+                                            </span>
+                                        @elseif($t->status === 'approved')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                Disetujui
+                                            </span>
+                                        @elseif($t->status === 'rejected')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                                Ditolak
+                                            </span>
+                                        @elseif($t->status === 'cancelled')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-300">
+                                                Dibatalkan Admin
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-gray-400">-</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-4 py-3.5 text-xs text-gray-600">
+                                        <div class="max-w-[180px] space-y-1 text-left">
+                                            @if(!empty($t->note))
+                                                <div>
+                                                    <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
+                                                    <div class="text-[11px] text-gray-700 italic break-words">{{ $t->note }}</div>
+                                                </div>
+                                            @endif
+                                            @if(!empty($t->note_kabag))
+                                                <div>
+                                                    <span class="text-[10px] font-bold uppercase text-blue-600">Kabag Umum:</span>
+                                                    <div class="text-[11px] text-blue-900 italic break-words">{{ $t->note_kabag }}</div>
+                                                </div>
+                                            @endif
+                                            @if(empty($t->note) && empty($t->note_kabag))
+                                                <span class="text-gray-400">-</span>
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    <td class="px-4 py-3.5 text-center text-xs">
+                                        @if($t->status === 'approved')
+                                            @if($t->file_dokumentasi)
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <a href="{{ $t->file_dokumentasi }}" target="_blank"
+                                                        class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                                        </svg>
+                                                        Lihat
+                                                    </a>
+
+                                                    <form action="{{ route('pegawai.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
+                                                        onsubmit="return confirm('Hapus dokumentasi ini?')">
+                                                        @csrf
+                                                        @method('DELETE')
+
+                                                        <button type="submit" class="text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus dokumentasi">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            @else
+                                                <button type="button"
+                                                    onclick="openModalDok(this)"
+                                                    data-action="{{ route('pegawai.lembur.storeDoc', $t->id_transaksi) }}"
+                                                    class="inline-flex items-center gap-1 font-medium text-[#faa938] hover:text-[#fd9a10] transition-colors">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+                                                    </svg>
+                                                    Dokumentasi
+                                                </button>
+                                            @endif
+                                        @else
+                                            <span class="text-gray-300">-</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-4 py-3.5 text-center text-xs whitespace-nowrap">
+                                        @php
+                                            $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && empty($t->approved_at));
+                                        @endphp
+                                        @if($canEdit)
+                                            <button type="button"
+                                                onclick="openModalEdit(this)"
+                                                data-action="{{ route('pegawai.lembur.update', $t->id_transaksi) }}"
+                                                data-tanggal="{{ \Carbon\Carbon::parse($t->date)->translatedFormat('l, d F Y') }}"
+                                                data-jam-mulai="{{ $t->jam_mulai ? substr($t->jam_mulai, 0, 5) : '' }}"
+                                                data-jam-selesai="{{ $t->jam_selesai ? substr($t->jam_selesai, 0, 5) : '' }}"
+                                                data-uraian="{{ $t->uraian ?? '' }}"
+                                                data-approver="{{ $t->approver_employee_id ?? '' }}"
+                                                data-kode-tim="{{ $t->tim_kode_tim ?? '' }}"
+                                                data-ketua="{{ $t->nama_ketua ?? '-' }}"
+                                                data-tim="{{ $t->nama_tim ?? '-' }}"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-all shadow-2xs cursor-pointer"
+                                                title="Ubah ketua tim, jam, atau uraian kegiatan">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                                                </svg>
+                                                <span>Ubah</span>
+                                            </button>
+                                        @else
+                                            <span class="text-gray-300 font-medium select-none" title="Sudah diproses / terkunci">-</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                        @empty
+                            <tr>
+                                <td colspan="10" class="px-4 py-16 text-center">
+                                    <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-[#faa938] mb-3 border border-amber-100/80 shadow-xs">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                        </div>
+                                        <h3 class="text-sm font-bold text-gray-900 mb-1">Belum Ada Pengajuan Lembur</h3>
+                                        <p class="text-xs text-gray-500 mb-4 text-center leading-relaxed">
+                                            Anda belum memiliki riwayat pengajuan kegiatan lembur mandiri pada periode ini.
+                                        </p>
+                                        <button type="button" onclick="openModalAjukan()"
+                                            class="inline-flex items-center gap-1.5 rounded-xl bg-[#faa938] px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow transition-all cursor-pointer">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+                                            </svg>
+                                            <span>Ajukan Lembur Sekarang</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                        <tr id="emptyFilterRow" class="hidden">
+                            <td colspan="10" class="px-4 py-12 text-center text-xs text-gray-500 font-medium">
+                                Tidak ada data pengajuan lembur yang sesuai dengan filter pencarian.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    {{-- Tabel --}}
-    <div class="overflow-x-auto rounded-xl bg-white">
-        <table class="w-full min-w-[1140px] table-auto rounded-xl">
-            <thead>
-                <tr class="bg-gray-100">
-                    <th class="w-28 rounded-tl-xl px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Tanggal</th>
-                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Jam Diajukan</th>
-                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Jam Disetujui</th>
-                    <th class="px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Uraian Kegiatan</th>
-                    <th class="w-32 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Ketua Tim</th>
-                    <th class="w-36 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Nama Tim</th>
-                    <th class="w-24 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Status</th>
-                    <th class="w-32 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Catatan</th>
-                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Dokumentasi</th>
-                    <th class="w-24 rounded-tr-xl px-3 py-3 text-center text-xs font-semibold capitalize text-gray-900">Aksi</th>
-                </tr>
-            </thead>
+    {{-- Container 2: Tampilan Visual Timeline (Paket Visual Premium Polish) --}}
+    <div id="viewContainerTimeline" class="hidden">
+        @if($transaksi->isEmpty())
+            <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-12 sm:p-16 text-center shadow-xs">
+                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-[#faa938] mb-3 border border-amber-100/80 shadow-xs">
+                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-900 mb-1">Belum Ada Pengajuan Lembur</h3>
+                <p class="text-xs text-gray-500 mb-4 text-center leading-relaxed">Anda belum memiliki riwayat pengajuan kegiatan lembur mandiri pada periode ini.</p>
+                <button type="button" onclick="openModalAjukan()"
+                    class="inline-flex items-center gap-1.5 rounded-xl bg-[#faa938] px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow transition-all cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    <span>Ajukan Lembur Sekarang</span>
+                </button>
+            </div>
+        @else
+            <div class="max-w-4xl mx-auto py-2">
+                <div class="relative" id="timelineList">
+                    @foreach($transaksi as $t)
+                        @php
+                            $carbonDate = \Carbon\Carbon::parse($t->date);
+                            $jamMulai = $t->jam_mulai ? substr($t->jam_mulai, 0, 5) : '-';
+                            $jamSelesai = $t->jam_selesai ? substr($t->jam_selesai, 0, 5) : '-';
+                            $jamMulaiAcc = $t->jam_mulai_disetujui ? substr($t->jam_mulai_disetujui, 0, 5) : null;
+                            $jamSelesaiAcc = $t->jam_selesai_disetujui ? substr($t->jam_selesai_disetujui, 0, 5) : null;
+                            $isAdjusted = $t->status === 'approved' && $jamMulaiAcc && $jamSelesaiAcc && ($jamMulaiAcc !== $jamMulai || $jamSelesaiAcc !== $jamSelesai);
+                        @endphp
 
-            <tbody class="divide-y divide-gray-300" id="tabelLembur">
-                @forelse($transaksi as $t)
-                    <tr class="bg-white transition-all duration-300 hover:bg-gray-50"
-                        data-tanggal="{{ $t->date }}"
-                        data-tim="{{ $t->tim_kode_tim }}">
+                        <div class="flex items-start gap-3 sm:gap-5 group timeline-item pb-5 sm:pb-6 last:pb-2" data-tanggal="{{ $t->date }}" data-tim="{{ $t->tim_kode_tim }}">
+                            {{-- 1. Date Box --}}
+                            <div class="w-16 sm:w-20 shrink-0 flex flex-col items-center justify-center rounded-2xl bg-white border border-slate-300 py-2.5 px-1.5 shadow-2xs group-hover:border-slate-400 transition-all duration-200">
+                                <span class="text-xl sm:text-2xl font-black font-mono text-slate-800 leading-none tracking-tight">
+                                    {{ $carbonDate->format('d') }}
+                                </span>
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-mono mt-1">
+                                    {{ $carbonDate->translatedFormat('M') }}
+                                </span>
+                            </div>
 
-                        <td class="px-3 py-3 text-xs text-gray-900 whitespace-nowrap">
-                            {{ \Carbon\Carbon::parse($t->date)->translatedFormat('d F Y') }}
-                        </td>
+                            {{-- 2. Kolom Bulatan Status (Dot Orange, Merah, Hijau) + Garis Aksis Vertikal Menyambung --}}
+                            <div class="relative flex flex-col items-center shrink-0 w-6 self-stretch pt-3.5">
+                                {{-- Garis Aksis Vertikal Menyambung Antar-Node --}}
+                                <div class="timeline-stem absolute left-1/2 -translate-x-1/2 bg-slate-300 z-0"
+                                     style="width: 2px; {{ $transaksi->count() <= 1 ? 'display: none;' : ($loop->first ? 'top: 21px; bottom: 0;' : ($loop->last ? 'top: 0; height: 21px;' : 'top: 0; bottom: 0;')) }}"></div>
 
-                        <td class="px-3 py-3 text-center text-xs text-gray-900 whitespace-nowrap">
-                            @if($t->jam_mulai && $t->jam_selesai)
-                                {{ substr($t->jam_mulai, 0, 5) }} - {{ substr($t->jam_selesai, 0, 5) }}
-                            @elseif($t->jam_mulai)
-                                {{ substr($t->jam_mulai, 0, 5) }} - <span class="italic text-gray-400">menunggu</span>
-                            @else
-                                -
-                            @endif
-                        </td>
+                                {{-- Bulatan Dot Warna Status (Orange / Red / Green) --}}
+                                <div class="relative z-10 flex items-center justify-center">
+                                    @if($t->status === 'approved')
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-emerald-500 ring-4 ring-white shadow-2xs"></span>
+                                    @elseif($t->status === 'menunggu_kabag')
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-blue-600 ring-4 ring-white shadow-2xs animate-pulse"></span>
+                                    @elseif($t->status === 'pending')
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-amber-500 ring-4 ring-white shadow-2xs animate-pulse"></span>
+                                    @elseif($t->status === 'rejected')
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-rose-500 ring-4 ring-white shadow-2xs"></span>
+                                    @else
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-slate-400 ring-4 ring-white shadow-2xs"></span>
+                                    @endif
+                                </div>
+                            </div>
 
-                        <td class="px-3 py-3 text-center text-xs whitespace-nowrap">
-                            @php
-                                $isAdjusted = $t->status === 'approved'
-                                    && $t->jam_mulai_disetujui
-                                    && $t->jam_selesai_disetujui
-                                    && (substr($t->jam_mulai_disetujui, 0, 5) !== substr($t->jam_mulai, 0, 5) || substr($t->jam_selesai_disetujui, 0, 5) !== substr($t->jam_selesai, 0, 5));
-                            @endphp
+                            {{-- 3. Kartu Timeline Clean & Elegan --}}
+                            <div class="flex-1 min-w-0">
+                                <div class="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all duration-200 space-y-3">
+                                    {{-- Header: Status Pill (Kiri) + Jam Diajukan (Kanan) --}}
+                                    <div class="flex items-center justify-between gap-2 pb-1">
+                                        <div>
+                                            @if($t->status === 'pending')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                                    Diproses Ketua Tim
+                                                </span>
+                                            @elseif($t->status === 'menunggu_kabag')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                                                    Menunggu Kabag Umum
+                                                </span>
+                                            @elseif($t->status === 'approved')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                    Disetujui Final
+                                                </span>
+                                            @elseif($t->status === 'rejected')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                                                    Ditolak
+                                                </span>
+                                            @elseif($t->status === 'cancelled')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                                                    Dibatalkan Admin
+                                                </span>
+                                            @endif
+                                        </div>
 
-                            @if($t->status === 'approved')
-                                @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
-                                    <div class="inline-flex flex-col items-center gap-1">
-                                        <span class="font-mono text-xs font-semibold text-emerald-700">
-                                            {{ substr($t->jam_mulai_disetujui, 0, 5) }} - {{ substr($t->jam_selesai_disetujui, 0, 5) }}
-                                        </span>
-                                        @if($isAdjusted)
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Jam disetujui disesuaikan dari jam pengajuan">
-                                                Disesuaikan
+                                        {{-- Jam Diajukan Badge Rapi --}}
+                                        <div class="text-xs font-mono text-slate-500">
+                                            <span class="text-slate-400 font-sans text-[11px] mr-1">Diajukan:</span>
+                                            <span class="font-bold text-slate-800">{{ $jamMulai }} - {{ $jamSelesai }}</span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Judul Uraian Kegiatan --}}
+                                    <div>
+                                        <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words">
+                                            {{ $t->uraian ?? 'Pengajuan Kegiatan Lembur' }}
+                                        </h3>
+                                    </div>
+
+                                    {{-- Highlighting Jam Disetujui (Subtle fill, NO harsh box border) --}}
+                                    @if($t->status === 'approved' && $jamMulaiAcc && $jamSelesaiAcc)
+                                        <div class="px-3.5 py-2 rounded-xl bg-emerald-50/80 text-xs flex items-center justify-between text-emerald-900">
+                                            <span class="font-medium">Jam Lembur Disetujui:</span>
+                                            <span class="font-mono font-bold text-emerald-800 bg-white/80 px-2.5 py-0.5 rounded shadow-2xs">
+                                                {{ $jamMulaiAcc }} - {{ $jamSelesaiAcc }}
                                             </span>
+                                        </div>
+                                        @if($isAdjusted)
+                                            <div class="text-[11px] text-amber-800 font-medium px-1">
+                                                ⚡ <strong>Disesuaikan:</strong> Jam diajukan ({{ $jamMulai }} - {{ $jamSelesai }}) disesuaikan dengan presensi fisik / operasional.
+                                            </div>
                                         @endif
+                                    @endif
+
+                                    {{-- Meta Info: Ketua Tim & Nama Tim (Single Clean Row) --}}
+                                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 pt-0.5">
+                                        <div class="text-slate-600">
+                                            <span class="text-slate-400">Ketua Tim:</span>
+                                            <span class="font-semibold text-slate-800 ml-1">{{ $t->nama_ketua ?? '-' }}</span>
+                                        </div>
+
+                                        <span class="text-[11px] font-medium text-slate-600 bg-slate-100/90 px-2.5 py-0.5 rounded-full">
+                                            {{ $t->nama_tim ?? 'Tim Kerja' }}
+                                        </span>
                                     </div>
-                                @else
-                                    <span class="text-gray-400">-</span>
-                                @endif
-                            @elseif($t->status === 'rejected')
-                                <span class="text-xs text-red-500 italic">Ditolak</span>
-                            @elseif($t->status === 'cancelled')
-                                <span class="text-xs text-gray-400 italic">Dibatalkan</span>
-                            @else
-                                <span class="text-xs text-gray-400 italic">Menunggu</span>
-                            @endif
-                        </td>
 
-                        <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[280px] whitespace-normal break-words">
-                                {{ $t->uraian ?? '-' }}
-                            </div>
-                        </td>
+                                    {{-- Catatan Persetujuan (Clean Quote Bar, NO box borders) --}}
+                                    @if(!empty($t->note) || !empty($t->note_kabag))
+                                        <div class="space-y-1.5 pt-1">
+                                            @if(!empty($t->note))
+                                                <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
+                                                    <span class="font-semibold text-amber-800">Catatan Ketua:</span>
+                                                    <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
+                                                </div>
+                                            @endif
+                                            @if(!empty($t->note_kabag))
+                                                <div class="border-l-2 border-blue-400 pl-3 py-0.5 text-xs text-slate-600 bg-blue-50/40 rounded-r-lg">
+                                                    <span class="font-semibold text-blue-800">Catatan Kabag:</span>
+                                                    <span class="italic text-slate-800 ml-1">"{{ $t->note_kabag }}"</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
 
-                        <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[140px] whitespace-normal break-words">
-                                {{ $t->nama_ketua ?? '-' }}
-                            </div>
-                        </td>
+                                    {{-- Baris 5: Footer Card (Dokumentasi & Aksi Edit) --}}
+                                    <div class="flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs">
+                                        <div>
+                                            @if($t->status === 'approved')
+                                                @if($t->file_dokumentasi)
+                                                    <a href="{{ $t->file_dokumentasi }}" target="_blank"
+                                                        class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                                                        <span>Lihat Dokumentasi ↗</span>
+                                                    </a>
+                                                @else
+                                                    <button type="button" onclick="openModalDok(this)" data-action="{{ route('pegawai.lembur.storeDoc', $t->id_transaksi) }}"
+                                                        class="inline-flex items-center gap-1 font-medium text-amber-600 hover:text-amber-800 transition-colors">
+                                                        <span>+ Unggah Dokumentasi</span>
+                                                    </button>
+                                                @endif
+                                            @endif
+                                        </div>
 
-                        <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[160px] whitespace-normal break-words">
-                                {{ $t->nama_tim ?? '-' }}
-                            </div>
-                        </td>
-
-                        <td class="px-3 py-3 text-center text-xs text-gray-900">
-                            @if($t->status === 'pending')
-                                <span class="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Menunggu Ketua</span>
-                            @elseif($t->status === 'menunggu_kabag')
-                                <span class="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">Menunggu Kabag</span>
-                            @elseif($t->status === 'approved')
-                                <span class="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">Disetujui</span>
-                            @elseif($t->status === 'rejected')
-                                <span class="whitespace-nowrap rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-600">Ditolak</span>
-                            @elseif($t->status === 'cancelled')
-                                <span class="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-300">Dibatalkan Admin</span>
-                            @else
-                                <span class="text-xs text-gray-400">-</span>
-                            @endif
-                        </td>
-
-                        <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[180px] space-y-1 text-left">
-                                @if(!empty($t->note))
-                                    <div>
-                                        <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
-                                        <div class="text-[11px] text-gray-700 italic break-words">{{ $t->note }}</div>
+                                        <div>
+                                            @php
+                                                $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && empty($t->approved_at));
+                                            @endphp
+                                            @if($canEdit)
+                                                <button type="button"
+                                                    onclick="openModalEdit(this)"
+                                                    data-action="{{ route('pegawai.lembur.update', $t->id_transaksi) }}"
+                                                    data-tanggal="{{ \Carbon\Carbon::parse($t->date)->translatedFormat('l, d F Y') }}"
+                                                    data-jam-mulai="{{ $t->jam_mulai ? substr($t->jam_mulai, 0, 5) : '' }}"
+                                                    data-jam-selesai="{{ $t->jam_selesai ? substr($t->jam_selesai, 0, 5) : '' }}"
+                                                    data-uraian="{{ $t->uraian ?? '' }}"
+                                                    data-approver="{{ $t->approver_employee_id ?? '' }}"
+                                                    data-kode-tim="{{ $t->tim_kode_tim ?? '' }}"
+                                                    data-ketua="{{ $t->nama_ketua ?? '-' }}"
+                                                    data-tim="{{ $t->nama_tim ?? '-' }}"
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-all shadow-2xs cursor-pointer"
+                                                    title="Ubah ketua tim, jam, atau uraian kegiatan">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                                                    </svg>
+                                                    <span>Ubah</span>
+                                                </button>
+                                            @endif
+                                        </div>
                                     </div>
-                                @endif
-                                @if(!empty($t->note_kabag))
-                                    <div>
-                                        <span class="text-[10px] font-bold uppercase text-blue-600">Kabag Umum:</span>
-                                        <div class="text-[11px] text-blue-900 italic break-words">{{ $t->note_kabag }}</div>
-                                    </div>
-                                @endif
-                                @if(empty($t->note) && empty($t->note_kabag))
-                                    <span class="text-gray-400">-</span>
-                                @endif
+                                </div>
                             </div>
-                        </td>
+                        </div>
+                    @endforeach
 
-                        <td class="px-3 py-3 text-center text-xs">
-                            @if($t->status === 'approved')
-                                @if($t->file_dokumentasi)
-                                    <div class="flex items-center justify-center gap-2">
-                                        <a href="{{ $t->file_dokumentasi }}" target="_blank"
-                                            class="inline-flex items-center gap-1 text-blue-500 underline hover:text-blue-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                            </svg>
-                                            Lihat
-                                        </a>
-
-                                        <form action="{{ route('pegawai.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
-                                            onsubmit="return confirm('Hapus dokumentasi ini?')">
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button type="submit" class="mt-1.5 text-red-400 hover:text-red-600">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                @else
-                                    <button type="button"
-                                        onclick="openModalDok(this)"
-                                        data-action="{{ route('pegawai.lembur.storeDoc', $t->id_transaksi) }}"
-                                        class="text-xs text-[#faa938] underline hover:text-[#fd9a10]">
-                                        + Tambah
-                                    </button>
-                                @endif
-                            @else
-                                <span class="text-gray-300">-</span>
-                            @endif
-                        </td>
-
-                        <td class="px-3 py-3 text-center text-xs whitespace-nowrap">
-                            @php
-                                $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && empty($t->approved_at));
-                            @endphp
-                            @if($canEdit)
-                                <button type="button"
-                                    onclick="openModalEdit(this)"
-                                    data-action="{{ route('pegawai.lembur.update', $t->id_transaksi) }}"
-                                    data-tanggal="{{ \Carbon\Carbon::parse($t->date)->translatedFormat('l, d F Y') }}"
-                                    data-jam-mulai="{{ $t->jam_mulai ? substr($t->jam_mulai, 0, 5) : '' }}"
-                                    data-jam-selesai="{{ $t->jam_selesai ? substr($t->jam_selesai, 0, 5) : '' }}"
-                                    data-uraian="{{ $t->uraian ?? '' }}"
-                                    data-approver="{{ $t->approver_employee_id ?? '' }}"
-                                    data-kode-tim="{{ $t->tim_kode_tim ?? '' }}"
-                                    data-ketua="{{ $t->nama_ketua ?? '-' }}"
-                                    data-tim="{{ $t->nama_tim ?? '-' }}"
-                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-all shadow-2xs cursor-pointer"
-                                    title="Ubah ketua tim, jam, atau uraian kegiatan">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
-                                    </svg>
-                                    <span>Ubah</span>
-                                </button>
-                            @else
-                                <span class="text-gray-300 font-medium select-none" title="Sudah diproses / terkunci">-</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="10" class="px-3 py-8 text-center text-sm text-gray-400">
-                            Belum ada pengajuan lembur.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                    {{-- Pesan Kosong Saat Filter Timeline Aktif --}}
+                    <div id="emptyFilterTimeline" class="hidden overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-10 text-center shadow-xs">
+                        <p class="text-xs text-gray-500 font-medium">
+                            Tidak ada data pengajuan lembur yang sesuai dengan filter pencarian.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     {{-- Pagination --}}
     @if($transaksi->hasPages())
         <div class="mt-6 flex justify-center">
-            <nav class="inline-flex items-center gap-2 rounded bg-white p-1">
+            <nav class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-1.5 shadow-2xs">
 
-                {{-- Previous --}}
                 @if($transaksi->onFirstPage())
-                    <span class="cursor-not-allowed rounded border p-1 text-gray-300">
-                        <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                    <span class="cursor-not-allowed rounded-lg border border-transparent p-1.5 text-gray-300">
+                        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
                         </svg>
                     </span>
                 @else
-                    <a class="rounded border bg-white p-1 text-black hover:border-[#faa938] hover:bg-[#faa938] hover:text-white"
+                    <a class="rounded-lg border border-transparent p-1.5 text-gray-700 hover:border-gray-200 hover:bg-gray-50 transition-colors"
                         href="{{ $transaksi->previousPageUrl() }}">
-                        <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
                         </svg>
                     </a>
                 @endif
 
-                <p class="whitespace-nowrap text-sm text-gray-500">
-                    Page {{ $transaksi->currentPage() }} of {{ $transaksi->lastPage() }}
+                <p class="whitespace-nowrap px-2 text-xs font-medium text-gray-600">
+                    Halaman {{ $transaksi->currentPage() }} dari {{ $transaksi->lastPage() }}
                 </p>
 
-                {{-- Next --}}
                 @if($transaksi->hasMorePages())
-                    <a class="rounded border bg-white p-1 text-black hover:border-[#faa938] hover:bg-[#faa938] hover:text-white"
+                    <a class="rounded-lg border border-transparent p-1.5 text-gray-700 hover:border-gray-200 hover:bg-gray-50 transition-colors"
                         href="{{ $transaksi->nextPageUrl() }}">
-                        <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
                         </svg>
                     </a>
                 @else
-                    <span class="cursor-not-allowed rounded border p-1 text-gray-300">
-                        <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                    <span class="cursor-not-allowed rounded-lg border border-transparent p-1.5 text-gray-300">
+                        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
                         </svg>
                     </span>
@@ -730,11 +997,65 @@
     };
 
     function filterTabel() {
-        document.querySelectorAll('#tabelLembur tr[data-tanggal]').forEach(row => {
+        let visibleCount = 0;
+        const rows = document.querySelectorAll('#tabelLembur tr[data-tanggal]');
+        rows.forEach(row => {
             const cocokTanggal = !selectedDate || row.dataset.tanggal === selectedDate;
             const cocokTim = !selectedTim || row.dataset.tim === selectedTim;
+            const match = cocokTanggal && cocokTim;
 
-            row.style.display = cocokTanggal && cocokTim ? '' : 'none';
+            row.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+
+        const timelineItems = document.querySelectorAll('#viewContainerTimeline .timeline-item[data-tanggal]');
+        let visibleTimelineCount = 0;
+        timelineItems.forEach(item => {
+            const cocokTanggal = !selectedDate || item.dataset.tanggal === selectedDate;
+            const cocokTim = !selectedTim || item.dataset.tim === selectedTim;
+            const isMatch = cocokTanggal && cocokTim;
+            item.style.display = isMatch ? '' : 'none';
+            if (isMatch) visibleTimelineCount++;
+        });
+
+        const emptyRow = document.getElementById('emptyFilterRow');
+        if (emptyRow) {
+            emptyRow.classList.toggle('hidden', rows.length === 0 || visibleCount > 0);
+        }
+
+        const emptyTimeline = document.getElementById('emptyFilterTimeline');
+        if (emptyTimeline) {
+            emptyTimeline.classList.toggle('hidden', timelineItems.length === 0 || visibleTimelineCount > 0);
+        }
+
+        updateTimelineStems();
+    }
+
+    function updateTimelineStems() {
+        const visibleItems = Array.from(document.querySelectorAll('#viewContainerTimeline .timeline-item[data-tanggal]'))
+            .filter(item => item.style.display !== 'none');
+
+        visibleItems.forEach((item, index) => {
+            const stem = item.querySelector('.timeline-stem');
+            if (!stem) return;
+            if (visibleItems.length <= 1) {
+                stem.style.display = 'none';
+            } else {
+                stem.style.display = 'block';
+                if (index === 0) {
+                    stem.style.top = '21px';
+                    stem.style.bottom = '0';
+                    stem.style.height = 'auto';
+                } else if (index === visibleItems.length - 1) {
+                    stem.style.top = '0';
+                    stem.style.bottom = 'auto';
+                    stem.style.height = '21px';
+                } else {
+                    stem.style.top = '0';
+                    stem.style.bottom = '0';
+                    stem.style.height = 'auto';
+                }
+            }
         });
     }
 
@@ -1413,6 +1734,7 @@
 
         setTimeout(resizeCanvas, 80);
     }
+    window.openModalAjukan = openModalAjukan;
 
     function closeModalAjukan() {
         modalAjukan?.classList.add('hidden');
@@ -1576,6 +1898,49 @@
 
         document.getElementById('signatureError').classList.add('hidden');
         document.getElementById('signatureData').value = signaturePad.toDataURL('image/png');
+    });
+
+    // =====================
+    // TOGGLE VIEW MODE (TABEL VS TIMELINE)
+    // =====================
+    window.switchViewMode = function(mode) {
+        const containerTable = document.getElementById('viewContainerTable');
+        const containerTimeline = document.getElementById('viewContainerTimeline');
+        const btnTable = document.getElementById('btnViewTable');
+        const btnTimeline = document.getElementById('btnViewTimeline');
+
+        if (mode === 'timeline') {
+            containerTable?.classList.add('hidden');
+            containerTimeline?.classList.remove('hidden');
+
+            btnTable?.classList.remove('bg-white', 'text-slate-800', 'shadow-2xs');
+            btnTable?.classList.add('text-slate-500');
+
+            btnTimeline?.classList.add('bg-white', 'text-slate-800', 'shadow-2xs');
+            btnTimeline?.classList.remove('text-slate-500');
+
+            updateTimelineStems();
+
+            localStorage.setItem('lemburViewMode', 'timeline');
+        } else {
+            containerTimeline?.classList.add('hidden');
+            containerTable?.classList.remove('hidden');
+
+            btnTimeline?.classList.remove('bg-white', 'text-slate-800', 'shadow-2xs');
+            btnTimeline?.classList.add('text-slate-500');
+
+            btnTable?.classList.add('bg-white', 'text-slate-800', 'shadow-2xs');
+            btnTable?.classList.remove('text-slate-500');
+
+            localStorage.setItem('lemburViewMode', 'table');
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedMode = localStorage.getItem('lemburViewMode');
+        if (savedMode === 'timeline') {
+            window.switchViewMode('timeline');
+        }
     });
 
 })();
