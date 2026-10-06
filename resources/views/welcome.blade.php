@@ -13,8 +13,8 @@
 <body class="bg-white text-slate-900 antialiased">
 
     {{-- Navbar --}}
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md">
-        <div class="mx-auto max-w-6xl px-6">
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
+        <div class="w-full px-6">
             <div class="flex h-16 items-center justify-between">
 
                 <a href="/" class="flex items-center gap-3 transition hover:opacity-80">
@@ -40,6 +40,9 @@
             </div>
         </div>
     </nav>
+
+
+
 
     {{-- Hero --}}
     <section id="hero" class="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-6 pt-24 text-center">
@@ -219,15 +222,15 @@
 
 </section>
 
-<footer class="px-8 py-5 flex items-center justify-between flex-wrap gap-3 border-t border-slate-100">
+<footer class="px-4 py-5 sm:px-8 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-2 sm:gap-3 border-t border-slate-100">
 
-    {{-- Tengah: Copyright --}}
-    <p class="text-center text-xs text-slate-500 font-medium">
+    {{-- Kiri/Tengah: Copyright --}}
+    <p class="text-center sm:text-left text-xs text-slate-500 font-medium leading-relaxed">
         &copy; {{ date('Y') }} Badan Pusat Statistik Provinsi Jawa Tengah. Hak cipta dilindungi.
     </p>
 
-    {{-- Kanan: Tim SID --}}
-    <div class="flex items-center gap-1.5">
+    {{-- Kanan/Tengah: Tim SID --}}
+    <div class="flex items-center justify-center sm:justify-end gap-1.5 shrink-0">
         <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
         <span class="text-xs text-slate-500 font-medium">Tim SID - BPS Provinsi Jawa Tengah</span>
     </div>

@@ -21,11 +21,11 @@
             {{-- TEXT (flex-1 ensures it takes available space and NEVER collides with image) --}}
             <div class="flex-1 min-w-0 text-left py-1 sm:py-2">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 mb-2 sm:mb-3 rounded-full text-[11px] sm:text-xs font-bold bg-white/35 text-slate-950 backdrop-blur-md ring-1 ring-white/40 shadow-xs">
-                    <span class="text-xs sm:text-sm">👋</span>
-                    <span>Selamat Datang</span>
+                    <span id="greetingIcon" class="text-xs sm:text-sm">👋</span>
+                    <span id="greetingText">Selamat Datang</span>
                 </span>
                 <h2 class="text-base sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-slate-950 tracking-tight leading-snug mb-1 sm:mb-1.5 break-words">
-                    {{ session('user')['nama'] }}
+                    Hai, {{ session('user')['nama'] }}! 👋
                 </h2>
                 <p class="text-[11px] sm:text-sm lg:text-[15px] font-medium leading-relaxed text-slate-900/85 line-clamp-2 sm:line-clamp-none max-w-xl">
                     Kelola pengajuan lembur dan pantau perkembangannya dengan lebih mudah.
@@ -406,20 +406,31 @@
 </section>
 
 <script>
-    function getGreeting(hour) {
-        if (hour >= 4 && hour < 11) return "Selamat Pagi";
-        if (hour >= 11 && hour < 15) return "Selamat Siang";
-        if (hour >= 15 && hour < 18) return "Selamat Sore";
-        return "Selamat Malam";
-    }
+    function updateGreeting() {
+        const hour = new Date().getHours();
+        let greeting = "Selamat Datang";
+        let icon = "👋";
 
-    const el = document.getElementById("greeting");
+        if (hour >= 4 && hour < 11) {
+            greeting = "Selamat Pagi";
+            icon = "🌅";
+        } else if (hour >= 11 && hour < 15) {
+            greeting = "Selamat Siang";
+            icon = "☀️";
+        } else if (hour >= 15 && hour < 18) {
+            greeting = "Selamat Sore";
+            icon = "🌇";
+        } else {
+            greeting = "Selamat Malam";
+            icon = "🌙";
+        }
 
-    if (el) {
-        el.textContent =
-            `${getGreeting(new Date().getHours())},
-            {{ session('user')['nama'] ?? 'User' }}`;
+        const iconEl = document.getElementById("greetingIcon");
+        const textEl = document.getElementById("greetingText") || document.getElementById("greeting");
+        if (iconEl) iconEl.textContent = icon;
+        if (textEl) textEl.textContent = greeting;
     }
+    updateGreeting();
 </script>
 
 @endsection

@@ -40,7 +40,7 @@
             </main>
 
             {{-- FOOTER --}}
-            <footer class="py-4 text-center text-xs text-slate-500">
+            <footer class="py-4 px-4 text-center text-xs text-slate-500">
                 &copy; {{ date('Y') }} BPS Provinsi Jawa Tengah - Tim SID
             </footer>
 
