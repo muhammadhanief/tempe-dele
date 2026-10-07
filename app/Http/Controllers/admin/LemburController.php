@@ -71,18 +71,18 @@ class LemburController extends Controller
             'md.file_path as file_dokumentasi',
             DB::raw('EXISTS(
                 SELECT 1 FROM t_presensi pr
-                WHERE pr.niplama = pg.nip_lama
+                WHERE (pr.niplama = pg.nip_lama OR pr.niplama = pg.nip)
                 AND DATE(pr.tanggal) = t.date
             ) as has_presensi'),
             DB::raw('(
                 SELECT DATE_FORMAT(pr.jam_selesai, "%H:%i") FROM t_presensi pr
-                WHERE pr.niplama = pg.nip_lama
+                WHERE (pr.niplama = pg.nip_lama OR pr.niplama = pg.nip)
                 AND DATE(pr.tanggal) = t.date
                 LIMIT 1
             ) as jam_selesai_presensi'),
             DB::raw('(
                 SELECT DATE_FORMAT(pr.jam_mulai, "%H:%i") FROM t_presensi pr
-                WHERE pr.niplama = pg.nip_lama
+                WHERE (pr.niplama = pg.nip_lama OR pr.niplama = pg.nip)
                 AND DATE(pr.tanggal) = t.date
                 LIMIT 1
             ) as jam_masuk_presensi')
