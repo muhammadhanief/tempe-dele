@@ -2911,3 +2911,111 @@ Berdasarkan arahan langsung pengguna (*"Ketua Tim: kalau misal sudah terlanjur m
 | 4 | `resources/views/admin/tim.blade.php` | Penambahan atribut `min` & `max` pada input tanggal non-aktif tim. |
 | 5 | `resources/views/layouts/app.blade.php` | Handler global pemangkasan tahun > 4 digit dan auto-enforce min/max. |
 
+---
+
+## 58. Investigasi Skema Basis Data & Sinkronisasi Tampilan Jam Disetujui Berbasis Import Presensi BOS Multi-Format NIP
+
+### A. Latar Belakang & Pertanyaan Pengguna
+Berdasarkan permintaan investigasi langsung dari pengguna:
+1. *"Cek jam yang disetujui ya, harusnya dia baru muncul jika presensi sudah diimport."*
+2. *"Cek lagi jam disetujui yang muncul di Kabag Umum itu diambil dari mana?"*
+3. *"Ini DB-nya gimana?"* (Penjelasan arsitektur skema basis data, aliran relasi antar-tabel, kolom, dan kapan kolom terisi).
+
+### B. Arsitektur Skema Basis Data (Database Structure & Data Flow)
+Sistem Lembur (**TEMPE DELE**) menggunakan basis data MySQL/MariaDB dengan struktur tabel utama sebagai berikut:
+
+#### 1. Tabel Utama: `t_transaksi` (Tabel Transaksi Pengajuan Lembur)
+Tabel ini merupakan inti seluruh siklus hidup (*lifecycle*) lembur pegawai:
+- `id_transaksi` (INT, Primary Key): Pengidentifikasi unik transaksi.
+- `submitted_by_NIP` (VARCHAR 30, Foreign Key ke `m_pegawai.nip`): NIP baru 18 digit pegawai yang mengajukan lembur.
+- `tim_kode_tim` (VARCHAR 50, Foreign Key ke `m_tim.kode_tim`): Tim kerja tempat kegiatan lembur dilaksanakan.
+- `approver_employee_id` (VARCHAR 30): NIP Ketua Tim penilai tahap 1.
+- `date` (DATE): Tanggal pelaksanaan lembur pegawai (misal: `2026-10-01`).
+- `jam_mulai` & `jam_selesai` (TIME): Jam lembur yang diajukan oleh pegawai (misal: `16:01:00` s.d. `20:01:00`).
+- `jam_mulai_disetujui` & `jam_selesai_disetujui` (TIME, NULLABLE): Jam lembur resmi yang disetujui setelah diverifikasi Ketua Tim, Kabag Umum, dan dikoreksi oleh data presensi riil.
+- `status` (VARCHAR 30):
+  - `pending`: Menunggu persetujuan Ketua Tim (atau menunggu Kabag Umum untuk Bagian Umum).
+  - `menunggu_kabag`: Telah disetujui Ketua Tim (Tahap 1), menunggu persetujuan Kabag Umum.
+  - `approved`: Telah disetujui final oleh Kabag Umum.
+  - `rejected`: Ditolak oleh Ketua Tim atau Kabag Umum.
+  - `cancelled`: Dibatalkan oleh Admin Operasional.
+- `note` (LONGTEXT): Catatan persetujuan/koreksi dari Ketua Tim.
+- `note_kabag` (TEXT): Catatan keputusan dari Kepala Bagian Umum.
+- `approved_at` (DATE/DATETIME): Waktu persetujuan Tahap 1 oleh Ketua Tim.
+- `approved_kabag_at` (DATETIME): Waktu persetujuan Tahap 2 oleh Kabag Umum.
+- `eligible` (TINYINT 1, NULLABLE): Indikator kelayakan pembayaran uang lembur berdasarkan aturan regulasi (durasi $\ge 2$ jam, status presensi WFO/WFOL, dan tidak terlambat datang pagi). Terisi otomatis saat koreksi presensi dijalankan.
+
+#### 2. Tabel Presensi: `t_presensi` (Tabel Presensi Fisik Mesin/Aplikasi BOS BPS)
+Tabel ini menampung log riil kehadiran pegawai hasil impor file spreadsheet BOS bulanan:
+- `id_presensi` (INT, Primary Key).
+- `niplama` (VARCHAR 30): Menyimpan NIP lama 9 digit atau NIP baru 18 digit dari berkas BOS.
+- `tanggal` (DATETIME): Tanggal presensi (misal: `2026-10-01 00:00:00`).
+- `jam_mulai` (DATETIME): Jam kedatangan pagi (fingerprint/tap datang).
+- `jam_selesai` (DATETIME): Jam kepulangan riil sore/malam (fingerprint/tap pulang).
+- `status` (VARCHAR 20): Status kehadiran (misal: `WFO`, `WFOL`, `Hadir`).
+
+#### 3. Tabel Master Pegawai: `m_pegawai`
+Menghubungkan identitas pegawai:
+- `nip` (VARCHAR 30): NIP baru 18 digit (digunakan dalam session login dan `submitted_by_NIP`).
+- `nip_lama` (VARCHAR 30): NIP lama 9 digit (banyak digunakan pada data presensi historis BOS).
+- `nama` (VARCHAR 150): Nama lengkap beserta gelar pegawai.
+
+---
+
+### C. Alur Pengisian & Asal Nilai Kolom `jam_disetujui`
+Nilai `jam_mulai_disetujui` dan `jam_selesai_disetujui` yang muncul di antarmuka berasal dari sumber berikut secara bertahap:
+
+1. **Pengajuan Awal oleh Pegawai:**
+   - Kolom `jam_mulai_disetujui` dan `jam_selesai_disetujui` masih bernilai `NULL`.
+2. **Persetujuan Tahap 1 oleh Ketua Tim (`PengajuanController::approve()`):**
+   - Ketua Tim membuka modal keputusan. Input jam default terisi jam pengajuan pegawai (`t_transaksi.jam_mulai` & `jam_selesai`).
+   - Saat Ketua Tim klik *Simpan Keputusan*, sistem meng-update `t_transaksi`:
+     `jam_mulai_disetujui` dan `jam_selesai_disetujui` terisi di database, dan status berubah menjadi `menunggu_kabag`.
+3. **Pengecualian Anggota Bagian Umum (Tanpa Ketua Tim Lain):**
+   - Transaksi langsung berstatus `pending`. Nilai kolom di database masih `NULL`.
+   - Di tampilan modal Kabag Umum, sistem secara otomatis mengambil nilai cadangan (*fallback*) dari jam pengajuan pegawai (`$p->jam_mulai` & `$p->jam_selesai`).
+4. **Koreksi Otomatis Presensi BOS (`KoreksiLembur` Trait & `PresensiController`):**
+   - Saat Admin mengimpor spreadsheet BOS bulanan atau saat berkas diakses, sistem memotong (*trimming*) `jam_selesai_disetujui` agar tidak melebihi jam kepulangan fisik presensi (`t_presensi.jam_selesai`) dan tidak melebihi batas durasi maksimal lembur (4 jam untuk hari kerja, 6 jam untuk akhir pekan/libur).
+5. **Persetujuan Final Tahap 2 oleh Kabag Umum (`KabagUmumPengajuanController::updateKeputusan()`):**
+   - Kabag Umum dapat menyetujui, menolak, atau mengoreksi jam disetujui. Nilai akhir tersimpan permanen di `t_transaksi`.
+
+---
+
+### D. Mengapa Jam Disetujui Wajib Hanya Muncul Jika Presensi Sudah Diimpor?
+1. **Aturan Bisnis Lembur:**
+   Persetujuan administratif awal oleh Ketua Tim atau Kabag Umum baru berupa persetujuan rencana/rencana kerja lembur. Jam lembur yang sah dan berhak diperhitungkan untuk pembayaran uang lembur **wajib** divalidasi dengan bukti kehadiran fisik presensi kepulangan dari mesin BOS.
+2. **Kondisi Data Riil Saat Ini:**
+   - Pada basis data lokal, tabel `t_presensi` baru terisi hingga **31 Agustus 2026** (8.223 baris).
+   - Data presensi untuk **September 2026** dan **Oktober 2026** belum di-import ke `t_presensi` (0 baris).
+   - Akibatnya, untuk seluruh pengajuan bulan Oktober 2026 (seperti transaksi ID 318, 319, 320, 321, 322), subquery `has_presensi` bernilai `0` (false).
+3. **Penyempurnaan Proteksi Frontend & Backend:**
+   - **Tampilan Blade (Ketua Tim, Kabag Umum, Admin):**
+     Kolom tabel Jam Disetujui dienkapsulasi dengan pengkondisian ketat:
+     `@if($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')`
+     Sehingga selama presensi belum di-import (`!$p->has_presensi`), kolom tabel dipastikan menampilkan tanda strip `-`.
+   - **Update Realtime JavaScript AJAX Tanpa Refresh:**
+     Diperbaiki logika DOM update pada saat tombol simpan diklik:
+     - `resources/views/ketua-tim/pengajuan.blade.php`: Selipkan pengecekan `currentHasPresensi`.
+     - `resources/views/kabag-umum/pengajuan.blade.php`: Selipkan pengecekan `currentHasPresensiKabag`.
+     - `resources/views/admin/pengajuan.blade.php`: Selipkan pengecekan `currentHasPresensi`.
+     Dengan perbaikan ini, tabel tidak akan pernah menampilkan jam disetujui secara prematur sebelum data presensi diimpor, baik sebelum maupun sesudah interaksi AJAX.
+   - **Multi-Format NIP Presensi Universal:**
+     Subquery SQL pada `KabagUmumPengajuanController`, `KetuaTim\PengajuanController`, `Admin\PengajuanController`, `Admin\LemburController`, `Pimpinan\PengajuanController`, `KoreksiLembur`, dan `Pegawai\LemburController` diperluas dari `pr.niplama = p.nip_lama` menjadi:
+     `WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip) AND DATE(pr.tanggal) = t.date`
+     Toleran 100% terhadap format NIP lama (9 digit) maupun NIP baru (18 digit) yang dihasilkan dari file ekspor BOS.
+
+### E. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 2 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 3 | `app/Http/Controllers/admin/PengajuanController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 4 | `app/Http/Controllers/admin/LemburController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 5 | `app/Http/Controllers/pimpinan/PengajuanController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 6 | `app/Http/Controllers/LemburController.php` | Pencocokan multi-format NIP pada `koreksiDariPresensi`. |
+| 7 | `app/Traits/KoreksiLembur.php` | Pencocokan multi-format NIP pada pemrosesan koreksi background. |
+| 8 | `resources/views/kabag-umum/pengajuan.blade.php` | Proteksi update DOM AJAX kolom jam disetujui dengan `currentHasPresensiKabag`. |
+| 9 | `resources/views/ketua-tim/pengajuan.blade.php` | Proteksi update DOM AJAX kolom jam disetujui dengan `currentHasPresensi`. |
+| 10 | `resources/views/admin/pengajuan.blade.php` | Sinkronisasi kondisi `$p->has_presensi` pada kolom tabel dan update DOM AJAX. |
+
+

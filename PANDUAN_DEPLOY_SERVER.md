@@ -237,6 +237,16 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 135. 📄 **`resources/views/admin/lembur.blade.php`** *(Penambahan atribut min/max tahun 4 digit pada modal ajukan lembur admin)*.
 136. 📄 **`resources/views/admin/tim.blade.php`** *(Penambahan atribut min/max tahun 4 digit pada tanggal non-aktif tim)*.
 137. 📄 **`resources/views/layouts/app.blade.php`** *(Listener JavaScript global pemangkasan tahun > 4 digit dan auto-enforce min/max input tanggal)*.
+138. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`** *(Penyempurnaan subquery presensi multi-format NIP 9 & 18 digit)*.
+139. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`** *(Penyempurnaan subquery presensi multi-format NIP 9 & 18 digit)*.
+140. 📄 **`app/Http/Controllers/admin/PengajuanController.php`** *(Penyempurnaan subquery presensi multi-format NIP 9 & 18 digit)*.
+141. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Penyempurnaan subquery presensi multi-format NIP 9 & 18 digit)*.
+142. 📄 **`app/Http/Controllers/pimpinan/PengajuanController.php`** *(Penyempurnaan subquery presensi multi-format NIP 9 & 18 digit)*.
+143. 📄 **`app/Http/Controllers/LemburController.php`** *(Pencocokan multi-format NIP pada koreksiDariPresensi)*.
+144. 📄 **`app/Traits/KoreksiLembur.php`** *(Pencocokan multi-format NIP pada pemrosesan koreksi background)*.
+145. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Proteksi update DOM AJAX kolom jam disetujui hanya tampil jika presensi sudah diimpor)*.
+146. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Proteksi update DOM AJAX kolom jam disetujui hanya tampil jika presensi sudah diimpor)*.
+147. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Proteksi kolom tabel & update DOM AJAX jam disetujui berpatokan pada has_presensi)*.
 
 ---
 
