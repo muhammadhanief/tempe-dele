@@ -118,24 +118,24 @@
         {{-- Filter Bulan --}}
         <select id="filterBulan" onchange="gantiFilter('bulan', this.value)"
             class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
-            <option value="">Semua Bulan</option>
+            <option value="" @selected(empty($bulan))>Semua Bulan</option>
             @php $tahunBulan = now()->format('Y'); \Carbon\Carbon::setLocale('id'); @endphp
             @for($m = 1; $m <= 12; $m++)
                 @php
                     $valBulan  = \Carbon\Carbon::create($tahunBulan, $m, 1)->format('Y-m');
                     $namaBulan = \Carbon\Carbon::create($tahunBulan, $m, 1)->translatedFormat('F');
                 @endphp
-                <option value="{{ $valBulan }}" @selected($bulan ?? $valBulan)>{{ ucfirst($namaBulan) }} {{ $tahunBulan }}</option>
+                <option value="{{ $valBulan }}" @selected(($bulan ?? '') === $valBulan)>{{ ucfirst($namaBulan) }} {{ $tahunBulan }}</option>
             @endfor
         </select>
 
         {{-- Jumlah per Halaman --}}
         <select id="perHalaman" onchange="gantiFilter('perPage', this.value)"
             class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
-            <option value="10"  @selected($perPage ?? 10) = 10)>10 / hal</option>
-            <option value="25"  @selected($perPage ?? 10) = 25)>25 / hal</option>
-            <option value="50"  @selected($perPage ?? 10) = 50)>50 / hal</option>
-            <option value="100" @selected($perPage ?? 10) = 100)>100 / hal</option>
+            <option value="10"  @selected(($perPage ?? 10) == 10)>10 / hal</option>
+            <option value="25"  @selected(($perPage ?? 10) == 25)>25 / hal</option>
+            <option value="50"  @selected(($perPage ?? 10) == 50)>50 / hal</option>
+            <option value="100" @selected(($perPage ?? 10) == 100)>100 / hal</option>
         </select>
 
         {{-- Filter Tim --}}

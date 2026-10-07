@@ -113,7 +113,7 @@
         {{-- Filter Bulan --}}
         <select id="filterBulan" onchange="gantiFilter('bulan', this.value)"
             class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
-            <option value="">Semua Bulan</option>
+            <option value="" @selected(empty($bulan))>Semua Bulan</option>
             @php $tahunBulan = now()->format('Y'); \Carbon\Carbon::setLocale('id'); @endphp
             @for($m = 1; $m <= 12; $m++)
                 @php
