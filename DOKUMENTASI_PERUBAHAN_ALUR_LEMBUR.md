@@ -3018,4 +3018,67 @@ Nilai `jam_mulai_disetujui` dan `jam_selesai_disetujui` yang muncul di antarmuka
 | 9 | `resources/views/ketua-tim/pengajuan.blade.php` | Proteksi update DOM AJAX kolom jam disetujui dengan `currentHasPresensi`. |
 | 10 | `resources/views/admin/pengajuan.blade.php` | Sinkronisasi kondisi `$p->has_presensi` pada kolom tabel dan update DOM AJAX. |
 
+---
+
+## 59. Audit Struktur Berkas Excel Presensi BOS (`Rekap Presensi 9 September.xlsx`) & Peningkatan Fleksibilitas Impor Presensi
+
+### A. Latar Belakang & Kebutuhan Pengguna
+Pengguna mengunggah dan menanyakan kepastian ekstraksi data pada berkas resmi:
+`"D:\TUGAS ITTP\BPS - MAGANG\bahan tempe dele\Rekap Presensi 9 September.xlsx"`
+dengan kekhawatiran apakah sistem berpotensi salah mengambil isian sel (jam masuk, jam pulang, NIP, atau status).
+
+### B. Temuan Audit Teknis Berkas Excel Mentah
+Telah dilakukan pembacaan langsung terhadap seluruh lembar kerja (`Presensi Satker`) menggunakan pustaka `PhpOffice\PhpSpreadsheet`:
+1. **Posisi Baris Header:**
+   - **Baris 0 s.d. 2:** Kop dokumen BPS Jawa Tengah dan tanggal cetak dokumen.
+   - **Baris 4 (Sel A5):** Teks `"Tahun : 2025"`.
+   - **Baris 5 (Sel A6):** Teks `"Bulan : September"`.
+   - **Baris 7 (Sel A8 s.d. AF8):** Header kolom: `NIP` (Kolom 0), `Nama` (Kolom 1), lalu deretan tanggal `01` hingga `30` (Kolom 2 s.d. Kolom 31). Kolom 32 kosong karena September hanya memiliki 30 hari.
+   - **Baris 8:** Indikator libur (`L`, `S`, `M`).
+   - **Baris 9 s.d. 138 (130 Baris Data):** Daftar kehadiran 130 pegawai BPS.
+2. **Karakteristik Sel Kehadiran:**
+   Dari 2.832 sel data aktif:
+   - **2.205 sel berisi 3 baris teks (`\n`):**
+     - Baris 1: Jam masuk/kedatangan pagi (contoh: `06:33:01` atau `07:12:47`).
+     - Baris 2: Jam pulang/kepulangan sore (contoh: `16:11:02`, `17:15:33`, atau tanda `-` jika tidak tap pulang).
+     - Baris 3: Status kerja (`WFO` sebanyak 1.870 sel, `WFOL` sebanyak 335 sel).
+     - Terbukti 100% jam kepulangan selalu lebih besar atau sama dengan jam kedatangan (0 anomali waktu terbalik).
+   - **627 sel berisi 1 baris teks:**
+     - Berisi kode izin/dinas/cuti kedinasan resmi BPS: `PD` (Perjalanan Dinas - 263 sel), `TB` (Tugas Belajar - 120 sel), `TK` (Tanpa Keterangan - 105 sel), `CT` (Cuti Tahunan - 78 sel), `CM1` (Cuti Melahirkan - 34 sel), `TL` (Tugas Luar - 14 sel), `CS` (Cuti Sakit), dll.
+   - **Sel Hari Libur / Akhir Pekan:**
+     - Berisi newline kosong (`\n\n\n`), berhasil dilewati (*skipped*) tanpa error oleh fungsi pembersih `trim()`.
+3. **Pencocokan NIP Pegawai:**
+   - Seluruh 130 NIP pada Kolom 0 adalah format NIP Lama 9 digit (contoh: `340012313` an. Saniman, SH).
+   - Pengujian verifikasi silang terhadap tabel `m_pegawai` berhasil mencocokkan **130 dari 130 pegawai (100% match)** tanpa ada data pegawai yang tercecer (*unmatched = 0*).
+
+---
+
+### C. Analisis Titik Kritis & Penyempurnaan Sistem Impor
+1. **Titik Kritis Tahun Dokumen (2025 vs 2026):**
+   - Berkas mentah dari mentor memuat sel A5 `"Tahun : 2025"`.
+   - Sementara itu, seluruh data lembur aktif di aplikasi berada pada tahun berjalan **2026**.
+   - Jika diunggah secara mentah tanpa override, data akan tersimpan ke `t_presensi` dengan tanggal `2025-09-xx` sehingga tidak akan mencocokkan pengajuan lembur September 2026.
+   - **Solusi yang Diterapkan:**
+     - Pada modal unggah presensi Admin ([`resources/views/admin/presensi.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/presensi.blade.php)), ditambahkan dropdown **Target Tahun (Opsional)** dengan opsi:
+       * `Otomatis (Sesuai tertulis di dalam file)`
+       * `Tahun 2026 (Sesuai Periode Lembur Aktif)`
+       * `Tahun 2025`
+     - Pada [`PresensiUploadController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/admin/PresensiUploadController.php), controller memeriksa parameter `tahun`. Jika dikirimkan, target tahun diprioritaskan ke nilai yang dipilih pengguna. Jika kosong, sistem secara aman mengekstrak angka 4 digit dari sel A5 menggunakan Regex `\b(20\d{2})\b`.
+2. **Proteksi Batas Hari Maksimal per Bulan (`$daysInMonth`):**
+   - Menambahkan kalkulasi `$daysInMonth = Carbon::create($tahun, $bulan, 1)->daysInMonth`.
+   - Iterasi kolom tanggal otomatis berhenti (`break`) jika nomor tanggal melebihi jumlah hari kalender bulan tersebut, mencegah potensi error pembuatan tanggal fiktif (seperti `2025-09-31`).
+3. **Normalisasi Karakter Baris Baru CRLF Windows:**
+   - Ditambahkan `str_replace(["\r\n", "\r"], "\n", $cell)` sebelum memecah baris sel dengan `explode()`, menjamin jam dan status bersih dari karakter carriage return tersembunyi.
+4. **Pemberitahuan Respons Unggah yang Jelas:**
+   - Respons JSON upload kini menampilkan nama bulan dan tahun lengkap yang tersimpan (contoh: `"Upload berhasil! 2832 data presensi periode September 2026 disimpan."`).
+
+---
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/admin/PresensiUploadController.php` | Ekstraksi regex tahun/bulan kebal spasi, dukungan parameter tahun, normalisasi CRLF, dan proteksi `$daysInMonth`. |
+| 2 | `resources/views/admin/presensi.blade.php` | Penambahan dropdown pilihan target tahun pada modal unggah dan pengiriman payload `tahun` ke endpoint upload. |
+
+
 

@@ -247,6 +247,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 145. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Proteksi update DOM AJAX kolom jam disetujui hanya tampil jika presensi sudah diimpor)*.
 146. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Proteksi update DOM AJAX kolom jam disetujui hanya tampil jika presensi sudah diimpor)*.
 147. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Proteksi kolom tabel & update DOM AJAX jam disetujui berpatokan pada has_presensi)*.
+148. 📄 **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Ekstraksi regex tahun/bulan kebal spasi, dukungan override tahun, normalisasi CRLF, dan proteksi `$daysInMonth`)*.
+149. 📄 **`resources/views/admin/presensi.blade.php`** *(Pilihan target tahun pada modal unggah presensi dan pengiriman payload tahun)*.
 
 ---
 
