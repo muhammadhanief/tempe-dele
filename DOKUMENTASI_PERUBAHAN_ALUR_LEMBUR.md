@@ -2879,3 +2879,35 @@ Berdasarkan arahan langsung pengguna (*"Ketua Tim: kalau misal sudah terlanjur m
 | :---: | :--- | :--- |
 | 1 | `resources/views/lembur.blade.php` | Perbaikan logika perbandingan `@selected` pada dropdown bulan dan perPage. |
 | 2 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan `@selected(empty($bulan))` pada opsi Semua Bulan. |
+
+---
+
+## 57. Pembatasan Input Tanggal Maksimal 4 Digit Tahun (`yyyy`) & Proteksi Global Anti-Typo 5 Digit
+
+### A. Gejala & Analisis Masalah
+- **Gejala Masalah**:
+  Saat pengguna mengetikkan tanggal lembur secara manual di kolom input tanggal (`<input type="date">`), segmen tahun dapat menerima hingga 5-6 digit angka (contoh: `02/10/yyyyy` atau `20260`), sehingga memicu typo dan kegagalan validasi formulir.
+- **Akar Masalah (*Root Cause*)**:
+  Pada spesifikasi HTML5 peramban berbasis Chromium (Google Chrome & Microsoft Edge), elemen `<input type="date">` yang tidak memiliki atribut `max` secara default menggunakan batas tahun maksimum `kMaxYear = 275760` (6 digit). Hal ini membuat masker input peramban mengizinkan pengetikan hingga 5 atau 6 digit tahun.
+
+### B. Solusi & Perbaikan yang Diterapkan
+1. **Penetapan Atribut `min` dan `max` 4 Digit pada Elemen HTML**:
+   Menyematkan `min="1970-01-01" max="2099-12-31"` pada seluruh kolom input tanggal di formulir pengajuan dan administrasi tim:
+   - `resources/views/lembur.blade.php`
+   - `resources/views/ketua-tim/lembur.blade.php`
+   - `resources/views/admin/lembur.blade.php`
+   - `resources/views/admin/tim.blade.php`
+   Dengan adanya `max="2099-12-31"`, Chromium secara otomatis mengunci lebar masker segmen tahun menjadi tepat 4 digit (`yyyy`) dan menolak pengetikan digit ke-5.
+2. **Proteksi Global JavaScript Tingkat Dokumen (`layouts/app.blade.php`)**:
+   - Menambahkan event listener `input` global (capture mode) yang mendeteksi bila ada input tanggal dengan tahun > 4 digit (misal akibat *copy-paste*), untuk otomatis memotong tahun menjadi 4 digit pertama (`slice(0, 4)`).
+   - Menambahkan listener `DOMContentLoaded` yang otomatis menginjeksi atribut `min="1970-01-01"` dan `max="2099-12-31"` ke setiap elemen `input[type="date"]` di seluruh halaman aplikasi.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penambahan atribut `min` & `max` pada modal ajukan lembur pegawai. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan atribut `min` & `max` pada modal ajukan lembur ketua tim. |
+| 3 | `resources/views/admin/lembur.blade.php` | Penambahan atribut `min` & `max` pada modal ajukan lembur admin. |
+| 4 | `resources/views/admin/tim.blade.php` | Penambahan atribut `min` & `max` pada input tanggal non-aktif tim. |
+| 5 | `resources/views/layouts/app.blade.php` | Handler global pemangkasan tahun > 4 digit dan auto-enforce min/max. |
+

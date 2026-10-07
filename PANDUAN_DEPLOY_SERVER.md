@@ -232,8 +232,11 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 130. 📄 **`app/Exports/SpklExport.php`** *(Penambahan auto row height `setRowHeight(-1)` pada seluruh baris data SPKL Excel agar uraian kegiatan panjang dinamis dan tidak terpotong)*.
 131. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Penyesuaian wrapping teks dan line-height uraian pada SPKL PDF)*.
 132. 📄 **`app/Http/Controllers/admin/DaftarHadirController.php`** *(Penyempurnaan subquery pencocokan NIP lama dan NIP baru untuk memastikan jam kepulangan daftar hadir murni presensi riil)*.
-133. 📄 **`resources/views/lembur.blade.php`** *(Perbaikan logika direktif Blade `@selected` pada dropdown filter bulan dan perPage)*.
-134. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penyelarasan `@selected(empty($bulan))` pada opsi Semua Bulan)*.
+133. 📄 **`resources/views/lembur.blade.php`** *(Perbaikan logika direktif Blade `@selected` pada dropdown filter bulan dan perPage, serta penambahan atribut min/max tahun 4 digit pada input tanggal)*.
+134. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penyelarasan `@selected(empty($bulan))` pada opsi Semua Bulan, serta penambahan atribut min/max tahun 4 digit pada input tanggal)*.
+135. 📄 **`resources/views/admin/lembur.blade.php`** *(Penambahan atribut min/max tahun 4 digit pada modal ajukan lembur admin)*.
+136. 📄 **`resources/views/admin/tim.blade.php`** *(Penambahan atribut min/max tahun 4 digit pada tanggal non-aktif tim)*.
+137. 📄 **`resources/views/layouts/app.blade.php`** *(Listener JavaScript global pemangkasan tahun > 4 digit dan auto-enforce min/max input tanggal)*.
 
 ---
 
@@ -954,3 +957,9 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Kotak dropdown periode bulan secara akurat menampilkan bulan yang dipilih (bukan selalu tertampil Desember).
   - Verifikasi: Kotak dropdown per halaman menampilkan 10 / hal secara default (bukan selalu 100 / hal).
   - Saat membuka `/lembur` tanpa parameter URL, dropdown periode bulan menampilkan "Semua Bulan".
+- [ ] **Uji Pembatasan Tahun Input Tanggal Maksimal 4 Digit (Anti-Typo 5 Digit)**:
+  - Buka modal "Ajukan Lembur" di menu Pegawai (`/lembur`), Ketua Tim (`/ketua-tim/lembur`), atau Admin (`/admin/lembur`).
+  - Coba ketikkan tanggal lembur secara manual pada kolom input tanggal (`<input type="date">`).
+  - Verifikasi: Kolom tahun menampilkan masker format 4 digit (`yyyy`) dan tidak dapat menerima pengetikan digit ke-5 (misal mengetik 2026 tidak dapat menjadi 20260).
+  - Verifikasi: Jika dilakukan copy-paste tanggal dengan tahun 5 digit, skrip secara otomatis memangkas tahun menjadi 4 digit pertama.
+
