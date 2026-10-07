@@ -3261,5 +3261,70 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 6 | `PENGUJIAN_BLACKBOX.md` | Penambahan kasus uji `TC-PEG-11` pada Modul 2 Pengajuan Lembur Pegawai. |
 | 7 | `public/build/*` | Kompilasi aset frontend Vite terbaru. |
 
+---
+
+## 65. Penyelesaian 3 Skenario Kritis: Proteksi Peladen Edit Lembur, Lembur Lintas Hari (*Cross-Midnight*), dan Verifikasi Piksel Tanda Tangan Digital
+
+### A. Latar Belakang & Identifikasi Kerentanan
+1. **Kerentanan Pengubahan Jam Setelah Persetujuan Tahap 1 (*Bypass Edit Lockout*):**
+   - Pada `app/Http/Controllers/LemburController.php` fungsi `update()`, pengkondisian sebelumnya mengizinkan pengubahan jika `$transaksi->status === 'menunggu_kabag' && empty($transaksi->approved_at)`.
+   - Mengingat kolom `approved_at` baru diisi saat persetujuan akhir Kabag Umum, seorang pegawai dapat memanipulasi jam lembur melalui permintaan HTTP `POST/PUT /pegawai/lembur/{id}` langsung via Console/Postman meskipun persetujuan telah diberikan oleh Ketua Tim.
+2. **Kekakuan Jam Lembur Lewat Tengah Malam (*Cross-Midnight Overtime 21:00 - 02:00*):**
+   - Pada lembur dinas mendesak (seperti rilis sistem, rekonsiliasi SP2D, atau penugasan akhir pekan), jam kerja dapat berlangsung dari malam hari pukul `21:00` hingga dini hari berikutnya pukul `02:00` (durasi 5 jam).
+   - Meskipun controller backend telah mendukung kalkulasi lintas hari (`addDay()`), antarmuka JavaScript pada formulir modal secara kaku memblokir input dengan `alert('Jam selesai harus setelah jam mulai')` dan atribut `min="21:00"`.
+3. **Penyelundupan Kanvas Tanda Tangan Digital Kosong / Polos (*Blank Signature Canvas*):**
+   - Pegawai yang terburu-buru dapat mengirim formulir tanpa menggoreskan tanda tangan pada kanvas digital.
+   - Kanvas kosong yang di-convert ke base64 tetap menghasilkan *data URL* gambar PNG berukuran kecil yang lolos validasi `'signature' => 'required|string'`. Akibatnya, berkas gambar kosong tersimpan di direktori penyimpanan publik.
+   - Pada sisi tampilan, pembukaan keyboard virtual atau perubahan ukuran layar (*resize/rotation*) sebelumnya memanggil `signaturePad.clear()` yang menghapus tanda tangan pegawai tanpa disadari.
+
+### B. Solusi yang Diterapkan
+1. **Penguncian Total Sisi Peladen untuk Pengubahan Transaksi (*Strict Backend Lockout*):**
+   - Pada `LemburController::update()`, pengubahan data secara mutlak dibatasi **hanya** untuk status **`pending`**:
+     ```php
+     if ($transaksi->status !== 'pending') {
+         $statusLabel = match($transaksi->status) {
+             'menunggu_kabag' => 'Menunggu Kabag Umum (sudah disetujui Ketua Tim)',
+             'approved'       => 'Sudah Disetujui Final',
+             'rejected'       => 'Ditolak',
+             'cancelled'      => 'Dibatalkan',
+             default          => $transaksi->status,
+         };
+         return back()->with('error', "Pengajuan lembur tidak dapat diubah karena sudah diproses atau disetujui (Status: {$statusLabel}).");
+     }
+     ```
+   - Setiap upaya penembakan request langsung di luar status `pending` ditolak seketika (HTTP 302 redirect) tanpa mengubah data basis data.
+
+2. **Dukungan Penuh Lembur Lintas Hari (*Cross-Midnight Overtime*):**
+   - Menghapus pembatasan atribut `min` pada kolom `#jam_selesai`.
+   - Menghapus `alert` pemblokiran jika jam selesai < jam mulai, menggantinya dengan logika cerdas:
+     - Jika `jam_selesai === jam_mulai`: Muncul peringatan bahwa jam tidak boleh sama persis.
+     - Jika `jam_selesai < jam_mulai`: Dihitung sebagai lembur lintas tengah malam (`totalMenit += 24 * 60`).
+     - Tampilan estimasi durasi menyertakan lencana: `🌙 Lembur lintas tengah malam hingga dini hari`.
+     - Validasi batas wajar harian: durasi lembur tidak boleh melebihi 12 jam (mencegah typo jam terbalik ekstrim seperti 17:00 ke 16:59).
+   - Diterapkan pada `lembur.blade.php`, `ketua-tim/lembur.blade.php`, dan `admin/lembur.blade.php`.
+
+3. **Verifikasi Piksel Goresan Tanda Tangan (*Client & Server-Side Verification*):**
+   - **Sisi Klien (Front-end UX & State Preservation):**
+     - Pada `resizeCanvas()`, data goresan disimpan terlebih dahulu (`toData()`) sebelum mengubah dimensi kanvas, lalu dipulihkan kembali (`fromData()`) agar rotasi layar atau kemunculan keyboard tidak menghapus tanda tangan.
+     - Listener `beginStroke` otomatis membersihkan kelas error pada kotak kanvas segera setelah pegawai mulai mencoret.
+     - Saat formulir dikirim dengan kanvas kosong: aksi dicegah (`e.preventDefault()`), kotak kanvas diberi bingkai merah tebal ber-ring (`border-rose-500 ring-2 ring-rose-200`), pesan `#signatureError` ditampilkan, tampilan digulir halus (*smooth scroll*) ke kanvas, dan peramban menampilkan dialog peringatan.
+   - **Sisi Peladen (Backend Pixel Inspection via GD):**
+     - Menambahkan method `isBlankSignature($base64Data)` pada `LemburController.php` dan `admin/LemburController.php`.
+     - Memeriksa integritas citra PNG menggunakan pustaka GD PHP dengan sampling per 2 piksel untuk mendeteksi keberadaan minimal 35 piksel goresan non-transparan dan non-background.
+     - Jika payload terdeteksi kosong/kanvas polos, peladen mengembalikan validasi error:
+       `'Tanda tangan digital tidak boleh kosong atau kanvas polos. Silakan goreskan tanda tangan Anda.'`
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Penguncian backend update status pending-only, validasi batas wajar durasi <= 12 jam, dan method `isBlankSignature` inspeksi piksel tanda tangan. |
+| 2 | `app/Http/Controllers/admin/LemburController.php` | Validasi batas wajar durasi <= 12 jam dan method `isBlankSignature` pada fungsi store Admin. |
+| 3 | `resources/views/lembur.blade.php` | Dukungan lintas hari, badge 🌙 dini hari, stroke retention resize, dan visual highlight error kanvas tanda tangan. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Dukungan lintas hari dan visual highlight error kanvas tanda tangan pada modal Ketua Tim. |
+| 5 | `resources/views/admin/lembur.blade.php` | Dukungan lintas hari dan visual highlight error kanvas tanda tangan pada modal Admin. |
+| 6 | `PENGUJIAN_BLACKBOX.md` | Penambahan kasus uji `TC-PEG-12`, `TC-PEG-13`, dan `TC-PEG-14` (Total 70 Kasus Uji, 100% PASS). |
+| 7 | `public/build/*` | Hasil kompilasi bundel aset Vite terbaru. |
+
+
 
 

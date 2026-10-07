@@ -265,6 +265,11 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 163. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Pemeriksaan real-time tanggal dobel sisi klien, peringatan `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, dan submit guard)*.
 164. 📄 **`resources/views/admin/lembur.blade.php`** *(Pemeriksaan real-time tanggal dobel sisi klien, peringatan `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, dan submit guard)*.
 165. 📁 **`public/build/`** *(Bundel produksi Vite terbaru agar perubahan CSS dan JS langsung aktif di produksi)*.
+166. 📄 **`app/Http/Controllers/LemburController.php`** *(Proteksi peladen ketat update pending-only, batas durasi <= 12 jam, dan inspeksi piksel goresan tanda tangan `isBlankSignature`)*.
+167. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Batas durasi <= 12 jam dan inspeksi piksel tanda tangan `isBlankSignature` pada pengajuan Admin)*.
+168. 📄 **`resources/views/lembur.blade.php`** *(Dukungan lembur lintas tengah malam, indikator 🌙, stroke retention saat kanvas di-resize, dan visual error highlight kanvas)*.
+169. 📄 **`resources/views/ketua-tim/lembur.blade.php`** & **`resources/views/admin/lembur.blade.php`** *(Dukungan lembur lintas tengah malam dan penanganan kanvas tanda tangan)*.
+170. 📄 **`PENGUJIAN_BLACKBOX.md`** *(Penambahan kasus uji TC-PEG-12, TC-PEG-13, dan TC-PEG-14, total 70 kasus uji 100% PASS)*.
 
 ---
 
@@ -1031,5 +1036,32 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Coba kirim request POST store dengan tanggal yang sudah memiliki transaksi aktif:
     - Verifikasi: Controller menolak request dan me-redirect dengan error session pada field `tanggal`: *"Anda sudah memiliki pengajuan lembur pada tanggal ini (Status: ...). Satu pegawai hanya dapat mengajukan 1 kali lembur per hari sesuai ketentuan BPS."*.
     - Verifikasi Database: Tidak ada rekaman baris duplikat yang tersimpan di tabel `t_transaksi`.
+
+### AY. Uji 3 Skenario Kritis: Proteksi Backend Edit Pengajuan, Lembur Lintas Tengah Malam, & Anti-Tanda Tangan Kosong
+- [ ] **Uji Proteksi Backend Edit Pengajuan (*Anti-Bypass Non-Pending Edit*)**:
+  - Siapkan transaksi yang berstatus `menunggu_kabag` (sudah disetujui Ketua Tim) atau `approved`.
+  - Pada antarmuka pengguna: Verifikasi tombol Ubah disembunyikan / strip `-`.
+  - Coba tembak langsung request `POST /pegawai/lembur/{id}` via console peramban / Postman dengan parameter jam baru.
+  - Verifikasi: Controller menolak aksi dengan kode 302 dan me-redirect dengan session error: *"Pengajuan lembur tidak dapat diubah karena sudah diproses atau disetujui..."*.
+  - Verifikasi Database: Baris data di `t_transaksi` **TIDAK BERUBAH** sama sekali.
+- [ ] **Uji Lembur Lintas Tengah Malam (*Cross-Midnight Overtime 21:00 s.d. 02:00*)**:
+  - Buka modal "Ajukan Lembur" di menu Pegawai (`/lembur`).
+  - Pilih Jam Mulai `21:00` dan Jam Selesai `02:00`:
+    - Verifikasi: Antarmuka **TIDAK** memunculkan alert *"Jam selesai harus setelah jam mulai"*.
+    - Verifikasi: Estimasi durasi menampilkan `5 jam (dihitung 5 jam) — 🌙 Lembur lintas tengah malam hingga dini hari`.
+    - Verifikasi: Tombol **"Kirim"** aktif normal (karena 5 jam >= 2 jam minimal).
+  - Simpan pengajuan lembur:
+    - Verifikasi: Pengajuan berhasil terkirim, `jam_mulai` tersimpan `21:00:00` dan `jam_selesai` tersimpan `02:00:00`.
+- [ ] **Uji Pencegahan Kanvas Tanda Tangan Digital Kosong / Polos**:
+  - Buka modal "Ajukan Lembur", isi tim, tanggal, dan jam secara valid, namun biarkan kotak tanda tangan digital kosong.
+  - Klik tombol "Kirim":
+    - Verifikasi: Pengiriman dibatalkan secara instan.
+    - Verifikasi: Kotak tanda tangan digital seketika berwarna merah tebal dengan highlight ring (`border-rose-500 ring-2 ring-rose-200`).
+    - Verifikasi: Pesan merah muncul: `⚠️ Tanda tangan digital wajib digoreskan sebelum mengirim pengajuan.`
+    - Verifikasi: Halaman menggulir otomatis (*smooth scroll*) ke kotak tanda tangan dan muncul alert peramban.
+  - Coba kirim payload base64 gambar transparan/putih polos via request langsung ke endpoint `/lembur`:
+    - Verifikasi: Backend via fungsi `isBlankSignature()` memeriksa piksel gambar citra nyata (GD) dan me-redirect kembali dengan error validasi: *"Tanda tangan digital tidak boleh kosong atau kanvas polos. Silakan goreskan tanda tangan Anda."*.
+    - Verifikasi Database: Tidak ada baris data baru yang tersimpan di `t_transaksi`.
+
 
 
