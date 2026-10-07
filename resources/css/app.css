@@ -118,19 +118,24 @@
     background-color: #e28e14;
 }
 
-/* Drag to scroll enhancement */
+/* Drag to scroll enhancement & Text Selection Support */
 .drag-scrollable {
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
+    cursor: default;
+    user-select: text;
+    -webkit-user-select: text;
 }
 
-.drag-scrollable.active-dragging {
-    cursor: grabbing !important;
-}
-
-.drag-scrollable table {
-    pointer-events: auto;
+.drag-scrollable table,
+.drag-scrollable th,
+.drag-scrollable td,
+.overflow-x-auto table,
+.overflow-x-auto th,
+.overflow-x-auto td,
+.table-responsive table,
+.table-responsive th,
+.table-responsive td {
+    user-select: text !important;
+    -webkit-user-select: text !important;
 }
 
 /* =========================================================================

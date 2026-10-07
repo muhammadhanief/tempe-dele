@@ -250,6 +250,9 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 148. 📄 **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Ekstraksi regex tahun/bulan kebal spasi, dukungan override tahun, normalisasi CRLF, dan proteksi `$daysInMonth`)*.
 149. 📄 **`resources/views/admin/presensi.blade.php`** *(Pilihan target tahun pada modal unggah presensi dan pengiriman payload tahun)*.
 150. 📄 **`PENGUJIAN_BLACKBOX.md`** *(Dokumen pengujian black box komprehensif 66 kasus uji untuk seluruh modul sistem lembur)*.
+151. 📄 **`resources/css/app.css`** *(Penetapan user-select: text untuk tabel dan pemulihan seleksi teks pengguna)*.
+152. 📄 **`resources/js/app.js`** *(Penghapusan pembajakan mousedown/mousemove drag-scroll untuk pemulihan seleksi teks native)*.
+153. 📁 **`public/build/`** *(Bundel hasil build aset Vite terbaru agar perubahan CSS dan JS langsung aktif di produksi)*.
 
 ---
 

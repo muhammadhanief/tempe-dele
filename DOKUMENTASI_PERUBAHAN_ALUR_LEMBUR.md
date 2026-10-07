@@ -3102,11 +3102,30 @@ Pengujian mencakup **66 kasus uji (*test cases*)** yang terdistribusi melintasi 
 
 *Hasil Akhir:* **66 / 66 PASS (Tingkat Keberhasilan 100%)**.
 
+---
+
+## 61. Pemulihan Seleksi Teks (*Text Selection*) Seluruh Tabel Data dan Klarifikasi Kasus Uji Autentikasi API SSO
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Kendala Seleksi Teks Tabel:** Pengguna mengeluhkan teks di dalam tabel tidak dapat disorot/diseleksi (*selection/highlight*) menggunakan kursor mouse untuk menyalin NIP, nama pegawai, jam, maupun uraian tugas.
+2. **Penyebab Teknis:**
+   - Berkas `resources/css/app.css` menerapkan `user-select: none; -webkit-user-select: none;` pada kelas pembungkus `.drag-scrollable`.
+   - Berkas `resources/js/app.js` memasang pendengar *event* `mousedown` dan `mousemove` pada kontainer tabel yang memanggil `e.preventDefault()` ketika kursor digerakkan, sehingga peramban (*browser*) secara paksa membatalkan aksi penyorotan teks native.
+3. **Klarifikasi Pengujian TC-AUTH-02:** Saat pengujian formulir login dilakukan di lingkungan lokal di luar jaringan intranet/VPN kantor BPS, peramban menampilkan pesan *"Tidak dapat terhubung ke server."* karena endpoint API Connect BPS (`https://jateng.web.bps.go.id/apiconnect/login`) tidak terjangkau dari internet publik. Sistem Laravel secara tangguh menangkap `ConnectionException` tanpa menimbulkan *crash* error 500.
+
+### B. Solusi yang Diterapkan
+1. **Pemulihan Seleksi Teks Komprehensif:**
+   - Menghapus aturan `user-select: none;` pada kelas `.drag-scrollable` di `resources/css/app.css`.
+   - Menambahkan deklarasi eksplisit `user-select: text !important; -webkit-user-select: text !important;` pada seluruh elemen `table`, `th`, dan `td`.
+   - Menghapus pembajakan *event* `mousedown`/`mousemove` pada pembungkus tabel di `resources/js/app.js`, sehingga pengguna desktop dapat bebas menyeleksi dan menyalin teks dengan klik-tarik maupun *double-click*, sementara fungsionalitas navigasi scrollbar visual dan *touch swipe* mobile tetap berjalan optimal.
+   - Melakukan kompilasi aset produksi via `npm run build` (Vite).
+2. **Pembaruan Dokumen Pengujian Black Box:**
+   - Memperbarui tabel kasus uji `TC-AUTH-02` pada `PENGUJIAN_BLACKBOX.md` untuk mencantumkan hasil aktual penanganan `ConnectionException` (*"Tidak dapat terhubung ke server."*) saat diuji di luar jaringan BPS.
+
 ### C. Berkas yang Diperbarui
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
-| 1 | `PENGUJIAN_BLACKBOX.md` | Dokumen pengujian black box lengkap (66 test cases, metodologi, dan kesimpulan). |
-
-
-
-
+| 1 | `resources/css/app.css` | Menghapus `user-select: none` dan menetapkan `user-select: text !important` untuk semua tabel, th, dan td. |
+| 2 | `resources/js/app.js` | Menghapus pembajakan event mouse drag mousedown/mousemove agar seleksi teks native kembali aktif. |
+| 3 | `PENGUJIAN_BLACKBOX.md` | Memperbarui rincian kasus uji `TC-AUTH-02` mencakup skenario terhubung API maupun penanganan ConnectionException. |
+| 4 | `public/build/assets/*` | Hasil kompilasi bundel aset CSS dan JavaScript Vite terbaru. |

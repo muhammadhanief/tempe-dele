@@ -188,39 +188,8 @@ function initTableScrollbars() {
       });
     }
 
-    // 5. Desktop drag-to-scroll support
-    let isDown = false;
-    let startX = 0;
-    let scrollLeft = 0;
-
+    // 5. Desktop table usability: ensure text selection works cleanly without drag interference
     wrapper.classList.add('drag-scrollable');
-
-    wrapper.addEventListener('mousedown', (e) => {
-      if (e.target.closest('a, button, input, select, textarea, label, [role="button"], .no-drag')) {
-        return;
-      }
-      isDown = true;
-      wrapper.classList.add('active-dragging');
-      startX = e.pageX - wrapper.offsetLeft;
-      scrollLeft = wrapper.scrollLeft;
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
-      const x = e.pageX - wrapper.offsetLeft;
-      const walk = (x - startX) * 1.35;
-      if (Math.abs(walk) > 4) {
-        e.preventDefault();
-      }
-      wrapper.scrollLeft = scrollLeft - walk;
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (isDown) {
-        isDown = false;
-        wrapper.classList.remove('active-dragging');
-      }
-    });
 
     // 6. Handle resize with ResizeObserver
     if (window.ResizeObserver) {
