@@ -3159,3 +3159,38 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 2 | `resources/js/app.js` | Menambahkan logika floating buttons, right/middle click drag pan, Spacebar pan listener, dan edge auto-scroll. |
 | 3 | `public/build/assets/*` | Hasil kompilasi bundel aset Vite terbaru. |
 
+---
+
+## 63. Penerapan Validasi Durasi Lembur Minimal 2 Jam (*Client & Server-Side*) dan Penataan Label Catatan Sistem
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Pencegahan Pengajuan Kurang dari 2 Jam:** Sesuai ketentuan SBM PMK Kemenkeu & peraturan lembur BPS, lembur hari kerja minimal harus berdurasi 2 jam penuh. Sebelumnya, sistem membiarkan formulir di-submit lalu di backend langsung disimpan dengan status `rejected` (Ditolak otomatis). Alur ini membingungkan pegawai yang sudah mengisi data dan tanda tangan.
+2. **Koreksi Identitas Pelaku Catatan (Label Sistem vs Ketua Tim):** Pada transaksi yang ditolak otomatis oleh sistem (seperti karena durasi < 2 jam), tampilan tabel dan timeline sebelumnya menampilkan label **"KETUA TIM:"**, padahal Ketua Tim tidak pernah menulis catatan tersebut. Catatan penolakan murni dihasilkan oleh sistem secara otomatis.
+
+### B. Solusi yang Diterapkan
+1. **Validasi Proaktif Sisi Klien (*Client-Side Validation*):**
+   - Pada modal "Ajukan Lembur" dan modal "Ubah Lembur" di `resources/views/lembur.blade.php`:
+     - Ketika pegawai memilih jam selesai yang menghasilkan durasi `< 2 jam`, teks estimasi langsung berwarna merah tebal: `⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.`
+     - Menampilkan kotak peringatan merah `#errorDurasiMinimal` di bawah input jam.
+     - Menonaktifkan tombol **Kirim** (`disabled` dan redup).
+     - Menambahkan proteksi pada *event submit* formulir sehingga jika pengguna memaksa kirim, aksi dibatalkan dengan peringatan *alert*.
+2. **Validasi Kuat Sisi Peladen (*Server-Side Validation*):**
+   - Pada `app/Http/Controllers/LemburController.php` dan `app/Http/Controllers/admin/LemburController.php`, jika durasi lembur `< 2 jam`, sistem menolak permintaan dan mengembalikan validasi formulir (`withErrors(['jam_selesai' => 'Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS.'])`), **bukan** menyimpannya ke basis data sebagai transaksi ditolak.
+3. **Penataan Label Catatan Sistem (*Historical Data Display*):**
+   - Pada tampilan tabel dan timeline di `lembur.blade.php`, `ketua-tim/lembur.blade.php`, dan `kabag-umum/pengajuan.blade.php`:
+   - Sistem mendeteksi string catatan yang dihasilkan otomatis (seperti kata kunci *"durasi lembur"*, *"proses bisnis"*, *"kebijakan"*, *"sistem"*).
+   - Label catatan ditampilkan secara jujur dan transparan sebagai **`Sistem:`** (dengan lencana warna netral) atau **`Catatan Sistem:`**, bukan lagi mengatasnamakan **`Ketua Tim:`**.
+4. **Sinkronisasi Dokumen Pengujian:**
+   - Memperbarui rincian kasus uji `TC-PEG-03` pada `PENGUJIAN_BLACKBOX.md`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Validasi server-side minimal 2 jam pada fungsi store dan eliminasi penyimpanan otomatis status rejected. |
+| 2 | `app/Http/Controllers/admin/LemburController.php` | Validasi server-side minimal 2 jam pada fungsi store admin. |
+| 3 | `resources/views/lembur.blade.php` | Validasi real-time modal pengajuan & ubah lembur, error alert minimal 2 jam, dan label Sistem: pada catatan. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Penataan label Sistem: vs Ketua Tim: pada tabel dan kartu timeline. |
+| 5 | `resources/views/kabag-umum/pengajuan.blade.php` | Penataan label Sistem: vs Ketua Tim: pada kolom catatan tabel Kabag Umum. |
+| 6 | `PENGUJIAN_BLACKBOX.md` | Pembaruan kasus uji TC-PEG-03 mencakup validasi batas minimal 2 jam. |
+
+

@@ -253,6 +253,12 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 151. 📄 **`resources/css/app.css`** *(Penetapan user-select: text untuk tabel dan pemulihan seleksi teks pengguna)*.
 152. 📄 **`resources/js/app.js`** *(Penghapusan pembajakan mousedown/mousemove drag-scroll untuk pemulihan seleksi teks native)*.
 153. 📁 **`public/build/`** *(Bundel hasil build aset Vite terbaru agar perubahan CSS dan JS langsung aktif di produksi)*.
+154. 📄 **`app/Http/Controllers/LemburController.php`** *(Validasi backend durasi minimal 2 jam mengembalikan pesan error formulir `jam_selesai` tanpa auto-reject dan tanpa menyimpan entri ke DB)*.
+155. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Validasi backend durasi minimal 2 jam pada pengajuan lembur Admin mengembalikan pesan error formulir)*.
+156. 📄 **`resources/views/lembur.blade.php`** *(Validasi frontend modal ajukan & edit lembur: kalkulasi durasi < 2 jam memunculkan kotak peringatan merah, teks estimasi merah, tombol Kirim terkunci, serta perbaikan label catatan sistem `SISTEM:`)*.
+157. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penyempurnaan label catatan sistem transparan berbadge abu-abu netral `SISTEM:` pada tabel dan timeline)*.
+158. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Penyempurnaan label catatan sistem transparan `SISTEM:` pada tabel pengajuan Kabag)*.
+159. 📄 **`PENGUJIAN_BLACKBOX.md`** *(Pembaruan skenario uji TC-PEG-03 untuk pencegahan durasi < 2 jam client & server side)*.
 
 ---
 
@@ -978,4 +984,23 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Coba ketikkan tanggal lembur secara manual pada kolom input tanggal (`<input type="date">`).
   - Verifikasi: Kolom tahun menampilkan masker format 4 digit (`yyyy`) dan tidak dapat menerima pengetikan digit ke-5 (misal mengetik 2026 tidak dapat menjadi 20260).
   - Verifikasi: Jika dilakukan copy-paste tanggal dengan tahun 5 digit, skrip secara otomatis memangkas tahun menjadi 4 digit pertama.
+
+### AW. Uji Validasi Durasi Lembur Minimal 2 Jam (Client-Side & Server-Side) Serta Label Catatan Sistem
+- [ ] **Uji Pencegahan Client-Side di Modal Ajukan Lembur**:
+  - Buka modal "Ajukan Lembur" di menu Pegawai (`/lembur`).
+  - Masukkan Jam Mulai `17:00` dan Jam Selesai `18:00` (selisih hanya 1 jam):
+    - Verifikasi: Teks estimasi durasi langsung berubah menjadi merah tebal: `1 jam (⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.)`.
+    - Verifikasi: Muncul kotak peringatan merah `#errorDurasiMinimal` dengan pesan bantuan ketentuan PMK/BPS.
+    - Verifikasi: Tombol **"Kirim"** langsung non-aktif (`disabled`) dengan kursor not-allowed dan opacity rendah.
+    - Jika tombol dipaksa submit via Enter: formulir dicegah dan muncul alert peringatan browser: *"Durasi lembur minimal 2 jam. Silakan sesuaikan jam selesai lembur."*.
+  - Ubah Jam Selesai menjadi `19:00` (selisih 2 jam):
+    - Verifikasi: Teks estimasi kembali normal abu-abu gelap, kotak peringatan merah otomatis hilang, dan tombol **"Kirim"** aktif kembali.
+- [ ] **Uji Validasi Backend Server-Side (Tanpa Simpan Baris Ditolak ke DB)**:
+  - Coba kirimkan formulir dengan durasi < 2 jam (misal 1 jam):
+    - Verifikasi: Controller me-redirect kembali ke halaman form dengan pesan error formulir pada field `jam_selesai`: *"Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS."*.
+    - Verifikasi Database `t_transaksi`: **TIDAK ADA** baris data baru berstatus `rejected` yang tersimpan (database tetap bersih dari transaksi sampah otomatis).
+- [ ] **Uji Pelabelan Catatan Sistem (Transparansi Data Historis)**:
+  - Buka tabel atau timeline pengajuan pada akun Pegawai, Ketua Tim, atau Kabag Umum.
+  - Periksa data transaksi lama yang memiliki catatan otomatis sistem (seperti: *"Durasi lembur kurang dari 2 jam."*):
+    - Verifikasi: Catatan dilabeli secara tepat dengan badge abu-abu netral **`SISTEM:`** (bukan dilabeli seolah-olah ditulis oleh Ketua Tim: `KETUA TIM:`).
 
