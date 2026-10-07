@@ -168,7 +168,7 @@
                     <small style="color: #374151;">{{ $p->nip ?? $p->nip_lama }}</small>
                 </td>
                 <td class="text-center">{{ $p->tanggal_lembur }}</td>
-                <td style="white-space: pre-line;">{{ $p->uraian }}</td>
+                <td style="white-space: pre-line; word-wrap: break-word; word-break: break-word; line-height: 1.35;">{{ $p->uraian }}</td>
             </tr>
             @endforeach
         </tbody>
