@@ -159,6 +159,23 @@ class LemburController extends Controller
             ->pluck('tanggal')
             ->toArray();
 
+        // Daftar tanggal pengajuan aktif pegawai (untuk proteksi lock anti-dobel di formulir)
+        $existingActiveDates = DB::table('t_transaksi')
+            ->where('submitted_by_NIP', $nipUser)
+            ->whereNotIn('status', ['rejected', 'cancelled'])
+            ->select('date', 'status')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                $label = match($item->status) {
+                    'pending' => 'Menunggu Ketua',
+                    'menunggu_kabag' => 'Menunggu Kabag',
+                    'approved' => 'Disetujui',
+                    default => ucfirst($item->status),
+                };
+                return [$item->date => $label];
+            })
+            ->toArray();
+
         return view('admin.lembur', compact(
             'transaksi',
             'ketuaTim',
@@ -166,7 +183,8 @@ class LemburController extends Controller
             'hariLibur',
             'status',
             'statusCounts',
-            'sort'
+            'sort',
+            'existingActiveDates'
         ));
     }
 
@@ -188,6 +206,25 @@ class LemburController extends Controller
 
         $nip     = session('user')['nip'];
         $tanggal = Carbon::parse($validated['tanggal']);
+
+        // Cegah pengajuan ganda di tanggal yang sama (1 pengajuan aktif per hari per pegawai)
+        $transaksiAda = DB::table('t_transaksi')
+            ->where('submitted_by_NIP', $nip)
+            ->where('date', $tanggal->toDateString())
+            ->whereNotIn('status', ['rejected', 'cancelled'])
+            ->first();
+
+        if ($transaksiAda) {
+            $statusLabel = match($transaksiAda->status) {
+                'pending' => 'Menunggu Ketua Tim',
+                'menunggu_kabag' => 'Menunggu Kabag Umum',
+                'approved' => 'Sudah Disetujui',
+                default => $transaksiAda->status,
+            };
+            return back()->withErrors([
+                'tanggal' => "Anda sudah memiliki pengajuan lembur pada tanggal ini (Status: {$statusLabel}). Satu pegawai hanya dapat mengajukan 1 kali lembur per hari sesuai ketentuan BPS."
+            ])->withInput();
+        }
 
         $isWeekend = $tanggal->isWeekend();
 
