@@ -345,36 +345,55 @@
 </aside>
 
 <script>
-    const sidebar   = document.getElementById('main-sidebar');
-    const overlay   = document.getElementById('sidebar-overlay');
-    const barTop    = document.getElementById('bar-top');
-    const barBot    = document.getElementById('bar-bot');
     let isOpen = false;
 
+    function getSidebarElements() {
+        return {
+            sidebar: document.getElementById('main-sidebar'),
+            overlay: document.getElementById('sidebar-overlay'),
+            barTop:  document.getElementById('bar-top'),
+            barBot:  document.getElementById('bar-bot'),
+        };
+    }
+
     function openSidebar() {
+        const { sidebar, overlay, barTop, barBot } = getSidebarElements();
         isOpen = true;
-        sidebar.classList.remove('-translate-x-full');
-        overlay.classList.remove('opacity-0', 'pointer-events-none');
-        overlay.classList.add('opacity-100');
+        if (sidebar) sidebar.classList.remove('-translate-x-full');
+        if (overlay) {
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            overlay.classList.add('opacity-100');
+        }
         document.body.classList.add('overflow-hidden');
         // Animate to X
-        barTop.classList.add('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
-        barTop.classList.remove('bg-slate-500');
-        barBot.classList.add('w-8', '-translate-y-[0px]', '-rotate-45');
-        barBot.classList.remove('w-6');
+        if (barTop) {
+            barTop.classList.add('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
+            barTop.classList.remove('bg-slate-500');
+        }
+        if (barBot) {
+            barBot.classList.add('w-8', '-translate-y-[0px]', '-rotate-45');
+            barBot.classList.remove('w-6');
+        }
     }
 
     function closeSidebar() {
+        const { sidebar, overlay, barTop, barBot } = getSidebarElements();
         isOpen = false;
-        sidebar.classList.add('-translate-x-full');
-        overlay.classList.add('opacity-0', 'pointer-events-none');
-        overlay.classList.remove('opacity-100');
+        if (sidebar) sidebar.classList.add('-translate-x-full');
+        if (overlay) {
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            overlay.classList.remove('opacity-100');
+        }
         document.body.classList.remove('overflow-hidden');
         // Reset to hamburger
-        barTop.classList.remove('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
-        barTop.classList.add('bg-slate-500');
-        barBot.classList.remove('w-8', '-translate-y-[0px]', '-rotate-45');
-        barBot.classList.add('w-6');
+        if (barTop) {
+            barTop.classList.remove('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
+            barTop.classList.add('bg-slate-500');
+        }
+        if (barBot) {
+            barBot.classList.remove('w-8', '-translate-y-[0px]', '-rotate-45');
+            barBot.classList.add('w-6');
+        }
     }
 
     function toggleSidebar() {
