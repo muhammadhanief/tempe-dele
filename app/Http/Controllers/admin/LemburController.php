@@ -214,8 +214,9 @@ class LemburController extends Controller
             $durasi = $jamMulai->diffInHours($jamSelesai);
 
             if ($durasi < 2) {
-                $status = 'rejected';
-                $note   = 'Durasi lembur kurang dari 2 jam.';
+                return back()->withErrors([
+                    'jam_selesai' => 'Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS.'
+                ])->withInput();
             }
         }
 
@@ -256,14 +257,9 @@ class LemburController extends Controller
                 'signature_path' => $fileName,
             ]);
 
-        $message = $status === 'rejected'
-            ? 'Pengajuan tersimpan namun otomatis ditolak karena durasi lembur kurang dari 2 jam.'
-            : 'Pengajuan lembur berhasil dikirim.';
+        $message = 'Pengajuan lembur berhasil dikirim.';
 
-        return back()->with(
-            $status === 'rejected' ? 'error' : 'success',
-            $message
-        );
+        return back()->with('success', $message);
     }
 
     public function quickApprove($id)

@@ -229,15 +229,15 @@ class LemburController extends Controller
             $durasi = $jamMulai->diffInHours($jamSelesai);
 
             if ($durasi < 2) {
-                $status = 'rejected';
-                $note   = 'Durasi lembur kurang dari 2 jam.';
+                return back()->withErrors([
+                    'jam_selesai' => 'Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS.'
+                ])->withInput();
             }
         }
 
-        // Jika tidak ditolak otomatis dan merupakan Tim Bagian Umum atau approver adalah Kabag Umum,
+        // Jika merupakan Tim Bagian Umum atau approver adalah Kabag Umum,
         // pengajuan langsung masuk ke antrean persetujuan Kabag Umum (status: menunggu_kabag)
-        if ($status !== 'rejected') {
-            $isTimBagianUmum = false;
+        $isTimBagianUmum = false;
             if (!empty($validated['kode_tim'])) {
                 $tim = DB::table('m_tim')->where('kode_tim', $validated['kode_tim'])->first();
                 if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
@@ -256,7 +256,6 @@ class LemburController extends Controller
             if ($isTimBagianUmum || $isApproverKabag) {
                 $status = 'menunggu_kabag';
             }
-        }
 
         $idTransaksi = DB::table('t_transaksi')->insertGetId([
             'submitted_by_NIP'      => $nip,
@@ -323,16 +322,14 @@ class LemburController extends Controller
             $params['perPage'] = $perPage;
         }
 
-        $message = $status === 'rejected'
-            ? 'Pengajuan tersimpan namun otomatis ditolak karena durasi lembur kurang dari 2 jam.'
-            : 'Pengajuan lembur berhasil dikirim.';
+        $message = 'Pengajuan lembur berhasil dikirim.';
 
         $targetRoute = (request()->routeIs('ketua-tim.*') || (session('user')['role'] ?? '') === 'ketua_tim')
             ? 'ketua-tim.lembur'
             : 'lembur';
 
         return redirect()->route($targetRoute, $params)
-            ->with($status === 'rejected' ? 'error' : 'success', $message);
+            ->with('success', $message);
     }
 
     public function timPegawai()
