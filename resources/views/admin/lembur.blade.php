@@ -1010,9 +1010,19 @@
                         </label>
 
                         <input type="date" id="tanggal" name="tanggal" min="1970-01-01" max="2099-12-31"
-                            class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900">
+                            class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition-all">
 
                         <p id="infoHari" class="mt-1 text-xs text-gray-400 hidden"></p>
+
+                        <div id="errorTanggalDobel" class="hidden mt-2 p-2.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-700 flex items-start gap-2">
+                            <svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <div>
+                                <span class="font-bold">Pengajuan Sudah Ada:</span> <span id="errorTanggalDobelText">Anda sudah memiliki pengajuan lembur pada tanggal ini.</span>
+                                <div class="mt-0.5 text-[11px] text-rose-600">Ketentuan BPS hanya memperbolehkan 1 pengajuan lembur aktif per hari. Silakan pilih tanggal lain atau perbarui pengajuan yang sudah ada.</div>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Jam Mulai & Selesai --}}
@@ -1097,7 +1107,7 @@
                             Batal
                         </button>
 
-                        <button type="submit"
+                        <button type="submit" id="btnSubmitAjukan"
                             class="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-black bg-[#faa938] rounded-lg hover:bg-[#fd9a10] hover:text-white">
                             Kirim
                         </button>
@@ -1151,6 +1161,31 @@
     });
 
     document.getElementById('formAjukan').addEventListener('submit', function (e) {
+        const tglVal = document.getElementById('tanggal')?.value;
+        if (tglVal && existingDatesDB[tglVal]) {
+            e.preventDefault();
+            alert(`Anda sudah memiliki pengajuan lembur pada tanggal ${tglVal} (Status: ${existingDatesDB[tglVal]}). Ketentuan BPS hanya memperbolehkan 1 pengajuan lembur per hari. Silakan pilih tanggal lain atau perbarui pengajuan yang sudah ada.`);
+            document.getElementById('tanggal')?.focus();
+            return;
+        }
+
+        const mulai   = document.getElementById('jam_mulai')?.value;
+        const selesai = document.getElementById('jam_selesai')?.value;
+        if (mulai && selesai) {
+            const [jm, mm]   = mulai.split(':').map(Number);
+            const [js, ms]   = selesai.split(':').map(Number);
+            let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+            if (totalMenit < 0) totalMenit += 24 * 60;
+            const jam = Math.floor(totalMenit / 60);
+
+            if (jam < 2) {
+                e.preventDefault();
+                alert('Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS. Silakan sesuaikan jam selesai lembur.');
+                document.getElementById('jam_selesai')?.focus();
+                return;
+            }
+        }
+
         if (signaturePad.isEmpty()) {
             e.preventDefault();
             document.getElementById('signatureError').classList.remove('hidden');
@@ -1178,6 +1213,13 @@
         document.getElementById('tanggal').value     = '';
         document.getElementById('infoHari').classList.add('hidden');
         document.getElementById('infoJamMulai').classList.add('hidden');
+        document.getElementById('errorTanggalDobel')?.classList.add('hidden');
+        document.getElementById('tanggal')?.classList.remove('border-rose-400', 'bg-rose-50/40');
+        const btnSubmit = document.getElementById('btnSubmitAjukan');
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
         setTimeout(resizeCanvas, 50);
     }
 
@@ -1201,8 +1243,46 @@
     });
 
     const hariLiburDB = @json($hariLibur ?? []);
+    const existingDatesDB = @json($existingActiveDates ?? []);
+
+    function periksaTanggalDobel(tglValue) {
+        const errorTglBox = document.getElementById('errorTanggalDobel');
+        const errorTglText = document.getElementById('errorTanggalDobelText');
+        const tanggalInput = document.getElementById('tanggal');
+        const btnSubmit = document.getElementById('btnSubmitAjukan');
+
+        if (tglValue && existingDatesDB[tglValue]) {
+            const statusLabel = existingDatesDB[tglValue];
+            if (errorTglBox) {
+                errorTglBox.classList.remove('hidden');
+                if (errorTglText) {
+                    errorTglText.textContent = `Anda sudah memiliki pengajuan lembur pada tanggal ini (Status: ${statusLabel}).`;
+                }
+            }
+            if (tanggalInput) {
+                tanggalInput.classList.add('border-rose-400', 'bg-rose-50/40');
+            }
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            return true;
+        } else {
+            if (errorTglBox) errorTglBox.classList.add('hidden');
+            if (tanggalInput) {
+                tanggalInput.classList.remove('border-rose-400', 'bg-rose-50/40');
+            }
+            return false;
+        }
+    }
+
+    document.getElementById('tanggal').addEventListener('input', function () {
+        periksaTanggalDobel(this.value);
+    });
 
     document.getElementById('tanggal').addEventListener('change', function () {
+        periksaTanggalDobel(this.value);
+
         const date      = new Date(this.value);
         const dayOfWeek = date.getUTCDay();
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
@@ -1249,12 +1329,23 @@
         const selesai = document.getElementById('jam_selesai').value;
         const preview = document.getElementById('previewDurasi');
         const label   = document.getElementById('durasiLabel');
+        const btnSubmit = document.getElementById('btnSubmitAjukan');
 
-        if (!mulai || !selesai) { preview.classList.add('hidden'); return; }
+        const isDobel = periksaTanggalDobel(document.getElementById('tanggal')?.value);
+
+        if (!mulai || !selesai) {
+            preview.classList.add('hidden');
+            if (btnSubmit && !isDobel) {
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            return;
+        }
 
         const [jm, mm]   = mulai.split(':').map(Number);
         const [js, ms]   = selesai.split(':').map(Number);
-        const totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+        let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+        if (totalMenit < 0) totalMenit += 24 * 60;
 
         if (totalMenit <= 0) { preview.classList.add('hidden'); return; }
 
@@ -1265,11 +1356,21 @@
         let warna = 'text-gray-500';
 
         if (jam < 2) {
-            info  += ' — ⚠️ Pengajuan jam lembur minimal 2 jam';
-            warna  = 'text-amber-500';
-        } else if (jam >= 6) {
-            info  += ' — ⚠️ Maksimal lembur 6 jam';
-            warna  = 'text-amber-500';
+            info  += ' — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.';
+            warna  = 'text-red-600 font-bold';
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        } else {
+            if (btnSubmit && !isDobel) {
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (jam >= 6) {
+                info  += ' — ⚠️ Maksimal lembur 6 jam';
+                warna  = 'text-amber-500';
+            }
         }
 
         label.textContent = info;
