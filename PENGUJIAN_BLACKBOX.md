@@ -24,7 +24,7 @@
 
 | No | Modul / Kelompok Pengujian | Total Kasus Uji | Berhasil (*PASS*) | Gagal (*FAIL*) | Persentase Keberhasilan |
 |:---:|:---|:---: |:---:|:---:|:---:|
-| 1 | Modul 1: Autentikasi, Hak Akses (RBAC), & Keamanan Sesi | 6 | 6 | 0 | **100%** |
+| 1 | Modul 1: Autentikasi, Hak Akses (RBAC), & Keamanan Sesi | 8 | 8 | 0 | **100%** |
 | 2 | Modul 2: Pengajuan Lembur Pegawai (Sisi Pegawai) | 10 | 10 | 0 | **100%** |
 | 3 | Modul 3: Persetujuan & Koreksi Ketua Tim (Tahap 1) | 9 | 9 | 0 | **100%** |
 | 4 | Modul 4: Persetujuan & Koreksi Kabag Umum (Tahap 2 Final) | 8 | 8 | 0 | **100%** |
@@ -32,7 +32,7 @@
 | 6 | Modul 6: Impor Presensi BOS & Integrasi Kehadiran | 10 | 10 | 0 | **100%** |
 | 7 | Modul 7: Pembuatan Dokumen Kedinasan (SPKL, Laporan, Daftar Hadir) | 9 | 9 | 0 | **100%** |
 | 8 | Modul 8: Manajemen Pengguna & Suksesi Pejabat | 4 | 4 | 0 | **100%** |
-| **TOTAL** | **Seluruh Modul Sistem** | **64** | **64** | **0** | **100%** |
+| **TOTAL** | **Seluruh Modul Sistem** | **66** | **66** | **0** | **100%** |
 
 ---
 
@@ -40,14 +40,21 @@
 
 ### MODUL 1: Autentikasi, Hak Akses (RBAC), & Keamanan Sesi
 
+> [!NOTE]
+> **Catatan Metode Pengujian Autentikasi:**
+> - **Alur Resmi Produksi:** Menggunakan form input **Username SSO** dan **Password SSO BPS** yang divalidasi ke API Connect BPS Jawa Tengah (`https://jateng.web.bps.go.id/apiconnect/login`).
+> - **Alur Pengujian Lokal (*Local Testing*):** Karena penguji di lingkungan lokal tidak memiliki password SSO milik seluruh pegawai dan pejabat struktural, pengujian multi-peran dipermudah menggunakan panel **Shortcut Dev-Login** di bawah form login (`/dev-login/{nip}`) yang secara otomatis menginjeksi sesi peran tanpa memerlukan kata sandi SSO riil.
+
 | ID Kasus Uji | Skenario Pengujian | Langkah Pengujian | Data Masukan (*Test Data*) | Hasil yang Diharapkan | Hasil Aktual | Status |
 |:---|:---|:---|:---|:---|:---|:---:|
-| **TC-AUTH-01** | Login pengguna menggunakan akun Pegawai | 1. Buka halaman `/login`<br>2. Masukkan NIP dan password SSO<br>3. Klik tombol Masuk | NIP: `198501252006042001`<br>(Indah Purnamasari S.E) | Sistem memvalidasi akun, mengarahkan ke Dashboard Pegawai (`/dashboard`), menampilkan menu sidebar sesuai wewenang pegawai | Berhasil diarahkan ke Dashboard Pegawai, menu sidebar khusus pegawai | **PASS** |
-| **TC-AUTH-02** | Login pengguna menggunakan akun Ketua Tim | 1. Buka halaman `/login`<br>2. Masukkan NIP dan password<br>3. Klik tombol Masuk | NIP: `197703081999011001`<br>(Sumbodo Aji - Ketua Tim SID) | Sistem mengarahkan ke `/ketua-tim/dashboard`, menu "Pengajuan Lembur Tim" aktif di sidebar | Berhasil login sebagai Ketua Tim, menu pengajuan tim muncul | **PASS** |
-| **TC-AUTH-03** | Login pengguna sebagai Kabag Umum | 1. Buka halaman `/login`<br>2. Masukkan kredensial Kabag Umum | NIP: `197106131993121001`<br>(Joko Suwarjo S.Si, M.Si) | Sistem mendeteksi wewenang pejabat Kabag Umum, membuka menu terpadu "Persetujuan Kabag Umum" | Masuk sebagai Kabag Umum, menu persetujuan kabag umum tersedia | **PASS** |
-| **TC-AUTH-04** | Login pengguna sebagai Admin Operasional | 1. Buka halaman `/login`<br>2. Masukkan kredensial Admin | NIP: `199509102018022001`<br>(Rizki Dianing Wardhani SST) | Sistem mengarahkan ke `/admin/dashboard`, seluruh menu pengelolaan lembur, dokumen, dan presensi aktif | Masuk sebagai Admin, seluruh menu administrasi terbuka lengkap | **PASS** |
-| **TC-AUTH-05** | Proteksi akses rute non-otorisasi (*URL Tampering*) | 1. Login sebagai Pegawai biasa<br>2. Ketik manual URL admin: `/admin/presensi` di address bar | Akun Pegawai reguler | Sistem menolak akses dengan HTTP 403 Forbidden atau mengalihkan ke dashboard pribadi dengan pesan peringatan | Akses ditolak oleh middleware, dialihkan aman | **PASS** |
-| **TC-AUTH-06** | Penanganan kedaluwarsa sesi (*Session Expired / Token Mismatch*) | 1. Biarkan sesi kedaluwarsa<br>2. Lakukan request POST logout atau form submit | CSRF Token kedaluwarsa | Sistem tidak memunculkan halaman error 419 Page Expired mentah, melainkan mengarahkan ke halaman login dengan pesan ramah | Pengguna dialihkan ke halaman login secara halus | **PASS** |
+| **TC-AUTH-01** | Login resmi via formulir SSO BPS dengan kredensial valid | 1. Buka halaman `/login`<br>2. Masukkan Username SSO dan Password SSO BPS<br>3. Klik tombol Masuk | Username: Akun SSO valid<br>Password: Password SSO valid | Sistem memvalidasi ke API Connect BPS, memverifikasi `kd_satker = 3300`, menyinkronkan profil pegawai, dan mengarahkan ke dashboard sesuai role | Terautentikasi via API SSO, profil tersinkron, masuk dashboard | **PASS** |
+| **TC-AUTH-02** | Penolakan login formulir jika Username / Password salah | 1. Buka halaman `/login`<br>2. Masukkan username atau password salah<br>3. Klik tombol Masuk | Username: `usersalah`<br>Password: `passwordsalah` | Sistem menolak autentikasi dan menampilkan pesan kesalahan: *"Username atau password salah."* | Muncul pesan error "Username atau password salah." | **PASS** |
+| **TC-AUTH-03** | Penolakan login pegawai dari luar Satker BPS Jateng | 1. Login menggunakan akun SSO pegawai dari BPS luar Jateng (`kd_satker != 3300`) | Akun Satker Non-3300 | Sistem menolak akses dengan notifikasi: *"Akses ditolak. Hanya pegawai BPS Jawa Tengah yang dapat login."* | Akses ditolak karena satker bukan 3300 | **PASS** |
+| **TC-AUTH-04** | Pengujian sesi peran Pegawai via Shortcut Dev-Login Lokal | 1. Buka halaman `/login`<br>2. Klik tombol shortcut Pegawai (misal: "Indah") atau akses `/dev-login/198501252006042001` | NIP: `198501252006042001`<br>(Indah Purnamasari S.E) | Sesi diset ke role `user`, sistem otomatis mengarahkan ke `/dashboard`, sidebar hanya menampilkan menu Pegawai | Masuk ke Dashboard Pegawai, wewenang sesuai role `user` | **PASS** |
+| **TC-AUTH-05** | Pengujian sesi peran Ketua Tim via Shortcut Dev-Login Lokal | 1. Buka `/login`<br>2. Klik shortcut Ketua Tim "Sumbodo Aji" atau akses `/dev-login/197703081999011001` | NIP: `197703081999011001`<br>(Sumbodo - Ketua Tim SID) | Sesi diset ke role `ketua_tim`, sistem mengarahkan ke `/ketua-tim/dashboard`, menu Pengajuan Lembur Tim terbuka | Masuk ke Dashboard Ketua Tim, menu pengajuan tim aktif | **PASS** |
+| **TC-AUTH-06** | Pengujian sesi peran Kabag Umum & Admin via Shortcut Dev-Login Lokal | 1. Klik shortcut "Kabag Umum" (`/dev-login/kabag`) atau "PPK/Admin" (`/dev-login/admin`) | Parameter role: `kabag` / `admin` | Sistem mengidentifikasi pejabat aktif di `m_pejabat`, sesi diset sesuai wewenang, menu Persetujuan Kabag Umum / Dashboard Admin terbuka | Wewenang pejabat dan admin aktif presisi | **PASS** |
+| **TC-AUTH-07** | Proteksi akses rute non-otorisasi (*URL Tampering*) | 1. Login sebagai Pegawai biasa<br>2. Ketik manual URL admin: `/admin/presensi` di address bar | Akun Pegawai reguler | Sistem menolak akses dengan HTTP 403 Forbidden atau mengalihkan ke dashboard pribadi dengan pesan peringatan | Akses ditolak oleh middleware, dialihkan aman | **PASS** |
+| **TC-AUTH-08** | Penanganan kedaluwarsa sesi (*Session Expired / Token Mismatch*) | 1. Biarkan sesi kedaluwarsa<br>2. Lakukan request POST logout atau form submit | CSRF Token kedaluwarsa | Sistem tidak memunculkan halaman error 419 Page Expired mentah, melainkan mengarahkan ke halaman login dengan pesan ramah | Pengguna dialihkan ke halaman login secara halus | **PASS** |
 
 ---
 
@@ -161,7 +168,7 @@
 ## 🎯 4. KESIMPULAN HASIL PENGUJIAN BLACK BOX
 
 1. **Integritas Fungsional (100% PASS):**  
-   Dari total **64 kasus uji** yang dieksekusi melintasi 8 modul utama, seluruhnya menghasilkan status **PASS** (Berhasil sesuai spesifikasi yang diharapkan).
+   Dari total **66 kasus uji** yang dieksekusi melintasi 8 modul utama, seluruhnya menghasilkan status **PASS** (Berhasil sesuai spesifikasi yang diharapkan).
 2. **Keberhasilan Penyesuaian Alur Kerja (*Business Logic Compliance*):**
    - Alur persetujuan bertingkat (*Pegawai $\rightarrow$ Ketua Tim $\rightarrow$ Kabag Umum $\rightarrow$ Dokumen SPKL*) terbukti mengalir tanpa kendala.
    - Fitur koreksi penolakan oleh Ketua Tim saat pengajuan berstatus `menunggu_kabag` bekerja fleksibel tanpa tertahan status kunci.
