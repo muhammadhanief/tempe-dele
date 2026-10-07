@@ -733,3 +733,46 @@ Untuk panduan deploy dan checklist pengujian fitur produksi selengkapnya, silaka
   - **Tidak ada kolom baru** (`jam_mulai_final` / `jam_selesai_final`) yang ditambahkan ke database, sehingga:
     - Tidak menimbulkan risiko inkonsistensi data atau breaking change pada skema produksi.
     - Seluruh modul cetak dokumen dinas (SPKL, Laporan, Daftar Hadir), rekapitulasi, dan ekspor Excel tetap stabil 100%.
+
+---
+
+## 🧭 9. Pelacak Alur & Progres Lembur Visual (*Visual Progress Stepper & Timeline Tracker*)
+
+Berdasarkan arahan dan referensi desain dari Mentor BPS (Mas Hanief), sistem telah dilengkapi dengan modul pelacak alur dan progres persetujuan interaktif (*visual progress tracker*) yang intuitif dan responsif.
+
+### A. Latar Belakang & Kebutuhan Desain
+* Pegawai seringkali membutuhkan kepastian mengenai posisi pengajuan lembur mereka: di meja siapa berkas berada saat ini, tahap apa yang sudah dilalui, dan sisa tahapan apa yang belum selesai.
+* **Arahan Khusus Mentor BPS:**
+  - *"ke kanan jg boleh"* (stepper horizontal yang menyambung di desktop).
+  - *"terus yang belum dilalui ttp dibuat tapi abu2 atau gmn gt, jadi dari diagram itu org bisa tau progressnya sampai mana dan sisa mana"* (tahap mendatang tetap digambar namun berwarna abu-abu redup agar kontras dengan tahap aktif dan tahap yang sudah selesai).
+  - Tampilan vertikal berbasis kartu riwayat (*card timeline*) di perangkat mobile.
+
+### B. Arsitektur Komponen Visual
+Modul ini diimplementasikan pada dua antarmuka pengajuan lembur:
+1. [`resources/views/lembur.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/lembur.blade.php) (Pengajuan Lembur Pribadi Pegawai)
+2. [`resources/views/ketua-tim/lembur.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/ketua-tim/lembur.blade.php) (Pengajuan Lembur Pribadi Ketua Tim)
+
+Struktur antarmuka modal (`modalTimeline`):
+1. **Header Modal & Ringkasan Cepat:**
+   - Menampilkan ikon penanda, tanggal lembur, status terkini (*badge* warna), tim kerja, jam diajukan vs jam disetujui (dengan indikator penyesuaian jika ada), dan uraian tugas lengkap.
+2. **Stepper Horizontal Reflowable (Desktop / Layar Lebar):**
+   - Menghubungkan 4 tahapan alur resmi dengan rel garis progres persentase dinamis (`0%`, `33%`, `66%`, `100%`).
+   - Node 1: **Pengajuan Lembur** (Pegawai Pemohon).
+   - Node 2: **Persetujuan Ketua Tim** (Ketua Tim Kerja / status khusus Bagian Umum).
+   - Node 3: **Persetujuan Kabag Umum** (Persetujuan Final Pimpinan).
+   - Node 4: **Hasil Akhir & SPKL** (Penerbitan Dokumen Resmi & Masuk Daftar Hadir).
+3. **Timeline Vertikal Responsif (Mobile & Detail Riwayat):**
+   - Di mobile (`< 640px`), stepper horizontal otomatis disembunyikan dan digantikan oleh *vertical card timeline* dengan titik penanda (*dot marker*) pada rel vertikal abu-abu.
+   - Setiap kartu menampilkan nomor tahap, judul, badge status tahap, nama aktor/pejabat, waktu eksekusi/antrean, deskripsi informatif, dan kotak catatan resmi pejabat (*official notes*) jika ada.
+4. **Logika State & Kode Warna (Sesuai Antislop Design):**
+   - **`completed` (Hijau Emerald):** Lingkaran centang hijau dengan teks gelap dan badge hijau, menandakan tahap telah rampung diverifikasi.
+   - **`active` (Biru Indigo):** Lingkaran biru dengan efek denyut lembut (*subtle pulse*), menandakan berkas saat ini berada di meja pejabat bersangkutan.
+   - **`upcoming` (Abu-abu Slate):** Lingkaran garis tepi abu-abu dengan nomor tahapan, teks redup, dan badge *Belum Dilalui / Menunggu*, menandakan tahapan berikutnya yang belum dimulai.
+   - **`rejected` (Merah Mawar):** Lingkaran silang merah dengan badge penolakan, menghentikan progres alur secara transparan.
+5. **Logika Khusus Tim Bagian Umum:**
+   - Jika pegawai berasal dari Tim Bagian Umum (di mana Ketua Tim adalah Kepala Bagian Umum sendiri), Tahap 2 secara otomatis menampilkan badge biru *"Diteruskan Langsung"* dengan deskripsi bahwa tahap verifikasi ketua tim otomatis diteruskan ke meja Kabag Umum.
+
+### C. Pembenahan Struktur DOM & Sidebar Helper
+* **Isolasi Modal Bebas Nesting:** Memperbaiki penutupan tag `<div>` pada `modalAjukan` sehingga `modalTimeline` tidak lagi bersarang di dalam modal lain yang tersembunyi.
+* **Resilience Helper Sidebar:** Memperbaiki seleksi elemen DOM (`bar-top`, `bar-bot`) pada [`resources/views/partials/sidebar.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/partials/sidebar.blade.php) secara dinamis agar event listener `window.onresize` tidak mengalami error *null reference* pada halaman mana pun.
+

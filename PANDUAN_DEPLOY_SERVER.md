@@ -116,10 +116,10 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 13. 📄 **`app/Http/Controllers/admin/PengajuanController.php`** *(Controller Admin + pembatalan + auto-trigger `koreksiUntukTransaksi` saat approved)*.
 14. 📄 **`app/Http/Controllers/admin/DashboardController.php`** *(Dashboard Admin + quick-approve + auto-trigger `koreksiUntukTransaksi`)*.
 15. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Monitoring lembur Admin + subquery indikator presensi pulang + pembatalan pengajuan)*.
-16. 📄 **`resources/views/lembur.blade.php`** *(View lembur pegawai + badge Dibatalkan Admin)*.
-17. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(View persetujuan Kabag + badge & tab filter Dibatalkan)*.
-18. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(View persetujuan Ketua Tim + badge Dibatalkan + proteksi aksi)*.
-19. 📄 **`resources/views/ketua-tim/dashboard.blade.php`** *(View dashboard Ketua Tim + badge status menunggu_kabag)*.
+16. 📄 **`resources/views/lembur.blade.php`** *(View lembur pegawai + kolom Jam Disetujui + badge status interaktif & modal Lacak Alur & Progres Lembur 4 tahapan)*.
+17. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(View lembur ketua tim + kolom Jam Disetujui + badge status interaktif & modal Lacak Alur & Progres Lembur 4 tahapan)*.
+18. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(View persetujuan Kabag + badge & tab filter Dibatalkan)*.
+19. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(View persetujuan Ketua Tim + badge Dibatalkan + proteksi aksi)*.
 20. 📄 **`app/Http/Controllers/ketuatim/DashboardController.php`** *(Controller dashboard Ketua Tim + sinkronisasi status disetujui & presensi)*.
 21. 📄 **`resources/views/admin/dashboard.blade.php`** *(View dashboard Admin + badge menunggu_kabag + tag modal pending + standarisasi istilah pegawai & kontras)*.
 22. 📄 **`resources/views/admin/pengajuan.blade.php`** *(View persetujuan Admin + tombol keputusan Batalkan + badge Dibatalkan + kontras NIP & ikon tabel)*.
@@ -802,6 +802,32 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Universal Audit Trail (`user_edited` & `tanggal_edited`)**:
   - Jalankan kueri di database: `SELECT id_transaksi, user_edited, tanggal_edited FROM t_transaksi WHERE id_transaksi = ...`.
   - Verifikasi: kolom `user_edited` terisi nama/NIP aktor penyetuju dan `tanggal_edited` terisi timestamp waktu perubahan.
+
+### AL. Uji Pelacak Alur & Progres Lembur Visual (Visual Progress Stepper & Timeline Tracker)
+- [ ] **Uji Tombol & Modal Lacak Alur Pegawai (`/lembur`)**:
+  - Login sebagai pegawai, buka menu Pengajuan Lembur (`/lembur`).
+  - Pada kolom **Status**, klik tombol badge atau tautan **`> Lacak Alur`**.
+  - Verifikasi: modal interaktif **"Progres Persetujuan Lembur"** muncul seketika tanpa terhalang atau berkedip.
+  - Periksa Ringkasan: memuat Tanggal, Tim Kerja, Jam Diajukan vs Jam Disetujui, dan Uraian Tugas.
+- [ ] **Uji Stepper Horizontal di Desktop (`sm:block`)**:
+  - Pada layar desktop/laptop, periksa bilah stepper horizontal 4 tahapan:
+    1. *Pengajuan Lembur*
+    2. *Persetujuan Ketua Tim* (atau *Diteruskan Langsung* untuk Tim Bagian Umum)
+    3. *Persetujuan Kabag Umum*
+    4. *Hasil Akhir & SPKL*
+  - Verifikasi: tahap yang sudah selesai diberi ikon centang hijau (Emerald), tahap yang belum dilalui tetap digambar namun berwarna abu-abu redup (*grayed out*) dengan nomor tahapan, dan bilah progres persentase menghubungkan antar tahap secara presisi.
+- [ ] **Uji Timeline Vertikal Responsif di Mobile (< 640px)**:
+  - Buka modal di layar ponsel atau ubah ukuran browser ke resolusi mobile (375px/390px).
+  - Verifikasi: stepper horizontal otomatis disembunyikan dan digantikan oleh *vertical card timeline* dengan titik penanda (*dot markers*) pada rel vertikal abu-abu.
+  - Setiap kartu memuat nomor tahapan, nama aktor/pejabat penanggung jawab, timestamp eksekusi, serta kotak catatan pejabat jika tersedia.
+- [ ] **Uji Modal Lacak Alur di Sisi Ketua Tim (`/ketua-tim/lembur`)**:
+  - Login sebagai Ketua Tim, buka menu Pengajuan Lembur Pribadi Ketua Tim (`/lembur`).
+  - Klik tombol **`Lacak Alur`** pada transaksi approved, pending, maupun ditolak.
+  - Verifikasi: modal tampil presisi dengan status yang sesuai (lingkaran merah silang jika ditolak, hijau jika disetujui, abu-abu jika belum dilalui).
+- [ ] **Uji Ketahanan Sidebar Navigasi saat Resize Layar**:
+  - Ubah ukuran jendela browser dari desktop ke mobile dan sebaliknya berulang kali.
+  - Periksa console browser: tidak ada error *TypeError: Cannot read properties of null (reading 'classList')*.
+
 
 
 
