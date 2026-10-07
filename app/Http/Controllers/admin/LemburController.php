@@ -255,6 +255,19 @@ class LemburController extends Controller
                     'jam_selesai' => 'Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS.'
                 ])->withInput();
             }
+
+            if ($durasi > 12) {
+                return back()->withErrors([
+                    'jam_selesai' => 'Durasi lembur melebihi batas wajar harian (maksimal 12 jam).'
+                ])->withInput();
+            }
+        }
+
+        // Cegah tanda tangan kosong / kanvas polos digital
+        if ($this->isBlankSignature($validated['signature'])) {
+            return back()->withErrors([
+                'signature' => 'Tanda tangan digital tidak boleh kosong atau kanvas polos. Silakan goreskan tanda tangan Anda.'
+            ])->withInput();
         }
 
         $idTransaksi = DB::table('t_transaksi')->insertGetId([
@@ -627,5 +640,59 @@ class LemburController extends Controller
         }
 
         return back()->with('success', 'Pengajuan lembur berhasil dibatalkan.');
+    }
+
+    /**
+     * Memverifikasi apakah kanvas tanda tangan benar-benar digoreskan atau hanya gambar polos/kosong.
+     */
+    private function isBlankSignature(?string $base64Data): bool
+    {
+        if (empty($base64Data)) {
+            return true;
+        }
+
+        $raw = str_replace(['data:image/png;base64,', ' '], ['', '+'], $base64Data);
+        $binary = base64_decode($raw);
+        if (!$binary || strlen($binary) < 500) {
+            return true;
+        }
+
+        if (extension_loaded('gd')) {
+            $img = @imagecreatefromstring($binary);
+            if (!$img) {
+                return true;
+            }
+
+            $w = imagesx($img);
+            $h = imagesy($img);
+            $drawnPixels = 0;
+
+            // Sampling per 2 pixel untuk performa tinggi (eksekusi < 2 milidetik)
+            for ($x = 0; $x < $w; $x += 2) {
+                for ($y = 0; $y < $h; $y += 2) {
+                    $rgba = imagecolorat($img, $x, $y);
+                    $alpha = ($rgba & 0x7F000000) >> 24;
+                    // Pada GD, alpha 127 = 100% transparan
+                    if ($alpha < 120) {
+                        $r = ($rgba >> 16) & 0xFF;
+                        $g = ($rgba >> 8) & 0xFF;
+                        $b = $rgba & 0xFF;
+                        // Bukan warna putih/latar belakang polos
+                        if ($r < 240 || $g < 240 || $b < 240) {
+                            $drawnPixels++;
+                            if ($drawnPixels > 35) {
+                                imagedestroy($img);
+                                return false; // Ditemukan goresan tanda tangan asli
+                            }
+                        }
+                    }
+                }
+            }
+
+            imagedestroy($img);
+            return $drawnPixels <= 35;
+        }
+
+        return false;
     }
 }
