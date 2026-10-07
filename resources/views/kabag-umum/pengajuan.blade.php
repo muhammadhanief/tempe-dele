@@ -482,10 +482,22 @@
 
                         <td class="px-2.5 py-2.5 text-xs text-gray-600">
                             <div class="space-y-1 max-w-[150px]">
+                                @php
+                                    $isSystemNote = !empty($p->note) && (
+                                        str_contains(strtolower($p->note), 'durasi lembur') ||
+                                        str_contains(strtolower($p->note), 'proses bisnis') ||
+                                        str_contains(strtolower($p->note), 'kebijakan') ||
+                                        str_contains(strtolower($p->note), 'sistem')
+                                    );
+                                @endphp
                                 @if(!empty($p->note))
                                     <div>
-                                         <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-slate-500">Ketua Tim:</span>
-                                        <div class="text-[11px] text-slate-700 break-words italic">{{ $p->note }}</div>
+                                        @if($isSystemNote)
+                                            <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Sistem:</span>
+                                        @else
+                                            <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-slate-500">Ketua Tim:</span>
+                                        @endif
+                                        <div class="text-[11px] text-slate-700 break-words italic mt-0.5">{{ $p->note }}</div>
                                     </div>
                                 @endif
                                 @if(!empty($p->note_kabag))

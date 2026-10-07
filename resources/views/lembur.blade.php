@@ -304,10 +304,22 @@
 
                                     <td class="px-4 py-3.5 text-xs text-gray-600">
                                         <div class="max-w-[180px] space-y-1 text-left">
+                                            @php
+                                                $isSystemNote = !empty($t->note) && (
+                                                    str_contains(strtolower($t->note), 'durasi lembur') ||
+                                                    str_contains(strtolower($t->note), 'proses bisnis') ||
+                                                    str_contains(strtolower($t->note), 'kebijakan') ||
+                                                    str_contains(strtolower($t->note), 'sistem')
+                                                );
+                                            @endphp
                                             @if(!empty($t->note))
                                                 <div>
-                                                    <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
-                                                    <div class="text-[11px] text-gray-700 italic break-words">{{ $t->note }}</div>
+                                                    @if($isSystemNote)
+                                                        <span class="inline-block text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Sistem:</span>
+                                                    @else
+                                                        <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
+                                                    @endif
+                                                    <div class="text-[11px] text-gray-700 italic break-words mt-0.5">{{ $t->note }}</div>
                                                 </div>
                                             @endif
                                             @if(!empty($t->note_kabag))
@@ -564,11 +576,26 @@
                                     {{-- Catatan Persetujuan (Clean Quote Bar, NO box borders) --}}
                                     @if(!empty($t->note) || !empty($t->note_kabag))
                                         <div class="space-y-1.5 pt-1">
+                                            @php
+                                                $isSystemNote = !empty($t->note) && (
+                                                    str_contains(strtolower($t->note), 'durasi lembur') ||
+                                                    str_contains(strtolower($t->note), 'proses bisnis') ||
+                                                    str_contains(strtolower($t->note), 'kebijakan') ||
+                                                    str_contains(strtolower($t->note), 'sistem')
+                                                );
+                                            @endphp
                                             @if(!empty($t->note))
-                                                <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
-                                                    <span class="font-semibold text-amber-800">Catatan Ketua:</span>
-                                                    <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
-                                                </div>
+                                                @if($isSystemNote)
+                                                    <div class="border-l-2 border-slate-400 pl-3 py-0.5 text-xs text-slate-600 bg-slate-50 rounded-r-lg">
+                                                        <span class="font-semibold text-slate-700">Catatan Sistem:</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
+                                                    </div>
+                                                @else
+                                                    <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
+                                                        <span class="font-semibold text-amber-800">Catatan Ketua:</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
+                                                    </div>
+                                                @endif
                                             @endif
                                             @if(!empty($t->note_kabag))
                                                 <div class="border-l-2 border-blue-400 pl-3 py-0.5 text-xs text-slate-600 bg-blue-50/40 rounded-r-lg">
@@ -902,9 +929,17 @@
                         </div>
                     </div>
 
-                    <p id="previewDurasi" class="hidden text-xs text-gray-500">
-                        Estimasi: <span id="durasiLabel" class="font-semibold text-gray-800"></span>
-                    </p>
+                    <div id="previewDurasiWrapper">
+                        <p id="previewDurasi" class="hidden text-xs text-gray-500">
+                            Estimasi: <span id="durasiLabel" class="font-semibold text-gray-800"></span>
+                        </p>
+                        <div id="errorDurasiMinimal" class="hidden mt-2 p-2.5 rounded-xl border border-red-200 bg-red-50 text-xs text-red-700 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span><strong>Minimal 2 Jam:</strong> Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.</span>
+                        </div>
+                    </div>
 
                     <div>
                         <div class="mb-2 flex items-center justify-between">
@@ -943,8 +978,8 @@
                             Batal
                         </button>
 
-                        <button type="submit"
-                            class="w-full rounded-lg bg-[#faa938] px-4 py-2 text-sm font-semibold text-black hover:bg-[#fd9a10] hover:text-white sm:w-auto">
+                        <button type="submit" id="btnSubmitAjukan"
+                            class="w-full rounded-lg bg-[#faa938] px-4 py-2 text-sm font-semibold text-black hover:bg-[#fd9a10] hover:text-white sm:w-auto transition-all">
                             Kirim
                         </button>
                     </div>
@@ -1655,8 +1690,8 @@
         let warna = 'text-gray-500';
 
         if (jam < 2) {
-            info += ' — ⚠️ Pengajuan jam lembur minimal 2 jam';
-            warna = 'text-amber-600';
+            info += ' — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.';
+            warna = 'text-red-600 font-bold';
         } else if (jam > 6) {
             info += ' — ⚠️ Maksimal lembur 6 jam';
             warna = 'text-amber-600';
@@ -1671,6 +1706,24 @@
     document.getElementById('edit_jam_mulai')?.addEventListener('change', hitungEditDurasi);
     document.getElementById('edit_jam_selesai')?.addEventListener('input', hitungEditDurasi);
     document.getElementById('edit_jam_selesai')?.addEventListener('change', hitungEditDurasi);
+
+    document.getElementById('formEditLembur')?.addEventListener('submit', function (e) {
+        const mulai = document.getElementById('edit_jam_mulai')?.value;
+        const selesai = document.getElementById('edit_jam_selesai')?.value;
+        if (mulai && selesai) {
+            const [jm, mm] = mulai.split(':').map(Number);
+            const [js, ms] = selesai.split(':').map(Number);
+            let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+            if (totalMenit < 0) totalMenit += 24 * 60;
+            const jam = Math.floor(totalMenit / 60);
+            if (jam < 2) {
+                e.preventDefault();
+                alert('Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS. Silakan sesuaikan jam selesai lembur.');
+                document.getElementById('edit_jam_selesai')?.focus();
+                return;
+            }
+        }
+    });
 
     // =====================
     // MODAL AJUKAN
@@ -1719,6 +1772,12 @@
         document.getElementById('infoHari').classList.add('hidden');
         document.getElementById('infoJamMulai').classList.add('hidden');
         document.getElementById('previewDurasi').classList.add('hidden');
+        document.getElementById('errorDurasiMinimal')?.classList.add('hidden');
+        const btnSubmit = document.getElementById('btnSubmitAjukan');
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
         document.getElementById('signatureError').classList.add('hidden');
 
         if (signaturePad) {
@@ -1827,19 +1886,28 @@
         const selesai = document.getElementById('jam_selesai').value;
         const preview = document.getElementById('previewDurasi');
         const label = document.getElementById('durasiLabel');
+        const errorBox = document.getElementById('errorDurasiMinimal');
+        const btnSubmit = document.getElementById('btnSubmitAjukan');
 
         if (!mulai || !selesai) {
             preview.classList.add('hidden');
+            if (errorBox) errorBox.classList.add('hidden');
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
             return;
         }
 
         const [jm, mm] = mulai.split(':').map(Number);
         const [js, ms] = selesai.split(':').map(Number);
 
-        const totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+        let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+        if (totalMenit < 0) totalMenit += 24 * 60;
 
         if (totalMenit <= 0) {
             preview.classList.add('hidden');
+            if (errorBox) errorBox.classList.add('hidden');
             return;
         }
 
@@ -1850,11 +1918,23 @@
         let warna = 'text-gray-500';
 
         if (jam < 2) {
-            info += ' — ⚠️ Pengajuan jam lembur minimal 2 jam';
-            warna = 'text-amber-500';
-        } else if (jam > 6) {
-            info += ' — ⚠️ Maksimal lembur 6 jam';
-            warna = 'text-amber-500';
+            info += ' — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.';
+            warna = 'text-red-600 font-bold';
+            if (errorBox) errorBox.classList.remove('hidden');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        } else {
+            if (errorBox) errorBox.classList.add('hidden');
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (jam > 6) {
+                info += ' — ⚠️ Maksimal lembur 6 jam';
+                warna = 'text-amber-500';
+            }
         }
 
         label.textContent = info;
@@ -1890,6 +1970,24 @@
     });
 
     document.getElementById('formAjukan')?.addEventListener('submit', function (event) {
+        const mulai = document.getElementById('jam_mulai')?.value;
+        const selesai = document.getElementById('jam_selesai')?.value;
+
+        if (mulai && selesai) {
+            const [jm, mm] = mulai.split(':').map(Number);
+            const [js, ms] = selesai.split(':').map(Number);
+            let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+            if (totalMenit < 0) totalMenit += 24 * 60;
+            const jam = Math.floor(totalMenit / 60);
+
+            if (jam < 2) {
+                event.preventDefault();
+                alert('Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS. Silakan sesuaikan jam selesai lembur.');
+                document.getElementById('jam_selesai')?.focus();
+                return;
+            }
+        }
+
         if (!signaturePad || signaturePad.isEmpty()) {
             event.preventDefault();
             document.getElementById('signatureError').classList.remove('hidden');
