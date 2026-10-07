@@ -137,20 +137,19 @@ class PengajuanController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
         }
 
-        // KUNCI STATUS: Jika sudah diproses (menunggu_kabag, approved, atau rejected), status keputusan tidak boleh dibalik
-        if (in_array($transaksi->status, ['menunggu_kabag', 'approved', 'rejected'])) {
-            if ($transaksi->status === 'rejected' && $request->status !== 'rejected') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Status Ditolak sudah terkunci. Anda hanya dapat mengoreksi catatan penolakan.'
-                ], 422);
-            }
-            if (in_array($transaksi->status, ['menunggu_kabag', 'approved']) && $request->status === 'rejected') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Pengajuan yang sudah diproses atau disetujui tidak dapat dibatalkan menjadi Ditolak. Anda hanya dapat mengoreksi jam disetujui atau catatan.'
-                ], 422);
-            }
+        // KUNCI STATUS: Jika sudah disetujui final (approved) atau sudah ditolak (rejected), status keputusan tidak boleh dibalik.
+        // Namun jika status masih menunggu_kabag (belum disetujui/ditolak Kabag), Ketua Tim tetap dapat mengoreksi menjadi Ditolak.
+        if ($transaksi->status === 'approved' && $request->status === 'rejected') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengajuan yang sudah disetujui final oleh Kabag Umum tidak dapat dibatalkan menjadi Ditolak oleh Ketua Tim.'
+            ], 422);
+        }
+        if ($transaksi->status === 'rejected' && $request->status !== 'rejected') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Status Ditolak sudah terkunci. Anda hanya dapat mengoreksi catatan penolakan.'
+            ], 422);
         }
 
         $noteKetua = trim($request->note ?? '');
@@ -187,6 +186,13 @@ class PengajuanController extends Controller
                 }
             } else {
                 $finalStatus = 'rejected';
+            }
+        } elseif ($transaksi->status === 'menunggu_kabag') {
+            // Selama belum disetujui/ditolak kabag, Ketua Tim tetap bisa mengubah keputusan menjadi Ditolak
+            if ($request->status === 'rejected') {
+                $finalStatus = 'rejected';
+            } else {
+                $finalStatus = 'menunggu_kabag';
             }
         }
 

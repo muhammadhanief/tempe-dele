@@ -300,7 +300,7 @@
                         </td>
 
                         <td class="whitespace-nowrap px-3 py-3 text-center text-xs text-gray-900" id="jam-disetujui-{{ $p->id_transaksi }}">
-                            @if($p->jam_mulai_disetujui && $p->jam_selesai_disetujui)
+                            @if($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')
                                 {{ substr($p->jam_mulai_disetujui, 0, 5) }} - {{ substr($p->jam_selesai_disetujui, 0, 5) }}
                             @else
                                 -
@@ -1114,8 +1114,8 @@ function updateCatatanWajibHint() {
 window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, uraian, hasPresensi, jamSelesaiPresensi, jamPengajuanMulai, jamPengajuanSelesai) {
     currentId = id;
     const currentStatus = status || 'pending';
-    isStatusLocked = (currentStatus !== 'pending');
-    keputusan = isStatusLocked ? currentStatus : null;
+    isStatusLocked = (currentStatus === 'approved' || currentStatus === 'rejected');
+    keputusan = (currentStatus === 'approved' || currentStatus === 'menunggu_kabag') ? 'approved' : (currentStatus === 'rejected' ? 'rejected' : null);
     currentUraian = (uraian !== undefined && uraian !== null) ? uraian : '';
     currentHasPresensi = Boolean(hasPresensi);
     currentJamSelesaiPresensi = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
@@ -1179,14 +1179,13 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, 
     resetBtnKeputusan();
 
     if (currentStatus === 'menunggu_kabag') {
-        modalTitle.textContent = 'Koreksi Jam & Catatan';
-        modalSubtitle.textContent = 'Status Menunggu Kabag terkunci. Anda dapat mengoreksi jam disetujui atau catatan.';
-        wrapperPilihan.classList.add('hidden');
-        wrapperLocked.classList.remove('hidden');
-        bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-blue-50 p-3 border border-blue-200 text-xs text-blue-800 font-medium';
-        lockedText.innerHTML = 'Status <b>Menunggu Kabag</b> terkunci. Pengajuan telah diteruskan ke Kabag Umum. Anda hanya dapat mengoreksi jam disetujui dan catatan.';
+        modalTitle.textContent = 'Koreksi Keputusan & Jam';
+        modalSubtitle.textContent = 'Status masih Menunggu Kabag. Anda masih dapat mengubah keputusan menjadi Ditolak atau mengoreksi jam & catatan.';
+        wrapperPilihan.classList.remove('hidden');
+        wrapperLocked.classList.add('hidden');
         wrapperJam.classList.remove('hidden');
-        btnSimpan.textContent = 'Simpan Koreksi';
+        btnSimpan.textContent = 'Simpan Keputusan';
+        setKeputusan('approved');
     } else if (currentStatus === 'approved') {
         modalTitle.textContent = 'Koreksi Jam & Catatan';
         modalSubtitle.textContent = 'Status Disetujui Final terkunci. Anda dapat mengoreksi jam disetujui atau catatan.';

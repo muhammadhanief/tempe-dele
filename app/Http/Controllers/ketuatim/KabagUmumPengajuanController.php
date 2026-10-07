@@ -179,11 +179,7 @@ class KabagUmumPengajuanController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
         }
 
-        // Pengajuan berstatus pending belum boleh diproses oleh Kabag Umum
-        if ($transaksi->status === 'pending') {
-            return response()->json(['success' => false, 'message' => 'Pengajuan ini masih menunggu persetujuan Ketua Tim.'], 422);
-        }
-
+        // Jika berstatus pending, Kabag Umum (selaku pimpinan dan/atau Ketua Tim Bagian Umum) dapat langsung memproses persetujuan final.
         // KUNCI STATUS: Jika sudah disetujui final atau ditolak, status keputusannya tidak boleh dibalik
         if (in_array($transaksi->status, ['approved', 'rejected']) && $request->status !== $transaksi->status) {
             return response()->json([

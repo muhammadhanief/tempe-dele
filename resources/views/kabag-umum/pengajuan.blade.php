@@ -467,7 +467,7 @@
                         </td>
 
                         <td class="px-1.5 py-2.5 text-center text-xs text-gray-900 whitespace-nowrap font-mono font-semibold" id="jam-disetujui-{{ $p->id_transaksi }}">
-                            @if($p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')
+                            @if($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')
                                 {{ substr($p->jam_mulai_disetujui, 0, 5) }} - {{ substr($p->jam_selesai_disetujui, 0, 5) }}
                             @else
                                 <span class="text-gray-400 font-normal">-</span>
@@ -527,14 +527,14 @@
                         </td>
 
                         <td class="px-2 py-2.5 text-center" id="aksi-kabag-{{ $p->id_transaksi }}">
-                            @if($p->status === 'menunggu_kabag')
+                            @if(in_array($p->status, ['menunggu_kabag', 'pending']))
                                 <button type="button"
                                     onclick="openModalKabag({{ $p->id_transaksi }}, '{{ addslashes($p->nama_pegawai) }}', '{{ addslashes($p->nama_tim ?? '-') }}', '{{ $jamMulaiDef }}', '{{ $jamSelesaiDef }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->note_kabag ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $isBagianUmum ? 1 : 0 }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                    <span>Proses</span>
+                                    <span>{{ $p->status === 'pending' ? 'Setujui' : 'Proses' }}</span>
                                 </button>
                             @elseif(in_array($p->status, ['approved', 'rejected']))
                                 <button type="button"
