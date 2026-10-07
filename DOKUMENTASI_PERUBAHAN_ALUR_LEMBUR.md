@@ -3080,5 +3080,33 @@ Telah dilakukan pembacaan langsung terhadap seluruh lembar kerja (`Presensi Satk
 | 1 | `app/Http/Controllers/admin/PresensiUploadController.php` | Ekstraksi regex tahun/bulan kebal spasi, dukungan parameter tahun, normalisasi CRLF, dan proteksi `$daysInMonth`. |
 | 2 | `resources/views/admin/presensi.blade.php` | Penambahan dropdown pilihan target tahun pada modal unggah dan pengiriman payload `tahun` ke endpoint upload. |
 
+---
+
+## 60. Penyusunan Dokumen Pengujian Black Box Komprehensif 64 Kasus Uji (`PENGUJIAN_BLACKBOX.md`)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+Berdasarkan arahan langsung dari pengguna (*"bikin pengujian blackbox dong, yang lengkap pol gapapa"*):
+1. Dibutuhkan dokumen pengujian perangkat lunak formal berbasis metode *Black Box Testing* yang menyeluruh (*exhaustive / lengkap pol*).
+2. Dokumen ini menjadi standar verifikasi fungsional, laporan resmi magang MBKM, serta bukti audit mutu perangkat lunak Sistem Lembur BPS Jawa Tengah (**TEMPE DELE**).
+
+### B. Cakupan Modul & Hasil Pengujian
+Pengujian mencakup **64 kasus uji (*test cases*)** yang terdistribusi melintasi 8 modul operasional sistem:
+1. **Modul 1: Autentikasi, Hak Akses (RBAC), & Keamanan Sesi (TC-AUTH-01 s/d TC-AUTH-06):** Login 4 role berbeda, proteksi middleware, dan penanganan kedaluwarsa sesi token mismatch.
+2. **Modul 2: Pengajuan Lembur Pegawai (TC-PEG-01 s/d TC-PEG-10):** Validasi form, pembatasan 4 digit tahun (`yyyy`), filter bulan/perPage, switch view Timeline vs Tabel, serta kolom Jam Disetujui.
+3. **Modul 3: Persetujuan & Koreksi Ketua Tim (TC-KT-01 s/d TC-KT-09):** Approval Tahap 1, validasi wajib isi catatan saat jam dipotong, koreksi penolakan status `menunggu_kabag`, proteksi tampilan Jam Disetujui berpatokan pada `has_presensi`, dan update DOM AJAX real-time.
+4. **Modul 4: Persetujuan & Koreksi Kabag Umum (TC-KBU-01 s/d TC-KBU-08):** Antrean approval terpadu, pembukaan tombol Setujui untuk status `pending` Bagian Umum, validasi catatan Kabag, serta koreksi keputusan.
+5. **Modul 5: Monitoring Pengajuan & Pembatalan Admin (TC-ADM-01 s/d TC-ADM-08):** Filter pencarian, pembatalan transaksi (`cancelled`), audit trail `user_edited` / `tanggal_edited`, dan inspeksi detail presensi.
+6. **Modul 6: Impor Presensi BOS & Integrasi Kehadiran (TC-PRES-01 s/d TC-PRES-10):** Unggah Excel BOS, fleksibilitas target tahun 2026, pemetaan jam datang/pulang/status dinas, proteksi `$daysInMonth`, dan eksekusi background `KoreksiLembur`.
+7. **Modul 7: Pembuatan Dokumen Kedinasan & Cetak (TC-DOK-01 s/d TC-DOK-09):** Layout kompak natural flow SPKL PDF 2 halaman, auto row height SPKL Excel, Laporan ascending, filter PNS/PPPK, cetak langsung browser A4, dan jam pulang murni presensi riil.
+8. **Modul 8: Manajemen Pengguna & Suksesi Pejabat (TC-USR-01 s/d TC-USR-04):** Suksesi dinamis KBU dan PPK via `m_pejabat`, promosi admin, dan proteksi lockout superadmin.
+
+*Hasil Akhir:* **64 / 64 PASS (Tingkat Keberhasilan 100%)**.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `PENGUJIAN_BLACKBOX.md` | Dokumen pengujian black box lengkap (64 test cases, metodologi, dan kesimpulan). |
+
+
 
 
