@@ -25,14 +25,14 @@
 | No | Modul / Kelompok Pengujian | Total Kasus Uji | Berhasil (*PASS*) | Gagal (*FAIL*) | Persentase Keberhasilan |
 |:---:|:---|:---: |:---:|:---:|:---:|
 | 1 | Modul 1: Autentikasi, Hak Akses (RBAC), & Keamanan Sesi | 8 | 8 | 0 | **100%** |
-| 2 | Modul 2: Pengajuan Lembur Pegawai (Sisi Pegawai) | 11 | 11 | 0 | **100%** |
+| 2 | Modul 2: Pengajuan Lembur Pegawai (Sisi Pegawai) | 14 | 14 | 0 | **100%** |
 | 3 | Modul 3: Persetujuan & Koreksi Ketua Tim (Tahap 1) | 9 | 9 | 0 | **100%** |
 | 4 | Modul 4: Persetujuan & Koreksi Kabag Umum (Tahap 2 Final) | 8 | 8 | 0 | **100%** |
 | 5 | Modul 5: Monitoring Pengajuan & Pembatalan Admin | 8 | 8 | 0 | **100%** |
 | 6 | Modul 6: Impor Presensi BOS & Integrasi Kehadiran | 10 | 10 | 0 | **100%** |
 | 7 | Modul 7: Pembuatan Dokumen Kedinasan (SPKL, Laporan, Daftar Hadir) | 9 | 9 | 0 | **100%** |
 | 8 | Modul 8: Manajemen Pengguna & Suksesi Pejabat | 4 | 4 | 0 | **100%** |
-| **TOTAL** | **Seluruh Modul Sistem** | **67** | **67** | **0** | **100%** |
+| **TOTAL** | **Seluruh Modul Sistem** | **70** | **70** | **0** | **100%** |
 
 ---
 
@@ -73,6 +73,9 @@
 | **TC-PEG-09** | Transparansi catatan Ketua Tim dan Kabag Umum | 1. Amati kolom Catatan pada pengajuan yang telah diproses | Transaksi dengan note Ketua dan note Kabag | Catatan dari Ketua Tim dan Kabag Umum ditampilkan terpisah dengan identitas aktor yang jelas (*quote strip layout*) | Catatan Ketua dan Kabag muncul terstruktur | **PASS** |
 | **TC-PEG-10** | Pengubahan mandiri (*Edit*) pengajuan sebelum diproses | 1. Klik tombol Ubah (pensil) pada pengajuan berstatus `pending`<br>2. Ubah uraian kegiatan<br>3. Klik Simpan | Perubahan uraian kegiatan | Data pengajuan terbarui, kolom `user_edited` dan `tanggal_edited` terisi audit trail | Data terbarui dan status tetap `pending` | **PASS** |
 | **TC-PEG-11** | Penguncian 1 Pengajuan Lembur per Hari (*Anti-Dobel Input Tanggal*) | 1. Buka modal "Ajukan Lembur"<br>2. Pilih tanggal yang sudah memiliki pengajuan aktif di database (status `pending`, `menunggu_kabag`, atau `approved`)<br>3. Amati tampilan kotak error dan status tombol Kirim<br>4. Coba lakukan pengiriman formulir via klik tombol atau tombol Enter | Tanggal lembur: `2026-10-02` (sudah terdaftar transaksi aktif) | Antarmuka secara proaktif memunculkan kotak peringatan merah `#errorTanggalDobel` berisi informasi status transaksi sebelumnya, border input tanggal berwarna merah rose, tombol Kirim terkunci (`disabled`), pengiriman dicegah alert, dan backend memvalidasi penolakan duplikasi tanggal tanpa membuat entri baru | Kotak peringatan merah muncul real-time, tombol Kirim dinonaktifkan, submit dicegah, backend menolak pengajuan ganda | **PASS** |
+| **TC-PEG-12** | Proteksi peladen ketat penguncian pengubahan data (*Backend Security Edit Lockout*) | 1. Ambil transaksi yang berstatus `menunggu_kabag` (sudah disetujui Ketua Tim) atau `approved`<br>2. Coba kirim request POST/PUT langsung ke `/pegawai/lembur/{id}` via devtools console atau Postman untuk mengubah jam | ID transaksi berstatus `menunggu_kabag` | Controller backend menolak dengan error redirect: *"Pengajuan lembur tidak dapat diubah karena sudah diproses atau disetujui..."*, data di basis data tidak berubah sedikit pun | Request ditolak HTTP 302, pesan session error muncul, data di database tetap utuh terlindungi | **PASS** |
+| **TC-PEG-13** | Pengajuan lembur lintas tengah malam / dini hari (*Cross-Midnight Overtime 21:00 - 02:00*) | 1. Buka modal "Ajukan Lembur"<br>2. Pilih tanggal lembur akhir pekan / dinas mendesak<br>3. Masukkan jam mulai `21:00` dan jam selesai `02:00`<br>4. Amati kalkulasi durasi dan kirimkan pengajuan | Jam mulai: `21:00`<br>Jam selesai: `02:00` (durasi 5 jam) | Antarmuka tidak memunculkan alert pemblokiran jam, menampilkan estimasi: *"5 jam (dihitung 5 jam — 🌙 Lembur lintas tengah malam hingga dini hari)"*, tombol Kirim aktif, peladen menghitung durasi +1 hari (5 jam) dan menyimpan data dengan aman | Durasi 5 jam dihitung tepat dengan badge lembur dini hari, data tersimpan di tabel `t_transaksi` | **PASS** |
+| **TC-PEG-14** | Pencegahan pengiriman formulir dengan kanvas tanda tangan kosong/polos (*Anti-Blank Signature*) | 1. Buka modal "Ajukan Lembur"<br>2. Isi seluruh kolom form kecuali kanvas tanda tangan digital (dibiarkan kosong)<br>3. Klik tombol "Kirim"<br>4. Uji percobaan pengiriman payload kanvas putih polos via direct request | Kanvas tanda tangan kosong / payload gambar transparan kosong | Sisi klien seketika membatalkan pengiriman, memberikan border merah pada kotak kanvas, menampilkan error `#signatureError`, menggulir fokus ke kanvas, memunculkan alert browser. Peladen memverifikasi integritas piksel goresan (GD) dan me-reject request tanpa menyimpan baris data di database | Pengiriman dicegah di front-end dan backend memvalidasi piksel goresan, database tetap bersih tanpa data tanda tangan palsu | **PASS** |
 
 ---
 
