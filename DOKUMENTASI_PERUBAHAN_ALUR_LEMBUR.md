@@ -3193,4 +3193,73 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 5 | `resources/views/kabag-umum/pengajuan.blade.php` | Penataan label Sistem: vs Ketua Tim: pada kolom catatan tabel Kabag Umum. |
 | 6 | `PENGUJIAN_BLACKBOX.md` | Pembaruan kasus uji TC-PEG-03 mencakup validasi batas minimal 2 jam. |
 
+---
+
+## 64. Penerapan Penguncian 1 Pengajuan Lembur per Hari (*Anti-Duplicate Daily Overtime Submission*)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Aturan Akuntansi Lembur & Uang Makan Pemerintah (PMK Kemenkeu & BPS):**
+   - Dalam regulasi keuangan negara, uang makan lembur dibayarkan maksimal 1 kali per pegawai per hari kalender.
+   - Presensi biometrik/fingerprint (*BOS*) hanya mencatat 1 kali jam kepulangan per hari.
+   - Format SPKL dan Surat Pertanggungjawaban (SPJ) BPS per tanggal per pegawai hanya memiliki 1 baris akumulasi.
+2. **Pencegahan Pengajuan Ganda / Bentrok Antar-Tim:**
+   - Sebelumnya, seorang pegawai berpotensi mengajukan lembur lebih dari sekali pada tanggal yang sama (misalnya pukul 17:00 - 19:30 di Tim A, lalu mengajukan lagi pukul 18:00 - 21:00 di Tim B).
+   - Hal tersebut dilarang dalam audit keuangan karena berpotensi *double claim* anggaran DIPA. Pegawai diwajibkan memilih salah satu Tim Pembeban Anggaran utama dan menuliskan seluruh pekerjaan dari berbagai tim ke dalam satu kotak Uraian Kegiatan.
+3. **Ketentuan Pengajuan Ulang (*Re-Apply Tolerance*):**
+   - Jika pengajuan sebelumnya pada tanggal tersebut telah **ditolak (`rejected`)** atau **dibatalkan (`cancelled`)**, pegawai tetap berhak mengajukan kembali (*re-apply*) pada tanggal tersebut. Kuncian hanya berlaku untuk transaksi yang masih aktif (`pending`, `menunggu_kabag`, atau `approved`).
+
+### B. Solusi yang Diterapkan
+1. **Pencegahan Proaktif Sisi Klien (*Client-Side Validation & Modal Lock*):**
+   - Pada `app/Http/Controllers/LemburController.php` dan `app/Http/Controllers/admin/LemburController.php`, fungsi `index()` memuat daftar tanggal aktif yang telah diajukan oleh pengguna:
+     ```php
+     $existingActiveDates = Transaksi::where('submitted_by_NIP', $nip)
+         ->whereNotIn('status', ['rejected', 'cancelled'])
+         ->pluck('status', 'tanggal')
+         ->mapWithKeys(function ($status, $tanggal) {
+             return [Carbon::parse($tanggal)->toDateString() => $status];
+         })
+         ->toArray();
+     ```
+   - Di formulir modal "Ajukan Lembur" (`lembur.blade.php`, `ketua-tim/lembur.blade.php`, `admin/lembur.blade.php`):
+     - Ditanamkan variabel `existingDatesDB` dari data backend.
+     - Event listener real-time `'input'` dan `'change'` pada input `#tanggal` memanggil `periksaTanggalDobel()`.
+     - Jika pegawai memilih tanggal yang sudah ada di basis data:
+       - Kotak peringatan merah `#errorTanggalDobel` seketika muncul menampilkan status pengajuan sebelumnya:
+         `⚠️ Anda sudah memiliki pengajuan lembur pada tanggal [tanggal] (Status: [status]). Ketentuan BPS hanya memperbolehkan 1 pengajuan lembur per hari.`
+       - Border input tanggal berubah menjadi merah rose (`border-rose-500 ring-rose-200`).
+       - Tombol **Kirim Pengajuan** (`#btnSubmitAjukan`) dinonaktifkan (`disabled` dan buram).
+       - Listener submit formulir mencegat aksi dengan `e.preventDefault()`, menampilkan *alert*, dan memfokuskan kembali ke input tanggal.
+     - Saat formulir ditutup atau dibatalkan (`resetFormAjukan`), pesan error dibersihkan dan styling dipulihkan ke normal.
+
+2. **Validasi Ketat Sisi Peladen (*Server-Side Validation*):**
+   - Pada fungsi `store()` di `LemburController.php` dan `admin/LemburController.php`, sistem melakukan pengecekan sebelum menyimpan data:
+     ```php
+     $sudahAdaLembur = Transaksi::where('submitted_by_NIP', $nip)
+         ->whereDate('tanggal', $tanggal->toDateString())
+         ->whereNotIn('status', ['rejected', 'cancelled'])
+         ->first();
+
+     if ($sudahAdaLembur) {
+         return back()->withErrors([
+             'tanggal' => "Anda sudah memiliki pengajuan lembur pada tanggal ini (Status: {$sudahAdaLembur->status_label}). Satu pegawai hanya dapat mengajukan 1 kali lembur per hari sesuai ketentuan BPS."
+         ])->withInput();
+     }
+     ```
+   - Memastikan manipulasi request (seperti via cURL/Postman) tetap ditolak secara kokoh tanpa membuat data ganda di tabel `t_transaksi`.
+
+3. **Sinkronisasi Kasus Uji Pengujian:**
+   - Menambahkan kasus uji **`TC-PEG-11`** pada dokumen `PENGUJIAN_BLACKBOX.md` untuk menguji penguncian satu pengajuan lembur per hari secara menyeluruh.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Passing query `$existingActiveDates` ke view dan validasi backend anti-dobel pengajuan lembur aktif per hari per pegawai. |
+| 2 | `app/Http/Controllers/admin/LemburController.php` | Passing query `$existingActiveDates` ke view dan validasi backend anti-dobel pengajuan lembur per hari untuk form admin. |
+| 3 | `resources/views/lembur.blade.php` | Peringatan real-time `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, integrasi fungsi `hitungDurasi()`, dan submit guard. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Peringatan real-time `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, dan submit guard pada modal pengajuan lembur Ketua Tim. |
+| 5 | `resources/views/admin/lembur.blade.php` | Peringatan real-time `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, dan submit guard pada modal pengajuan lembur Admin. |
+| 6 | `PENGUJIAN_BLACKBOX.md` | Penambahan kasus uji `TC-PEG-11` pada Modul 2 Pengajuan Lembur Pegawai. |
+| 7 | `public/build/*` | Kompilasi aset frontend Vite terbaru. |
+
+
 

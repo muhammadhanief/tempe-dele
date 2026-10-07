@@ -259,6 +259,12 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 157. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penyempurnaan label catatan sistem transparan berbadge abu-abu netral `SISTEM:` pada tabel dan timeline)*.
 158. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Penyempurnaan label catatan sistem transparan `SISTEM:` pada tabel pengajuan Kabag)*.
 159. 📄 **`PENGUJIAN_BLACKBOX.md`** *(Pembaruan skenario uji TC-PEG-03 untuk pencegahan durasi < 2 jam client & server side)*.
+160. 📄 **`app/Http/Controllers/LemburController.php`** *(Passing query `$existingActiveDates` ke view dan validasi backend anti-dobel pengajuan lembur pada tanggal yang sama per pegawai)*.
+161. 📄 **`app/Http/Controllers/admin/LemburController.php`** *(Passing query `$existingActiveDates` ke view dan validasi backend anti-dobel pengajuan lembur pada tanggal yang sama oleh admin)*.
+162. 📄 **`resources/views/lembur.blade.php`** *(Pemeriksaan real-time tanggal dobel sisi klien, peringatan `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, dan submit guard)*.
+163. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Pemeriksaan real-time tanggal dobel sisi klien, peringatan `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, dan submit guard)*.
+164. 📄 **`resources/views/admin/lembur.blade.php`** *(Pemeriksaan real-time tanggal dobel sisi klien, peringatan `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, dan submit guard)*.
+165. 📁 **`public/build/`** *(Bundel produksi Vite terbaru agar perubahan CSS dan JS langsung aktif di produksi)*.
 
 ---
 
@@ -1003,4 +1009,27 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Buka tabel atau timeline pengajuan pada akun Pegawai, Ketua Tim, atau Kabag Umum.
   - Periksa data transaksi lama yang memiliki catatan otomatis sistem (seperti: *"Durasi lembur kurang dari 2 jam."*):
     - Verifikasi: Catatan dilabeli secara tepat dengan badge abu-abu netral **`SISTEM:`** (bukan dilabeli seolah-olah ditulis oleh Ketua Tim: `KETUA TIM:`).
+
+### AX. Uji Penguncian 1 Pengajuan Lembur per Hari (Anti-Dobel Input Tanggal)
+- [ ] **Uji Deteksi Real-Time di Modal Ajukan Lembur**:
+  - Login sebagai Pegawai (misal: NIP Indah `198501252006042001` via dev-login).
+  - Buka modal "Ajukan Lembur" di menu `/lembur`.
+  - Pilih tanggal yang sudah pernah diajukan sebelumnya dan masih aktif (misal tanggal `02/10/2026` yang berstatus Menunggu Ketua / pending):
+    - Verifikasi: Seketika muncul kartu peringatan merah `#errorTanggalDobel`:
+      `⚠️ Anda sudah memiliki pengajuan lembur pada tanggal 2026-10-02 (Status: Menunggu Ketua). Ketentuan BPS hanya memperbolehkan 1 pengajuan lembur per hari.`
+    - Verifikasi: Border input tanggal berubah menjadi merah rose (`border-rose-500 ring-rose-200`).
+    - Verifikasi: Tombol **"Kirim Pengajuan"** (`#btnSubmitAjukan`) langsung terkunci non-aktif (`disabled`) dengan kursor not-allowed dan warna redup.
+    - Verifikasi: Jika formulir dipaksa submit via Enter: aksi dibatalkan (`preventDefault`) dan muncul alert browser: *"Anda sudah memiliki pengajuan lembur pada tanggal tersebut (Status: ...). Ketentuan BPS hanya memperbolehkan 1 pengajuan lembur per hari."*.
+  - Ganti tanggal ke tanggal lain yang belum pernah diajukan (misal `05/10/2026`):
+    - Verifikasi: Kotak peringatan merah `#errorTanggalDobel` seketika menghilang.
+    - Verifikasi: Border input tanggal kembali normal abu-abu.
+    - Verifikasi: Tombol **"Kirim Pengajuan"** kembali aktif (jika durasi sudah >= 2 jam).
+- [ ] **Uji Toleransi Pengajuan Ulang untuk Status Ditolak / Dibatalkan (Re-Apply)**:
+  - Pilih tanggal lembur yang transaksinya berstatus Ditolak (`rejected`) atau Dibatalkan (`cancelled`):
+    - Verifikasi: Kotak peringatan merah **TIDAK** muncul, pegawai diperbolehkan mengajukan ulang pada tanggal tersebut.
+- [ ] **Uji Validasi Backend Server-Side (Anti-Bypass API/Postman)**:
+  - Coba kirim request POST store dengan tanggal yang sudah memiliki transaksi aktif:
+    - Verifikasi: Controller menolak request dan me-redirect dengan error session pada field `tanggal`: *"Anda sudah memiliki pengajuan lembur pada tanggal ini (Status: ...). Satu pegawai hanya dapat mengajukan 1 kali lembur per hari sesuai ketentuan BPS."*.
+    - Verifikasi Database: Tidak ada rekaman baris duplikat yang tersimpan di tabel `t_transaksi`.
+
 
