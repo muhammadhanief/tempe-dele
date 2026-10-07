@@ -225,6 +225,13 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 123. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** *(Penyempurnaan Visual Timeline Simple & Elegan Anti-Clutter: Kartu tanggal putih bersih ber-border halus tanpa header hitam berat, Ring Dot aksis smooth 14px ring-white, Status Pill pastel soft anti-gradient, dan tata letak kartu yang sangat tenang & sejuk di mata)*.
 124. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** *(Implementasi garis vertikal kontinu [`.timeline-stem`] penghubung titik bulatan status timeline [oranye, merah, hijau, biru] tanpa celah/putus, penutupan tag card yang presisi, adaptasi dinamis JavaScript `updateTimelineStems()`, dan pesan kosong `#emptyFilterTimeline`)*.
 125. 📁 **`public/build/`** *(Bundel produksi Vite terbaru: `manifest.json`, `assets/app-6pbceLn9.css`, `assets/app-DbISuP7_.js`)*.
+126. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`** *(Izin pengubahan keputusan/penolakan oleh Ketua Tim selama status transaksi masih `menunggu_kabag` dan belum diproses Kabag Umum)*.
+127. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Pembukaan tombol Setujui/Tolak pada modal koreksi saat `menunggu_kabag`, serta penyembunyian jam disetujui jika presensi belum diimport `!$p->has_presensi`)*.
+128. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`** *(Penghapusan blokir error 422 untuk status `pending` sehingga Kabag Umum dapat langsung menyetujui final pengajuan anggota timnya)*.
+129. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** *(Penayangan tombol aksi Setujui untuk status `pending`, dan pembatasan kolom jam disetujui hanya tampil jika `has_presensi = 1`)*.
+130. 📄 **`app/Exports/SpklExport.php`** *(Penambahan auto row height `setRowHeight(-1)` pada seluruh baris data SPKL Excel agar uraian kegiatan panjang dinamis dan tidak terpotong)*.
+131. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Penyesuaian wrapping teks dan line-height uraian pada SPKL PDF)*.
+132. 📄 **`app/Http/Controllers/admin/DaftarHadirController.php`** *(Penyempurnaan subquery pencocokan NIP lama dan NIP baru untuk memastikan jam kepulangan daftar hadir murni presensi riil)*.
 
 ---
 
@@ -912,6 +919,31 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Garis timeline menyesuaikan secara otomatis secara *real-time*; jika hanya 1 pengajuan yang cocok, garis disembunyikan secara bersih, dan jika lebih dari 1, garis menyambung antar-item yang tampak.
   - Verifikasi: Jika filter tidak menemukan data sama sekali, muncul kotak pesan informatif `#emptyFilterTimeline` yang rapi.
 
-
-
-
+### AV. Uji Koreksi Penolakan Ketua Tim, Approval Pending Kabag Umum, Jam Presensi Riil, dan Auto Row Height SPKL
+- [ ] **Uji Koreksi Menjadi Ditolak oleh Ketua Tim Saat Status `menunggu_kabag`**:
+  - Login sebagai Ketua Tim, buka `/ketua-tim/pengajuan`.
+  - Cari pengajuan yang sebelumnya sudah disetujui (berstatus `menunggu_kabag` dan belum diproses Kabag Umum).
+  - Klik tombol **Koreksi**:
+    - Verifikasi: Tombol pilihan **Setujui** dan **Tolak** tetap aktif dan dapat diklik (tidak terkunci).
+    - Pilih opsi **Tolak**, masukkan alasan penolakan pada catatan, lalu simpan.
+    - Verifikasi: Status transaksi berhasil berubah menjadi `rejected` (Ditolak), jam disetujui dikosongkan (`null`), dan catatan penolakan tersimpan.
+- [ ] **Uji Jam Disetujui Hanya Muncul Jika Presensi Sudah Diimport**:
+  - Pada menu `/ketua-tim/pengajuan` dan `/kabag-umum/pengajuan`:
+  - Periksa kolom **Jam Disetujui** pada tabel pengajuan:
+    - Jika tanggal transaksi tersebut belum memiliki rekaman presensi (`has_presensi = 0`): kolom menampilkan strip `-`.
+    - Jika presensi sudah diimport oleh Admin (`has_presensi = 1`) dan status bukan `rejected`: kolom menampilkan rentang jam disetujui.
+- [ ] **Uji Tombol Aksi & Persetujuan Status Pending oleh Kabag Umum**:
+  - Login sebagai Kabag Umum (Pak Joko Suwarjo), buka `/kabag-umum/pengajuan`.
+  - Periksa baris pengajuan pegawai dari Tim Bagian Umum (misal: Hendro Deasmaran) yang berstatus `pending`:
+    - Verifikasi: Tombol aksi **Setujui** berwarna hijau tampil (tidak lagi menampilkan `-`).
+    - Klik tombol **Setujui**, lengkapi catatan jika perlu, lalu simpan:
+    - Verifikasi: Transaksi langsung diproses menjadi `approved` (Disetujui Final) tanpa memicu error 422.
+- [ ] **Uji Tinggi Baris Dinamis (*Auto Row Height*) SPKL Excel**:
+  - Buka `/admin/dokumen`, unduh berkas **SPKL (XLSX)** periode bersangkutan.
+  - Buka file di Microsoft Excel / LibreOffice:
+  - Verifikasi: Baris pegawai dengan uraian kegiatan panjang secara otomatis memiliki tinggi baris yang dinamis (*auto row height*), teks uraian tampil lengkap dan rapi tanpa terpotong.
+- [ ] **Uji Jam Pulang Murni Presensi BOS pada Daftar Hadir**:
+  - Buka menu Admin `/admin/daftar-hadir`.
+  - Verifikasi kolom jam pulang (pada web, unduh PDF, dan tombol cetak browser):
+    - Jam kepulangan mencerminkan jam selesai riil dari data import presensi BOS (`t_presensi.jam_selesai`).
+    - Jam kepulangan tidak dibatasi atau dipotong oleh batas 4 jam lembur weekday / 6 jam weekend.

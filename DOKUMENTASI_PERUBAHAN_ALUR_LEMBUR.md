@@ -2806,3 +2806,47 @@ Berdasarkan arahan langsung pengguna (*"bagian lingkaran merah orange hijau di s
 | 1 | `resources/views/lembur.blade.php` | Pemasangan garis vertikal kontinu penghubung titik status, perbaikan penutupan tag card, integrasi `updateTimelineStems()`, dan penambahan `#emptyFilterTimeline` pada halaman Pegawai. |
 | 2 | `resources/views/ketua-tim/lembur.blade.php` | Pemasangan garis vertikal kontinu penghubung titik status, perbaikan penutupan tag card, integrasi `updateTimelineStems()`, dan penambahan `#emptyFilterTimeline` pada halaman Ketua Tim. |
 
+---
+
+## 55. Penyempurnaan Alur Koreksi Ketua Tim, Approval Pending Kabag Umum, Sinkronisasi Jam Presensi Riil, dan Tinggi Baris Dinamis Dokumen SPKL
+
+### A. Latar Belakang & Kebutuhan Pengguna
+Berdasarkan arahan langsung pengguna (*"Ketua Tim: kalau misal sudah terlanjur menyetujui, saat klik button koreksi bisa diedit jadi tetep bisa ditolak ya selama status belum disetujui atau ditolak kabag; cek jam yang disetujui ya, harusnya dia baru muncul jika presensi sudah diimport. Kabag Umum: ada nama pegawai yang ga muncul button disetujuinya; cek lagi jam disetujui yang muncul di kabag umum itu diambil dari mana. Admin: untuk laporan ditampilkan per nama per tanggal diurutkan tanggal asc; rekap SPKL tinggi kolom dinamis untuk uraian panjang; menu daftar hadir cetak langsung & jam pulang murni dari presensi BOS"*):
+1. **Fleksibilitas Keputusan Ketua Tim**: Ketua Tim yang terlanjur menyetujui pengajuan sebelumnya tidak dapat mengubah keputusannya menjadi Ditolak meskipun berkas masih berstatus `menunggu_kabag` dan belum diproses oleh Kabag Umum.
+2. **Kesesuaian Tampilan Jam Disetujui**: Kolom Jam Disetujui di sisi Ketua Tim dan Kabag Umum seharusnya hanya dimunculkan jika data presensi riil pegawai sudah diimport oleh Admin (`has_presensi = 1`), guna menghindari ambiguitas sebelum data jam riil tervalidasi.
+3. **Aksesibilitas Tombol Persetujuan Kabag Umum**: Pada pengajuan lembur yang berstatus `pending` (terutama anggota Tim Bagian Umum di mana Kepala Bagian Umum bertindak sebagai Ketua Tim langsung), tombol aksi di halaman Kabag Umum sebelumnya tertutup tanda strip `-` dan diblokir oleh controller.
+4. **Tinggi Baris Dinamis Dokumen SPKL**: Dokumen SPKL (Excel & PDF) memerlukan penyesuaian tinggi baris (*auto row height*) agar pegawai yang memiliki uraian tugas panjang tidak terpotong saat dicetak atau dibuka di spreadsheet.
+5. **Akurasi Jam Pulang Daftar Hadir**: Jam kepulangan di menu Daftar Hadir (web, unduh PDF, dan cetak langsung browser) dipastikan murni merujuk pada jam kepulangan presensi riil dari tabel `t_presensi` (sistem BOS), tanpa dibatasi oleh jam lembur maksimal.
+
+### B. Rincian Solusi & Implementasi Teknis
+1. **Koreksi Penolakan Ketua Tim (`app/Http/Controllers/ketuatim/PengajuanController.php` & `resources/views/ketua-tim/pengajuan.blade.php`)**:
+   - Menghapus pembatasan status kunci pada controller saat status masih `menunggu_kabag`.
+   - Menambahkan penanganan khusus: jika transaksi masih berstatus `menunggu_kabag` dan Ketua Tim memilih `rejected`, status diubah menjadi `rejected`, jam disetujui dikosongkan (`null`), dan catatan disimpan.
+   - Pada antarmuka JavaScript `openModalKeputusan`, atribut `isStatusLocked` diubah menjadi `false` untuk status `menunggu_kabag`, membuka kembali pilihan tombol **Setujui** dan **Tolak** di dalam modal keputusan.
+2. **Kondisi Tampilan Jam Disetujui (`resources/views/ketua-tim/pengajuan.blade.php` & `resources/views/kabag-umum/pengajuan.blade.php`)**:
+   - Kolom tabel Jam Disetujui di kedua halaman kini memeriksa kondisi `$p->has_presensi`.
+   - Jika presensi belum diimport (`!$p->has_presensi`), kolom menampilkan tanda `-`. Jam disetujui hanya muncul jika presensi telah diimport dan pengajuan tidak berstatus `rejected`.
+3. **Pemberian Tombol Aksi Pending untuk Kabag Umum (`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` & `resources/views/kabag-umum/pengajuan.blade.php`)**:
+   - Mengubah kondisi tombol aksi pada tabel Kabag Umum:
+     `@if(in_array($p->status, ['menunggu_kabag', 'pending']))`
+     sehingga pengajuan pending menampilkan tombol **Setujui**.
+   - Pada `KabagUmumPengajuanController::approve()`, menghapus blokir error 422 untuk status `pending`, dan langsung menyetujui transaksi menjadi `approved` (Disetujui Final) dengan mengisi `approved_at` dan `approved_kabag_at`.
+4. **Tinggi Baris Dinamis Rekap SPKL (`app/Exports/SpklExport.php` & `resources/views/dokumen/spkl.blade.php`)**:
+   - Pada `SpklExport.php`, menambahkan iterasi otomatis `setRowHeight(-1)` untuk baris data `$dataStart` hingga `$dataEnd` sehingga Excel menghitung tinggi baris secara dinamis mengikuti panjang teks uraian.
+   - Pada `dokumen/spkl.blade.php`, menambahkan styling `col-uraian` dengan `word-wrap: break-word; word-break: break-word; line-height: 1.35;` agar layout PDF mengalir proporsional.
+5. **Optimasi Presensi Kepulangan Daftar Hadir (`app/Http/Controllers/admin/DaftarHadirController.php`)**:
+   - Menyempurnakan subquery SQL jam kepulangan agar mencocokkan `niplama` presensi baik terhadap `nip_lama` maupun `nip` baru:
+     `(pr.niplama = p.nip_lama OR pr.niplama = p.nip)`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Izin pembatalan/penolakan oleh Ketua Tim selama status masih `menunggu_kabag`. |
+| 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Buka tombol keputusan di modal koreksi `menunggu_kabag` dan batasi tampilan jam disetujui hanya jika `has_presensi`. |
+| 3 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Izin approval langsung untuk transaksi `pending` oleh Kabag Umum. |
+| 4 | `resources/views/kabag-umum/pengajuan.blade.php` | Tampilkan tombol aksi untuk transaksi `pending` dan batasi tampilan jam disetujui hanya jika `has_presensi`. |
+| 5 | `app/Exports/SpklExport.php` | Penambahan auto row height (`setRowHeight(-1)`) pada baris data SPKL Excel. |
+| 6 | `resources/views/dokumen/spkl.blade.php` | Penyesuaian word-wrapping dan line-height uraian pada SPKL PDF. |
+| 7 | `app/Http/Controllers/admin/DaftarHadirController.php` | Penyempurnaan subquery jam pulang presensi riil mendukung multi-format NIP. |
+
+
