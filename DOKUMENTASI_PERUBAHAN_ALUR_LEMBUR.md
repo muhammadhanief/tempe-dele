@@ -2849,4 +2849,33 @@ Berdasarkan arahan langsung pengguna (*"Ketua Tim: kalau misal sudah terlanjur m
 | 6 | `resources/views/dokumen/spkl.blade.php` | Penyesuaian word-wrapping dan line-height uraian pada SPKL PDF. |
 | 7 | `app/Http/Controllers/admin/DaftarHadirController.php` | Penyempurnaan subquery jam pulang presensi riil mendukung multi-format NIP. |
 
+---
 
+## 56. Perbaikan Bug Tampilan Dropdown Filter Bulan Selalu 'Desember 2026' dan Per Halaman '100 / hal' (`resources/views/lembur.blade.php`)
+
+### A. Gejala & Analisis Masalah
+- **Gejala Masalah**:
+  Saat pengguna membuka halaman Pengajuan Lembur Pribadi (`/lembur`), baik secara langsung maupun saat memilih filter bulan tertentu (contoh: `http://127.0.0.1:8000/lembur?bulan=2026-09`), kotak seleksi dropdown periode bulan secara keliru selalu menampilkan **"Desember 2026"**, dan dropdown jumlah baris per halaman selalu menampilkan **"100 / hal"**.
+- **Akar Penyebab (*Root Cause*)**:
+  1. Pada `resources/views/lembur.blade.php` baris 128:
+     Direktif Blade ditulis `@selected($bulan ?? $valBulan)`.
+     Karena `$valBulan` maupun `$bulan` merupakan *string* bukan kosong (misal: `'2026-01'`, `'2026-09'`), ekspresi `$bulan ?? $valBulan` selalu bernilai *truthy* (TRUE) untuk setiap bulan $m = 1$ s.d. $12$. Akibatnya, seluruh 12 tag `<option>` dirender dengan atribut `selected`. Berdasarkan spesifikasi HTML browser, jika terdapat multi-`selected` pada elemen `<select>` tunggal, peramban secara otomatis memilih opsi yang paling terakhir dirender, yaitu bulan ke-12 (**Desember 2026**).
+  2. Pada baris 135-138:
+     Direktif Blade ditulis `@selected($perPage ?? 10) = 10)`.
+     Tanda kurung penutup direktif tertutup terlalu cepat, sehingga Blade mengevaluasi `@selected($perPage ?? 10)` yang selalu bernilai *truthy* untuk seluruh opsi (10, 25, 50, 100), menyebabkan peramban selalu memilih opsi paling terakhir (**100 / hal**).
+
+### B. Solusi & Perbaikan yang Diterapkan
+1. **Perbaikan Syntax `@selected` Bulan**:
+   Mengubah direktif menjadi `@selected(($bulan ?? '') === $valBulan)` serta menyematkan `@selected(empty($bulan))` pada opsi *Semua Bulan*.
+   - Saat URL memuat `?bulan=2026-09`, hanya opsi September yang berstatus `selected`.
+   - Saat URL tanpa parameter bulan (`/lembur`), opsi *Semua Bulan* terpilih secara default.
+2. **Perbaikan Syntax `@selected` Per Halaman**:
+   Mengubah direktif menjadi `@selected(($perPage ?? 10) == 10)` (dan 25, 50, 100) sehingga hanya opsi yang sesuai dengan nilai `$perPage` yang berstatus `selected`.
+3. **Penyelarasan pada Halaman Ketua Tim**:
+   Menyematkan `@selected(empty($bulan))` pada opsi *Semua Bulan* di `resources/views/ketua-tim/lembur.blade.php` agar konsisten 100%.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Perbaikan logika perbandingan `@selected` pada dropdown bulan dan perPage. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan `@selected(empty($bulan))` pada opsi Semua Bulan. |

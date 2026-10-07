@@ -232,6 +232,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 130. 📄 **`app/Exports/SpklExport.php`** *(Penambahan auto row height `setRowHeight(-1)` pada seluruh baris data SPKL Excel agar uraian kegiatan panjang dinamis dan tidak terpotong)*.
 131. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Penyesuaian wrapping teks dan line-height uraian pada SPKL PDF)*.
 132. 📄 **`app/Http/Controllers/admin/DaftarHadirController.php`** *(Penyempurnaan subquery pencocokan NIP lama dan NIP baru untuk memastikan jam kepulangan daftar hadir murni presensi riil)*.
+133. 📄 **`resources/views/lembur.blade.php`** *(Perbaikan logika direktif Blade `@selected` pada dropdown filter bulan dan perPage)*.
+134. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penyelarasan `@selected(empty($bulan))` pada opsi Semua Bulan)*.
 
 ---
 
@@ -947,3 +949,8 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi kolom jam pulang (pada web, unduh PDF, dan tombol cetak browser):
     - Jam kepulangan mencerminkan jam selesai riil dari data import presensi BOS (`t_presensi.jam_selesai`).
     - Jam kepulangan tidak dibatasi atau dipotong oleh batas 4 jam lembur weekday / 6 jam weekend.
+- [ ] **Uji Dropdown Filter Bulan & Jumlah Baris per Halaman**:
+  - Buka menu Pegawai `/lembur` dan coba pilih bulan (misal September 2026 atau `?bulan=2026-09`).
+  - Verifikasi: Kotak dropdown periode bulan secara akurat menampilkan bulan yang dipilih (bukan selalu tertampil Desember).
+  - Verifikasi: Kotak dropdown per halaman menampilkan 10 / hal secara default (bukan selalu 100 / hal).
+  - Saat membuka `/lembur` tanpa parameter URL, dropdown periode bulan menampilkan "Semua Bulan".
