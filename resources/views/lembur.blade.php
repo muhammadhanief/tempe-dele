@@ -963,7 +963,7 @@
                     <div>
                         <label class="mb-2 block text-sm font-medium text-gray-700">Tanda Tangan</label>
 
-                        <div class="overflow-hidden rounded-md border border-gray-300 bg-gray-50">
+                        <div id="signatureCanvasBox" class="overflow-hidden rounded-md border border-gray-300 bg-gray-50 transition-all">
                             <canvas id="signatureCanvas" class="h-40 w-full touch-none"></canvas>
                         </div>
 
@@ -1683,8 +1683,10 @@
         const [js, ms] = selesai.split(':').map(Number);
 
         let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+        let isCrossMidnight = false;
         if (totalMenit < 0) {
             totalMenit += 24 * 60;
+            isCrossMidnight = true;
         }
 
         if (totalMenit <= 0) {
@@ -1696,12 +1698,18 @@
         const menit = totalMenit % 60;
 
         let info = `${jam} jam ${menit > 0 ? menit + ' menit' : ''} (dihitung ${jam} jam)`;
-        let warna = 'text-gray-500';
+        if (isCrossMidnight) {
+            info += ' — 🌙 Lembur lintas tengah malam hingga dini hari';
+        }
+        let warna = isCrossMidnight ? 'text-indigo-600 font-medium' : 'text-gray-500';
 
         if (jam < 2) {
             info += ' — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.';
             warna = 'text-red-600 font-bold';
-        } else if (jam > 6) {
+        } else if (jam > 12) {
+            info += ' — ⚠️ Durasi lembur melebihi batas wajar harian (maksimal 12 jam).';
+            warna = 'text-red-600 font-bold';
+        } else if (jam > 6 && !isCrossMidnight) {
             info += ' — ⚠️ Maksimal lembur 6 jam';
             warna = 'text-amber-600';
         }
@@ -1731,6 +1739,12 @@
                 document.getElementById('edit_jam_selesai')?.focus();
                 return;
             }
+            if (jam > 12) {
+                e.preventDefault();
+                alert('Durasi lembur melebihi batas wajar harian (maksimal 12 jam). Silakan sesuaikan jam selesai lembur.');
+                document.getElementById('edit_jam_selesai')?.focus();
+                return;
+            }
         }
     });
 
@@ -1751,10 +1765,26 @@
             backgroundColor: 'rgb(0, 0, 0, 0)',
             penColor: 'rgb(17, 24, 39)',
         });
+
+        // Hapus styling error segera setelah user mulai menggoreskan tanda tangan
+        signaturePad.addEventListener('beginStroke', () => {
+            const canvasBox = document.getElementById('signatureCanvasBox') || canvas.closest('.overflow-hidden');
+            if (canvasBox) {
+                canvasBox.classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
+                canvasBox.classList.add('border-gray-300');
+            }
+            document.getElementById('signatureError')?.classList.add('hidden');
+        });
     }
 
     function resizeCanvas() {
         if (!canvas || !signaturePad) return;
+
+        const isEmpty = signaturePad.isEmpty();
+        let data = null;
+        if (!isEmpty) {
+            data = signaturePad.toData();
+        }
 
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
         const rect = canvas.getBoundingClientRect();
@@ -1765,7 +1795,11 @@
         const ctx = canvas.getContext('2d');
         ctx.scale(ratio, ratio);
 
-        signaturePad.clear();
+        if (data && !isEmpty) {
+            signaturePad.fromData(data);
+        } else {
+            signaturePad.clear();
+        }
     }
 
     function resetFormAjukan() {
@@ -1774,6 +1808,7 @@
         document.getElementById('tanggal').value = '';
         document.getElementById('jam_mulai').value = '';
         document.getElementById('jam_selesai').value = '';
+        document.getElementById('jam_selesai')?.removeAttribute('min');
         document.getElementById('uraian').value = '';
         const elUraianCount = document.getElementById('uraianCount');
         if (elUraianCount) elUraianCount.textContent = '0 / 2000';
@@ -1789,7 +1824,12 @@
             btnSubmit.disabled = false;
             btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
         }
-        document.getElementById('signatureError').classList.add('hidden');
+        document.getElementById('signatureError')?.classList.add('hidden');
+        const canvasBox = document.getElementById('signatureCanvasBox') || canvas?.closest('.overflow-hidden');
+        if (canvasBox) {
+            canvasBox.classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
+            canvasBox.classList.add('border-gray-300');
+        }
 
         if (signaturePad) {
             signaturePad.clear();
@@ -1826,6 +1866,12 @@
 
     document.getElementById('btnClearSignature')?.addEventListener('click', () => {
         signaturePad?.clear();
+        const canvasBox = document.getElementById('signatureCanvasBox') || canvas?.closest('.overflow-hidden');
+        if (canvasBox) {
+            canvasBox.classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
+            canvasBox.classList.add('border-gray-300');
+        }
+        document.getElementById('signatureError')?.classList.add('hidden');
     });
 
     document.getElementById('uraian')?.addEventListener('input', function () {
@@ -1954,7 +2000,11 @@
         const [js, ms] = selesai.split(':').map(Number);
 
         let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
-        if (totalMenit < 0) totalMenit += 24 * 60;
+        let isCrossMidnight = false;
+        if (totalMenit < 0) {
+            totalMenit += 24 * 60;
+            isCrossMidnight = true;
+        }
 
         if (totalMenit <= 0) {
             preview.classList.add('hidden');
@@ -1966,12 +2016,22 @@
         const menit = totalMenit % 60;
 
         let info = `${jam} jam ${menit > 0 ? menit + ' menit' : ''} (dihitung ${jam} jam)`;
-        let warna = 'text-gray-500';
+        if (isCrossMidnight) {
+            info += ' — 🌙 Lembur lintas tengah malam hingga dini hari';
+        }
+        let warna = isCrossMidnight ? 'text-indigo-600 font-medium' : 'text-gray-500';
 
         if (jam < 2) {
             info += ' — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.';
             warna = 'text-red-600 font-bold';
             if (errorBox) errorBox.classList.remove('hidden');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        } else if (jam > 12) {
+            info += ' — ⚠️ Durasi lembur melebihi batas wajar harian (maksimal 12 jam).';
+            warna = 'text-red-600 font-bold';
             if (btnSubmit) {
                 btnSubmit.disabled = true;
                 btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
@@ -1982,7 +2042,7 @@
                 btnSubmit.disabled = false;
                 btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
             }
-            if (jam > 6) {
+            if (jam > 6 && !isCrossMidnight) {
                 info += ' — ⚠️ Maksimal lembur 6 jam';
                 warna = 'text-amber-500';
             }
@@ -1995,26 +2055,32 @@
 
     document.getElementById('jam_mulai')?.addEventListener('change', function () {
         const jamSelesai = document.getElementById('jam_selesai');
-
-        if (jamSelesai.value && jamSelesai.value <= this.value) {
-            alert('Jam selesai harus setelah jam mulai');
+        if (jamSelesai.value && jamSelesai.value === this.value) {
+            alert('Jam selesai tidak boleh sama persis dengan jam mulai.');
             jamSelesai.value = '';
         }
-
-        if (this.value) {
-            jamSelesai.setAttribute('min', this.value);
-        }
-
+        jamSelesai.removeAttribute('min');
         hitungDurasi();
     });
 
     document.getElementById('jam_selesai')?.addEventListener('change', function () {
         const jamMulai = document.getElementById('jam_mulai').value;
-
-        if (jamMulai && this.value <= jamMulai) {
-            alert('Jam selesai harus setelah jam mulai');
+        if (jamMulai && this.value === jamMulai) {
+            alert('Jam selesai tidak boleh sama persis dengan jam mulai.');
             this.value = '';
             return;
+        }
+
+        if (jamMulai && this.value) {
+            const [jm, mm] = jamMulai.split(':').map(Number);
+            const [js, ms] = this.value.split(':').map(Number);
+            let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+            if (totalMenit < 0) totalMenit += 24 * 60;
+            if (totalMenit > 12 * 60) {
+                alert('Durasi lembur melebihi batas wajar harian (maksimal 12 jam). Silakan sesuaikan kembali jam selesai.');
+                this.value = '';
+                return;
+            }
         }
 
         hitungDurasi();
@@ -2045,11 +2111,28 @@
                 document.getElementById('jam_selesai')?.focus();
                 return;
             }
+            if (jam > 12) {
+                event.preventDefault();
+                alert('Durasi lembur melebihi batas wajar harian (maksimal 12 jam). Silakan sesuaikan jam selesai lembur.');
+                document.getElementById('jam_selesai')?.focus();
+                return;
+            }
         }
 
         if (!signaturePad || signaturePad.isEmpty()) {
             event.preventDefault();
-            document.getElementById('signatureError').classList.remove('hidden');
+            const canvasBox = document.getElementById('signatureCanvasBox') || canvas?.closest('.overflow-hidden');
+            if (canvasBox) {
+                canvasBox.classList.remove('border-gray-300');
+                canvasBox.classList.add('border-rose-500', 'ring-2', 'ring-rose-200');
+            }
+            const sigErr = document.getElementById('signatureError');
+            if (sigErr) {
+                sigErr.textContent = '⚠️ Tanda tangan digital wajib digoreskan sebelum mengirim pengajuan.';
+                sigErr.classList.remove('hidden');
+            }
+            canvas?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            alert('Tanda tangan digital belum diisi! Silakan goreskan tanda tangan Anda pada kotak tanda tangan.');
             return;
         }
 
