@@ -37,8 +37,18 @@ class PresensiUploadController extends Controller
             $sheet       = $spreadsheet->getActiveSheet();
             $rows        = $sheet->toArray();
 
-            $tahun = (int) str_replace('Tahun : ', '', $rows[4][0] ?? date('Y'));
+            // Ambil tahun dari input request jika ada, atau ekstrak 4 digit dari sel header A5
+            $reqTahun = (int) $request->input('tahun');
+            if ($reqTahun >= 2020 && $reqTahun <= 2099) {
+                $tahun = $reqTahun;
+            } elseif (preg_match('/\b(20\d{2})\b/', $rows[4][0] ?? '', $m)) {
+                $tahun = (int) $m[1];
+            } else {
+                $tahun = (int) date('Y');
+            }
+
             $bulan = $this->parseBulan($rows[5][0] ?? '');
+            $daysInMonth = Carbon::create($tahun, $bulan, 1)->daysInMonth;
 
             $isValidJam = fn($j) => preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $j);
             $inserted   = 0;
@@ -51,9 +61,15 @@ class PresensiUploadController extends Controller
 
                 for ($col = 2; $col <= 32; $col++) {
                     $tanggal = $col - 1;
-                    $cell    = trim($row[$col] ?? '');
+                    if ($tanggal > $daysInMonth) {
+                        break;
+                    }
+
+                    $cell = trim($row[$col] ?? '');
                     if (empty($cell)) continue;
 
+                    // Normalisasi CRLF Windows menjadi \n tunggal
+                    $cell = str_replace(["\r\n", "\r"], "\n", $cell);
                     $parts      = explode("\n", $cell);
                     $jamMulai   = trim($parts[0] ?? '');
                     $jamSelesai = trim($parts[1] ?? '');
@@ -110,8 +126,9 @@ class PresensiUploadController extends Controller
                 'uploaded_at' => now(),
             ]);
 
+            $namaPeriode = Carbon::create($tahun, $bulan, 1)->translatedFormat('F Y');
             return response()->json([
-                'message' => "Upload berhasil! $inserted data presensi disimpan.",
+                'message' => "Upload berhasil! $inserted data presensi periode $namaPeriode disimpan.",
             ]);
 
         } catch (\Exception $e) {
@@ -126,8 +143,12 @@ class PresensiUploadController extends Controller
             'mei' => 5, 'juni' => 6, 'juli' => 7, 'agustus' => 8,
             'september' => 9, 'oktober' => 10, 'november' => 11, 'desember' => 12,
         ];
-        $str = strtolower(str_replace('Bulan : ', '', $str));
-        return $bulanMap[$str] ?? (int) date('m');
+        foreach ($bulanMap as $namaBulan => $num) {
+            if (stripos($str, $namaBulan) !== false) {
+                return $num;
+            }
+        }
+        return (int) date('m');
     }
 
     public function getKalender(Request $request)
