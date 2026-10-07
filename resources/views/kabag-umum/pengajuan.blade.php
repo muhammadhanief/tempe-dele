@@ -1014,7 +1014,7 @@ window.simpanKeputusanKabag = function() {
         // Update jam disetujui di tabel
         const jamEl = document.getElementById(`jam-disetujui-${currentKabagId}`);
         if (jamEl) {
-            if (finalStatus === 'rejected' || !approvedMulai || !approvedSelesai) {
+            if (finalStatus === 'rejected' || !approvedMulai || !approvedSelesai || !currentHasPresensiKabag) {
                 jamEl.innerHTML = `<span class="text-gray-400 font-normal">-</span>`;
             } else {
                 jamEl.textContent = `${approvedMulai} - ${approvedSelesai}`;

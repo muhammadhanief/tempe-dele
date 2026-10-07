@@ -1414,7 +1414,7 @@ window.simpanKeputusan = function() {
 
         const jamDisetujuiElement = document.getElementById(`jam-disetujui-${currentId}`);
         if (jamDisetujuiElement) {
-            jamDisetujuiElement.textContent = (finalStatus !== 'rejected' && approvedMulai && approvedSelesai)
+            jamDisetujuiElement.textContent = (currentHasPresensi && finalStatus !== 'rejected' && approvedMulai && approvedSelesai)
                 ? `${approvedMulai} - ${approvedSelesai}`
                 : '-';
         }

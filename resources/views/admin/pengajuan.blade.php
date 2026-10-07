@@ -301,7 +301,7 @@
                         </td>
 
                         <td class="px-2 py-2 text-xs text-gray-900 text-center whitespace-nowrap" id="jam-disetujui-{{ $p->id_transaksi }}">
-                            @if($p->jam_mulai_disetujui && $p->jam_selesai_disetujui)
+                            @if($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')
                                 {{ substr($p->jam_mulai_disetujui,0,5) }} - {{ substr($p->jam_selesai_disetujui,0,5) }}
                             @else
                                 -
@@ -1478,7 +1478,7 @@ window.simpanKeputusan = function() {
 
         const jamEl = document.querySelector(`#jam-disetujui-${currentId}`);
         if (jamEl) {
-            jamEl.textContent = (keputusan === 'rejected' || keputusan === 'cancelled') ? '-' : `${jamMulai} - ${jamSelesai}`;
+            jamEl.textContent = (keputusan === 'rejected' || keputusan === 'cancelled' || !currentHasPresensi) ? '-' : `${jamMulai} - ${jamSelesai}`;
         }
 
         if (data.uraian !== undefined) {
