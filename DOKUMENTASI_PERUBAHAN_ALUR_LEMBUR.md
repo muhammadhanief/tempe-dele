@@ -3129,3 +3129,33 @@ Pengujian mencakup **66 kasus uji (*test cases*)** yang terdistribusi melintasi 
 | 2 | `resources/js/app.js` | Menghapus pembajakan event mouse drag mousedown/mousemove agar seleksi teks native kembali aktif. |
 | 3 | `PENGUJIAN_BLACKBOX.md` | Memperbarui rincian kasus uji `TC-AUTH-02` mencakup skenario terhubung API maupun penanganan ConnectionException. |
 | 4 | `public/build/assets/*` | Hasil kompilasi bundel aset CSS dan JavaScript Vite terbaru. |
+
+---
+
+## 62. Implementasi Sistem Navigasi Tabel Hibrida (*Floating Chevrons*, *Right-Click Pan*, & *Selection Edge Auto-Scroll*)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+Pengguna menghendaki solusi hibrida (*best of both worlds*): teks di dalam tabel tetap dapat disorot/diseleksi (*selection*) secara bebas menggunakan klik kiri, namun pengguna tetap dapat menggeser (*scroll/pan*) tabel horizontal dengan sangat nyaman tanpa harus repot mengarahkan kursor ke batang scrollbar bawah.
+
+### B. Solusi yang Diterapkan
+Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `resources/js/app.js` dan `resources/css/app.css`:
+1. **Tombol Panah Melayang (*Floating Navigation Chevrons* `‹` dan `›`):**
+   - Secara otomatis menyisipkan tombol navigasi melayang semi-transparan dengan efek blur kaca di sisi kiri (`table-nav-left`) dan kanan (`table-nav-right`) tabel.
+   - Tombol muncul dinamis saat pengguna mengarahkan mouse ke kartu tabel, dan otomatis hilang jika tabel sudah berada di ujung kiri/kanan.
+   - Sekali klik langsung menggeser tabel sejauh 320px dengan transisi halus (*smooth scroll*).
+2. **Geser Kertas via Klik Kanan / Klik Roda Tengah (*Right-Click / Middle-Click Pan Drag*):**
+   - Pengguna cukup menahan tombol klik kanan atau klik roda tengah mouse, lalu menarik kursor ke samping untuk menggeser tabel seketika (*pan*).
+   - Menu konteks klik kanan dicegah secara pintar hanya apabila pengguna benar-benar melakukan gerakan geser (*drag*).
+   - Klik kiri tetap 100% didedikasikan untuk seleksi teks native dan klik aksi.
+3. **Geser Tahan Spasi / Alt (*Figma/Photoshop Pan Mode*):**
+   - Menahan tombol `Spacebar` (di luar input form) atau tombol `Alt` akan mengubah kursor menjadi tangan cakar (`grab`), memungkinkan klik kiri drag untuk menggeser tabel.
+4. **Auto-Scroll Otomatis saat Seleksi Teks Menuju Tepi (*Selection Edge Auto-Scroll*):**
+   - Ketika pengguna menyeleksi teks dengan klik kiri lalu menarik mouse mendekati tepi kanan atau kiri tabel, tabel otomatis bergulir sendiri sehingga pengguna dapat menyeleksi lintas kolom tersembunyi tanpa terpotong.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/css/app.css` | Menambahkan styling tombol panah melayang `.table-nav-btn`, parent relative, dan kelas pan mode. |
+| 2 | `resources/js/app.js` | Menambahkan logika floating buttons, right/middle click drag pan, Spacebar pan listener, dan edge auto-scroll. |
+| 3 | `public/build/assets/*` | Hasil kompilasi bundel aset Vite terbaru. |
+
