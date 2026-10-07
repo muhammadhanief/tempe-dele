@@ -882,7 +882,7 @@
 
                     <div>
                         <label for="tanggal" class="mb-2 block text-sm font-medium text-gray-700">Tanggal</label>
-                        <input type="date" id="tanggal" name="tanggal"
+                        <input type="date" id="tanggal" name="tanggal" min="1970-01-01" max="2099-12-31"
                             class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
                         <p id="infoHari" class="mt-1 hidden text-xs text-gray-400"></p>
                     </div>

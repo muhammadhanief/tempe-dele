@@ -85,6 +85,24 @@
                 }
             }
         });
+
+        // Global Date Input Safeguard (Batasi Tahun Maksimal 4 Digit - Anti Typo 5 Digit)
+        document.addEventListener('input', function (e) {
+            if (e.target && e.target.type === 'date' && e.target.value) {
+                const parts = e.target.value.split('-');
+                if (parts[0] && parts[0].length > 4) {
+                    parts[0] = parts[0].slice(0, 4);
+                    e.target.value = parts.join('-');
+                }
+            }
+        }, true);
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('input[type="date"]').forEach(function (el) {
+                if (!el.hasAttribute('max')) el.setAttribute('max', '2099-12-31');
+                if (!el.hasAttribute('min')) el.setAttribute('min', '1970-01-01');
+            });
+        });
     </script>
 
 </body>

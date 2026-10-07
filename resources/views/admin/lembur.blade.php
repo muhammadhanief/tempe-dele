@@ -1009,7 +1009,7 @@
                             Tanggal
                         </label>
 
-                        <input type="date" id="tanggal" name="tanggal"
+                        <input type="date" id="tanggal" name="tanggal" min="1970-01-01" max="2099-12-31"
                             class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900">
 
                         <p id="infoHari" class="mt-1 text-xs text-gray-400 hidden"></p>

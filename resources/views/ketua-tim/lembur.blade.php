@@ -704,7 +704,7 @@
 
                     <div>
                         <label for="tanggal" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanggal Lembur</label>
-                        <input type="date" id="tanggal" name="tanggal" required
+                        <input type="date" id="tanggal" name="tanggal" required min="1970-01-01" max="2099-12-31"
                             class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
                         <p id="infoHari" class="mt-1 hidden text-xs text-gray-500"></p>
                     </div>
