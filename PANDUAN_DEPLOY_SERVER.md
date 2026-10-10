@@ -1063,5 +1063,18 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - Verifikasi: Backend via fungsi `isBlankSignature()` memeriksa piksel gambar citra nyata (GD) dan me-redirect kembali dengan error validasi: *"Tanda tangan digital tidak boleh kosong atau kanvas polos. Silakan goreskan tanda tangan Anda."*.
     - Verifikasi Database: Tidak ada baris data baru yang tersimpan di `t_transaksi`.
 
+### AZ. Uji Deduplikasi Dropdown Pencarian Pegawai Ketua Tim (/ketua-tim/pengajuan)
+- [ ] **Uji Dropdown Pencarian Pegawai Bebas Duplikasi**:
+  - Login sebagai Ketua Tim (misal: Pak Sumbodo Aji Cahyono / SID via shortcut dev-login).
+  - Buka menu **Pengajuan Lembur Tim** (`/ketua-tim/pengajuan`).
+  - Klik kotak filter pencarian pegawai *"Cari nama pegawai..."* untuk membuka daftar dropdown.
+  - Verifikasi:
+    - Seluruh nama pegawai tim kerja tersusun rapi secara unik (tepat 1 entri per pegawai).
+    - Tidak ada nama pegawai yang muncul berulang/dobel (seperti Yuli, Pristiana, Indah, dsb. hanya muncul 1 kali).
+    - Daftar pegawai tersusun terurut berdasarkan nama A-Z.
+  - Coba pilih salah satu nama pegawai (misal: Pristiana / Indah):
+    - Tabel berhasil memfilter pengajuan khusus pegawai yang dipilih secara akurat.
+
+
 
 

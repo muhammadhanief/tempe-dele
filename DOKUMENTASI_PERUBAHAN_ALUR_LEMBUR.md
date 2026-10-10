@@ -3325,6 +3325,39 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 6 | `PENGUJIAN_BLACKBOX.md` | Penambahan kasus uji `TC-PEG-12`, `TC-PEG-13`, dan `TC-PEG-14` (Total 70 Kasus Uji, 100% PASS). |
 | 7 | `public/build/*` | Hasil kompilasi bundel aset Vite terbaru. |
 
+---
+
+## 66. Eliminasi Duplikasi Nama Pegawai pada Dropdown Filter Pencarian Ketua Tim (`/ketua-tim/pengajuan`)
+
+### A. Latar Belakang & Akar Masalah (*Root Cause*)
+1. **Duplikasi Entri Tim Kerja pada Data Master (`m_tim`):**
+   - Pada basis data kantor BPS (`lembur_real`), seorang Ketua Tim dapat terdaftar pada lebih dari satu baris tim. Sebagai contoh, Pak Sumbodo Aji Cahyono terdaftar sebagai `nipbaru_ketua` pada dua entri:
+     - `AGeoDMOm0Z7ZXbz4` (Tim Kerja Sistem Informasi dan Diseminasi — `status: aktif`, 15 anggota).
+     - `XaQd5EY1m0EKY3pA` (Tim Kerja Sistem Informasi dan Diseminasi (SID) — `status: nonaktif`, 67 anggota sebelum restrukturisasi).
+2. **Ketiadaan Filter Status Tim & Klausa Distinct:**
+   - Pada endpoint `GET /ketua-tim/pengajuan/anggota` (`PengajuanController::anggotaTim()`), kueri sebelumnya hanya mencocokkan `mt.nipbaru_ketua = $nipKetua` tanpa menyaring `mt.status = 'aktif'` dan tanpa `DISTINCT`.
+   - Akibatnya, seluruh pegawai tim aktif yang juga tercatat di tim historis nonaktif ditarik dua kali lipat (menghasilkan 82 rekaman dari yang seharusnya 15-16 orang), sehingga setiap nama pegawai muncul dobel di antarmuka *search dropdown*.
+
+### B. Solusi yang Diterapkan
+1. **Deduplikasi dan Penyatuan Relasi di Sisi Peladen (*Backend Query Deduplication*):**
+   - Pada `app/Http/Controllers/ketuatim/PengajuanController.php`:
+     - Memfilter secara eksplisit keanggotaan dari tim kerja aktif (`mt.status = 'aktif'`).
+     - Menggabungkan data anggota tim aktif dengan pegawai yang pernah/sedang memiliki transaksi lembur di bawah arahan Ketua Tim bersangkutan (`t_transaksi.approver_employee_id = $nipKetua`) menggunakan klausa `UNION DISTINCT`.
+     - Mengurutkan hasil secara alfabetis menaik (`orderBy('nama', 'asc')`).
+     - Pada fungsi `index()`, query penentuan `$tim` utama juga memprioritaskan tim dengan `status = 'aktif'`.
+2. **Deduplikasi Proaktif Sisi Klien (*Frontend Map Deduplication*):**
+   - Pada `resources/views/ketua-tim/pengajuan.blade.php`:
+     - Hasil respon `fetch('/ketua-tim/pengajuan/anggota')` diproses melalui struktur data `Map()` berbasis NIP (`!uniqueMap.has(emp.nip)`) sebelum disimpan ke `cachedAnggota`.
+     - Menjamin antarmuka dropdown pencarian pegawai 100% bebas dari duplikasi nama dalam kondisi apa pun.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Filter tim aktif, `UNION DISTINCT` anggota tim & pemohon transaksi, dan sort abjad A-Z. |
+| 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Deduplikasi `Map` NIP pada array anggota tim sebelum render dropdown. |
+| 3 | `public/build/*` | Bundel aset frontend Vite terbaru. |
+
+
 
 
 
