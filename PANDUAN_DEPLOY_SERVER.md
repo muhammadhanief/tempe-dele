@@ -1096,6 +1096,17 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Pada mode Timeline di `/kabag-umum/pengajuan`, ketikkan nama pegawai pada input pencarian:
     - Verifikasi: Kartu linimasa otomatis tersaring secara instan sesuai kata kunci pencarian dan garis stem linimasa tetap rapi terhubung.
 
+### BB. Uji Format Tampilan NIP Lama pada Header Kartu Linimasa (Ketua Tim, Kabag Umum, & Admin)
+- [ ] **Uji Format Micro-Badge NIP Lama**:
+  - Buka halaman **Pengajuan Lembur** pada peran Ketua Tim (`/ketua-tim/pengajuan`), Kabag Umum (`/kabag-umum/pengajuan`), dan Administrator (`/admin/pengajuan`) dalam mode **Timeline**.
+  - Temukan kartu pegawai yang memiliki data NIP lama (misal: Pak Herry Kusmaiwanto S.Si).
+  - Verifikasi:
+    - NIP Lama tampil sebagai micro-badge berlatar lembut rapi: `Lama: 340018283`.
+    - Tidak lagi berupa angka dalam tanda kurung polos yang canggung `(340018283)`.
+    - Menggunakan tipografi monospace yang serasi dengan NIP utama 18 digit.
+    - Hover pada badge menampilkan tooltip info: *"NIP Lama BPS"*.
+
+
 
 
 

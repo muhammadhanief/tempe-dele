@@ -3393,6 +3393,36 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 3 | `resources/views/admin/pengajuan.blade.php` | Perbaikan aksis garis linimasa, date box ramping, baris jam horizontal, wadah uraian kegiatan, penyelarasan kotak avatar inisial amber khas Ketua Tim, dan sinkronisasi AJAX `simpanKeputusan()`. |
 | 4 | `public/build/*` | Hasil kompilasi bundel aset frontend Vite terbaru. |
 
+---
+
+## 68. Standarisasi dan Perapihan Penyajian NIP Lama (NIP BPS) pada Header Kartu Linimasa (`/ketua-tim/pengajuan`, `/kabag-umum/pengajuan`, `/admin/pengajuan`)
+
+### A. Latar Belakang Masalah
+1. **Penyajian NIP Lama yang Janggal (*Awkward Hanging Brackets*):**
+   - Sebelumnya, data NIP lama pada kartu linimasa Ketua Tim hanya dirender dengan tanda kurung polos tanpa label deskriptif: `(340018283)` yang menempel langsung di samping NIP baru `NIP. 197205242006041002`.
+   - Menggunakan tipografi `font-sans` yang bentrok dengan tipografi `font-mono` dari NIP utama, sehingga terlihat seperti kesalahan ketik (*typo*) atau raw dump data yang tidak diformat.
+   - Pada halaman Kabag Umum dan Administrator, informasi NIP lama bahkan belum ditampilkan sama sekali pada kartu linimasa.
+
+### B. Solusi & Perbaikan Antarmuka (UI/UX)
+1. **Format Micro-Badge Monospace Elegan & Terstruktur:**
+   - Mengemas NIP Lama ke dalam micro-badge berlatar lembut (`bg-slate-100 border border-slate-200/60 rounded px-1.5 py-0.5 text-[10.5px] font-mono text-slate-500`).
+   - Menyertakan label penjelas lembut `<span class="text-slate-400 font-sans text-[9.5px] mr-1 font-medium">Lama:</span>` dan tooltip `title="NIP Lama BPS"`.
+   - Menghilangkan kurung polos yang canggung dan menyelaraskan ritme visual bersama badge tim kerja di sebelahnya.
+2. **Penerapan Seragam Multi-Peran:**
+   - Diterapkan secara konsisten di seluruh 3 halaman linimasa persetujuan:
+     - `resources/views/ketua-tim/pengajuan.blade.php`
+     - `resources/views/kabag-umum/pengajuan.blade.php`
+     - `resources/views/admin/pengajuan.blade.php`
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Penggantian format kurung polos NIP lama menjadi micro-badge `Lama: [NIP Lama]`. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Penambahan micro-badge NIP lama di samping NIP pegawai pada header kartu linimasa. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Penambahan micro-badge NIP lama di samping NIP pegawai pada header kartu linimasa. |
+| 4 | `public/build/*` | Bundel aset frontend produksi Vite terbaru. |
+
+
 
 
 
