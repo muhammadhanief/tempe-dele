@@ -172,7 +172,7 @@
 ## 🎯 4. KESIMPULAN HASIL PENGUJIAN BLACK BOX
 
 1. **Integritas Fungsional (100% PASS):**  
-   Dari total **66 kasus uji** yang dieksekusi melintasi 8 modul utama, seluruhnya menghasilkan status **PASS** (Berhasil sesuai spesifikasi yang diharapkan).
+   Dari total **70 kasus uji** yang dieksekusi melintasi 8 modul utama, seluruhnya menghasilkan status **PASS** (Berhasil sesuai spesifikasi yang diharapkan).
 2. **Keberhasilan Penyesuaian Alur Kerja (*Business Logic Compliance*):**
    - Alur persetujuan bertingkat (*Pegawai $\rightarrow$ Ketua Tim $\rightarrow$ Kabag Umum $\rightarrow$ Dokumen SPKL*) terbukti mengalir tanpa kendala.
    - Fitur koreksi penolakan oleh Ketua Tim saat pengajuan berstatus `menunggu_kabag` bekerja fleksibel tanpa tertahan status kunci.
