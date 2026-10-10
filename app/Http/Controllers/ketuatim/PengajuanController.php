@@ -150,18 +150,20 @@ class PengajuanController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
         }
 
-        // KUNCI STATUS: Jika sudah disetujui final (approved) atau sudah ditolak (rejected), status keputusan tidak boleh dibalik.
-        // Namun jika status masih menunggu_kabag (belum disetujui/ditolak Kabag), Ketua Tim tetap dapat mengoreksi menjadi Ditolak.
+        // KUNCI STATUS:
+        // 1. Jika sudah disetujui final (approved) oleh Kabag Umum, Ketua Tim tidak dapat membatalkan menjadi Ditolak.
         if ($transaksi->status === 'approved' && $request->status === 'rejected') {
             return response()->json([
                 'success' => false,
                 'message' => 'Pengajuan yang sudah disetujui final oleh Kabag Umum tidak dapat dibatalkan menjadi Ditolak oleh Ketua Tim.'
             ], 422);
         }
-        if ($transaksi->status === 'rejected' && $request->status !== 'rejected') {
+
+        // 2. Jika pengajuan ditolak oleh Kabag Umum, Ketua Tim tidak dapat mengubah keputusan penolakan pimpinan.
+        if ($transaksi->status === 'rejected' && !empty($transaksi->approved_kabag_at) && $request->status !== 'rejected') {
             return response()->json([
                 'success' => false,
-                'message' => 'Status Ditolak sudah terkunci. Anda hanya dapat mengoreksi catatan penolakan.'
+                'message' => 'Pengajuan ini telah ditolak oleh Kepala Bagian Umum dan tidak dapat diubah oleh Ketua Tim.'
             ], 422);
         }
 
@@ -207,13 +209,25 @@ class PengajuanController extends Controller
             } else {
                 $finalStatus = 'menunggu_kabag';
             }
+        } elseif ($transaksi->status === 'rejected') {
+            // Pengajuan ditolak di level Ketua Tim: Ketua Tim dapat mengoreksi menjadi Disetujui (diteruskan ke Kabag)
+            if ($request->status === 'approved') {
+                if ($isTimBagianUmum || $isApproverKabag) {
+                    $finalStatus = 'approved';
+                    $approvedKabagAt = now();
+                } else {
+                    $finalStatus = 'menunggu_kabag';
+                }
+            } else {
+                $finalStatus = 'rejected';
+            }
         }
 
         if ($finalStatus !== 'rejected' && $transaksi->jam_mulai && $transaksi->jam_selesai) {
             $mulaiAwal = substr($transaksi->jam_mulai, 0, 5);
             $selesaiAwal = substr($transaksi->jam_selesai, 0, 5);
-            $mulaiBaru = $request->jam_mulai_disetujui ? substr($request->jam_mulai_disetujui, 0, 5) : null;
-            $selesaiBaru = $request->jam_selesai_disetujui ? substr($request->jam_selesai_disetujui, 0, 5) : null;
+            $mulaiBaru = $request->jam_mulai_disetujui ? substr($request->jam_mulai_disetujui, 0, 5) : $mulaiAwal;
+            $selesaiBaru = $request->jam_selesai_disetujui ? substr($request->jam_selesai_disetujui, 0, 5) : $selesaiAwal;
 
             if (($mulaiBaru !== $mulaiAwal || $selesaiBaru !== $selesaiAwal) && empty($noteKetua)) {
                 return response()->json([
@@ -239,9 +253,12 @@ class PengajuanController extends Controller
             }
         } else {
             // approved atau menunggu_kabag
-            if ($request->jam_mulai_disetujui && $request->jam_selesai_disetujui) {
-                $jamMulaiDisetujui   = Carbon::parse($transaksi->date . ' ' . $request->jam_mulai_disetujui);
-                $jamSelesaiDisetujui = Carbon::parse($transaksi->date . ' ' . $request->jam_selesai_disetujui);
+            $jamMulaiVal = $request->jam_mulai_disetujui ?: $transaksi->jam_mulai;
+            $jamSelesaiVal = $request->jam_selesai_disetujui ?: $transaksi->jam_selesai;
+
+            if ($jamMulaiVal && $jamSelesaiVal) {
+                $jamMulaiDisetujui   = Carbon::parse($transaksi->date . ' ' . $jamMulaiVal);
+                $jamSelesaiDisetujui = Carbon::parse($transaksi->date . ' ' . $jamSelesaiVal);
 
                 if ($jamSelesaiDisetujui->lessThan($jamMulaiDisetujui)) {
                     $jamSelesaiDisetujui->addDay();
@@ -249,7 +266,10 @@ class PengajuanController extends Controller
 
                 // Validasi: Jam selesai disetujui tidak boleh melebihi jam kepulangan presensi (jika data presensi tersedia)
                 $presensi = DB::table('t_presensi')
-                    ->where('niplama', $transaksi->nip_lama)
+                    ->where(function($q) use ($transaksi) {
+                        if ($transaksi->nip_lama) $q->where('niplama', $transaksi->nip_lama);
+                        if ($transaksi->submitted_by_NIP) $q->orWhere('niplama', $transaksi->submitted_by_NIP);
+                    })
                     ->whereDate('tanggal', $transaksi->date)
                     ->first();
 
@@ -278,6 +298,8 @@ class PengajuanController extends Controller
                 $updateData['approved_kabag_at'] = $approvedKabagAt;
             } elseif ($finalStatus === 'approved' && ($isTimBagianUmum || $isApproverKabag) && empty($transaksi->approved_kabag_at)) {
                 $updateData['approved_kabag_at'] = now();
+            } elseif ($finalStatus === 'menunggu_kabag') {
+                $updateData['approved_kabag_at'] = null;
             }
         }
 

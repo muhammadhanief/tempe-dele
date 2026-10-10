@@ -371,7 +371,7 @@
                         <td class="px-3 py-3 text-center" id="aksi-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
                                 <button type="button"
-                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
+                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -382,7 +382,7 @@
                                 <span class="text-slate-500 text-xs italic">Dibatalkan</span>
                             @else
                                 <button type="button"
-                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
+                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
@@ -609,7 +609,7 @@
                                         <div id="aksi-timeline-{{ $p->id_transaksi }}">
                                             @if($p->status === 'pending')
                                                 <button type="button"
-                                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
+                                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
                                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#faa938] text-white hover:bg-[#fd9a10] shadow-2xs hover:shadow transition-all cursor-pointer">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
@@ -620,7 +620,7 @@
                                                 <span class="text-slate-500 text-xs italic">Dibatalkan</span>
                                             @else
                                                 <button type="button"
-                                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
+                                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
                                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
@@ -1383,10 +1383,11 @@ function updateCatatanWajibHint() {
     }
 }
 
-window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, uraian, hasPresensi, jamSelesaiPresensi, jamPengajuanMulai, jamPengajuanSelesai) {
+window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, uraian, hasPresensi, jamSelesaiPresensi, jamPengajuanMulai, jamPengajuanSelesai, isKabagProcessed) {
     currentId = id;
     const currentStatus = status || 'pending';
-    isStatusLocked = (currentStatus === 'approved' || currentStatus === 'rejected');
+    const kabagProcessed = Boolean(isKabagProcessed);
+    isStatusLocked = (currentStatus === 'approved' || (currentStatus === 'rejected' && kabagProcessed));
     keputusan = (currentStatus === 'approved' || currentStatus === 'menunggu_kabag') ? 'approved' : (currentStatus === 'rejected' ? 'rejected' : null);
     currentUraian = (uraian !== undefined && uraian !== null) ? uraian : '';
     currentHasPresensi = Boolean(hasPresensi);
@@ -1468,14 +1469,24 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, 
         wrapperJam.classList.remove('hidden');
         btnSimpan.textContent = 'Simpan Koreksi';
     } else if (currentStatus === 'rejected') {
-        modalTitle.textContent = 'Koreksi Catatan Penolakan';
-        modalSubtitle.textContent = 'Status Ditolak terkunci. Anda dapat mengoreksi catatan alasan penolakan.';
-        wrapperPilihan.classList.add('hidden');
-        wrapperLocked.classList.remove('hidden');
-        bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800 font-medium';
-        lockedText.innerHTML = 'Status <b>Ditolak</b> terkunci. Anda dapat mengoreksi catatan alasan penolakan.';
-        wrapperJam.classList.add('hidden');
-        btnSimpan.textContent = 'Simpan Koreksi';
+        if (kabagProcessed) {
+            modalTitle.textContent = 'Koreksi Catatan Penolakan';
+            modalSubtitle.textContent = 'Pengajuan ditolak oleh Kabag Umum. Anda hanya dapat mengoreksi catatan alasan penolakan.';
+            wrapperPilihan.classList.add('hidden');
+            wrapperLocked.classList.remove('hidden');
+            bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800 font-medium';
+            lockedText.innerHTML = 'Status <b>Ditolak Kabag Umum</b> terkunci. Anda tidak dapat mengubah keputusan pimpinan.';
+            wrapperJam.classList.add('hidden');
+            btnSimpan.textContent = 'Simpan Koreksi';
+        } else {
+            modalTitle.textContent = 'Koreksi Keputusan (Sebelumnya Ditolak)';
+            modalSubtitle.textContent = 'Pengajuan ini sebelumnya Anda tolak. Anda dapat mengubah keputusan menjadi Disetujui (diteruskan ke Kabag) atau memperbarui catatan penolakan.';
+            wrapperPilihan.classList.remove('hidden');
+            wrapperLocked.classList.add('hidden');
+            btnSimpan.textContent = 'Simpan Keputusan';
+            setKeputusan('rejected');
+            wrapperJam.classList.add('hidden');
+        }
     } else {
         // Pending
         modalTitle.textContent = 'Keputusan Lembur';
@@ -1521,7 +1532,12 @@ window.setKeputusan = function(value) {
     } else {
         document.getElementById('kBtnSetujui').className = 'flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-800 transition-all shadow-xs';
         wrapperJam.classList.remove('hidden');
+        const elM = document.getElementById('kJamMulai');
+        const elS = document.getElementById('kJamSelesai');
+        if (!elM.value && currentJamPengajuanMulai) elM.value = currentJamPengajuanMulai;
+        if (!elS.value && currentJamPengajuanSelesai) elS.value = currentJamPengajuanSelesai;
     }
+    cekWarningDurasi();
     updateCatatanWajibHint();
 };
 
@@ -1668,13 +1684,15 @@ window.simpanKeputusan = function() {
             }
         }
 
+        const safeKabagProcessed = (finalStatus === 'approved' || (data.approved_kabag_at ? 1 : 0));
+
         const aksiElement = document.getElementById(`aksi-${currentId}`);
         if (aksiElement) {
             const safeNote = JSON.stringify(data.note || catatan || '');
             const safeUraian = JSON.stringify(currentUraian);
             const presensiFlag = currentHasPresensi ? 1 : 0;
             aksiElement.innerHTML = `
-                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}")'
+                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}", ${safeKabagProcessed})'
                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
@@ -1732,7 +1750,7 @@ window.simpanKeputusan = function() {
             const safeUraian = JSON.stringify(currentUraian);
             const presensiFlag = currentHasPresensi ? 1 : 0;
             aksiTimelineEl.innerHTML = `
-                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}")'
+                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}", ${safeKabagProcessed})'
                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
