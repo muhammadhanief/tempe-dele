@@ -1075,6 +1075,29 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Coba pilih salah satu nama pegawai (misal: Pristiana / Indah):
     - Tabel berhasil memfilter pengajuan khusus pegawai yang dipilih secara akurat.
 
+### BA. Uji Mode Tampilan Linimasa (Timeline Card) pada Persetujuan Ketua Tim (/ketua-tim/pengajuan)
+- [ ] **Uji Sakelar Mode Tampilan (Tabel vs Timeline) & Persistensi**:
+  - Buka menu **Pengajuan Lembur Tim** (`/ketua-tim/pengajuan`).
+  - Verifikasi: Di header atas terdapat sakelar mode `[ 📋 Tabel ]` dan `[ 📍 Timeline ]`.
+  - Klik tombol `[ 📍 Timeline ]`:
+    - Verifikasi: Wadah tabel berganti mulus menjadi wadah kartu linimasa vertikal.
+    - Garis linimasa (`.timeline-stem`) menghubungkan setiap kartu pengajuan dengan bulatan dot status berwarna sesuai status transaksi.
+  - Muat ulang (refresh) halaman atau tutup tab dan buka kembali:
+    - Verifikasi: Mode linimasa tetap aktif (tersimpan otomatis di `localStorage: ketuaTimPengajuanViewMode = 'timeline'`).
+  - Klik kembali tombol `[ 📋 Tabel ]`:
+    - Verifikasi: Tampilan beralih kembali ke tabel data standar dan status tersimpan di `localStorage`.
+- [ ] **Uji Kelengkapan Informasi Kartu Linimasa Multi-Pegawai**:
+  - Pada mode Linimasa, periksa salah satu kartu pengajuan lembur:
+    - Verifikasi: Identitas pegawai pengaju terpampang jelas (avatar monogram inisial, nama lengkap, dan NIP 18 digit).
+    - Verifikasi: Kotak tanggal menyajikan hari, tanggal, dan bulan.
+    - Verifikasi: Jam pengajuan lembur, rincian uraian kegiatan, dan status badge tampil lengkap.
+    - Verifikasi: Jam lembur disetujui hanya tampil jika rekaman presensi BOS telah ada (`has_presensi = 1`), konsisten dengan proteksi sistem.
+- [ ] **Uji Sinkronisasi Real-Time Keputusan Tanpa Reload pada Kartu Linimasa**:
+  - Klik tombol **"Proses"** atau **"Koreksi"** pada salah satu kartu linimasa untuk membuka modal keputusan.
+  - Ubah status persetujuan atau catatan Ketua Tim, lalu simpan keputusan:
+    - Verifikasi: Kartu linimasa seketika memperbarui badge status, warna dot indikator, jam disetujui, dan catatan tanpa perlu memuat ulang seluruh halaman.
+
+
 
 
 

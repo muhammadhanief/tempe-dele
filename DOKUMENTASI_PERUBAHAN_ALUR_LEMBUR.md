@@ -3357,6 +3357,38 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Deduplikasi `Map` NIP pada array anggota tim sebelum render dropdown. |
 | 3 | `public/build/*` | Bundel aset frontend Vite terbaru. |
 
+---
+
+## 67. Penyediaan Mode Tampilan Linimasa (Timeline Card) pada Modul Persetujuan Pengajuan Lembur Ketua Tim (`/ketua-tim/pengajuan`)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Keterbatasan Visual Tabel pada Evaluasi Pengajuan Tim:**
+   - Modul persetujuan lembur Ketua Tim sebelumnya hanya menyediakan tata letak tabel baris-kolom konvensional.
+   - Pada halaman riwayat lembur pegawai (`/lembur`), pengguna telah menikmati pengalaman visual mode Linimasa (*Timeline View*) yang menyajikan kronologi permohonan secara elegan.
+   - Ketua Tim membutuhkan fleksibilitas tampilan visual serupa yang dioptimalkan untuk konteks manajerial: mampu menampilkan identitas anggota tim pengaju secara jelas, mudah dipantau di layar *mobile/tablet*, dan tetap menyediakan aksi cepat persetujuan (`Proses` / `Koreksi`).
+
+### B. Solusi yang Diterapkan
+1. **Sakelar Mode Tampilan (*Toggle View Switcher*) & Persistensi Status:**
+   - Menambahkan komponen sakelar tombol di sudut kanan atas header halaman `/ketua-tim/pengajuan`: `[ 📋 Tabel ]` dan `[ 📍 Timeline ]`.
+   - Mengintegrasikan penyimpanan lokal peramban via `localStorage.getItem('ketuaTimPengajuanViewMode')`. Preferensi mode yang dipilih Ketua Tim akan tersimpan otomatis dan langsung dipulihkan saat membuka kembali halaman.
+2. **Desain Komponen Kartu Linimasa Khusus Multi-Pegawai:**
+   - **Date Box Terstruktur:** Kotak tanggal dengan format hari dalam seminggu, tanggal, dan bulan singkat Bahasa Indonesia.
+   - **Garis Alur Linimasa (*Continuous Stem & Status Dot*):** Menggunakan elemen garis kontinu `.timeline-stem` dan bulatan indikator warna dinamis (kuning cerah untuk `pending`, biru berdenyut untuk `menunggu_kabag`, hijau daun untuk `approved`, dan merah mawar untuk `rejected`).
+   - **Identitas Lengkap Anggota Pengaju:** Menampilkan avatar monogram inisial nama bergradien hangat khas BPS Jateng, nama lengkap bergelar, serta NIP 18 digit.
+   - **Proteksi Penayangan Jam Disetujui Bersyarat Presensi:** Kotak jam lembur disetujui (`approved_start - approved_end`) dilindungi variabel `$p->has_presensi`, menjamin jam nominal hanya tampil apabila data presensi fisik BOS telah diimpor ke sistem.
+   - **Informasi Pendukung & Aksi Manajerial:** Kartu menyajikan rincian uraian pekerjaan, waktu pengajuan lembur, tombol popup presensi BOS, catatan verifikasi, serta tombol keputusan interaktif (`Proses` atau `Koreksi`).
+3. **Sinkronisasi Real-Time Dua Arah Tanpa Memuat Ulang Halaman (*Zero-Reload Real-time AJAX Sync*):**
+   - Fungsi `simpanKeputusan()` dimutakhirkan agar menyelaraskan perubahan data secara langsung di kedua mode tampilan sekaligus:
+     - Sisi Tabel: `#status-${id}`, `#jam-disetujui-${id}`, `#aksi-${id}`.
+     - Sisi Timeline: `#status-timeline-${id}`, `#dot-timeline-${id}`, `#jam-disetujui-box-timeline-${id}`, `#uraian-timeline-${id}`, `#catatan-timeline-${id}`, `#aksi-timeline-${id}`.
+   - Menghasilkan pengalaman interaksi instan tanpa jeda bagi Ketua Tim baik saat menggunakan mode Tabel maupun mode Linimasa.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Penambahan sakelar mode tampilan, implementasi wadah kartu linimasa (`#viewContainerTimeline`), skrip switcher `switchViewMode()`, `updateTimelineStems()`, dan sinkronisasi AJAX dua arah. |
+| 2 | `public/build/*` | Hasil kompilasi bundel aset frontend Vite terbaru. |
+
 
 
 
