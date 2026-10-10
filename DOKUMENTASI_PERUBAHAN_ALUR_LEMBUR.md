@@ -3389,8 +3389,8 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
 | 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Standarisasi kartu linimasa 3-kolom, date box kompak, baris jam terpadu, kotak uraian kegiatan, persistensi localStorage, dan sinkronisasi AJAX. |
-| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Perbaikan aksis garis linimasa, date box ramping, baris jam horizontal, wadah uraian kegiatan, filter search real-time, dan sinkronisasi AJAX `simpanKeputusanKabag()`. |
-| 3 | `resources/views/admin/pengajuan.blade.php` | Perbaikan aksis garis linimasa, date box ramping, baris jam horizontal, wadah uraian kegiatan, dan sinkronisasi AJAX `simpanKeputusan()`. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Perbaikan aksis garis linimasa, date box ramping, baris jam horizontal, wadah uraian kegiatan, penyelarasan kotak avatar inisial amber khas Ketua Tim, filter search real-time, dan sinkronisasi AJAX `simpanKeputusanKabag()`. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Perbaikan aksis garis linimasa, date box ramping, baris jam horizontal, wadah uraian kegiatan, penyelarasan kotak avatar inisial amber khas Ketua Tim, dan sinkronisasi AJAX `simpanKeputusan()`. |
 | 4 | `public/build/*` | Hasil kompilasi bundel aset frontend Vite terbaru. |
 
 
