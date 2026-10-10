@@ -533,6 +533,11 @@
                                                 </h4>
                                                 <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
                                                     <span class="text-[11px] font-mono text-slate-500">NIP. {{ $p->nip_pegawai }}</span>
+                                                    @if(!empty($p->nip_lama))
+                                                        <span class="inline-flex items-center text-[10.5px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/60" title="NIP Lama BPS">
+                                                            <span class="text-slate-400 font-sans text-[9.5px] mr-1 font-medium">Lama:</span>{{ $p->nip_lama }}
+                                                        </span>
+                                                    @endif
                                                     @if(!empty($p->nama_tim))
                                                         <span class="text-slate-300">·</span>
                                                         <span class="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
