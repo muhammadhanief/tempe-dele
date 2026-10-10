@@ -3359,35 +3359,38 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 
 ---
 
-## 67. Penyediaan Mode Tampilan Linimasa (Timeline Card) pada Modul Persetujuan Pengajuan Lembur Ketua Tim (`/ketua-tim/pengajuan`)
+## 67. Penyediaan Mode Tampilan Linimasa (Timeline Card) Universal pada Seluruh Modul Persetujuan Lembur: Ketua Tim (`/ketua-tim/pengajuan`), Kabag Umum (`/kabag-umum/pengajuan`), dan Administrator (`/admin/pengajuan`)
 
 ### A. Latar Belakang & Kebutuhan Pengguna
-1. **Keterbatasan Visual Tabel pada Evaluasi Pengajuan Tim:**
-   - Modul persetujuan lembur Ketua Tim sebelumnya hanya menyediakan tata letak tabel baris-kolom konvensional.
-   - Pada halaman riwayat lembur pegawai (`/lembur`), pengguna telah menikmati pengalaman visual mode Linimasa (*Timeline View*) yang menyajikan kronologi permohonan secara elegan.
-   - Ketua Tim membutuhkan fleksibilitas tampilan visual serupa yang dioptimalkan untuk konteks manajerial: mampu menampilkan identitas anggota tim pengaju secara jelas, mudah dipantau di layar *mobile/tablet*, dan tetap menyediakan aksi cepat persetujuan (`Proses` / `Koreksi`).
+1. **Kebutuhan Standarisasi Visual Multi-Peran (Pilihan 3):**
+   - Sebelumnya, tampilan linimasa (*Timeline View*) hanya tersedia secara eksklusif pada halaman riwayat lembur pegawai (`/lembur`).
+   - Guna menghadirkan fleksibilitas antarmuka yang setara, modern, dan ramah sentuhan layar gawai (*mobile/tablet friendly*), seluruh modul persetujuan pengajuan lembur yang diakses oleh **Ketua Tim**, **Kepala Bagian Umum**, dan **Administrator** kini dilengkapi dengan sakelar mode tampilan ganda: **Tabel Data Ringkas** (`[ 📋 Tabel ]`) dan **Linimasa Kronologis** (`[ 📍 Timeline ]`).
 
 ### B. Solusi yang Diterapkan
-1. **Sakelar Mode Tampilan (*Toggle View Switcher*) & Persistensi Status:**
-   - Menambahkan komponen sakelar tombol di sudut kanan atas header halaman `/ketua-tim/pengajuan`: `[ 📋 Tabel ]` dan `[ 📍 Timeline ]`.
-   - Mengintegrasikan penyimpanan lokal peramban via `localStorage.getItem('ketuaTimPengajuanViewMode')`. Preferensi mode yang dipilih Ketua Tim akan tersimpan otomatis dan langsung dipulihkan saat membuka kembali halaman.
+1. **Sakelar Mode Tampilan (*Toggle View Switcher*) & Persistensi Lokal Independen:**
+   - Menyediakan sakelar segmented toggle button pada setiap halaman:
+     - Ketua Tim: `localStorage.getItem('ketuaTimPengajuanViewMode')`
+     - Kabag Umum: `localStorage.getItem('kabagUmumPengajuanViewMode')`
+     - Administrator: `localStorage.getItem('adminPengajuanViewMode')`
+   - Preferensi tampilan yang dipilih pengguna tersimpan secara mandiri per peran dan langsung dipulihkan secara otomatis saat membuka kembali halaman.
 2. **Desain Komponen Kartu Linimasa Khusus Multi-Pegawai:**
-   - **Date Box Terstruktur:** Kotak tanggal dengan format hari dalam seminggu, tanggal, dan bulan singkat Bahasa Indonesia.
-   - **Garis Alur Linimasa (*Continuous Stem & Status Dot*):** Menggunakan elemen garis kontinu `.timeline-stem` dan bulatan indikator warna dinamis (kuning cerah untuk `pending`, biru berdenyut untuk `menunggu_kabag`, hijau daun untuk `approved`, dan merah mawar untuk `rejected`).
-   - **Identitas Lengkap Anggota Pengaju:** Menampilkan avatar monogram inisial nama bergradien hangat khas BPS Jateng, nama lengkap bergelar, serta NIP 18 digit.
+   - **Date Box Terstruktur:** Kotak kalender dengan nama hari, angka tanggal besar, dan bulan/tahun Bahasa Indonesia.
+   - **Garis Alur Linimasa (*Continuous Stem & Status Dot*):** Menggunakan elemen garis kontinu `.timeline-stem` dan bulatan indikator warna dinamis (kuning: pending, biru berdenyut: menunggu_kabag, hijau: approved, merah: rejected, abu-abu: cancelled).
+   - **Identitas Lengkap Anggota Pengaju:** Menampilkan avatar monogram inisial nama bergradien hangat, nama lengkap bergelar, NIP 18 digit, serta informasi Tim Kerja dan Ketua Tim pembina.
    - **Proteksi Penayangan Jam Disetujui Bersyarat Presensi:** Kotak jam lembur disetujui (`approved_start - approved_end`) dilindungi variabel `$p->has_presensi`, menjamin jam nominal hanya tampil apabila data presensi fisik BOS telah diimpor ke sistem.
-   - **Informasi Pendukung & Aksi Manajerial:** Kartu menyajikan rincian uraian pekerjaan, waktu pengajuan lembur, tombol popup presensi BOS, catatan verifikasi, serta tombol keputusan interaktif (`Proses` atau `Koreksi`).
+   - **Informasi Pendukung & Aksi Manajerial:** Kartu menyajikan rincian uraian pekerjaan, waktu pengajuan lembur, tombol popup presensi BOS, catatan verifikasi lintas atasan, serta tombol aksi keputusan interaktif (`Proses`, `Setujui`, atau `Koreksi`).
 3. **Sinkronisasi Real-Time Dua Arah Tanpa Memuat Ulang Halaman (*Zero-Reload Real-time AJAX Sync*):**
-   - Fungsi `simpanKeputusan()` dimutakhirkan agar menyelaraskan perubahan data secara langsung di kedua mode tampilan sekaligus:
-     - Sisi Tabel: `#status-${id}`, `#jam-disetujui-${id}`, `#aksi-${id}`.
-     - Sisi Timeline: `#status-timeline-${id}`, `#dot-timeline-${id}`, `#jam-disetujui-box-timeline-${id}`, `#uraian-timeline-${id}`, `#catatan-timeline-${id}`, `#aksi-timeline-${id}`.
-   - Menghasilkan pengalaman interaksi instan tanpa jeda bagi Ketua Tim baik saat menggunakan mode Tabel maupun mode Linimasa.
+   - Seluruh fungsi AJAX (`simpanKeputusan()`, `simpanKeputusanKabag()`) diperluas untuk memperbarui kedua wadah tampilan secara simultan: elemen tabel dan elemen kartu linimasa.
+   - Filter pencarian pegawai (`filterTableRows()`) pada Kabag Umum juga otomatis menyaring kartu linimasa dan menyelaraskan garis alur linimasa secara responsif.
 
 ### C. Berkas yang Diperbarui
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
-| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Penambahan sakelar mode tampilan, implementasi wadah kartu linimasa (`#viewContainerTimeline`), skrip switcher `switchViewMode()`, `updateTimelineStems()`, dan sinkronisasi AJAX dua arah. |
-| 2 | `public/build/*` | Hasil kompilasi bundel aset frontend Vite terbaru. |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Mode visual linimasa Ketua Tim, persistensi localStorage, dan sinkronisasi AJAX. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Subheader banner toggle switcher, wadah linimasa Kabag Umum, filter search real-time, dan sinkronisasi AJAX `simpanKeputusanKabag()`. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Page header switcher, wadah linimasa Admin, dan sinkronisasi AJAX `simpanKeputusan()`. |
+| 4 | `public/build/*` | Hasil kompilasi bundel aset frontend Vite terbaru. |
+
 
 
 
