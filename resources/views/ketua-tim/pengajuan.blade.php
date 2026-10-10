@@ -606,7 +606,13 @@ let cachedAnggota = [];
 fetch('/ketua-tim/pengajuan/anggota')
     .then(response => response.json())
     .then(data => {
-        cachedAnggota = Array.isArray(data) ? data : [];
+        const uniqueMap = new Map();
+        (Array.isArray(data) ? data : []).forEach(emp => {
+            if (emp && emp.nip && !uniqueMap.has(emp.nip)) {
+                uniqueMap.set(emp.nip, emp);
+            }
+        });
+        cachedAnggota = Array.from(uniqueMap.values());
         if (activeNip) {
             const emp = cachedAnggota.find(e => e.nip === activeNip);
             if (emp) {
