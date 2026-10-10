@@ -3422,6 +3422,32 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 3 | `resources/views/admin/pengajuan.blade.php` | Penambahan NIP lama dalam kurung `text-[11px] font-mono text-slate-400` di samping NIP pegawai. |
 | 4 | `public/build/*` | Bundel aset frontend produksi Vite terbaru. |
 
+---
+
+## 69. Fleksibilitas Koreksi Keputusan Penolakan Internal Ketua Tim (`rejected` $\rightarrow$ `menunggu_kabag` / `approved`)
+
+### A. Latar Belakang Masalah
+1. **Kekakuan Alur Penolakan (*Overly Rigid Status Lock*):**
+   - Sebelumnya, jika Ketua Tim menolak permohonan lembur seorang pegawai (`status = 'rejected'`), status tersebut terkunci mati secara permanen bagi Ketua Tim.
+   - Di lapangan kedinasan, Ketua Tim sering menolak karena alasan teknis sederhana (uraian kegiatan belum lengkap, salah paham durasi, atau salah klik).
+   - Di sisi lain, Ketua Tim telah memiliki kewenangan mengoreksi uraian tugas pegawai secara langsung. Namun setelah uraian diperbaiki, Ketua Tim tidak dapat membalikkan keputusannya menjadi *Setujui*, sehingga pegawai terpaksa harus mengisi formulir dan tanda tangan ulang dari awal.
+
+### B. Solusi & Batasan Wewenang Kedinasan
+1. **Hak Koreksi Penolakan Internal:**
+   - Selama berkas ditolak di level Ketua Tim sendiri (`status = 'rejected'` dan `approved_kabag_at IS NULL`), Ketua Tim diberikan fleksibilitas untuk membuka kembali modal keputusan dan mengubah keputusan menjadi **Setujui** (diteruskan ke Kabag Umum sebagai `menunggu_kabag`, atau langsung `approved` untuk Tim Bagian Umum).
+   - Pada modal keputusan, saat Ketua Tim beralih dari *Tolak* ke *Setujui*, bilah jam disetujui otomatis muncul kembali dan nilai default-nya terisi otomatis dari jam pengajuan pegawai (`jam_mulai` dan `jam_selesai`).
+2. **Proteksi Otoritas Pimpinan (Kabag Umum):**
+   - Jika pengajuan telah **disetujui final oleh Kabag Umum (`approved`)**, Ketua Tim tetap **terkunci** (tidak bisa membatalkan/menolak apa yang telah disetujui pimpinan).
+   - Jika pengajuan **ditolak oleh Kabag Umum (`approved_kabag_at IS NOT NULL`)**, status tetap **terkunci permanen bagi Ketua Tim** dengan pesan: *"Pengajuan ini telah ditolak oleh Kepala Bagian Umum dan tidak dapat diubah oleh Ketua Tim."*
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Validasi kunci status diperluas: hanya menolak jika ditolak oleh Kabag Umum. Mengizinkan transisi `rejected` $\rightarrow$ `menunggu_kabag`/`approved` dengan fallback jam pengajuan. |
+| 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Penambahan parameter `isKabagProcessed`, pembukaan tombol pilihan keputusan pada penolakan internal, auto-fill jam pengajuan saat beralih ke Setujui, dan sinkronisasi AJAX real-time. |
+| 3 | `public/build/*` | Bundel aset frontend produksi Vite terbaru. |
+
+
 
 
 

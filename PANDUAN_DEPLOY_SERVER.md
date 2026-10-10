@@ -1105,6 +1105,22 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - Ukuran font sama persis dengan NIP utama (`text-[11px]`).
     - Menggunakan tipografi monospace (`font-mono text-slate-400`) yang serasi dan sejajar presisi dengan NIP 18 digit (`text-[11px] font-mono text-slate-500`).
 
+### BC. Uji Fleksibilitas Koreksi Penolakan Internal Ketua Tim
+- [ ] **Uji Pembalikan Penolakan Internal Menjadi Disetujui**:
+  - Login sebagai Ketua Tim, buka `/ketua-tim/pengajuan`.
+  - Pilih pengajuan berstatus `pending`, lakukan aksi penolakan (**Tolak**).
+  - Verifikasi status berubah menjadi `Ditolak` dan tombol aksi menjadi `Koreksi`.
+  - Klik tombol **Koreksi** pada pengajuan yang baru saja ditolak tersebut:
+    - Verifikasi: Modal keputusan menampilkan judul *"Koreksi Keputusan (Sebelumnya Ditolak)"* dan tombol pilihan keputusan (**Setujui** & **Tolak**) terbuka aktif (tidak terkunci).
+    - Klik tombol **Setujui**:
+      - Verifikasi: Bilah jam disetujui seketika muncul kembali dan otomatis terisi dengan jam pengajuan pegawai (`jam_mulai` & `jam_selesai`).
+    - Simpan keputusan:
+      - Verifikasi: Status berhasil beralih menjadi `Menunggu Kabag` (atau `Disetujui` untuk tim Bagian Umum) tanpa memunculkan error kuncian status.
+- [ ] **Uji Proteksi Penolakan & Persetujuan Kabag Umum**:
+  - Verifikasi: Pengajuan yang telah disetujui final oleh Kabag Umum (`approved`) tetap terkunci dari aksi penolakan Ketua Tim.
+  - Verifikasi: Pengajuan yang ditolak oleh Kabag Umum (`approved_kabag_at IS NOT NULL`) tetap terkunci permanen bagi Ketua Tim.
+
+
 
 
 
