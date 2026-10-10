@@ -55,9 +55,21 @@ class PengajuanController extends Controller
             : 'desc';
 
         $tim = DB::table('m_tim')
-            ->where('nipbaru_ketua', $nipKetua)
-            ->orWhere('niplama_ketua', $nipLamaKetua)
+            ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                if ($nipKetua) $q->where('nipbaru_ketua', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('niplama_ketua', $nipLamaKetua);
+            })
+            ->where('status', 'aktif')
             ->first();
+
+        if (!$tim) {
+            $tim = DB::table('m_tim')
+                ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                    if ($nipKetua) $q->where('nipbaru_ketua', $nipKetua);
+                    if ($nipLamaKetua) $q->orWhere('niplama_ketua', $nipLamaKetua);
+                })
+                ->first();
+        }
 
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
@@ -341,14 +353,48 @@ class PengajuanController extends Controller
 
     public function anggotaTim()
     {
-        $nipKetua = session('user')['nip'];
+        $nipKetua = session('user')['nip'] ?? null;
+        $nipLamaKetua = session('user')['nip_lama'] ?? null;
 
-        $anggota = DB::table('t_anggota_tim as at')
+        // 1. Ambil anggota tim definitif dari tim aktif yang diketuai
+        $queryTim = DB::table('t_anggota_tim as at')
             ->join('m_pegawai as p', 'at.pegawai_id_pegawai', '=', 'p.id_pegawai')
             ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
-            ->where('mt.nipbaru_ketua', $nipKetua)
-            ->select('p.nama', 'p.nip')
+            ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                if ($nipKetua) $q->where('mt.nipbaru_ketua', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('mt.niplama_ketua', $nipLamaKetua);
+            })
+            ->where('mt.status', 'aktif')
+            ->select('p.nama', 'p.nip');
+
+        // 2. Ambil pegawai yang memiliki riwayat transaksi pengajuan lembur ke ketua tim ini
+        $queryTransaksi = DB::table('t_transaksi as t')
+            ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
+            ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                if ($nipKetua) $q->where('t.approver_employee_id', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('t.approver_employee_id', $nipLamaKetua);
+            })
+            ->select('p.nama', 'p.nip');
+
+        // Gabungkan keduanya via UNION DISTINCT agar 100% unik tanpa duplikasi
+        $anggota = $queryTim->union($queryTransaksi)
+            ->orderBy('nama', 'asc')
             ->get();
+
+        // Fallback jika belum ada tim aktif/transaksi (misal data master belum sinkron)
+        if ($anggota->isEmpty()) {
+            $anggota = DB::table('t_anggota_tim as at')
+                ->join('m_pegawai as p', 'at.pegawai_id_pegawai', '=', 'p.id_pegawai')
+                ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
+                ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                    if ($nipKetua) $q->where('mt.nipbaru_ketua', $nipKetua);
+                    if ($nipLamaKetua) $q->orWhere('mt.niplama_ketua', $nipLamaKetua);
+                })
+                ->select('p.nama', 'p.nip')
+                ->distinct()
+                ->orderBy('p.nama', 'asc')
+                ->get();
+        }
 
         return response()->json($anggota);
     }
