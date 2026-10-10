@@ -432,20 +432,23 @@
                         @endphp
 
                         <div class="flex items-start gap-3 sm:gap-5 group timeline-item pb-5 sm:pb-6 last:pb-2" data-tanggal="{{ $p->date }}" data-nip="{{ $p->nip_pegawai }}">
-                            {{-- 1. Date Box --}}
+                            {{-- 1. Date Box Kompak & Elegan --}}
                             <div class="w-16 sm:w-20 shrink-0 flex flex-col items-center justify-center rounded-2xl bg-white border border-slate-300 py-2.5 px-1.5 shadow-2xs group-hover:border-slate-400 transition-all duration-200">
-                                <span class="text-xl sm:text-2xl font-black font-mono text-slate-800 leading-none tracking-tight">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                                    {{ $carbonDate->translatedFormat('D') }}
+                                </span>
+                                <span class="text-xl sm:text-2xl font-black font-mono text-slate-800 leading-none my-1 tracking-tight">
                                     {{ $carbonDate->format('d') }}
                                 </span>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-mono mt-1">
-                                    {{ $carbonDate->translatedFormat('M') }}
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                                    {{ $carbonDate->translatedFormat('M Y') }}
                                 </span>
                             </div>
 
                             {{-- 2. Kolom Bulatan Status + Garis Aksis Vertikal Menyambung --}}
                             <div class="relative flex flex-col items-center shrink-0 w-6 self-stretch pt-3.5">
                                 <div class="timeline-stem absolute left-1/2 -translate-x-1/2 bg-slate-300 z-0"
-                                     style="width: 2px; {{ $pengajuan->count() <= 1 ? 'display: none;' : ($loop->first ? 'top: 21px; bottom: 0;' : ($loop->last ? 'top: 0; height: 21px;' : 'top: 0; bottom: 0;')) }}"></div>
+                                     style="width: 2px; display: none;"></div>
 
                                 <div class="relative z-10 flex items-center justify-center" id="dot-timeline-{{ $p->id_transaksi }}">
                                     @if($p->status === 'approved')
@@ -462,27 +465,33 @@
                                 </div>
                             </div>
 
-                            {{-- 3. Kartu Timeline Clean & Elegan --}}
+                            {{-- 3. Kartu Timeline Clean, Proporsional & Elegan --}}
                             <div class="flex-1 min-w-0">
-                                <div class="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all duration-200 space-y-3">
+                                <div class="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all duration-200 space-y-3.5">
                                     {{-- Header: Profil Pegawai (Kiri) + Status Pill (Kanan) --}}
-                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-gray-100">
-                                        <div class="flex items-center gap-2.5 min-w-0">
-                                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-xs font-bold text-amber-700 border border-amber-200/60 shadow-2xs">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-gray-100">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-xs font-bold text-amber-700 border border-amber-200/60 shadow-2xs">
                                                 {{ strtoupper(substr($p->nama_pegawai, 0, 2)) }}
                                             </div>
                                             <div class="min-w-0">
                                                 <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate">{{ $p->nama_pegawai }}</h4>
-                                                <div class="text-[11px] font-mono text-slate-500 truncate">
-                                                    NIP: {{ $p->nip_pegawai ?? $p->submitted_by_NIP }}
+                                                <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                                    <span class="text-[11px] font-mono text-slate-500">NIP. {{ $p->nip_pegawai ?? $p->submitted_by_NIP }}</span>
                                                     @if(!empty($p->nip_lama))
-                                                        <span class="text-slate-400 font-sans ml-1">({{ $p->nip_lama }})</span>
+                                                        <span class="text-slate-400 font-sans ml-0.5">({{ $p->nip_lama }})</span>
+                                                    @endif
+                                                    @if(!empty($p->nama_tim))
+                                                        <span class="text-slate-300">·</span>
+                                                        <span class="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                                                            {{ $p->nama_tim }}
+                                                        </span>
                                                     @endif
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div id="status-timeline-{{ $p->id_transaksi }}">
+                                        <div id="status-timeline-{{ $p->id_transaksi }}" class="shrink-0">
                                             @if($p->status === 'pending')
                                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">
                                                     <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
@@ -511,45 +520,35 @@
                                         </div>
                                     </div>
 
-                                    {{-- Baris Jam Diajukan & Tim --}}
-                                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
-                                        <div class="text-xs font-mono text-slate-600">
-                                            <span class="text-slate-400 font-sans text-[11px] mr-1">Jam Diajukan:</span>
-                                            <span class="font-bold text-slate-800">{{ $jamMulai }} - {{ $jamSelesai }}</span>
+                                    {{-- Baris Jam Pengajuan & Jam Disetujui --}}
+                                    <div class="flex flex-wrap items-center gap-2 sm:gap-4 py-2 px-3 rounded-xl bg-slate-50/80 border border-slate-100 text-xs">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-slate-400 text-[11px] font-medium">Jam Diajukan:</span>
+                                            <span class="font-mono font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200/60 shadow-2xs">
+                                                {{ $jamMulai }} - {{ $jamSelesai }}
+                                            </span>
                                         </div>
-
-                                        <span class="text-[11px] font-medium text-slate-600 bg-slate-100/90 px-2.5 py-0.5 rounded-full">
-                                            {{ $p->nama_tim ?? 'Tim Kerja' }}
-                                        </span>
-                                    </div>
-
-                                    {{-- Judul Uraian Kegiatan --}}
-                                    <div>
-                                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed break-words" id="uraian-timeline-{{ $p->id_transaksi }}">
-                                            {{ $p->uraian ?? '-' }}
-                                        </p>
-                                    </div>
-
-                                    {{-- Highlighting Jam Disetujui (Hanya jika has_presensi = 1 dan bukan rejected) --}}
-                                    <div id="jam-disetujui-box-timeline-{{ $p->id_transaksi }}">
-                                        @if($p->has_presensi && $p->status !== 'rejected' && $jamMulaiAcc && $jamSelesaiAcc)
-                                            <div class="px-3.5 py-2 rounded-xl bg-emerald-50/80 text-xs flex items-center justify-between text-emerald-900">
-                                                <span class="font-medium">Jam Lembur Disetujui:</span>
-                                                <span class="font-mono font-bold text-emerald-800 bg-white/80 px-2.5 py-0.5 rounded shadow-2xs" id="jam-disetujui-timeline-{{ $p->id_transaksi }}">
+                                        <span class="text-slate-300 hidden sm:inline">|</span>
+                                        <div class="flex items-center gap-1.5" id="jam-disetujui-box-timeline-{{ $p->id_transaksi }}">
+                                            <span class="text-slate-400 text-[11px] font-medium">Jam Disetujui:</span>
+                                            @if($p->has_presensi && $p->status !== 'rejected' && $jamMulaiAcc && $jamSelesaiAcc)
+                                                <span class="font-mono font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-200/80 px-2 py-0.5 rounded shadow-2xs" id="jam-disetujui-timeline-{{ $p->id_transaksi }}">
                                                     {{ $jamMulaiAcc }} - {{ $jamSelesaiAcc }}
                                                 </span>
-                                            </div>
-                                            @if($isAdjusted)
-                                                <div class="text-[11px] text-amber-800 font-medium px-1 mt-1">
-                                                    ⚡ <strong>Disesuaikan:</strong> Jam diajukan ({{ $jamMulai }} - {{ $jamSelesai }}) disesuaikan dengan presensi fisik / operasional.
-                                                </div>
+                                            @else
+                                                <span class="font-mono font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200/60 shadow-2xs" id="jam-disetujui-timeline-{{ $p->id_transaksi }}">
+                                                    -
+                                                </span>
                                             @endif
-                                        @else
-                                            <div class="px-3 py-1.5 rounded-lg bg-slate-50 text-[11px] text-slate-500 flex items-center justify-between">
-                                                <span>Jam Disetujui:</span>
-                                                <span class="font-mono font-bold text-slate-600" id="jam-disetujui-timeline-{{ $p->id_transaksi }}">-</span>
-                                            </div>
-                                        @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- Uraian Tugas Kegiatan Lembur --}}
+                                    <div class="bg-slate-50/50 rounded-xl p-3 border border-slate-100/80">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Uraian Kegiatan Lembur:</span>
+                                        <p class="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed break-words" id="uraian-timeline-{{ $p->id_transaksi }}">
+                                            {{ $p->uraian ?? 'Pengajuan Tugas Lembur' }}
+                                        </p>
                                     </div>
 
                                     {{-- Catatan Persetujuan (Clean Quote Bar) --}}
@@ -1747,19 +1746,17 @@ window.simpanKeputusan = function() {
         if (jamDisetujuiBoxTimelineEl) {
             if (currentHasPresensi && finalStatus !== 'rejected' && approvedMulai && approvedSelesai) {
                 jamDisetujuiBoxTimelineEl.innerHTML = `
-                    <div class="px-3.5 py-2 rounded-xl bg-emerald-50/80 text-xs flex items-center justify-between text-emerald-900">
-                        <span class="font-medium">Jam Lembur Disetujui:</span>
-                        <span class="font-mono font-bold text-emerald-800 bg-white/80 px-2.5 py-0.5 rounded shadow-2xs" id="jam-disetujui-timeline-${currentId}">
-                            ${approvedMulai} - ${approvedSelesai}
-                        </span>
-                    </div>
+                    <span class="text-slate-400 text-[11px] font-medium">Jam Disetujui:</span>
+                    <span class="font-mono font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-200/80 px-2 py-0.5 rounded shadow-2xs" id="jam-disetujui-timeline-${currentId}">
+                        ${approvedMulai} - ${approvedSelesai}
+                    </span>
                 `;
             } else {
                 jamDisetujuiBoxTimelineEl.innerHTML = `
-                    <div class="px-3 py-1.5 rounded-lg bg-slate-50 text-[11px] text-slate-500 flex items-center justify-between">
-                        <span>Jam Disetujui:</span>
-                        <span class="font-mono font-bold text-slate-600" id="jam-disetujui-timeline-${currentId}">-</span>
-                    </div>
+                    <span class="text-slate-400 text-[11px] font-medium">Jam Disetujui:</span>
+                    <span class="font-mono font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200/60 shadow-2xs" id="jam-disetujui-timeline-${currentId}">
+                        -
+                    </span>
                 `;
             }
         }
@@ -1826,7 +1823,7 @@ window.switchViewMode = function(mode) {
 };
 
 function updateTimelineStems() {
-    const visibleItems = Array.from(document.querySelectorAll('#viewContainerTimeline .timeline-item'));
+    const visibleItems = Array.from(document.querySelectorAll('#viewContainerTimeline .timeline-item')).filter(el => !el.classList.contains('hidden'));
     if (!visibleItems.length) return;
 
     visibleItems.forEach((item, idx) => {
