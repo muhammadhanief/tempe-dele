@@ -3373,23 +3373,26 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
      - Kabag Umum: `localStorage.getItem('kabagUmumPengajuanViewMode')`
      - Administrator: `localStorage.getItem('adminPengajuanViewMode')`
    - Preferensi tampilan yang dipilih pengguna tersimpan secara mandiri per peran dan langsung dipulihkan secara otomatis saat membuka kembali halaman.
-2. **Desain Komponen Kartu Linimasa Khusus Multi-Pegawai:**
-   - **Date Box Terstruktur:** Kotak kalender dengan nama hari, angka tanggal besar, dan bulan/tahun Bahasa Indonesia.
-   - **Garis Alur Linimasa (*Continuous Stem & Status Dot*):** Menggunakan elemen garis kontinu `.timeline-stem` dan bulatan indikator warna dinamis (kuning: pending, biru berdenyut: menunggu_kabag, hijau: approved, merah: rejected, abu-abu: cancelled).
-   - **Identitas Lengkap Anggota Pengaju:** Menampilkan avatar monogram inisial nama bergradien hangat, nama lengkap bergelar, NIP 18 digit, serta informasi Tim Kerja dan Ketua Tim pembina.
-   - **Proteksi Penayangan Jam Disetujui Bersyarat Presensi:** Kotak jam lembur disetujui (`approved_start - approved_end`) dilindungi variabel `$p->has_presensi`, menjamin jam nominal hanya tampil apabila data presensi fisik BOS telah diimpor ke sistem.
-   - **Informasi Pendukung & Aksi Manajerial:** Kartu menyajikan rincian uraian pekerjaan, waktu pengajuan lembur, tombol popup presensi BOS, catatan verifikasi lintas atasan, serta tombol aksi keputusan interaktif (`Proses`, `Setujui`, atau `Koreksi`).
+2. **Standarisasi Arsitektur Visual Linimasa 3-Kolom Bersih & Anti Cacat Layout (*Zero Visual Glitch*):**
+   - **Kolom 1 - Date Box Kompak & Elegan:** Kotak kalender ramping (`w-16 sm:w-20`) berlatar putih dengan border halus, menampilkan singkatan nama hari (`font-mono text-slate-400 uppercase`), angka tanggal tebal berukuran proporsional (`text-xl sm:text-2xl font-black font-mono text-slate-800`), dan bulan/tahun (`text-[10px] font-bold text-slate-500 font-mono`). Tidak lagi terpotong garis vertikal maupun membuang ruang horizontal layar.
+   - **Kolom 2 - Kolom Aksis Garis Alur & Bulatan Dot Terpadu (`w-6 self-stretch`):** Garis kontinu `.timeline-stem` (`absolute left-1/2 -translate-x-1/2 w-0.5 bg-slate-300`) diletakkan khusus dalam kolom vertikal yang sama dengan bulatan status dot (`dot-timeline-*`). Garis menembus tepat di sumbu tengah belakang bulatan dot dan termasking sempurna oleh ring putih (`ring-4 ring-white shadow-2xs`). Menghilangkan sepenuhnya cacat visual garis memotong angka tanggal kalender dan dot melayang di ruang kosong.
+   - **Kolom 3 - Kartu Timeline Clean, Proporsional & Berkelas (`flex-1 min-w-0`):**
+     - **Header Profil Pegawai & Status Pill:** Avatar inisial monogram bergradien tajam, nama pegawai tebal, NIP 18 digit, badge tim kerja lembut, nama ketua tim pembina, dan pill status pengajuan di pojok kanan atas.
+     - **Baris Info Jam Terpadu:** Menyatukan informasi `Jam Diajukan` dan `Jam Disetujui` dalam satu bilah ringkas horizontal (`bg-slate-50/80 border border-slate-100`) dengan lencana jam terpisah, menggantikan layout grid ganda yang sebelumnya renggang dan berjarak kaku.
+     - **Kotak Uraian Kegiatan Lembur Berwibawa:** Membungkus uraian tugas ke dalam kontainer berlatar `bg-slate-50/50` dengan label penjelas kecil uppercase, memberi konteks jelas dan menghapus kesan kartu kosong melompong.
+     - **Catatan & Footer Interaktif:** Catatan verifikasi manajerial / sistem dalam aksen kutipan rapi, tombol status presensi BOS, serta tombol aksi keputusan interaktif (`Proses`, `Setujui`, atau `Koreksi`).
 3. **Sinkronisasi Real-Time Dua Arah Tanpa Memuat Ulang Halaman (*Zero-Reload Real-time AJAX Sync*):**
    - Seluruh fungsi AJAX (`simpanKeputusan()`, `simpanKeputusanKabag()`) diperluas untuk memperbarui kedua wadah tampilan secara simultan: elemen tabel dan elemen kartu linimasa.
-   - Filter pencarian pegawai (`filterTableRows()`) pada Kabag Umum juga otomatis menyaring kartu linimasa dan menyelaraskan garis alur linimasa secara responsif.
+   - Perhitungan garis dinamis `updateTimelineStems()` secara adaptif hanya menyambungkan kartu yang tampak (`!classList.contains('hidden')`), menjaga kerapian aksis visual saat filter pencarian diterapkan.
 
 ### C. Berkas yang Diperbarui
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
-| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Mode visual linimasa Ketua Tim, persistensi localStorage, dan sinkronisasi AJAX. |
-| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Subheader banner toggle switcher, wadah linimasa Kabag Umum, filter search real-time, dan sinkronisasi AJAX `simpanKeputusanKabag()`. |
-| 3 | `resources/views/admin/pengajuan.blade.php` | Page header switcher, wadah linimasa Admin, dan sinkronisasi AJAX `simpanKeputusan()`. |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Standarisasi kartu linimasa 3-kolom, date box kompak, baris jam terpadu, kotak uraian kegiatan, persistensi localStorage, dan sinkronisasi AJAX. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Perbaikan aksis garis linimasa, date box ramping, baris jam horizontal, wadah uraian kegiatan, filter search real-time, dan sinkronisasi AJAX `simpanKeputusanKabag()`. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Perbaikan aksis garis linimasa, date box ramping, baris jam horizontal, wadah uraian kegiatan, dan sinkronisasi AJAX `simpanKeputusan()`. |
 | 4 | `public/build/*` | Hasil kompilasi bundel aset frontend Vite terbaru. |
+
 
 
 

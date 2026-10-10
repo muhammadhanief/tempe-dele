@@ -1080,12 +1080,13 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Ketua Tim (`/ketua-tim/pengajuan`):** Klik `[ 📍 Timeline ]`, verifikasi kartu linimasa vertikal muncul dan preferensi tersimpan di `localStorage`.
   - **Kabag Umum (`/kabag-umum/pengajuan`):** Periksa subheader banner header, klik `[ 📍 Timeline ]`, verifikasi linimasa lintas satker tampil elegan dan tersimpan di `localStorage`.
   - **Admin (`/admin/pengajuan`):** Klik `[ 📍 Timeline ]` di header atas, verifikasi linimasa pengajuan lembur seluruh satker aktif dan tersimpan di `localStorage`.
-- [ ] **Uji Kelengkapan Informasi Kartu Linimasa Multi-Pegawai**:
-  - Pada mode Linimasa di ketiga peran tersebut:
-    - Verifikasi: Identitas pegawai pengaju terpampang jelas (avatar monogram inisial, nama lengkap, dan NIP 18 digit).
-    - Verifikasi: Informasi Tim Kerja dan Nama Ketua Tim pembina tercantum jelas.
-    - Verifikasi: Kotak tanggal menyajikan hari, tanggal, dan bulan.
-    - Verifikasi: Jam pengajuan lembur, rincian uraian kegiatan, dan status badge tampil lengkap.
+- [ ] **Uji Tata Letak 3-Kolom Bersih & Bebas Cacat Visual (*Zero Visual Glitch*)**:
+  - **Kolom 1 (Date Box):** Kotak kalender berlatar putih bersih dengan border halus, menyajikan nama hari singkat, angka tanggal tebal proporsional, dan bulan/tahun. Pastikan **TIDAK ADA garis vertikal** yang memotong kotak tanggal.
+  - **Kolom 2 (Aksis Garis & Dot Status):** Garis vertikal abu-abu kontinu berjalan presisi di sumbu tengah kolom, menembus tepat di belakang bulatan status dot dan ter-masking rapi oleh ring putih. Pastikan bulatan dot tidak melayang di ruang kosong.
+  - **Kolom 3 (Kartu Manajerial Berkelas):**
+    - Verifikasi: Identitas pegawai terpampang jelas (avatar monogram inisial tajam, nama lengkap, NIP 18 digit, badge tim kerja, dan ketua tim).
+    - Verifikasi: Bilah ringkas horizontal menyatukan `Jam Diajukan` dan `Jam Disetujui` secara berdampingan tanpa pemisahan grid kaku.
+    - Verifikasi: Uraian tugas tersaji dalam kotak halus dengan label kecil uppercase, menghilangkan ruang kosong melompong.
     - Verifikasi: Jam lembur disetujui hanya tampil jika rekaman presensi BOS telah ada (`has_presensi = 1`), konsisten dengan proteksi sistem.
 - [ ] **Uji Sinkronisasi Real-Time Keputusan Tanpa Reload pada Kartu Linimasa**:
   - **Ketua Tim:** Buka modal keputusan dari kartu timeline, simpan perubahan, verifikasi kartu linimasa langsung ter-update seketika tanpa reload.
@@ -1094,6 +1095,7 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Filter Pencarian Pegawai Real-time pada Linimasa Kabag Umum**:
   - Pada mode Timeline di `/kabag-umum/pengajuan`, ketikkan nama pegawai pada input pencarian:
     - Verifikasi: Kartu linimasa otomatis tersaring secara instan sesuai kata kunci pencarian dan garis stem linimasa tetap rapi terhubung.
+
 
 
 
