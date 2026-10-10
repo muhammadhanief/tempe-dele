@@ -720,8 +720,8 @@
                                     {{-- Header: Profil Pegawai, Tim & Status Badge --}}
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100">
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-slate-800 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs uppercase tracking-wider">
-                                                {{ $initials }}
+                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-xs font-bold text-amber-700 border border-amber-200/60 shadow-2xs">
+                                                {{ strtoupper(substr($p->nama_pegawai, 0, 2)) }}
                                             </div>
                                             <div class="min-w-0">
                                                 <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate">
@@ -731,7 +731,7 @@
                                                     <span class="text-[11px] font-mono text-slate-500">NIP. {{ $p->nip_pegawai }}</span>
                                                     @if(!empty($p->nama_tim))
                                                         <span class="text-slate-300">·</span>
-                                                        <span class="text-[11px] font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/60">
+                                                        <span class="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
                                                             {{ $p->nama_tim }}
                                                         </span>
                                                     @endif

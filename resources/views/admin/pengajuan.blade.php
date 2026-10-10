@@ -524,8 +524,8 @@
                                     {{-- Header: Profil Pegawai, Tim & Status Badge --}}
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100">
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-slate-800 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs uppercase tracking-wider">
-                                                {{ $initials }}
+                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-xs font-bold text-amber-700 border border-amber-200/60 shadow-2xs">
+                                                {{ strtoupper(substr($p->nama_pegawai, 0, 2)) }}
                                             </div>
                                             <div class="min-w-0">
                                                 <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate">
@@ -535,7 +535,7 @@
                                                     <span class="text-[11px] font-mono text-slate-500">NIP. {{ $p->nip_pegawai }}</span>
                                                     @if(!empty($p->nama_tim))
                                                         <span class="text-slate-300">·</span>
-                                                        <span class="text-[11px] font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/60">
+                                                        <span class="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
                                                             {{ $p->nama_tim }}
                                                         </span>
                                                     @endif
@@ -641,7 +641,7 @@
                                             @elseif($p->status === 'menunggu_kabag')
                                                 <button type="button"
                                                     onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ substr($p->jam_mulai_disetujui ?? $p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai_disetujui ?? $p->jam_selesai,0,5) }}', {{ json_encode($p->note ?? '') }}, {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', 'approved', '{{ substr($p->jam_mulai,0,5) }}', '{{ substr($p->jam_selesai,0,5) }}')"
-                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm bg-blue-600 text-white hover:bg-blue-700 hover:shadow cursor-pointer">
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow cursor-pointer">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                     </svg>
