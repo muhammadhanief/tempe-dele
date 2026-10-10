@@ -3404,10 +3404,10 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
    - Pada halaman Kabag Umum dan Administrator, informasi NIP lama bahkan belum ditampilkan sama sekali pada kartu linimasa.
 
 ### B. Solusi & Perbaikan Antarmuka (UI/UX)
-1. **Format Micro-Badge Monospace Elegan & Terstruktur:**
-   - Mengemas NIP Lama ke dalam micro-badge berlatar lembut (`bg-slate-100 border border-slate-200/60 rounded px-1.5 py-0.5 text-[10.5px] font-mono text-slate-500`).
-   - Menyertakan label penjelas lembut `<span class="text-slate-400 font-sans text-[9.5px] mr-1 font-medium">Lama:</span>` dan tooltip `title="NIP Lama BPS"`.
-   - Menghilangkan kurung polos yang canggung dan menyelaraskan ritme visual bersama badge tim kerja di sebelahnya.
+1. **Penyelarasan Tipografi Monospace & Ukuran Font Setara (11px):**
+   - Format NIP lama tetap disajikan dalam kurung natural `(340018283)` sesuai preferensi pengguna.
+   - Menggunakan kelas `text-[11px] font-mono text-slate-400` sehingga ukuran huruf, baseline vertikal, dan jenis huruf monospace (digit angka) berpadu serasi dan presisi dengan NIP utama 18 digit (`text-[11px] font-mono text-slate-500`).
+   - Menghilangkan disparitas font yang sebelumnya menggunakan `font-sans` tanpa ukuran pasti yang tampak membesar dan tidak seimbang.
 2. **Penerapan Seragam Multi-Peran:**
    - Diterapkan secara konsisten di seluruh 3 halaman linimasa persetujuan:
      - `resources/views/ketua-tim/pengajuan.blade.php`
@@ -3417,9 +3417,9 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 ### C. Berkas yang Diperbarui
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
-| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Penggantian format kurung polos NIP lama menjadi micro-badge `Lama: [NIP Lama]`. |
-| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Penambahan micro-badge NIP lama di samping NIP pegawai pada header kartu linimasa. |
-| 3 | `resources/views/admin/pengajuan.blade.php` | Penambahan micro-badge NIP lama di samping NIP pegawai pada header kartu linimasa. |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Penyelarasan format `({{ $p->nip_lama }})` dengan ukuran font `text-[11px] font-mono text-slate-400`. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Penambahan NIP lama dalam kurung `text-[11px] font-mono text-slate-400` di samping NIP pegawai. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Penambahan NIP lama dalam kurung `text-[11px] font-mono text-slate-400` di samping NIP pegawai. |
 | 4 | `public/build/*` | Bundel aset frontend produksi Vite terbaru. |
 
 
