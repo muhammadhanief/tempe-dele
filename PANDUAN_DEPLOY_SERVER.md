@@ -270,6 +270,11 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 168. 📄 **`resources/views/lembur.blade.php`** *(Dukungan lembur lintas tengah malam, indikator 🌙, stroke retention saat kanvas di-resize, dan visual error highlight kanvas)*.
 169. 📄 **`resources/views/ketua-tim/lembur.blade.php`** & **`resources/views/admin/lembur.blade.php`** *(Dukungan lembur lintas tengah malam dan penanganan kanvas tanda tangan)*.
 170. 📄 **`PENGUJIAN_BLACKBOX.md`** *(Penambahan kasus uji TC-PEG-12, TC-PEG-13, dan TC-PEG-14, total 70 kasus uji 100% PASS)*.
+171. 📄 **`resources/js/app.js`** *(Pencegahan layar pemuat beku/stuck overlay melalui evaluasi `e.defaultPrevented` & `checkValidity`, deferral submit microtask, pemaparan `window.hideLoading`, filter link download, dan auto-hide failsafe 12 detik)*.
+172. 📄 **`resources/views/layouts/app.blade.php`** *(Penyediaan fungsi fallback inline `window.hideLoading` dan `window.showLoading` serta penutupan darurat pemuat melalui tombol keyboard Escape)*.
+173. 📄 **`resources/views/lembur.blade.php`** *(Penghentian propagasi submit event dan pemanggilan eksplisit `hideLoading()` saat validasi tanda tangan/durasi/tanggal gagal)*.
+174. 📄 **`resources/views/ketua-tim/lembur.blade.php`** & **`resources/views/admin/lembur.blade.php`** *(Penghentian propagasi submit event dan pemanggilan eksplisit `hideLoading()` saat validasi formulir sisi klien gagal)*.
+175. 📁 **`public/build/`** *(Bundel produksi Vite terbaru agar pembaruan JavaScript langsung aktif di server produksi)*.
 
 ---
 
@@ -1119,6 +1124,21 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Proteksi Penolakan & Persetujuan Kabag Umum**:
   - Verifikasi: Pengajuan yang telah disetujui final oleh Kabag Umum (`approved`) tetap terkunci dari aksi penolakan Ketua Tim.
   - Verifikasi: Pengajuan yang ditolak oleh Kabag Umum (`approved_kabag_at IS NOT NULL`) tetap terkunci permanen bagi Ketua Tim.
+
+### BD. Uji Penanganan Validasi Tanda Tangan & Pencegahan Loading Overlay Membeku
+- [ ] **Uji Validasi Tanda Tangan Digital Kosong Tanpa Stuck Overlay**:
+  - Buka halaman **Lembur** pada peran Pegawai (`/lembur`), Ketua Tim (`/ketua-tim/lembur`), atau Admin (`/admin/lembur`).
+  - Klik tombol **+ Ajukan Lembur**.
+  - Isi kolom tanggal, jam mulai, jam selesai (durasi $\ge 2$ jam), dan uraian tugas secara lengkap.
+  - **Biarkan kotak tanda tangan digital kosong** (jangan goreskan kanvas).
+  - Klik tombol **Kirim Pengajuan**:
+    - Verifikasi: Muncul popup alert peringatan tanda tangan wajib diisi.
+    - Tutup alert peringatan tersebut:
+    - **Verifikasi Kritis:** Layar pemuat *"Memuat data... Mohon tunggu sebentar"* **TIDAK MUNCUL / TIDAK MACET**.
+    - Verifikasi: Kotak tanda tangan mendapatkan sorotan garis merah (`border-rose-500 ring-rose-200`) dan teks pesan error merah tampil jelas.
+    - Verifikasi: Pengguna dapat langsung menggoreskan tanda tangan di kanvas tanpa perlu me-refresh halaman.
+- [ ] **Uji Failsafe & Penutupan Darurat via Tombol Escape**:
+  - Tekan tombol **Escape** pada keyboard saat modal aktif, verifikasi bila pemuat sempat terpicu dapat langsung tertutup normal.
 
 
 

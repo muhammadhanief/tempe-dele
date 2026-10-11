@@ -3447,6 +3447,80 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Penambahan parameter `isKabagProcessed`, pembukaan tombol pilihan keputusan pada penolakan internal, auto-fill jam pengajuan saat beralih ke Setujui, dan sinkronisasi AJAX real-time. |
 | 3 | `public/build/*` | Bundel aset frontend produksi Vite terbaru. |
 
+---
+
+## 70. Perbaikan Bug Layar Pemuat Membeku (*Freeze / Stuck Loading Overlay*) Saat Validasi Formulir Gagal pada Pengajuan Lembur Mandiri (`/lembur`, `/ketua-tim/lembur`, `/admin/lembur`)
+
+### A. Latar Belakang Masalah
+1. **Layar Loading Macet Menutupi Seluruh Antarmuka (*Stuck Loading Overlay*):**
+   - Saat pengguna (Pegawai, Ketua Tim, atau Admin) membuka modal pengajuan lembur dan menekan tombol **Kirim Pengajuan** tanpa membubuhkan tanda tangan digital pada kanvas, sistem memunculkan kotak dialog peringatan: *"Tanda tangan digital belum diisi! Silakan goreskan tanda tangan Anda pada kotak tanda tangan."*
+   - Namun segera setelah pengguna menutup peringatan tersebut, layar aplikasi tertutup permanen oleh jendela popup pemuat (*loading overlay*):
+     > **Memuat data...**  
+     > *Mohon tunggu sebentar*  
+     *(dengan spinner animasi berputar di tengah latar belakang gelap/blur)*
+   - Di balik lapisan pemuat tersebut, kotak tanda tangan digital sebenarnya telah mendapatkan sorotan merah (*border-rose-500*) dan pesan peringatan visual. Namun pengguna **tidak dapat mengklik, menggambar tanda tangan, maupun membatalkan modal** karena seluruh layar terblokir oleh `#loadingOverlay` dengan kelas `opacity-100` dan penangkapan pointer aktif (*pointer-events*). Pengguna terpaksa harus memuat ulang (*refresh*) halaman peramban secara paksa.
+
+### B. Investigasi Akar Masalah (*Root Cause Analysis*)
+1. **Pemicu Global `document.addEventListener('submit', showLoading)` Tanpa Filter Pembatalan:**
+   - Pada berkas `resources/js/app.js`, fungsi `showLoading()` didaftarkan sebagai pendengar event submit global:
+     ```javascript
+     document.addEventListener('submit', showLoading);
+     ```
+   - Dalam siklus bubbling event DOM JavaScript, saat tombol submit ditekan:
+     1. Listener formulir lokal (`#formAjukan`) mendeteksi `signaturePad.isEmpty()`.
+     2. Handler formulir memanggil `event.preventDefault()` untuk membatalkan pengiriman formulir ke server.
+     3. Event submit tetap merambat (*bubble*) ke elemen `document`.
+     4. Listener global di `resources/js/app.js` langsung mengeksekusi `showLoading()` tanpa mengecek apakah formulir valid atau apakah `event.defaultPrevented` bernilai `true`.
+   - Karena navigasi halaman telah dibatalkan oleh `event.preventDefault()`, halaman tidak berpindah dan tidak me-reload. Akibatnya, `#loadingOverlay` tertinggal dalam kondisi terbuka permanen di atas antarmuka pengguna.
+2. **Ketiadaan Akses Global ke Fungsi `hideLoading()` & Failsafe:**
+   - Fungsi `hideLoading()` sebelumnya tidak dipaparkan ke objek `window` (`window.hideLoading`), sehingga script lokal pada view Blade tidak memiliki kendali untuk menutup paksa overlay pemuat saat validasi gagal.
+   - Tidak ada mekanisme pengaman (*failsafe timeout*) otomatis jika proses pengiriman terhambat di sisi klien.
+
+### C. Solusi & Perbaikan Komprehensif
+1. **Penyempurnaan Penanganan Event di `resources/js/app.js`:**
+   - Menambahkan pemeriksaan ketat status pembatalan event sebelum memunculkan overlay:
+     ```javascript
+     document.addEventListener('submit', (e) => {
+       if (e.defaultPrevented) {
+         hideLoading();
+         return;
+       }
+       if (e.target && typeof e.target.checkValidity === 'function' && !e.target.checkValidity()) {
+         hideLoading();
+         return;
+       }
+       setTimeout(() => {
+         if (e.defaultPrevented) {
+           hideLoading();
+         } else {
+           showLoading();
+         }
+       }, 0);
+     });
+     ```
+   - Eksekusi penundaan microtask `setTimeout(..., 0)` menjamin bahwa seluruh listener validasi sinkron pada elemen formulir anak telah selesai berjalan dan menetapkan status `preventDefault()` sebelum keputusan menampilkan overlay dieksekusi.
+   - Memaparkan fungsi `window.showLoading` dan `window.hideLoading` secara global.
+   - Menambahkan pengaman otomatis (*auto-hide failsafe*) berdurasi 12 detik untuk mencegah pemblokiran antarmuka secara permanen jika terjadi interupsi jaringan atau galat sisi klien tak terduga.
+   - Memfilter pemicu klik tautan (`<a>`) agar mengabaikan elemen berpenanda `download`, skema URI `blob:`, maupun `data:`.
+2. **Penyediaan Fallback Inline di Layout Induk (`resources/views/layouts/app.blade.php`):**
+   - Mendefinisikan implementasi fallback `window.hideLoading` dan `window.showLoading` secara langsung di dekat komponen `#loadingOverlay` untuk memastikan fungsi selalu tersedia sejak awal parsing HTML.
+   - Mengintegrasikan penutupan darurat `#loadingOverlay` saat pengguna menekan tombol `Escape` pada keyboard.
+3. **Penyelarasan Seluruh Handler Formulir Pengajuan & Koreksi Lembur:**
+   - Menambahkan `event.stopPropagation()` dan `if (window.hideLoading) window.hideLoading();` pada seluruh percabangan kegagalan validasi sisi klien (tanggal dobel, durasi di bawah batas minimal 2 jam, durasi melebihi 12 jam, dan tanda tangan digital kosong) pada 3 modul:
+     - `resources/views/lembur.blade.php` (`formAjukan` & `formEditLembur`)
+     - `resources/views/ketua-tim/lembur.blade.php` (`formAjukan`)
+     - `resources/views/admin/lembur.blade.php` (`formAjukan`)
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/js/app.js` | Pemeriksaan `defaultPrevented`, `checkValidity`, microtask deferral submit, pemaparan `window.hideLoading`, filter download link, dan failsafe 12 detik. |
+| 2 | `resources/views/layouts/app.blade.php` | Fallback inline `window.hideLoading`/`showLoading` dan penutupan darurat loading overlay via tombol `Escape`. |
+| 3 | `resources/views/lembur.blade.php` | Penghentian propagasi event dan pemanggilan eksplisit `hideLoading()` pada seluruh cabang kegagalan validasi form ajukan dan edit lembur. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan `stopPropagation()` dan `window.hideLoading()` pada seluruh cabang validasi form ajukan lembur Ketua Tim. |
+| 5 | `resources/views/admin/lembur.blade.php` | Penambahan `stopPropagation()` dan `window.hideLoading()` pada seluruh cabang validasi form ajukan lembur Admin. |
+| 6 | `public/build/*` | Hasil kompilasi bundel aset produksi Vite terbaru (`app-DfUGke97.js`). |
+
 
 
 
