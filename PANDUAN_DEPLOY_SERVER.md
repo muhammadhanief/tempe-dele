@@ -275,6 +275,10 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 173. 📄 **`resources/views/lembur.blade.php`** *(Penghentian propagasi submit event dan pemanggilan eksplisit `hideLoading()` saat validasi tanda tangan/durasi/tanggal gagal)*.
 174. 📄 **`resources/views/ketua-tim/lembur.blade.php`** & **`resources/views/admin/lembur.blade.php`** *(Penghentian propagasi submit event dan pemanggilan eksplisit `hideLoading()` saat validasi formulir sisi klien gagal)*.
 175. 📁 **`public/build/`** *(Bundel produksi Vite terbaru agar pembaruan JavaScript langsung aktif di server produksi)*.
+176. 📄 **`resources/views/lembur.blade.php`** *(Standardisasi tata letak modal `#modalAjukan`: fixed header dengan ikon oranye dan teks bantuan, scrollable form body `max-h-[90vh]` internal scrolling, compact width `max-w-2xl`, tombol hapus tanda tangan sejajar di samping label, dan fixed footer dengan tombol Batal dan Kirim Pengajuan selalu tampak di layar tanpa terpotong)*.
+177. 📄 **`resources/views/admin/lembur.blade.php`** *(Standardisasi tata letak modal `#modalAjukan` Admin ke pola fixed header, scrollable body `max-h-[90vh]`, dan pinned footer)*.
+178. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penyempurnaan kartu estimasi durasi berbadge warna dinamis pada form pengajuan lembur Ketua Tim)*.
+179. 📁 **`public/build/`** *(Bundel produksi Vite terbaru: `app-BWQ3dq7l.css` & `app-DfUGke97.js`)*.
 
 ---
 
@@ -1139,6 +1143,21 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - Verifikasi: Pengguna dapat langsung menggoreskan tanda tangan di kanvas tanpa perlu me-refresh halaman.
 - [ ] **Uji Failsafe & Penutupan Darurat via Tombol Escape**:
   - Tekan tombol **Escape** pada keyboard saat modal aktif, verifikasi bila pemuat sempat terpicu dapat langsung tertutup normal.
+
+### BE. Uji Tata Letak Modal Ajukan Lembur Terbatas, Terpusat, & Pinned Footer (*Bounded Modal Container with Fixed Header & Pinned Footer*)
+- [ ] **Uji Tampilan & Batas Tinggi Vertikal Modal (`/lembur` & `/admin/lembur`)**:
+  - Buka halaman **Lembur** Pegawai (`/lembur`) atau Admin (`/admin/lembur`).
+  - Klik tombol **+ Ajukan Lembur**:
+    - Verifikasi: Modal muncul tepat di tengah layar (*center aligned*) berlatar bayangan gelap halus (`bg-black/50 backdrop-blur-xs`).
+    - Verifikasi: Kontainer modal memiliki batas tinggi vertikal maksimal yang proporsional (`max-h-[90vh]`) dan lebar terukur (`max-w-2xl`).
+    - Verifikasi: Bagian Header terpin di atas (`shrink-0`) dengan ikon plus oranye amber BPS, judul semantik tebal, dan tombol silang SVG modern.
+- [ ] **Uji Scroll Internal Formulir & Aksibilitas Tombol Submit**:
+  - Pada layar laptop standar (resolusi 1366×768) atau jendela browser berskala normal:
+    - Verifikasi: Seluruh elemen input formulir berada dalam kontainer gulir internal (`flex-1 overflow-y-auto`). Pengguna dapat menggulir input secara mandiri di dalam modal tanpa membuat jendela browser utama bergulir.
+    - **Verifikasi Kritis:** Bilah Footer modal dengan tombol **Batal** dan **Kirim Pengajuan** terpin kuat di dasar modal (`shrink-0`) dan **SELALU TERLIHAT JELAS 100%** di layar tanpa terdorong ke bawah atau terpotong ke luar layar monitor.
+    - Verifikasi: Tombol *Hapus Tanda Tangan* terletak sejajar rapi di sudut kanan atas label *Tanda Tangan*.
+    - Verifikasi: Kartu estimasi durasi lembur tampil elegan dengan indikator badge warna dinamis sesuai durasi dan ketentuan lembur.
+
 
 
 

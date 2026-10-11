@@ -3518,8 +3518,54 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 2 | `resources/views/layouts/app.blade.php` | Fallback inline `window.hideLoading`/`showLoading` dan penutupan darurat loading overlay via tombol `Escape`. |
 | 3 | `resources/views/lembur.blade.php` | Penghentian propagasi event dan pemanggilan eksplisit `hideLoading()` pada seluruh cabang kegagalan validasi form ajukan dan edit lembur. |
 | 4 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan `stopPropagation()` dan `window.hideLoading()` pada seluruh cabang validasi form ajukan lembur Ketua Tim. |
-| 5 | `resources/views/admin/lembur.blade.php` | Penambahan `stopPropagation()` dan `window.hideLoading()` pada seluruh cabang validasi form ajukan lembur Admin. |
-| 6 | `public/build/*` | Hasil kompilasi bundel aset produksi Vite terbaru (`app-DfUGke97.js`). |
+---
+
+## 71. Standardisasi dan Perbaikan Tata Letak Modal Ajukan Lembur (*Bounded Modal Container, Fixed Header, Scrollable Body, & Pinned Footer*) pada Halaman Pegawai dan Admin (`lembur.blade.php` & `admin/lembur.blade.php`)
+
+### A. Latar Belakang Masalah
+1. **Tata Letak Modal Berantakan & Terpotong ke Luar Layar (*Unbounded Height & Off-Screen Overflow*):**
+   - Pada halaman pengajuan lembur pegawai (`resources/views/lembur.blade.php`), komponen `#modalAjukan` sebelumnya menggunakan pembungkus modal lama:
+     ```html
+     <div class="fixed inset-0 overflow-y-auto">
+         <div class="flex min-h-full items-start justify-center px-4 py-6 sm:py-8">
+             <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-xl">
+     ```
+   - Kontainer ini tidak memiliki batasan tinggi (`max-h-[90vh]`), tidak memiliki kontainer gulir internal (`overflow-y-auto`), dan tidak memiliki pemisahan layout kolom flex (`flex flex-col`).
+   - Akibatnya, pada layar laptop standar (resolusi 1366×768 px atau jendela peramban dengan skala normal), formulir yang memuat pilihan Ketua Tim, Tanggal, Jam Mulai, Jam Selesai, Uraian Tugas, dan kanvas Tanda Tangan Digital membentang melebihi tinggi layar monitor (>750px).
+   - Pengguna mengalami disorientasi visual (*layout berantakan*): kanvas tanda tangan terpotong di bagian bawah, sedangkan tombol **Batal** dan **Kirim Pengajuan** terdorong jauh ke bawah luar layar (*off-screen*). Pengguna terpaksa harus menggulir bilah scroll peramban utama ke bawah hanya untuk menemukan tombol kirim.
+2. **Ketiadaan Header & Footer Tetap (*No Fixed Header & Footer*):**
+   - Header modal hanya berupa teks judul polos dengan tombol silang entitas teks kaku (`&times;`), tanpa ikon visual dan tanpa teks panduan.
+   - Tombol submit formulir diletakkan di bagian paling dasar form dengan urutan vertikal terbalik (`flex-col-reverse`), alih-alih tersemat di bilah footer dialog.
+3. **Lebar Berlebih (*Oversized Width*):**
+   - Menggunakan lebar `max-w-3xl` (768px) yang terlalu melebar secara horizontal dan membuat elemen input tampak renggang, berbeda dengan standar modern `max-w-2xl` (672px) yang proporsional dan nyaman di mata.
+
+### B. Solusi & Standardisasi Desain Modern
+1. **Adopsi Struktur Modal Standar Bounded & Centered (Mengacu pada `ketua-tim/lembur.blade.php`):**
+   - Mengganti arsitektur `#modalAjukan` menjadi kontainer terpusat dengan pembatasan tinggi proporsional:
+     ```html
+     <div class="fixed inset-0 z-10 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
+         <div class="relative flex flex-col w-full max-w-2xl max-h-[90vh] rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100">
+     ```
+   - **Fixed Header:** Tersemat di bagian atas (`shrink-0 bg-gray-50/70 border-b border-gray-100 px-6 py-4`) dilengkapi badge ikon plus oranye amber BPS `#faa938`, judul tebal semantik, teks panduan singkat, serta tombol tutup SVG modern.
+   - **Scrollable Form Body:** Konten formulir dibungkus dalam kontainer gulir internal independen (`flex-1 overflow-y-auto px-6 pr-5 py-5 space-y-4`). Pengguna dapat menggulir input formulir secara mulus di dalam modal tanpa memengaruhi scrollbar jendela peramban utama.
+   - **Pinned Footer:** Bilah aksi terpin kuat di bagian bawah modal (`shrink-0 flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-3.5 bg-gray-50/70`). Tombol **Batal** dan **Kirim Pengajuan** selalu tampak dan berada dalam jangkauan pandangan pengguna di resolusi layar mana pun.
+2. **Penyempurnaan Antarmuka Elemen Input & Kanvas Tanda Tangan:**
+   - Menyelaraskan tipografi label menjadi `text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5`.
+   - Menggunakan input modern `rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm` dengan fokus ring amber yang lembut.
+   - Menata tombol **Hapus Tanda Tangan** agar sejajar rapi di sudut kanan atas label Tanda Tangan Digital (`flex items-center justify-between mb-1.5`).
+   - Menetapkan tinggi kanvas yang proporsional (`h-36 w-full`) dengan kotak kanvas berlatar `bg-gray-50 hover:border-gray-400`.
+   - Menjadikan kotak peringatan estimasi durasi lembur (`#previewDurasi`) sebagai kartu alert berbadge warna dinamis (`rounded-xl border px-3.5 py-2.5 text-xs`) yang otomatis berganti warna (merah untuk tidak valid, ungu untuk lembur malam, amber untuk peringatan > 6 jam, dan oranye untuk normal).
+3. **Penyelarasan Menyeluruh pada Modul Pegawai dan Admin:**
+   - Menerapkan arsitektur modal modern ini secara serentak pada `resources/views/lembur.blade.php` dan `resources/views/admin/lembur.blade.php`, serta mempertahankan penanganan kartu durasi pada `resources/views/ketua-tim/lembur.blade.php`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Restrukturisasi `#modalAjukan` menjadi model fixed header, scrollable body `max-h-[90vh]`, pinned footer, penataan tombol hapus tanda tangan sejajar label, dan kartu estimasi durasi berbadge warna dinamis. |
+| 2 | `resources/views/admin/lembur.blade.php` | Penyelarasan tata letak `#modalAjukan` Admin ke pola bounded modal container `max-h-[90vh]`, fixed header, scrollable body, dan pinned footer. |
+| 3 | `resources/views/ketua-tim/lembur.blade.php` | Pembaruan kelas kartu estimasi durasi `#previewDurasi` agar mempertahankan badge alert warna dinamis saat kalkulasi jam berjalan. |
+| 4 | `public/build/*` | Hasil kompilasi bundel aset produksi Vite terbaru (`app-DfUGke97.js` & `app-BWQ3dq7l.css`). |
+
 
 
 
