@@ -1164,7 +1164,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         label.textContent = info;
-        preview.className = `text-xs ${warna}`;
+        preview.className = `rounded-xl border px-3.5 py-2.5 text-xs transition-all ${
+            jam < 2 || jam > 12
+                ? 'border-rose-200 bg-rose-50 text-rose-700 font-medium'
+                : (isCrossMidnight
+                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 font-medium'
+                    : (jam > 6 ? 'border-amber-200 bg-amber-50 text-amber-800 font-medium' : 'border-orange-100 bg-orange-50/70 text-orange-800 font-medium'))
+        }`;
         preview.classList.remove('hidden');
     }
 

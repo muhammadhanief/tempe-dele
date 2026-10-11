@@ -942,37 +942,43 @@
 </div>
 
 {{-- MODAL AJUKAN LEMBUR --}}
-<div id="modalAjukan" class="fixed inset-0 z-50 hidden overflow-y-auto">
-    <div id="modalOverlay" class="absolute inset-0 bg-black/40"></div>
+<div id="modalAjukan" class="fixed inset-0 z-50 hidden">
+    <div id="modalOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"></div>
 
-    <div class="fixed inset-0 overflow-y-auto">
-        <div class="flex min-h-full items-end sm:items-start justify-center p-0 sm:p-4 sm:py-8">
+    <div class="fixed inset-0 z-10 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
+        <div class="relative flex flex-col w-full max-w-2xl max-h-[90vh] rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100">
 
-            <div class="relative w-full sm:max-w-3xl bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[94vh] sm:max-h-none overflow-y-auto sm:overflow-hidden">
-
-                {{-- Mobile handle --}}
-                <div class="flex justify-center pt-3 pb-1 sm:hidden">
-                    <div class="h-1 w-10 rounded-full bg-gray-200"></div>
+            {{-- Header (Fixed) --}}
+            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/70 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 text-[#faa938]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 leading-tight">Ajukan Lembur</h2>
+                        <p class="text-xs text-gray-500">Isi formulir untuk mengajukan kegiatan lembur mandiri (Admin)</p>
+                    </div>
                 </div>
 
-                <div class="sticky sm:static top-0 z-10 flex items-center justify-between border-b bg-white px-4 sm:px-6 py-4">
-                    <h2 class="text-base sm:text-lg font-semibold text-gray-900">
-                        Ajukan Lembur
-                    </h2>
+                <button type="button" id="btnCloseModal"
+                    class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
 
-                    <button type="button" id="btnCloseModal"
-                        class="text-gray-500 hover:text-gray-700 text-xl leading-none">
-                        &times;
-                    </button>
-                </div>
+            {{-- Form Body (Scrollable) --}}
+            <form id="formAjukan" action="{{ route('admin.lembur.store') }}" method="POST"
+                class="flex flex-col flex-1 overflow-hidden">
+                @csrf
 
-                <form id="formAjukan" action="{{ route('admin.lembur.store') }}" method="POST"
-                    class="px-4 sm:px-6 py-5 space-y-5">
-                    @csrf
-
+                <div class="flex-1 overflow-y-auto px-6 pr-5 py-5 space-y-4">
                     @if($errors->any())
-                        <div class="px-4 py-3 bg-red-100 text-red-700 rounded-lg text-sm">
-                            <ul class="list-disc list-inside">
+                        <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs">
+                            <ul class="list-disc list-inside space-y-0.5">
                                 @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
@@ -985,12 +991,12 @@
 
                     {{-- Ketua Tim --}}
                     <div>
-                        <label for="approver_id" class="block text-sm font-medium text-gray-700 mb-2">
-                            Ketua Tim
+                        <label for="approver_id" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Ketua Tim / Penyetuju
                         </label>
 
                         <select id="approver_id" name="approver_id" required
-                            class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900">
+                            class="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
                             <option value="">Pilih Ketua Tim</option>
 
                             @forelse($ketuaTim as $ketua)
@@ -1005,14 +1011,14 @@
 
                     {{-- Tanggal --}}
                     <div>
-                        <label for="tanggal" class="block text-sm font-medium text-gray-700 mb-2">
-                            Tanggal
+                        <label for="tanggal" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Tanggal Lembur
                         </label>
 
                         <input type="date" id="tanggal" name="tanggal" min="1970-01-01" max="2099-12-31"
-                            class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition-all">
+                            class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
 
-                        <p id="infoHari" class="mt-1 text-xs text-gray-400 hidden"></p>
+                        <p id="infoHari" class="mt-1 text-xs text-gray-500 hidden"></p>
 
                         <div id="errorTanggalDobel" class="hidden mt-2 p-2.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-700 flex items-start gap-2">
                             <svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1028,25 +1034,25 @@
                     {{-- Jam Mulai & Selesai --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="jam_mulai" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="jam_mulai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 Jam Mulai
                             </label>
 
                             <input type="time" id="jam_mulai" name="jam_mulai" required
-                                class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900">
+                                class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
 
-                            <p id="infoJamMulai" class="mt-1 text-xs text-black hidden">
+                            <p id="infoJamMulai" class="mt-1 text-xs text-amber-600 font-medium hidden">
                                 Default hari kerja: 16:01
                             </p>
                         </div>
 
                         <div id="wrapperJamSelesai">
-                            <label for="jam_selesai" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="jam_selesai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 Jam Selesai
                             </label>
 
                             <input type="time" id="jam_selesai" name="jam_selesai"
-                                class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900">
+                                class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
 
                             <p id="infoJamSelesai" class="hidden mt-1 text-xs text-gray-400">
                                 Jam selesai ditentukan otomatis oleh sistem sesuai jam pulang kantor.
@@ -1055,66 +1061,73 @@
                     </div>
 
                     {{-- Preview durasi --}}
-                    <p id="previewDurasi" class="text-xs text-gray-500 hidden">
-                        Estimasi:
-                        <span id="durasiLabel" class="font-semibold text-gray-800"></span>
-                    </p>
+                    <div id="previewDurasiWrapper">
+                        <div id="previewDurasi" class="hidden rounded-lg bg-orange-50/70 border border-orange-100 px-3 py-2 text-xs text-orange-800">
+                            ⏱️ Estimasi Durasi: <span id="durasiLabel" class="font-bold text-orange-950"></span>
+                        </div>
+                        <div id="errorDurasiMinimal" class="hidden mt-2 p-2.5 rounded-xl border border-red-200 bg-red-50 text-xs text-red-700 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span><strong>Minimal 2 Jam:</strong> Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.</span>
+                        </div>
+                    </div>
 
                     {{-- Uraian --}}
                     <div>
-                        <div class="mb-2 flex items-center justify-between">
-                            <label for="uraian" class="block text-sm font-medium text-gray-700">
+                        <div class="mb-1.5 flex items-center justify-between">
+                            <label for="uraian" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 Uraian Kegiatan
                             </label>
-                            <span id="uraianCount" class="text-xs text-gray-400">0 / 2000</span>
+                            <span id="uraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
                         </div>
 
                         <textarea id="uraian" name="uraian" rows="4" maxlength="2000" required
                             placeholder="Contoh: Penyusunan laporan bulanan..."
-                            class="w-full resize-y rounded-md border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"></textarea>
+                            class="w-full resize-y rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"></textarea>
                     </div>
 
                     {{-- Tanda Tangan --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Tanda Tangan
-                        </label>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Tanda Tangan
+                            </label>
 
-                        <div id="signatureCanvasBox" class="border border-gray-300 rounded-md overflow-hidden bg-gray-50 transition-all">
-                            <canvas id="signatureCanvas"
-                                class="w-full h-[180px] sm:h-[210px] touch-none"
-                                height="210">
-                            </canvas>
-                        </div>
-
-                        <div class="flex justify-end mt-2">
                             <button type="button" id="btnClearSignature"
-                                class="text-xs text-gray-500 hover:text-red-500 underline">
+                                class="text-xs text-gray-500 hover:text-red-500 transition-colors underline">
                                 Hapus Tanda Tangan
                             </button>
                         </div>
 
+                        <div id="signatureCanvasBox" class="overflow-hidden rounded-xl border border-gray-300 bg-gray-50 hover:border-gray-400 transition-colors">
+                            <canvas id="signatureCanvas"
+                                class="w-full h-36 touch-none">
+                            </canvas>
+                        </div>
+
                         <input type="hidden" name="signature" id="signatureData">
 
-                        <p id="signatureError" class="mt-1 text-xs text-red-500 hidden">
+                        <p id="signatureError" class="mt-1 text-xs text-red-500 font-medium hidden">
                             Tanda tangan wajib diisi.
                         </p>
                     </div>
+                </div>
 
-                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
-                        <button type="button" id="btnCancel"
-                            class="w-full sm:w-auto px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50">
-                            Batal
-                        </button>
+                {{-- Footer (Fixed) --}}
+                <div class="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-3.5 bg-gray-50/70 shrink-0">
+                    <button type="button" id="btnCancel"
+                        class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                        Batal
+                    </button>
 
-                        <button type="submit" id="btnSubmitAjukan"
-                            class="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-black bg-[#faa938] rounded-lg hover:bg-[#fd9a10] hover:text-white">
-                            Kirim
-                        </button>
-                    </div>
-                </form>
+                    <button type="submit" id="btnSubmitAjukan"
+                        class="rounded-xl bg-[#faa938] px-5 py-2 text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow transition-all">
+                        Kirim Pengajuan
+                    </button>
+                </div>
+            </form>
 
-            </div>
         </div>
     </div>
 </div>
@@ -1447,7 +1460,13 @@
         }
 
         label.textContent = info;
-        preview.className = `text-xs ${warna}`;
+        preview.className = `rounded-xl border px-3.5 py-2.5 text-xs transition-all ${
+            jam < 2 || jam > 12
+                ? 'border-rose-200 bg-rose-50 text-rose-700 font-medium'
+                : (isCrossMidnight
+                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 font-medium'
+                    : (jam >= 6 ? 'border-amber-200 bg-amber-50 text-amber-800 font-medium' : 'border-orange-100 bg-orange-50/70 text-orange-800 font-medium'))
+        }`;
         preview.classList.remove('hidden');
     }
 

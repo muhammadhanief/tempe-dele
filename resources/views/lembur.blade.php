@@ -869,33 +869,47 @@
 
 {{-- Modal Ajukan Lembur --}}
 <div id="modalAjukan" class="fixed inset-0 z-50 hidden">
-    <div id="modalOverlay" class="fixed inset-0 bg-black/40"></div>
+    <div id="modalOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"></div>
 
-    <div class="fixed inset-0 overflow-y-auto">
-        <div class="flex min-h-full items-start justify-center px-4 py-6 sm:py-8">
-            <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-xl">
+    <div class="fixed inset-0 z-10 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
+        <div class="relative flex flex-col w-full max-w-2xl max-h-[90vh] rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100">
 
-                <div class="flex items-center justify-between border-b px-5 py-4 sm:px-6">
-                    <h2 class="text-base font-semibold text-gray-900 sm:text-lg">Ajukan Lembur</h2>
-                    <button type="button" id="btnCloseModal"
-                        class="text-xl leading-none text-gray-500 hover:text-gray-700">
-                        &times;
-                    </button>
+            {{-- Header (Fixed) --}}
+            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/70 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 text-[#faa938]">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 leading-tight">Ajukan Lembur</h2>
+                        <p class="text-xs text-gray-500">Isi formulir untuk mengajukan kegiatan lembur mandiri</p>
+                    </div>
                 </div>
 
-                <form id="formAjukan" action="{{ route('lembur.store') }}" method="POST"
-                    class="space-y-5 px-5 py-5 sm:px-6">
-                    @csrf
+                <button type="button" id="btnCloseModal"
+                    class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
 
+            {{-- Form Body (Scrollable) --}}
+            <form id="formAjukan" action="{{ route('lembur.store') }}" method="POST"
+                class="flex flex-col flex-1 overflow-hidden">
+                @csrf
+
+                <div class="flex-1 overflow-y-auto px-6 pr-5 py-5 space-y-4">
                     <input type="hidden" name="bulan" value="{{ request('bulan') }}">
                     <input type="hidden" name="perPage" value="{{ request('perPage') }}">
-
                     <input type="hidden" name="kode_tim" id="kode_tim">
 
                     <div>
-                        <label for="approver_id" class="mb-2 block text-sm font-medium text-gray-700">Ketua Tim</label>
+                        <label for="approver_id" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Ketua Tim / Penyetuju</label>
                         <select id="approver_id" name="approver_id" required
-                            class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
+                            class="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
                             <option value="">Pilih Ketua Tim</option>
                             @forelse($ketuaTim as $ketua)
                                 <option value="{{ $ketua['nip'] }}" data-kode="{{ $ketua['kode_tim'] }}">
@@ -908,10 +922,10 @@
                     </div>
 
                     <div>
-                        <label for="tanggal" class="mb-2 block text-sm font-medium text-gray-700">Tanggal</label>
-                        <input type="date" id="tanggal" name="tanggal" min="1970-01-01" max="2099-12-31"
-                            class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
-                        <p id="infoHari" class="mt-1 hidden text-xs text-gray-400"></p>
+                        <label for="tanggal" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanggal Lembur</label>
+                        <input type="date" id="tanggal" name="tanggal" required min="1970-01-01" max="2099-12-31"
+                            class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                        <p id="infoHari" class="mt-1 hidden text-xs text-gray-500"></p>
                         <div id="errorTanggalDobel" class="hidden mt-2 p-2.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-700 flex items-start gap-2">
                             <svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -925,23 +939,25 @@
 
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label for="jam_mulai" class="mb-2 block text-sm font-medium text-gray-700">Jam Mulai</label>
+                            <label for="jam_mulai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Mulai</label>
                             <input type="time" id="jam_mulai" name="jam_mulai" required
-                                class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
-                            <p id="infoJamMulai" class="mt-1 hidden text-xs text-black">Default hari kerja: 16:01</p>
+                                class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                            <p id="infoJamMulai" class="mt-1 hidden text-xs text-amber-600 font-medium">
+                                Default hari kerja: 16:01
+                            </p>
                         </div>
 
                         <div id="wrapperJamSelesai">
-                            <label for="jam_selesai" class="mb-2 block text-sm font-medium text-gray-700">Jam Selesai</label>
+                            <label for="jam_selesai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Selesai</label>
                             <input type="time" id="jam_selesai" name="jam_selesai" required
-                                class="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20">
+                                class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
                         </div>
                     </div>
 
                     <div id="previewDurasiWrapper">
-                        <p id="previewDurasi" class="hidden text-xs text-gray-500">
-                            Estimasi: <span id="durasiLabel" class="font-semibold text-gray-800"></span>
-                        </p>
+                        <div id="previewDurasi" class="hidden rounded-lg bg-orange-50/70 border border-orange-100 px-3 py-2 text-xs text-orange-800">
+                            ⏱️ Estimasi Durasi: <span id="durasiLabel" class="font-bold text-orange-950"></span>
+                        </div>
                         <div id="errorDurasiMinimal" class="hidden mt-2 p-2.5 rounded-xl border border-red-200 bg-red-50 text-xs text-red-700 flex items-center gap-2">
                             <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -951,50 +967,48 @@
                     </div>
 
                     <div>
-                        <div class="mb-2 flex items-center justify-between">
-                            <label for="uraian" class="block text-sm font-medium text-gray-700">Uraian Kegiatan</label>
-                            <span id="uraianCount" class="text-xs text-gray-400">0 / 2000</span>
+                        <div class="mb-1.5 flex items-center justify-between">
+                            <label for="uraian" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Uraian Kegiatan</label>
+                            <span id="uraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
                         </div>
                         <textarea id="uraian" name="uraian" rows="4" maxlength="2000" required
                             placeholder="Contoh: Penyusunan laporan bulanan..."
-                            class="w-full resize-y rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"></textarea>
+                            class="w-full resize-y rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"></textarea>
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700">Tanda Tangan</label>
-
-                        <div id="signatureCanvasBox" class="overflow-hidden rounded-md border border-gray-300 bg-gray-50 transition-all">
-                            <canvas id="signatureCanvas" class="h-40 w-full touch-none"></canvas>
-                        </div>
-
-                        <div class="mt-2 flex justify-end">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanda Tangan</label>
                             <button type="button" id="btnClearSignature"
-                                class="text-xs text-gray-500 underline hover:text-red-500">
+                                class="text-xs text-gray-500 hover:text-red-500 transition-colors underline">
                                 Hapus Tanda Tangan
                             </button>
                         </div>
 
-                        <input type="hidden" name="signature" id="signatureData">
+                        <div id="signatureCanvasBox" class="overflow-hidden rounded-xl border border-gray-300 bg-gray-50 hover:border-gray-400 transition-colors">
+                            <canvas id="signatureCanvas" class="h-36 w-full touch-none"></canvas>
+                        </div>
 
-                        <p id="signatureError" class="mt-1 hidden text-xs text-red-500">
+                        <input type="hidden" name="signature" id="signatureData">
+                        <p id="signatureError" class="mt-1 hidden text-xs text-red-500 font-medium">
                             Tanda tangan wajib diisi.
                         </p>
                     </div>
+                </div>
 
-                    <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-                        <button type="button" id="btnCancel"
-                            class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 sm:w-auto">
-                            Batal
-                        </button>
+                {{-- Footer (Fixed) --}}
+                <div class="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-3.5 bg-gray-50/70 shrink-0">
+                    <button type="button" id="btnCancel"
+                        class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" id="btnSubmitAjukan"
+                        class="rounded-xl bg-[#faa938] px-5 py-2 text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow transition-all">
+                        Kirim Pengajuan
+                    </button>
+                </div>
+            </form>
 
-                        <button type="submit" id="btnSubmitAjukan"
-                            class="w-full rounded-lg bg-[#faa938] px-4 py-2 text-sm font-semibold text-black hover:bg-[#fd9a10] hover:text-white sm:w-auto transition-all">
-                            Kirim
-                        </button>
-                    </div>
-                </form>
-
-            </div>
         </div>
     </div>
 </div>
@@ -2053,7 +2067,13 @@
         }
 
         label.textContent = info;
-        preview.className = `text-xs ${warna}`;
+        preview.className = `rounded-xl border px-3.5 py-2.5 text-xs transition-all ${
+            jam < 2 || jam > 12
+                ? 'border-rose-200 bg-rose-50 text-rose-700 font-medium'
+                : (isCrossMidnight
+                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 font-medium'
+                    : (jam > 6 ? 'border-amber-200 bg-amber-50 text-amber-800 font-medium' : 'border-orange-100 bg-orange-50/70 text-orange-800 font-medium'))
+        }`;
         preview.classList.remove('hidden');
     }
 
