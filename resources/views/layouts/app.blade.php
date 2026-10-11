@@ -67,6 +67,22 @@
                 </div>
             </div>
         </div>
+        <script>
+            window.hideLoading = window.hideLoading || function() {
+                var el = document.getElementById('loadingOverlay');
+                if (el) {
+                    el.classList.add('opacity-0', 'pointer-events-none');
+                    el.classList.remove('opacity-100');
+                }
+            };
+            window.showLoading = window.showLoading || function() {
+                var el = document.getElementById('loadingOverlay');
+                if (el) {
+                    el.classList.remove('opacity-0', 'pointer-events-none');
+                    el.classList.add('opacity-100');
+                }
+            };
+        </script>
     @endif
 
     {{-- SCRIPTS --}}
@@ -82,6 +98,9 @@
                 }
                 if (typeof closeSidebar === 'function' && typeof isOpen !== 'undefined' && isOpen) {
                     closeSidebar();
+                }
+                if (typeof window.hideLoading === 'function') {
+                    window.hideLoading();
                 }
             }
         });

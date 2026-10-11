@@ -918,6 +918,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const tglVal = document.getElementById('tanggal')?.value;
         if (tglVal && existingDatesDB[tglVal]) {
             event.preventDefault();
+            event.stopPropagation();
+            if (window.hideLoading) window.hideLoading();
             alert(`Anda sudah memiliki pengajuan lembur pada tanggal ${tglVal} (Status: ${existingDatesDB[tglVal]}). Ketentuan BPS hanya memperbolehkan 1 pengajuan lembur per hari. Silakan pilih tanggal lain atau perbarui pengajuan yang sudah ada.`);
             document.getElementById('tanggal')?.focus();
             return;
@@ -935,12 +937,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (jam < 2) {
                 event.preventDefault();
+                event.stopPropagation();
+                if (window.hideLoading) window.hideLoading();
                 alert('Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS. Silakan sesuaikan jam selesai lembur.');
                 document.getElementById('jam_selesai')?.focus();
                 return;
             }
             if (jam > 12) {
                 event.preventDefault();
+                event.stopPropagation();
+                if (window.hideLoading) window.hideLoading();
                 alert('Durasi lembur melebihi batas wajar harian (maksimal 12 jam). Silakan sesuaikan jam selesai lembur.');
                 document.getElementById('jam_selesai')?.focus();
                 return;
@@ -949,6 +955,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!signaturePad || signaturePad.isEmpty()) {
             event.preventDefault();
+            event.stopPropagation();
+            if (window.hideLoading) window.hideLoading();
             const canvasBox = document.getElementById('signatureCanvasBox') || canvas?.closest('.overflow-hidden');
             if (canvasBox) {
                 canvasBox.classList.remove('border-gray-300');

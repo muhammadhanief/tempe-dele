@@ -16,28 +16,68 @@ document.addEventListener('click', (e) => {
 });
 
 // Modal Loading
-const overlay = document.getElementById('loadingOverlay');
+let loadingTimeout = null;
+
+function getLoadingOverlay() {
+  return document.getElementById('loadingOverlay');
+}
 
 function showLoading() {
-  if (!overlay) return;
-  overlay.classList.remove('opacity-0', 'pointer-events-none');
-  overlay.classList.add('opacity-100');
+  const el = getLoadingOverlay();
+  if (!el) return;
+  el.classList.remove('opacity-0', 'pointer-events-none');
+  el.classList.add('opacity-100');
+
+  clearTimeout(loadingTimeout);
+  loadingTimeout = setTimeout(() => {
+    hideLoading();
+  }, 12000);
 }
 
 function hideLoading() {
-  if (!overlay) return;
-  overlay.classList.add('opacity-0', 'pointer-events-none');
-  overlay.classList.remove('opacity-100');
+  clearTimeout(loadingTimeout);
+  const el = getLoadingOverlay();
+  if (!el) return;
+  el.classList.add('opacity-0', 'pointer-events-none');
+  el.classList.remove('opacity-100');
 }
 
-document.addEventListener('submit', showLoading);
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+
+document.addEventListener('submit', (e) => {
+  if (e.defaultPrevented) {
+    hideLoading();
+    return;
+  }
+
+  if (e.target && typeof e.target.checkValidity === 'function' && !e.target.checkValidity()) {
+    hideLoading();
+    return;
+  }
+
+  setTimeout(() => {
+    if (e.defaultPrevented) {
+      hideLoading();
+    } else {
+      showLoading();
+    }
+  }, 0);
+});
 
 document.addEventListener('click', (e) => {
   const a = e.target.closest('a');
   if (a && a.href && !a.href.startsWith('#')
       && !a.href.startsWith('javascript')
-      && !a.target) {
-    showLoading();
+      && !a.target
+      && !a.hasAttribute('download')
+      && !a.getAttribute('href')?.startsWith('blob:')
+      && !a.getAttribute('href')?.startsWith('data:')) {
+    setTimeout(() => {
+      if (!e.defaultPrevented) {
+        showLoading();
+      }
+    }, 0);
   }
 });
 
