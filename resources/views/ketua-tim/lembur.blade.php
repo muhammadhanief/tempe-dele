@@ -714,14 +714,14 @@
                     <input type="hidden" name="perPage" value="{{ request('perPage') }}">
                     <input type="hidden" name="kode_tim" id="kode_tim">
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4">
                         {{-- KOLOM KIRI: Jadwal & Penyetuju --}}
-                        <div class="flex flex-col space-y-3">
+                        <div class="flex flex-col justify-between h-full space-y-3.5 md:space-y-0">
                             {{-- Ketua Tim --}}
                             <div>
-                                <label for="approver_id" class="mb-1 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Ketua Tim / Penyetuju</label>
+                                <label for="approver_id" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Ketua Tim / Penyetuju</label>
                                 <select id="approver_id" name="approver_id" required
-                                    class="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
+                                    class="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
                                     <option value="">Pilih Ketua Tim</option>
                                     @forelse($ketuaTim as $ketua)
                                         <option value="{{ $ketua['nip'] }}" data-kode="{{ $ketua['kode_tim'] }}">
@@ -735,9 +735,9 @@
 
                             {{-- Tanggal Lembur --}}
                             <div>
-                                <label for="tanggal" class="mb-1 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanggal Lembur</label>
+                                <label for="tanggal" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanggal Lembur</label>
                                 <input type="date" id="tanggal" name="tanggal" required min="1970-01-01" max="2099-12-31"
-                                    class="w-full rounded-xl border border-gray-300 px-3.5 py-2 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                                    class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
                                 <p id="infoHari" class="mt-1 hidden text-xs text-gray-500"></p>
                                 <div id="errorTanggalDobel" class="hidden mt-1.5 p-2 rounded-xl border border-rose-200 bg-rose-50 text-[11px] text-rose-700 flex items-start gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -750,48 +750,50 @@
                                 </div>
                             </div>
 
-                            {{-- Jam Mulai & Jam Selesai --}}
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label for="jam_mulai" class="mb-1 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Mulai</label>
-                                    <input type="time" id="jam_mulai" name="jam_mulai" required
-                                        class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
-                                    <p id="infoJamMulai" class="mt-1 hidden text-[11px] text-amber-600 font-medium">
-                                        Default hari kerja: 16:01
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <label for="jam_selesai" class="mb-1 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Selesai</label>
-                                    <input type="time" id="jam_selesai" name="jam_selesai" required
-                                        class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
-                                </div>
-                            </div>
-
-                            {{-- Preview Durasi --}}
+                            {{-- Jam Mulai & Jam Selesai + Preview Durasi --}}
                             <div>
-                                <div id="previewDurasi" class="hidden rounded-lg bg-orange-50/70 border border-orange-100 px-3 py-1.5 text-xs text-orange-800">
-                                    ⏱️ Estimasi Durasi: <span id="durasiLabel" class="font-bold text-orange-950"></span>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label for="jam_mulai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Mulai</label>
+                                        <input type="time" id="jam_mulai" name="jam_mulai" required
+                                            class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                                        <p id="infoJamMulai" class="mt-1 hidden text-[11px] text-amber-600 font-medium">
+                                            Default hari kerja: 16:01
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label for="jam_selesai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Selesai</label>
+                                        <input type="time" id="jam_selesai" name="jam_selesai" required
+                                            class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                                    </div>
+                                </div>
+
+                                {{-- Preview Durasi --}}
+                                <div class="mt-2">
+                                    <div id="previewDurasi" class="hidden rounded-lg bg-orange-50/70 border border-orange-100 px-3 py-1.5 text-xs text-orange-800">
+                                        ⏱️ Estimasi Durasi: <span id="durasiLabel" class="font-bold text-orange-950"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {{-- KOLOM KANAN: Uraian Kegiatan & Tanda Tangan --}}
-                        <div class="flex flex-col space-y-3">
+                        <div class="flex flex-col justify-between h-full space-y-3.5 md:space-y-0">
                             {{-- Uraian Kegiatan --}}
                             <div>
-                                <div class="mb-1 flex items-center justify-between">
+                                <div class="mb-1.5 flex items-center justify-between">
                                     <label for="uraian" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Uraian Kegiatan</label>
                                     <span id="uraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
                                 </div>
                                 <textarea id="uraian" name="uraian" rows="3" maxlength="2000" required
                                     placeholder="Contoh: Penyusunan laporan bulanan..."
-                                    class="w-full resize-none rounded-xl border border-gray-300 px-3.5 py-2 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"></textarea>
+                                    class="w-full resize-none rounded-xl border border-gray-300 px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"></textarea>
                             </div>
 
                             {{-- Tanda Tangan --}}
                             <div>
-                                <div class="flex items-center justify-between mb-1">
+                                <div class="flex items-center justify-between mb-1.5">
                                     <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanda Tangan</label>
                                     <button type="button" id="btnClearSignature"
                                         class="text-xs text-gray-500 hover:text-red-500 transition-colors underline">
