@@ -3608,6 +3608,147 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 3 | `AGENTS.md` | Penambahan aturan wajib nomor 5: fokus hanya pada permintaan pengguna, larangan mengubah bagian lain tanpa izin, dan kewajiban meminta konfirmasi jika ragu. |
 | 4 | `GEMINI.md` | Penyelarasan aturan wajib nomor 5 terkait fokus perubahan dan konfirmasi pengguna. |
 
+---
+
+## 73. Penyesuaian Tata Letak Responsif Tabel Riwayat Lembur Pegawai (100% Fit Tanpa Geser Horizontal di Desktop & Kompaksi Kolom Dokumentasi) pada `resources/views/lembur.blade.php`
+
+### A. Latar Belakang Masalah
+1. **Tabel Memerlukan Geser Horizontal (*Horizontal Scroll*) di Desktop:**
+   - Pada halaman riwayat lembur pegawai (`/lembur`), tabel sebelumnya dipaksa memiliki batas lebar minimum kaku `min-w-[1280px]` serta padding horizontal sel yang lebar (`px-4` / 32px per sel).
+   - Pada layar laptop standar (resolusi 1366×768 px) atau peramban dengan sidebar navigasi terbuka, lebar area kontainer hanya berkisar ~1.000 px. Akibatnya, tabel melebihi batas kontainer dan pengguna terpaksa harus menggeser (*scroll*) tabel ke kanan untuk melihat status, catatan, dokumentasi, dan tombol aksi.
+2. **Kebutuhan Kolom Dokumentasi Ringkas (*Fit & Truncated*):**
+   - Sesuai arahan pengguna pada Opsi 1, tabel dipertahankan memuat 10 kolom lengkap namun harus pas (*fit*) 100% dengan lebar layar desktop tanpa geser kanan-kiri.
+   - Kolom Dokumentasi secara khusus diminta dibuat seramping mungkin (*fit in banget*), dengan tautan yang dipotong pendek (*truncate*) agar tidak memakan ruang horizontal tabel.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penghapusan Batasan Kaku `min-w-[1280px]` & Penerapan `md:min-w-full`:**
+   - Mengubah deklarasi tabel menjadi `w-full min-w-[760px] md:min-w-full table-fixed divide-y divide-gray-200`.
+   - Pada layar laptop dan desktop (lebar $\ge 768$ px), tabel otomatis melar dan mengisi 100% lebar kontainer secara sempurna tanpa memicu bilah gulir horizontal.
+   - Pada perangkat seluler sangat kecil (<768 px), batas aman `min-w-[760px]` tetap melindungi keterbacaan kolom atau pengguna dapat beralih ke mode Timeline.
+2. **Optimasi Proporsi Kolom & Ramping Padding Antar-Sel:**
+   - Merampingkan padding horizontal sel dari `px-4` menjadi `px-2` / `px-2.5` dan `px-1` untuk kolom sempit, menghemat lebih dari 120 px ruang horizontal di setiap baris.
+   - Menetapkan lebar kolom proporsional pada `<th>`:
+     - Tanggal: `w-[98px]` (format ringkas elegan `d M Y`, contoh: "12 Okt 2026").
+     - Jam Diajukan: `w-[88px]`.
+     - Jam Disetujui: `w-[92px]`.
+     - Uraian Kegiatan: `w-auto` (mengambil porsi sisa terbesar dengan *natural text wrapping*).
+     - Ketua Tim: `w-[110px]`.
+     - Nama Tim: `w-[115px]`.
+     - Status: `w-[102px]` (badge status ringkas `text-[11px]`).
+     - Catatan: `w-[110px]`.
+     - Dokumentasi: `w-[72px]`.
+     - Aksi: `w-[68px]`.
+3. **Kompaksi Kolom Dokumentasi (*Fit & Truncated Link*):**
+   - Jika bukti dokumentasi ada: tautan ditampilkan ringkas dengan label `Link`, teks berpotongan `max-w-[52px] truncate`, ikon tautan luar SVG, tombol hapus mini, serta atribut `title` yang memuat URL lengkap saat kursor diarahkan (*tooltip*).
+   - Jika bukti dokumentasi belum ada: tombol tambah tautan ditampilkan kompak berupa `+ Dok` (`text-[11px] whitespace-nowrap`) yang pas dalam lebar 72 px.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penggantian `min-w-[1280px]` menjadi responsif `md:min-w-full`, penyesuaian lebar proporsional 10 kolom thead/tbody, perampingan padding sel, dan kompaksi kolom Dokumentasi dengan link terpotong (*truncate*). |
+
+---
+
+## 74. Pengembalian Lebar Asli Tabel Pengajuan Lembur & Implementasi Collapsible Sidebar (Drawer Buka-Tutup Desktop) dengan Floating Toggle Tab ala Canvas LMS
+
+### A. Latar Belakang & Permintaan Pengguna
+1. **Permintaan Pengembalian Lebar Tabel (*Revert Table Width*):**
+   - Pengguna meminta agar penyesuaian pemadatan tabel riwayat lembur pegawai sebelumnya dikembalikan ke kondisi aslinya (`min-w-[1280px]` dan padding sel standar).
+   - Alasan pengguna: Pengguna menginginkan tabel dapat tampil lebar dan lega secara alami saat bilah navigasi (sidebar) ditutup.
+2. **Kebutuhan Fitur Buka-Tutup Sidebar (*Collapsible Sidebar*):**
+   - Pengguna meminta agar sidebar dapat dimunculkan dan disembunyikan (*"bisa ga si sidebar nya dibikin gitu bisa ga? kaya bisa munculin side bar dan ilangin, jadinya kan tabel nya lebar juga kalo ditutup"*).
+   - Pengguna menyertakan referensi visual berupa tombol tab mengambang melengkung (*floating drawer tab*) yang menempel di tepi kiri layar dengan ikon daftar peluru (*bullet list*) dan tooltip *"Open course index"* (gaya antarmuka Canvas LMS / Moodle).
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Pengembalian Tabel Pengajuan Lembur (`resources/views/lembur.blade.php`):**
+   - Mengembalikan deklarasi tabel ke batas lebar aslinya: `table class="w-full min-w-[1280px] table-fixed divide-y divide-gray-200"`.
+   - Mengembalikan padding horizontal sel tabel ke standar lega `px-4 py-3.5` dan label tombol Dokumentasi menjadi `Lihat` / `Dokumentasi` serta `Ubah`.
+2. **Implementasi Collapsible Sidebar Desktop (`resources/views/partials/sidebar.blade.php`):**
+   - Mengubah transisi sidebar menjadi `transition-all duration-300 ease-in-out` dengan deklarasi CSS eksplisit:
+     ```css
+     #main-sidebar {
+         transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+     }
+     @media (min-width: 1024px) {
+         html.sidebar-is-collapsed #main-sidebar {
+             margin-left: -16rem !important;
+             pointer-events: none;
+         }
+         html.sidebar-is-collapsed #sidebar-floating-tab {
+             display: flex !important;
+         }
+     }
+     ```
+   - Saat ditutup di desktop: `margin-left: -16rem` menarik sidebar sepenuhnya ke luar layar (kiri). Ruang okupansi flexbox menciut menjadi 0, sehingga area utama (*main area*) dan tabel otomatis melebar 100% memenuhi seluruh layar secara mulus.
+   - **Tombol Sembunyikan Sidebar di Header:** Menambahkan tombol collapse pada header sidebar (di samping judul TEMPE DELE) khusus desktop (`hidden lg:flex`) berikon chevron kiri.
+3. **Floating Drawer Toggle Tab ala Canvas LMS (`#sidebar-floating-tab`):**
+   - Menambahkan tombol tab penarik mengambang yang menempel di tepi kiri layar (`fixed left-0 top-20 sm:top-24 z-40`).
+   - Berbentuk setengah kapsul melengkung di sisi kanan (`rounded-r-2xl`), warna latar selaras sidebar BPS (`bg-slate-900 border-y border-r border-slate-700/80 shadow-lg`), dan ikon daftar peluru SVG presisi (3 garis horizontal dengan 3 lingkaran titik terisi).
+   - Dilengkapi *floating tooltip* gelap dengan panah kiri berlabel *"Buka Menu"* yang muncul halus saat kursor diarahkan (*hover*).
+   - Klik pada tombol tab ini memicu pembukaan kembali sidebar secara mulus.
+4. **Penyimpanan State & Pencegahan Flicker Layar (`resources/views/layouts/app.blade.php`):**
+   - Status buka-tutup disimpan secara persisten di `localStorage.setItem('sidebar_collapsed', 'true' / 'false')`.
+   - Menambahkan skrip pre-render sinkron di `<head>` pada `layouts/app.blade.php` yang mengevaluasi `localStorage` sebelum dokumen dirender:
+     ```javascript
+     <script>
+         (function() {
+             try {
+                 if (localStorage.getItem('sidebar_collapsed') === 'true' && window.innerWidth >= 1024) {
+                     document.documentElement.classList.add('sidebar-is-collapsed');
+                 }
+             } catch (e) {}
+         })();
+     </script>
+     ```
+     Hal ini menjamin *zero layout flicker* saat pengguna berpindah halaman.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Pengembalian deklarasi tabel `min-w-[1280px]`, padding lega `px-4 py-3.5`, label aksi asli, pembersihan tag penutup `</td>`, serta penyesuaian `@section('title', 'Lembur')` agar hierarki modul jelas dan tidak dobel dengan header halaman *"Pengajuan Lembur Pribadi"*. |
+| 2 | `resources/views/partials/sidebar.blade.php` | Arsitektur width-transition (`w-64` $\rightarrow$ `w-0`), isolasi konten `#sidebar-inner`, penambahan Edge Tab kecil melengkung menempel di tepi kanan luar sidebar (`#sidebar-edge-close-tab`) dengan ikon `<` dan tooltip *"Tutup Menu"*, Floating Tab buka menu di tepi kiri layar (`#sidebar-floating-tab`), serta pemisahan bersih mobile drawer. |
+| 3 | `resources/views/partials/navbar.blade.php` | Pemulihan judul halaman `@yield('title')` pada navbar untuk menyajikan nama modul (contoh: *"Lembur"*) berdampingan dengan tombol drawer mobile (`lg:hidden`). |
+| 4 | `resources/views/layouts/app.blade.php` | Penambahan skrip sinkron pre-render di tag `<head>` untuk deteksi `sidebar_collapsed` di `localStorage` anti-flicker. |
+
+---
+
+## 75. Penataan Ulang Lebar Proporsional & Spasi Antar-Kolom Tabel Pengajuan Lembur (Zero Overlap, Proporsi Rapi, 100% Fit di Desktop/Laptop)
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Keluhan Pengguna:** Setelah sidebar buka-tutup diimplementasikan, pengguna mengamati bahwa tabel riwayat lembur pegawai masih tampak memiliki celah kosong/renggang yang tidak merata di antara kolom (*"dibikin fit lagi bisa ga tabelnya? diliat liat masih ada space diantara kolom"*).
+- **Akar Masalah:**
+  1. Pada tabel dengan lebar dinamis, penggunaan nilai sembarang atau `table-auto` polos menyebabkan peramban menumpuk kolom 1-6 ke sisi kiri dan mendorong kolom Status, Catatan, Dokumentasi, serta Aksi ke sisi kanan dengan celah kosong lebar di tengahnya.
+  2. Ketika kolom dikunci terlalu sempit, lencana status (*Menunggu Kabag*) atau jam lembur rentan bertabrakan/tumpang tindih (*overlap*) dengan sel sebelahnya.
+  3. Tombol dokumentasi merender karakter plus ganda (`+ + Dok`) akibat penumpukan ikon SVG dan teks statis.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Kalibrasi Persentase Presisi 10 kolom (`table-fixed min-w-[760px] md:min-w-full`):**
+   - Mengalokasikan persentase lebar yang pas 100% berdasarkan densitas isi data:
+     - **Tanggal**: `9.4%` (pas untuk format `d M Y` e.g. "07 Okt 2026").
+     - **Jam Diajukan**: `10.0%` (cukup untuk font mono `16:01 - 19:01` tanpa mepet).
+     - **Jam Disetujui**: `10.0%` (cukup untuk font mono disetujui / status teks).
+     - **Uraian Kegiatan**: `15.6%` (porsi terbesar untuk deskripsi tugas).
+     - **Ketua Tim**: `12.0%` (pas untuk nama ketua tim 2 baris).
+     - **Nama Tim**: `12.5%` (pas untuk nama seksi/tim kerja).
+     - **Status**: `10.6%` (pas untuk lencana status panjang seperti *Menunggu Kabag* tanpa bertabrakan).
+     - **Catatan**: `9.9%` (cukup untuk ringkasan catatan ketua/kabag).
+     - **Dokumentasi**: `5.2%` (ringkas, header *"Dok."*, isi tautan terpotong `max-w-[42px]` atau tombol `+ Dok`).
+     - **Aksi**: `4.8%` (ringkas untuk tombol Ubah atau tanda `-`).
+   - Total persentase: `9.4 + 10.0 + 10.0 + 15.6 + 12.0 + 12.5 + 10.6 + 9.9 + 5.2 + 4.8 = 100.0%`.
+2. **Penyelarasan Padding Sel & Pencegahan Tabrakan Elemen:**
+   - Padding header dan body diseragamkan menjadi `px-1.5` hingga `px-2` pada kolom teks dan `px-1` pada kolom status/jam agar spasi antar-kolom terdistribusi harmonis dan alami.
+   - Lencana status disesuaikan dengan padding `px-1.5 py-0.5 text-[10.5px] font-semibold whitespace-nowrap` sehingga tidak akan pernah meluap (*overflow*) ke kolom Catatan.
+   - Tombol dokumentasi dibersihkan dari karakter plus dobel: ikon SVG plus dipadukan dengan teks `<span>Dok</span>` sehingga tampil rapi sebagai `+ Dok`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penerapan persentase 10 kolom terkalibrasi 100% pada `thead`, penyesuaian padding sel selaras, pencegahan tabrakan teks status, dan pembersihan tombol dokumentasi. |
+
+
+
+
+
 
 
 

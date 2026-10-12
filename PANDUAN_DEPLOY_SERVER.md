@@ -281,6 +281,11 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 179. 📁 **`public/build/`** *(Bundel produksi Vite terbaru: `app-BWQ3dq7l.css` & `app-DfUGke97.js`)*.
 180. 📄 **`app/Http/Controllers/LemburController.php`** *(Penyaringan status aktif `where('mt.status', 'aktif')` & `distinct()` pada `timPegawai()` untuk mencegah nama tim dobel; penanganan parameter fleksibel `bulan` & `tahun`, kueri multi-tahun, dan ekstraksi `$daftarTahun` dinamis)*.
 181. 📄 **`resources/views/lembur.blade.php`** *(Pemisahan dropdown `#filterBulan` hanya menampilkan nama bulan bersih tanpa tahun, dan penambahan dropdown mandiri `#filterTahun` dengan opsi default Semua Tahun)*.
+182. 📄 **`resources/views/partials/sidebar.blade.php`** *(Arsitektur Collapsible Sidebar berbasis width-transition desktop `w-64` $\rightarrow$ `w-0`, container isolasi `#sidebar-inner`, Edge Tab kecil melengkung menempel di tepi kanan luar sidebar `#sidebar-edge-close-tab` dengan ikon `<` dan tooltip Tutup Menu, Floating Drawer Tab buka menu gaya Canvas LMS `#sidebar-floating-tab`, dan pemisahan bersih mobile drawer)*.
+183. 📄 **`resources/views/partials/navbar.blade.php`** *(Pemulihan judul navbar `@yield('title')` untuk nama modul terstruktur dan mempertahankan tombol toggle hamburger khusus mobile `lg:hidden`)*.
+184. 📄 **`resources/views/layouts/app.blade.php`** *(Skrip sinkron pre-render di tag `<head>` untuk deteksi `sidebar_collapsed` di `localStorage` anti-flicker)*.
+185. 📄 **`resources/views/lembur.blade.php`** *(Pengembalian deklarasi tabel `min-w-[1280px]`, padding lega `px-4 py-3.5`, pembersihan tag penutup `</td>`, serta penyesuaian `@section('title', 'Lembur')` agar hierarki nama modul tidak dobel dengan header halaman)*.
+186. 📄 **`resources/views/lembur.blade.php`** *(Penataan ulang proporsi kolom tabel riwayat lembur pegawai dengan persentase terkalibrasi 100% [9.4%, 10%, 10%, 15.6%, 12%, 12.5%, 10.6%, 9.9%, 5.2%, 4.8%], padding sel ramping rapi, perbaikan double plus tombol dokumentasi, dan penyesuaian status badge agar pas 100% tanpa celah renggang dan tanpa overlap)*.
 
 ---
 
@@ -1173,6 +1178,38 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Uji ganti pilihan Tahun (misal pilih *"2026"*): riwayat lembur terfilter untuk Oktober 2026.
   - Uji kembalikan Bulan ke *"Semua Bulan"*: riwayat lembur menampilkan seluruh transaksi pada tahun 2026.
   - Uji kembalikan Tahun ke *"Semua Tahun"*: riwayat lembur kembali menampilkan seluruh data transaksi tanpa filter tahun.
+
+### BG. Uji Tabel Riwayat Lembur Pegawai Fit 100% & Kolom Dokumentasi Ringkas (Arsip Opsi 1)
+- [ ] **Uji Tampilan Tabel Fit 100% Tanpa Geser Horizontal di Desktop (`/lembur`)**:
+  - Buka halaman **Lembur** Pegawai (`/lembur`) pada layar laptop atau monitor desktop.
+  - Verifikasi: Tabel 10 kolom pas 100% memenuhi lebar kontainer tanpa memunculkan bilah gulir geser horizontal (*no horizontal scrollbar*). Seluruh kolom dari Tanggal hingga Aksi berada dalam satu bidang pandang tanpa perlu menggeser layar ke kanan.
+- [ ] **Uji Kompaksi Kolom Dokumentasi (*Fit & Truncated*)**:
+  - Verifikasi: Kolom Dokumentasi tampil seramping mungkin (`w-[72px]`).
+  - Untuk data dengan tautan bukti: tombol tampil dengan teks ringkas `Link` berpotongan (*truncate*) dilengkapi ikon tautan SVG dan tooltip URL lengkap saat kursor diarahkan.
+  - Untuk data tanpa bukti: tombol penambahan tampil kompak berupa `+ Dok` yang pas dalam lebar kolom.
+
+### BH. Uji Fitur Collapsible Sidebar Buka-Tutup (Desktop Drawer Toggle Tab) & Pengembalian Lebar Asli Tabel Lembur
+- [ ] **Uji Tombol Sembunyikan Sidebar di Header Desktop**:
+  - Buka halaman aplikasi di laptop/desktop (resolusi $\ge 1024\text{px}$).
+  - Pada header sidebar (di samping judul TEMPE DELE), klik tombol chevron kiri / collapse (`M15.75 19.5L8.25 12l7.5-7.5`).
+  - Verifikasi: Sidebar meluncur tertutup ke arah kiri dengan animasi transisi yang mulus (`transition-all duration-300`).
+  - Verifikasi: Area utama (*main area*) dan tabel Pengajuan Lembur otomatis melebar penuh 100% mengisi seluruh layar monitor tanpa menyisakan ruang kosong di sisi kiri.
+- [ ] **Uji Floating Drawer Toggle Tab (Ikon Bullet List Canvas LMS)**:
+  - Saat sidebar dalam posisi tertutup di desktop:
+    - Verifikasi: Tab mengambang (*floating drawer tab*) muncul rapi menempel di tepi kiri layar (`left-0`, `top-20` / `top-24`).
+    - Verifikasi: Bentuk tab melengkung di sisi kanan (`rounded-r-2xl`), berlatar gelap elegan (`bg-slate-900`) dengan aksen oranye amber BPS (`text-amber-400`).
+    - Verifikasi: Ikon di dalam tab berupa ikon daftar peluru (*bullet list*) yang identik dengan Canvas LMS (3 garis dan 3 bulatan titik terisi).
+  - Arahkan kursor mouse (hover) ke tab mengambang:
+    - Verifikasi: Muncul tooltip hitam berpanah kiri dengan teks *"Buka Menu"*.
+  - Klik tab mengambang:
+    - Verifikasi: Sidebar kembali meluncur terbuka ke kanan dengan animasi halus. Tab mengambang otomatis tersembunyi kembali.
+- [ ] **Uji Ketahanan State Navigasi Halaman (`localStorage`) Tanpa Flicker**:
+  - Tutup sidebar di desktop, kemudian klik tautan menu lain atau lakukan refresh halaman (F5):
+    - Verifikasi: Posisi tertutup tetap dipertahankan secara persisten tanpa ada kedipan/flicker loncatan layout (*zero flicker*).
+- [ ] **Uji Lebar Asli Tabel Pengajuan Lembur Saat Sidebar Terbuka vs Tertutup**:
+  - Saat sidebar ditutup: tabel pengajuan lembur memiliki bidang pandang ekstra lebar 100% layar, muat secara nyaman, lega, dan leluasa.
+  - Saat sidebar dibuka: tabel memiliki scroll horizontal dan tombol geser visual yang terlindungi tanpa merusak keterbacaan data.
+
 
 
 
