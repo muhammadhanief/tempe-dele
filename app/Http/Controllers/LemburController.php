@@ -20,10 +20,23 @@ class LemburController extends Controller
             ? (int) $request->get('perPage', 10)
             : 10;
 
-        // Filter bulan murni dari URL (bukan session) agar "Semua Bulan" bisa membersihkannya
-        $bulan = $request->query('bulan');
-        if ($bulan && !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $bulan)) {
-            $bulan = null;
+        // Filter bulan & tahun murni dari URL (bukan session) agar "Semua Bulan" / "Semua Tahun" bisa membersihkannya
+        $bulanParam = $request->query('bulan');
+        $tahunParam = $request->query('tahun');
+
+        if ($bulanParam && preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $bulanParam, $matches)) {
+            // Dukung format lama YYYY-MM jika ada (misal di halaman ketua_tim atau bookmark)
+            $tahun = $tahunParam ?: $matches[1];
+            $bulan = ($role === 'ketua_tim') ? $bulanParam : $matches[2];
+            $tahunFilter = $matches[1];
+            $bulanFilter = $matches[2];
+        } else {
+            $tahunFilter = ($tahunParam && preg_match('/^\d{4}$/', $tahunParam)) ? $tahunParam : null;
+            $bulanFilter = ($bulanParam && is_numeric($bulanParam) && (int)$bulanParam >= 1 && (int)$bulanParam <= 12)
+                ? str_pad((string)(int)$bulanParam, 2, '0', STR_PAD_LEFT)
+                : null;
+            $bulan = $bulanFilter;
+            $tahun = $tahunFilter;
         }
 
         // Koreksi otomatis berdasarkan presensi setiap kali halaman dibuka
@@ -35,12 +48,16 @@ class LemburController extends Controller
             ->where('t.submitted_by_NIP', $nipUser)
             ->select('t.*', 'mt.nama_tim', 'mt.nama_ketua', 'md.file_path as file_dokumentasi');
 
-        if ($bulan) {
-            $periode = Carbon::parse($bulan . '-01');
+        if ($tahunFilter && $bulanFilter) {
+            $periode = Carbon::createFromDate((int) $tahunFilter, (int) $bulanFilter, 1);
             $query->whereBetween('t.date', [
                 $periode->copy()->startOfMonth()->toDateString(),
                 $periode->copy()->endOfMonth()->toDateString(),
             ]);
+        } elseif ($tahunFilter) {
+            $query->whereYear('t.date', (int) $tahunFilter);
+        } elseif ($bulanFilter) {
+            $query->whereMonth('t.date', (int) $bulanFilter);
         }
 
         $query->orderBy('t.date', 'desc')
@@ -100,8 +117,23 @@ class LemburController extends Controller
             })
             ->toArray();
 
+        // Daftar tahun untuk filter tahun
+        $daftarTahun = DB::table('t_transaksi')
+            ->whereNotNull('date')
+            ->whereYear('date', '>=', 2020)
+            ->selectRaw('DISTINCT YEAR(date) as th')
+            ->orderBy('th', 'desc')
+            ->pluck('th')
+            ->toArray();
+
+        $currentYear = (int) now()->year;
+        if (!in_array($currentYear, $daftarTahun)) {
+            $daftarTahun[] = $currentYear;
+            rsort($daftarTahun);
+        }
+
         $view = $role === 'ketua_tim' ? 'ketua-tim.lembur' : 'lembur';
-        return view($view, compact('ketuaTim', 'transaksi', 'hariLibur', 'bulan', 'perPage', 'existingActiveDates'));
+        return view($view, compact('ketuaTim', 'transaksi', 'hariLibur', 'bulan', 'tahun', 'daftarTahun', 'perPage', 'existingActiveDates'));
     }
 
     private function koreksiDariPresensi(string $nipUser): void
@@ -389,7 +421,9 @@ class LemburController extends Controller
         $tim = DB::table('t_anggota_tim as at')
             ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
             ->where('at.pegawai_id_pegawai', $idPegawai)
+            ->where('mt.status', 'aktif')
             ->select('mt.kode_tim', 'mt.nama_tim')
+            ->distinct()
             ->get();
 
         return response()->json($tim);

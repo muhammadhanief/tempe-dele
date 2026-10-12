@@ -119,14 +119,25 @@
         <select id="filterBulan" onchange="gantiFilter('bulan', this.value)"
             class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
             <option value="" @selected(empty($bulan))>Semua Bulan</option>
-            @php $tahunBulan = now()->format('Y'); \Carbon\Carbon::setLocale('id'); @endphp
-            @for($m = 1; $m <= 12; $m++)
-                @php
-                    $valBulan  = \Carbon\Carbon::create($tahunBulan, $m, 1)->format('Y-m');
-                    $namaBulan = \Carbon\Carbon::create($tahunBulan, $m, 1)->translatedFormat('F');
-                @endphp
-                <option value="{{ $valBulan }}" @selected(($bulan ?? '') === $valBulan)>{{ ucfirst($namaBulan) }} {{ $tahunBulan }}</option>
-            @endfor
+            @php
+                $daftarNamaBulan = [
+                    '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+                    '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+                    '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+                ];
+            @endphp
+            @foreach($daftarNamaBulan as $val => $nama)
+                <option value="{{ $val }}" @selected(($bulan ?? '') === $val)>{{ $nama }}</option>
+            @endforeach
+        </select>
+
+        {{-- Filter Tahun --}}
+        <select id="filterTahun" onchange="gantiFilter('tahun', this.value)"
+            class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
+            <option value="" @selected(empty($tahun))>Semua Tahun</option>
+            @foreach(($daftarTahun ?? [now()->year]) as $th)
+                <option value="{{ $th }}" @selected(($tahun ?? '') == $th)>{{ $th }}</option>
+            @endforeach
         </select>
 
         {{-- Jumlah per Halaman --}}
