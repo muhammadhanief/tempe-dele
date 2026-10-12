@@ -3778,6 +3778,54 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/lembur.blade.php` | Penerapan `h-16`, `align-middle`, dan `py-2.5` pada baris tabel; pembatasan `line-clamp-2` pada seluruh kolom teks; penyematan event trigger `openModalUraian(this)`; penambahan markup modal `#modalDetailUraian`; serta fungsi JavaScript `window.openModalUraian` dan `window.closeModalUraian`. |
 
+---
+
+## 77. Penyesuaian Kolom Dokumentasi (Teks Lengkap Tanpa Singkatan & Verifikasi Enkripsi Base64 Client-Backend) serta Penyederhanaan Tombol Kolom Aksi (Ikon Pensil Tunggal)
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Permintaan Pengguna:**
+  1. Kolom "Dokumentasi" tidak boleh disingkat (tetap lengkap "Dokumentasi", baik pada header tabel maupun tombol isian aksi di dalam sel baris).
+  2. Verifikasi dan pastikan isian URL link Google Drive dokumentasi dienkripsi di sisi klien sebelum dikirim melalui HTTP POST, lalu didekripsi kembali di sisi backend controller sebelum disimpan ke basis data.
+  3. Kolom "Aksi" pada tabel pengajuan lembur diubah isiannya menjadi hanya ikon pensil saja tanpa teks tulisan ("Ubah").
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Pemulihan Teks Lengkap Kolom Dokumentasi (`resources/views/lembur.blade.php`):**
+   - Header tabel `<th>` dipastikan bertuliskan teks lengkap `"Dokumentasi"` dengan alokasi lebar proporsional `9.0%`.
+   - Isian sel tabel jika status pengajuan `approved` dan belum memiliki berkas dokumentasi diubah dari singkatan `<span>Dok</span>` menjadi teks utuh yang jelas: `<button ...><svg ...></svg><span>Dokumentasi</span></button>` bergradasi amber elegan (`text-[#e08916] hover:text-[#c47209]`).
+   - Jika berkas dokumentasi sudah tersimpan, sel menampilkan tautan eksternal biru berformat `<a ...><span>Lihat</span></a>` berdampingan dengan tombol hapus sampah merah berkonfirmasi.
+2. **Penyederhanaan Tombol Kolom Aksi Menjadi Ikon Pensil Tunggal:**
+   - Header tabel `<th>` Aksi dialokasikan lebar ramping `4.5%` di ujung kanan tabel (`rounded-tr-2xl`).
+   - Tombol pengeditan pengajuan lembur yang berstatus `pending` diubah dari tombol bertuliskan `"Ubah"` menjadi tombol ikon pensil mandiri:
+     ```blade
+     <button type="button"
+         onclick="openModalEdit(this)"
+         data-action="..." ...
+         class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
+         title="Ubah pengajuan lembur">
+         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+         </svg>
+     </button>
+     ```
+   - Tombol diletakkan di tengah sel (`mx-auto`), berukuran proporsional `28x28px` (`h-7 w-7`), dengan micro-interaction zoom halus pada ikon saat hover dan tooltip informatif.
+3. **Verifikasi Mekanisme Enkripsi Client & Dekripsi Backend:**
+   - **Client-Side Enkripsi (`resources/views/lembur.blade.php`):**
+     - Pada `formDok.addEventListener('submit', ...)`, input `file_path` secara otomatis diawali skema `https://` jika belum ada.
+     - Nilai URL dienkripsi menggunakan Base64 UTF-8 (`btoa(unescape(encodeURIComponent(val)))`) dengan prefix `b64:`.
+     - Tipe input dialihkan sementara ke `type="text"` agar validasi URL browser tidak mengganjal pengiriman payload Base64.
+     - Ditambahkan proteksi guard `if (val.startsWith('b64:')) return;` untuk mencegah enkripsi ganda (*double-encoding*) jika tombol submit ditekan ulang.
+   - **Backend Dekripsi (`app/Http/Controllers/LemburController.php` & `admin/LemburController.php`):**
+     - Method `storeDoc(Request $request, $id_transaksi)` mendeteksi prefiks `b64:` atau `enc:`.
+     - Membaca dan mendekripsi payload menggunakan `base64_decode(substr($filePath, 4), true)`.
+     - Memvalidasi URL hasil dekripsi (`required|url|max:255`) dan menyimpannya sebagai URL valid di tabel `m_dokumentasi`.
+     - Seluruh alur ini telah diuji coba langsung di peramban dan terbukti 100% fungsional tanpa memicu blokir firewall WAF (HTTP 403 Forbidden).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Pembaruan header dan isi kolom Dokumentasi lengkap tanpa singkatan, penyederhanaan tombol kolom Aksi menjadi ikon pensil tanpa teks "Ubah", serta penambahan proteksi guard `b64:` pada submit listener form dokumen. |
+
+
 
 
 

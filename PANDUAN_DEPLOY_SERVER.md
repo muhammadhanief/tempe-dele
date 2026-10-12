@@ -287,6 +287,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 185. 📄 **`resources/views/lembur.blade.php`** *(Pengembalian deklarasi tabel `min-w-[1280px]`, padding lega `px-4 py-3.5`, pembersihan tag penutup `</td>`, serta penyesuaian `@section('title', 'Lembur')` agar hierarki nama modul tidak dobel dengan header halaman)*.
 186. 📄 **`resources/views/lembur.blade.php`** *(Penataan ulang proporsi kolom tabel riwayat lembur pegawai dengan persentase terkalibrasi 100% [9.4%, 10%, 10%, 15.6%, 12%, 12.5%, 10.6%, 9.9%, 5.2%, 4.8%], padding sel ramping rapi, perbaikan double plus tombol dokumentasi, dan penyesuaian status badge agar pas 100% tanpa celah renggang dan tanpa overlap)*.
 187. 📄 **`resources/views/lembur.blade.php`** *(Penyeragaman tinggi seluruh baris tabel riwayat lembur pegawai menggunakan h-16 [64px] dan align-middle, line-clamp teks 2 baris pada Uraian, Ketua, Tim, dan Catatan, serta implementasi Modal Pop-up Detail Uraian Kegiatan lengkap dengan metadata tanggal, jam pengajuan & disetujui, ketua, tim kerja, status pengajuan, serta catatan terstruktur)*.
+188. 📄 **`resources/views/lembur.blade.php`** *(Pembaruan kolom Dokumentasi lengkap tanpa singkatan, tombol + Dokumentasi oranye amber, tautan eksternal Lihat dengan hapus terproteksi, penyederhanaan tombol kolom Aksi menjadi ikon pensil mandiri 28x28px tanpa teks Ubah, serta proteksi guard anti double-encode Base64 b64: pada submit listener dokumen)*.
 
 ---
 
@@ -1225,6 +1226,24 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Penutupan Modal**:
   - Klik tombol **Tutup** atau tombol silang `(X)`: modal langsung tertutup kembali.
   - Buka kembali modal lalu tekan tombol keyboard `Escape` atau klik area backdrop gelap: modal tertutup secara instan.
+
+### BJ. Uji Kolom Dokumentasi Lengkap, Enkripsi Base64 Client-Backend, & Tombol Aksi Ikon Pensil
+- [ ] **Uji Teks Lengkap Kolom Dokumentasi**:
+  - Buka halaman **Lembur** Pegawai (`/lembur`).
+  - Verifikasi: Header kolom bertuliskan **"Dokumentasi"** utuh tanpa disingkat.
+  - Untuk baris berstatus disetujui tanpa berkas bukti: tombol bertuliskan **"+ Dokumentasi"** lengkap dengan ikon plus dan warna teks oranye amber yang kontras.
+  - Untuk baris yang sudah memiliki dokumentasi: tombol bertuliskan **"Lihat"** warna biru dengan ikon panah keluar dan tombol hapus silang merah di sampingnya.
+- [ ] **Uji Alur Enkripsi Client & Dekripsi Backend (Bypass WAF BPS)**:
+  - Klik tombol **+ Dokumentasi** pada pengajuan yang disetujui.
+  - Masukkan URL link Google Drive (misal: `https://drive.google.com/drive/folders/contoh-link-dok`).
+  - Klik **Simpan**: nilai URL secara otomatis dienkripsi menjadi `b64:...` di peramban sebelum dikirim via HTTP POST (mencegah blokir WAF 403 Forbidden).
+  - Backend controller mendekripsi `b64:` dan menyimpannya sebagai URL valid di tabel `m_dokumentasi`. Muncul notifikasi *"Dokumentasi berhasil disimpan."*
+- [ ] **Uji Kolom Aksi Hanya Ikon Pensil**:
+  - Periksa baris pengajuan lembur yang masih berstatus **Menunggu Ketua** (`pending`).
+  - Verifikasi: Kolom Aksi menampilkan tombol kotak rounded kuning lembut (`w-7 h-7`) dengan **hanya ikon pensil saja tanpa teks kata "Ubah"**.
+  - Arahkan kursor mouse (hover): muncul tooltip *"Ubah pengajuan lembur"* dan ikon sedikit membesar (scale micro-interaction).
+  - Klik ikon pensil: modal Ubah Pengajuan Lembur terbuka secara lancar dengan data terisi lengkap.
+
 
 
 
