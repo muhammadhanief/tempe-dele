@@ -4150,6 +4150,53 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Kalibrasi layout tabel pengajuan ketua tim fit 100% desktop tanpa scroll horizontal (lg:min-w-full), distribusi colgroup presisi 100%, pengetatan padding sel rapat rapi px-1/px-1.5 py-2, standarisasi lencana jam disetujui hijau text-[10.5px] bebas tabrakan, ukuran tombol presensi & status proporsional, serta sinkronisasi AJAX real-time. |
 
+---
+
+## 85. Penataan Bertingkat Vertikal Header Kolom Tanggal & Dropdown Sortir pada Tabel Ketua Tim (`/ketua-tim/pengajuan`)
+
+### A. Latar Belakang & Kebutuhan Antarmuka
+1. **Kepadatan Horizontal Header Tanggal:**
+   - Pada baris kepala tabel (`<thead>`), label teks **Tanggal** dan komponen dropdown sortir `[Terbaru ▾]` sebelumnya disusun sejajar secara horizontal (`inline-flex items-center gap-1`).
+   - Penataan satu baris ini memakan lebar riil sekitar 110px. Akibatnya, pada kolom Tanggal berbobot 10.5% di layar desktop laptop standar, sisi kanan dropdown sortir berada sangat mepet bahkan menempel pada huruf depan kolom di sampingnya (*"Jam Diajukan"*).
+2. **Instruksi Pengguna (*"bisa ga dibikin bertingkat jadi: Tanggal / dropdown"*):**
+   - Pengguna meminta agar penataan header Tanggal diubah menjadi **bertingkat vertikal**:
+     ```
+     Tanggal
+     [Terbaru ▾]
+     ```
+     di mana teks "Tanggal" berada di baris atas, dan tombol dropdown sortir berada tepat di baris bawahnya.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Restrukturisasi Flexbox Bertingkat (`flex-col`):**
+   - Mengubah pembungkus di dalam sel `<th>` kolom Tanggal menjadi:
+     ```blade
+     <th class="px-1 py-1.5 text-center text-xs font-semibold whitespace-nowrap align-middle">
+         <div class="flex flex-col items-center justify-center gap-1 w-full">
+             <span class="leading-tight">Tanggal</span>
+             <div class="relative inline-block text-left">
+                 <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                     class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-3.5 py-0.5 text-[10px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                     <option value="desc" ...>Terbaru</option>
+                     <option value="asc" ...>Terlama</option>
+                     <option value="priority" ...>Prioritas</option>
+                 </select>
+                 ...
+             </div>
+         </div>
+     </th>
+     ```
+2. **Keuntungan Estetika & Keterbacaan:**
+   - Lebar maksimum elemen di dalam kolom menyusut drastis dari sebelumnya ~110px menjadi hanya **~65px** (mengikuti lebar dropdown).
+   - Menghasilkan ruang sela bebas lebih dari 45px di kiri-kanan kolom Tanggal.
+   - Dropdown tidak lagi menempel atau menekan header kolom "Jam Diajukan".
+   - Ketinggian baris `<thead>` tetap seimbang dan rapi sejajar dengan sel-sel header lainnya berkat `py-1.5` dan `align-middle`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Penataan bertingkat vertikal (flex-col) pada header kolom Tanggal: teks Tanggal di baris atas dan dropdown sortir [Terbaru ▾] di baris bawah, mengeliminasi tabrakan horizontal dengan header Jam Diajukan. |
+
+
 
 
 

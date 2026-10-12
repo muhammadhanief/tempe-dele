@@ -297,6 +297,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 195. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Standardisasi tombol aksi kartu linimasa dan script keputusan AJAX menjadi tombol icon-only h-8 w-8 dengan tooltip title dinamis)*.
 196. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Standarisasi lebar nyaman tabel pengajuan ketua tim min-w-[1140px] dan rebalancing colgroup: eliminasi tabrakan lencana jam disetujui hijau dan uraian di halaman 2, pelonggaran nama pegawai dan presensi, serta pemisahan bersih lencana status dari tombol aksi)*.
 197. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Kalibrasi layout tabel pengajuan ketua tim fit 100% desktop tanpa scroll horizontal [lg:min-w-full], distribusi colgroup presisi 100% [3.5%, 17%, 10.5%, 10.5%, 11.5%, 20%, 9%, 12.5%, 5.5%], padding sel rapat rapi px-1 / px-1.5 py-2, standarisasi lencana jam disetujui hijau text-[10.5px] px-1.5 py-0.5 bebas tabrakan, tombol presensi & badge status proporsional, serta sinkronisasi AJAX real-time)*.
+198. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Penataan bertingkat vertikal flex-col header kolom Tanggal: teks Tanggal di atas dan dropdown sortir [Terbaru ▾] di bawahnya, mengeliminasi tabrakan horizontal dengan header Jam Diajukan)*.
 
 ---
 
@@ -1358,5 +1359,13 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Tombol presensi (`● Tersedia ↗`), badge status (`Menunggu Kabag`, dll), dan tombol aksi icon-only `h-7 w-7` terisolasi dengan rapi, proporsional, dan simetris.
 - [ ] **Uji Sinkronisasi Keputusan AJAX Real-Time**:
   - Lakukan persetujuan pengajuan melalui modal keputusan: lencana jam disetujui yang diperbarui via JavaScript merender format badge hijau `text-[10.5px]` yang seragam tanpa merusak kerapian baris tabel.
+
+### BR. Uji Penataan Bertingkat Vertikal Header Tanggal & Dropdown Sortir (`/ketua-tim/pengajuan`)
+- [ ] **Uji Tampilan Bertingkat Vertikal (*Stacked Header*)**:
+  - Buka `/ketua-tim/pengajuan` di peramban desktop.
+  - Periksa kepala kolom Tanggal: teks **"Tanggal"** berada di baris atas, dan kotak dropdown sortir **`[Terbaru ▾]`** berada tepat di baris bawahnya secara simetris dan terpusat (`flex flex-col items-center justify-center gap-1`).
+  - Verifikasi: Dropdown sortir tidak lagi berada sejajar horizontal di samping kata "Tanggal", sehingga memiliki sela ruang kosong yang luas (> 45px) dan **sama sekali tidak menempel atau menyenggol huruf header kolom "Jam Diajukan"**.
+  - Verifikasi: Fungsi sortir dropdown (*Terbaru*, *Terlama*, *Prioritas*) tetap berfungsi normal saat dipilih.
+
 
 
