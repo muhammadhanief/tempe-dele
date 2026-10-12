@@ -32,7 +32,7 @@ class PengajuanController extends Controller
                 'mt.nama_ketua',
                 DB::raw('EXISTS(
                     SELECT 1 FROM t_presensi pr
-                    WHERE pr.niplama = p.nip_lama
+                    WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip)
                     AND DATE(pr.tanggal) = t.date
                 ) as has_presensi')
             ])

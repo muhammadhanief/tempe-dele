@@ -5,15 +5,67 @@
     onclick="closeSidebar()"
 ></div>
 
+{{-- Floating Drawer Toggle Tab (Canvas LMS style - Muncul saat sidebar ditutup di desktop) --}}
+<div id="sidebar-floating-tab"
+    class="fixed left-0 top-20 sm:top-24 z-40 items-center group hidden"
+>
+    <button type="button"
+        onclick="openDesktopSidebar()"
+        aria-label="Buka Menu Navigasi"
+        title="Buka Menu"
+        class="flex items-center justify-center h-12 w-10 sm:w-11 bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 rounded-r-2xl border-y border-r border-slate-700/80 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+    >
+        {{-- List Bullet Icon (sama persis dengan referensi Canvas LMS) --}}
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="9" y1="6" x2="20" y2="6"></line>
+            <line x1="9" y1="12" x2="20" y2="12"></line>
+            <line x1="9" y1="18" x2="20" y2="18"></line>
+            <circle cx="4" cy="6" r="1.5" fill="currentColor"></circle>
+            <circle cx="4" cy="12" r="1.5" fill="currentColor"></circle>
+            <circle cx="4" cy="18" r="1.5" fill="currentColor"></circle>
+        </svg>
+    </button>
+
+    {{-- Floating Tooltip ala Canvas --}}
+    <div class="pointer-events-none absolute left-full ml-2.5 flex items-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 z-50">
+        <div class="relative bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-xl border border-slate-700 whitespace-nowrap">
+            <span class="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-700 rotate-45"></span>
+            Buka Menu
+        </div>
+    </div>
+</div>
+
 
 {{-- Sidebar --}}
 <aside
     id="main-sidebar"
-    class="fixed lg:sticky top-0 left-0 z-55
-           flex flex-col w-64 h-screen h-[100dvh] max-h-screen max-h-[100dvh] bg-slate-900 pt-5 pb-2 lg:py-5 shrink-0
-           -translate-x-full lg:translate-x-0
-           transition-transform duration-300 ease-in-out"
+    class="fixed lg:sticky top-0 left-0 z-40
+           flex flex-col h-screen h-[100dvh] max-h-screen max-h-[100dvh] bg-slate-900 shrink-0
+           -translate-x-full lg:translate-x-0"
 >
+    {{-- Small Desktop Edge Collapse Tab (Menempel di tepi kanan luar sidebar - berlawanan dengan tab Buka Menu) --}}
+    <div id="sidebar-edge-close-tab" class="absolute -right-3 top-20 sm:top-24 z-50 hidden lg:flex items-center group">
+        <button type="button"
+            onclick="closeDesktopSidebar()"
+            aria-label="Tutup Menu Navigasi"
+            title="Tutup Menu"
+            class="flex items-center justify-center h-8 w-6 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-amber-400 rounded-r-lg border-y border-r border-slate-700/90 shadow-md transition-all duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+        </button>
+
+        {{-- Floating Tooltip --}}
+        <div class="pointer-events-none absolute left-full ml-2 flex items-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 z-50">
+            <div class="relative bg-slate-900 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xl border border-slate-700 whitespace-nowrap">
+                <span class="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-700 rotate-45"></span>
+                Tutup Menu
+            </div>
+        </div>
+    </div>
+
+    <div id="sidebar-inner" class="w-64 h-full flex flex-col pt-5 pb-2 lg:py-5 shrink-0 overflow-hidden">
     @php
         $role = session('user')
             ? \DB::table('m_pegawai')->where('nip', session('user')['nip'])->value('role')
@@ -40,8 +92,10 @@
                 </span>
             </div>
         </a>
+
+        {{-- Mobile close button (hanya di smartphone) --}}
         <button type="button" onclick="closeSidebar()" aria-label="Tutup menu navigasi"
-            class="lg:hidden p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer">
+            class="lg:hidden p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer shrink-0">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -342,47 +396,153 @@
             @endif
         @endforeach
     </nav>
+    </div>
 </aside>
 
+<style>
+    /* Transisi Desktop Sidebar Collapse berbasis Width */
+    @media (min-width: 1024px) {
+        #main-sidebar {
+            width: 16rem;
+            min-width: 16rem;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: visible;
+        }
+        html.sidebar-is-collapsed #main-sidebar {
+            width: 0 !important;
+            min-width: 0 !important;
+            max-width: 0 !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            visibility: hidden;
+        }
+        #sidebar-floating-tab {
+            display: none;
+        }
+        html.sidebar-is-collapsed #sidebar-floating-tab {
+            display: flex !important;
+        }
+    }
+
+    @media (max-width: 1023.98px) {
+        #main-sidebar {
+            width: 16rem !important;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #sidebar-floating-tab {
+            display: none !important;
+        }
+    }
+</style>
+
 <script>
-    const sidebar   = document.getElementById('main-sidebar');
-    const overlay   = document.getElementById('sidebar-overlay');
-    const barTop    = document.getElementById('bar-top');
-    const barBot    = document.getElementById('bar-bot');
-    let isOpen = false;
+    let isMobileOpen = false;
+    var isOpen = false;
 
-    function openSidebar() {
+    function isDesktop() {
+        return window.innerWidth >= 1024;
+    }
+
+    function isCollapsedDesktop() {
+        return document.documentElement.classList.contains('sidebar-is-collapsed');
+    }
+
+    // Handler utama toggle sidebar (bisa dipanggil dari navbar maupun floating tab)
+    function handleSidebarToggle() {
+        if (isDesktop()) {
+            toggleDesktopSidebar();
+        } else {
+            toggleMobileSidebar();
+        }
+    }
+
+    // Buka/tutup desktop
+    function toggleDesktopSidebar() {
+        const currentlyCollapsed = isCollapsedDesktop();
+        if (currentlyCollapsed) {
+            openDesktopSidebar();
+        } else {
+            closeDesktopSidebar();
+        }
+    }
+
+    function openDesktopSidebar() {
+        document.documentElement.classList.remove('sidebar-is-collapsed');
+        localStorage.setItem('sidebar_collapsed', 'false');
+    }
+
+    function closeDesktopSidebar() {
+        document.documentElement.classList.add('sidebar-is-collapsed');
+        localStorage.setItem('sidebar_collapsed', 'true');
+    }
+
+    // Mobile drawer open/close
+    function openMobileSidebar() {
+        const sidebar = document.getElementById('main-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const barTop  = document.getElementById('bar-top');
+        const barBot  = document.getElementById('bar-bot');
+
+        isMobileOpen = true;
         isOpen = true;
-        sidebar.classList.remove('-translate-x-full');
-        overlay.classList.remove('opacity-0', 'pointer-events-none');
-        overlay.classList.add('opacity-100');
+        if (sidebar) sidebar.classList.remove('-translate-x-full');
+        if (overlay) {
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            overlay.classList.add('opacity-100');
+        }
         document.body.classList.add('overflow-hidden');
-        // Animate to X
-        barTop.classList.add('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
-        barTop.classList.remove('bg-slate-500');
-        barBot.classList.add('w-8', '-translate-y-[0px]', '-rotate-45');
-        barBot.classList.remove('w-6');
+
+        if (barTop) {
+            barTop.classList.add('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
+            barTop.classList.remove('bg-slate-600');
+        }
+        if (barBot) {
+            barBot.classList.add('w-8', '-translate-y-[0px]', '-rotate-45');
+            barBot.classList.remove('w-4');
+        }
     }
 
-    function closeSidebar() {
+    function closeMobileSidebar() {
+        const sidebar = document.getElementById('main-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const barTop  = document.getElementById('bar-top');
+        const barBot  = document.getElementById('bar-bot');
+
+        isMobileOpen = false;
         isOpen = false;
-        sidebar.classList.add('-translate-x-full');
-        overlay.classList.add('opacity-0', 'pointer-events-none');
-        overlay.classList.remove('opacity-100');
+        if (sidebar) sidebar.classList.add('-translate-x-full');
+        if (overlay) {
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            overlay.classList.remove('opacity-100');
+        }
         document.body.classList.remove('overflow-hidden');
-        // Reset to hamburger
-        barTop.classList.remove('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
-        barTop.classList.add('bg-slate-500');
-        barBot.classList.remove('w-8', '-translate-y-[0px]', '-rotate-45');
-        barBot.classList.add('w-6');
+
+        if (barTop) {
+            barTop.classList.remove('translate-y-[12px]', 'rotate-45', 'bg-orange-500');
+            barTop.classList.add('bg-slate-600');
+        }
+        if (barBot) {
+            barBot.classList.remove('w-8', '-translate-y-[0px]', '-rotate-45');
+            barBot.classList.add('w-4');
+        }
     }
 
-    function toggleSidebar() {
-        isOpen ? closeSidebar() : openSidebar();
+    function toggleMobileSidebar() {
+        isMobileOpen ? closeMobileSidebar() : openMobileSidebar();
     }
 
-    // Tutup sidebar kalau resize ke desktop
+    // Alias fungsi untuk kompatibilitas
+    function openSidebar() { openMobileSidebar(); }
+    function closeSidebar() { closeMobileSidebar(); }
+    function toggleSidebar() { handleSidebarToggle(); }
+    function toggleSidebarCollapse() { handleSidebarToggle(); }
+
+    // Reset mobile state jika layar di-resize ke desktop
     window.addEventListener('resize', () => {
-        if (window.innerWidth >= 1024) closeSidebar();
+        if (isDesktop() && isMobileOpen) {
+            closeMobileSidebar();
+        }
     });
 </script>

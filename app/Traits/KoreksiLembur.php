@@ -40,13 +40,18 @@ trait KoreksiLembur
             ->whereIn('t.date', $tanggalList)
             ->where('t.status', 'approved')
             ->whereNull('t.eligible')
-            ->select('t.*', 'p.nip_lama')
+            ->select('t.*', 'p.nip_lama', 'p.nip')
             ->get();
 
         foreach ($transaksis as $transaksi) {
             $presensi = DB::table('t_presensi')
                 ->whereDate('tanggal', $transaksi->date)
-                ->where('niplama', $transaksi->nip_lama)
+                ->where(function ($q) use ($transaksi) {
+                    $q->where('niplama', $transaksi->nip_lama);
+                    if (!empty($transaksi->nip)) {
+                        $q->orWhere('niplama', $transaksi->nip);
+                    }
+                })
                 ->first();
 
             // Presensi belum ada → skip, akan dihitung saat upload presensi

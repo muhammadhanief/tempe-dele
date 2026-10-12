@@ -20,6 +20,15 @@
 
     @stack('styles')
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem('sidebar_collapsed') === 'true' && window.innerWidth >= 1024) {
+                    document.documentElement.classList.add('sidebar-is-collapsed');
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body class="bg-white">
 
@@ -67,6 +76,22 @@
                 </div>
             </div>
         </div>
+        <script>
+            window.hideLoading = window.hideLoading || function() {
+                var el = document.getElementById('loadingOverlay');
+                if (el) {
+                    el.classList.add('opacity-0', 'pointer-events-none');
+                    el.classList.remove('opacity-100');
+                }
+            };
+            window.showLoading = window.showLoading || function() {
+                var el = document.getElementById('loadingOverlay');
+                if (el) {
+                    el.classList.remove('opacity-0', 'pointer-events-none');
+                    el.classList.add('opacity-100');
+                }
+            };
+        </script>
     @endif
 
     {{-- SCRIPTS --}}
@@ -83,7 +108,28 @@
                 if (typeof closeSidebar === 'function' && typeof isOpen !== 'undefined' && isOpen) {
                     closeSidebar();
                 }
+                if (typeof window.hideLoading === 'function') {
+                    window.hideLoading();
+                }
             }
+        });
+
+        // Global Date Input Safeguard (Batasi Tahun Maksimal 4 Digit - Anti Typo 5 Digit)
+        document.addEventListener('input', function (e) {
+            if (e.target && e.target.type === 'date' && e.target.value) {
+                const parts = e.target.value.split('-');
+                if (parts[0] && parts[0].length > 4) {
+                    parts[0] = parts[0].slice(0, 4);
+                    e.target.value = parts.join('-');
+                }
+            }
+        }, true);
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('input[type="date"]').forEach(function (el) {
+                if (!el.hasAttribute('max')) el.setAttribute('max', '2099-12-31');
+                if (!el.hasAttribute('min')) el.setAttribute('min', '1970-01-01');
+            });
         });
     </script>
 

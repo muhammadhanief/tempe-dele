@@ -113,7 +113,7 @@
         {{-- Filter Bulan --}}
         <select id="filterBulan" onchange="gantiFilter('bulan', this.value)"
             class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
-            <option value="">Semua Bulan</option>
+            <option value="" @selected(empty($bulan))>Semua Bulan</option>
             @php $tahunBulan = now()->format('Y'); \Carbon\Carbon::setLocale('id'); @endphp
             @for($m = 1; $m <= 12; $m++)
                 @php
@@ -267,10 +267,22 @@
 
                                 <td class="px-4 py-3.5 text-xs text-gray-600">
                                     <div class="max-w-[160px] space-y-1 text-left">
+                                        @php
+                                            $isSystemNote = !empty($t->note) && (
+                                                str_contains(strtolower($t->note), 'durasi lembur') ||
+                                                str_contains(strtolower($t->note), 'proses bisnis') ||
+                                                str_contains(strtolower($t->note), 'kebijakan') ||
+                                                str_contains(strtolower($t->note), 'sistem')
+                                            );
+                                        @endphp
                                         @if(!empty($t->note))
                                             <div>
-                                                <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
-                                                <div class="text-[11px] text-gray-700 italic break-words">{{ $t->note }}</div>
+                                                @if($isSystemNote)
+                                                    <span class="inline-block text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Sistem:</span>
+                                                @else
+                                                    <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
+                                                @endif
+                                                <div class="text-[11px] text-gray-700 italic break-words mt-0.5">{{ $t->note }}</div>
                                             </div>
                                         @endif
                                         @if(!empty($t->note_kabag))
@@ -499,11 +511,26 @@
                                     {{-- Catatan Persetujuan (Clean Quote Bar, NO box borders) --}}
                                     @if(!empty($t->note) || !empty($t->note_kabag))
                                         <div class="space-y-1.5 pt-1">
+                                            @php
+                                                $isSystemNote = !empty($t->note) && (
+                                                    str_contains(strtolower($t->note), 'durasi lembur') ||
+                                                    str_contains(strtolower($t->note), 'proses bisnis') ||
+                                                    str_contains(strtolower($t->note), 'kebijakan') ||
+                                                    str_contains(strtolower($t->note), 'sistem')
+                                                );
+                                            @endphp
                                             @if(!empty($t->note))
-                                                <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
-                                                    <span class="font-semibold text-amber-800">Catatan Ketua:</span>
-                                                    <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
-                                                </div>
+                                                @if($isSystemNote)
+                                                    <div class="border-l-2 border-slate-400 pl-3 py-0.5 text-xs text-slate-600 bg-slate-50 rounded-r-lg">
+                                                        <span class="font-semibold text-slate-700">Catatan Sistem:</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
+                                                    </div>
+                                                @else
+                                                    <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
+                                                        <span class="font-semibold text-amber-800">Catatan Ketua:</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
+                                                    </div>
+                                                @endif
                                             @endif
                                             @if(!empty($t->note_kabag))
                                                 <div class="border-l-2 border-blue-400 pl-3 py-0.5 text-xs text-slate-600 bg-blue-50/40 rounded-r-lg">
@@ -653,10 +680,10 @@
     <div id="modalOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"></div>
 
     <div class="fixed inset-0 z-10 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
-        <div class="relative flex flex-col w-full max-w-2xl max-h-[90vh] rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100">
+        <div class="relative flex flex-col w-full max-w-3xl lg:max-w-4xl max-h-[92vh] rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100">
 
             {{-- Header (Fixed) --}}
-            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/70 shrink-0">
+            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-3.5 bg-gray-50/70 shrink-0">
                 <div class="flex items-center gap-2.5">
                     <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 text-[#faa938]">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -677,86 +704,113 @@
                 </button>
             </div>
 
-            {{-- Form Body (Scrollable) --}}
+            {{-- Form Body (2-Kolom Desktop Zero-Scroll) --}}
             <form id="formAjukan" action="{{ route('ketua-tim.lembur.store') }}" method="POST"
                 class="flex flex-col flex-1 overflow-hidden">
                 @csrf
 
-                <div class="flex-1 overflow-y-auto px-6 pr-5 py-5 space-y-4">
+                <div class="flex-1 overflow-y-auto px-6 py-4">
                     <input type="hidden" name="bulan" value="{{ request('bulan') }}">
                     <input type="hidden" name="perPage" value="{{ request('perPage') }}">
                     <input type="hidden" name="kode_tim" id="kode_tim">
 
-                    <div>
-                        <label for="approver_id" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Ketua Tim / Penyetuju</label>
-                        <select id="approver_id" name="approver_id" required
-                            class="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
-                            <option value="">Pilih Ketua Tim</option>
-                            @forelse($ketuaTim as $ketua)
-                                <option value="{{ $ketua['nip'] }}" data-kode="{{ $ketua['kode_tim'] }}">
-                                    {{ $ketua['nama'] }} ({{ $ketua['tim'] }})
-                                </option>
-                            @empty
-                                <option disabled>Kamu tidak terdaftar di tim manapun</option>
-                            @endforelse
-                        </select>
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4">
+                        {{-- KOLOM KIRI: Jadwal & Penyetuju --}}
+                        <div class="flex flex-col justify-between h-full space-y-3.5 md:space-y-0">
+                            {{-- Ketua Tim --}}
+                            <div>
+                                <label for="approver_id" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Ketua Tim / Penyetuju</label>
+                                <select id="approver_id" name="approver_id" required
+                                    class="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
+                                    <option value="">Pilih Ketua Tim</option>
+                                    @forelse($ketuaTim as $ketua)
+                                        <option value="{{ $ketua['nip'] }}" data-kode="{{ $ketua['kode_tim'] }}">
+                                            {{ $ketua['nama'] }} ({{ $ketua['tim'] }})
+                                        </option>
+                                    @empty
+                                        <option disabled>Kamu tidak terdaftar di tim manapun</option>
+                                    @endforelse
+                                </select>
+                            </div>
 
-                    <div>
-                        <label for="tanggal" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanggal Lembur</label>
-                        <input type="date" id="tanggal" name="tanggal" required
-                            class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
-                        <p id="infoHari" class="mt-1 hidden text-xs text-gray-500"></p>
-                    </div>
+                            {{-- Tanggal Lembur --}}
+                            <div>
+                                <label for="tanggal" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanggal Lembur</label>
+                                <input type="date" id="tanggal" name="tanggal" required min="1970-01-01" max="2099-12-31"
+                                    class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                                <p id="infoHari" class="mt-1 hidden text-xs text-gray-500"></p>
+                                <div id="errorTanggalDobel" class="hidden mt-1.5 p-2 rounded-xl border border-rose-200 bg-rose-50 text-[11px] text-rose-700 flex items-start gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    <div>
+                                        <span class="font-bold">Pengajuan Sudah Ada:</span> <span id="errorTanggalDobelText">Anda sudah memiliki pengajuan lembur pada tanggal ini.</span>
+                                        <div class="mt-0.5 text-[10px] text-rose-600">Ketentuan BPS hanya memperbolehkan 1 pengajuan lembur aktif per hari. Silakan pilih tanggal lain atau perbarui pengajuan yang sudah ada.</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                            <label for="jam_mulai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Mulai</label>
-                            <input type="time" id="jam_mulai" name="jam_mulai" required
-                                class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
-                            <p id="infoJamMulai" class="mt-1 hidden text-xs text-amber-600 font-medium">
-                                Default hari kerja: 16:01
-                            </p>
+                            {{-- Jam Mulai & Jam Selesai + Preview Durasi --}}
+                            <div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label for="jam_mulai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Mulai</label>
+                                        <input type="time" id="jam_mulai" name="jam_mulai" required
+                                            class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                                        <p id="infoJamMulai" class="mt-1 hidden text-[11px] text-amber-600 font-medium">
+                                            Default hari kerja: 16:01
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label for="jam_selesai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Selesai</label>
+                                        <input type="time" id="jam_selesai" name="jam_selesai" required
+                                            class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                                    </div>
+                                </div>
+
+                                {{-- Preview Durasi --}}
+                                <div class="mt-2">
+                                    <div id="previewDurasi" class="hidden rounded-lg bg-orange-50/70 border border-orange-100 px-3 py-1.5 text-xs text-orange-800">
+                                        ⏱️ Estimasi Durasi: <span id="durasiLabel" class="font-bold text-orange-950"></span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div>
-                            <label for="jam_selesai" class="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">Jam Selesai</label>
-                            <input type="time" id="jam_selesai" name="jam_selesai" required
-                                class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                        {{-- KOLOM KANAN: Uraian Kegiatan & Tanda Tangan --}}
+                        <div class="flex flex-col justify-between h-full space-y-3.5 md:space-y-0">
+                            {{-- Uraian Kegiatan --}}
+                            <div>
+                                <div class="mb-1.5 flex items-center justify-between">
+                                    <label for="uraian" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Uraian Kegiatan</label>
+                                    <span id="uraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
+                                </div>
+                                <textarea id="uraian" name="uraian" rows="3" maxlength="2000" required
+                                    placeholder="Contoh: Penyusunan laporan bulanan..."
+                                    class="w-full resize-none rounded-xl border border-gray-300 px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"></textarea>
+                            </div>
+
+                            {{-- Tanda Tangan --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanda Tangan</label>
+                                    <button type="button" id="btnClearSignature"
+                                        class="text-xs text-gray-500 hover:text-red-500 transition-colors underline">
+                                        Hapus Tanda Tangan
+                                    </button>
+                                </div>
+
+                                <div id="signatureCanvasBox" class="overflow-hidden rounded-xl border border-gray-300 bg-gray-50 hover:border-gray-400 transition-colors">
+                                    <canvas id="signatureCanvas" class="h-28 w-full touch-none"></canvas>
+                                </div>
+
+                                <input type="hidden" name="signature" id="signatureData">
+                                <p id="signatureError" class="mt-1 hidden text-xs text-red-500 font-medium">
+                                    Tanda tangan wajib diisi.
+                                </p>
+                            </div>
                         </div>
-                    </div>
-
-                    <div id="previewDurasi" class="hidden rounded-lg bg-orange-50/70 border border-orange-100 px-3 py-2 text-xs text-orange-800">
-                        ⏱️ Estimasi Durasi: <span id="durasiLabel" class="font-bold text-orange-950"></span>
-                    </div>
-
-                    <div>
-                        <div class="mb-1.5 flex items-center justify-between">
-                            <label for="uraian" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Uraian Kegiatan</label>
-                            <span id="uraianCount" class="text-[11px] text-gray-400">0 / 2000</span>
-                        </div>
-                        <textarea id="uraian" name="uraian" rows="4" maxlength="2000" required
-                            placeholder="Contoh: Penyusunan laporan bulanan..."
-                            class="w-full resize-y rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"></textarea>
-                    </div>
-
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanda Tangan</label>
-                            <button type="button" id="btnClearSignature"
-                                class="text-xs text-gray-500 hover:text-red-500 transition-colors underline">
-                                Hapus Tanda Tangan
-                            </button>
-                        </div>
-
-                        <div class="overflow-hidden rounded-xl border border-gray-300 bg-gray-50 hover:border-gray-400 transition-colors">
-                            <canvas id="signatureCanvas" class="h-36 w-full touch-none"></canvas>
-                        </div>
-
-                        <input type="hidden" name="signature" id="signatureData">
-                        <p id="signatureError" class="mt-1 hidden text-xs text-red-500 font-medium">
-                            Tanda tangan wajib diisi.
-                        </p>
                     </div>
                 </div>
 
@@ -766,7 +820,7 @@
                         class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
                         Batal
                     </button>
-                    <button type="submit"
+                    <button type="submit" id="btnSubmitAjukan"
                         class="rounded-xl bg-[#faa938] px-5 py-2 text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow transition-all">
                         Kirim Pengajuan
                     </button>
@@ -824,10 +878,26 @@ document.addEventListener('DOMContentLoaded', function () {
             backgroundColor: 'rgb(0, 0, 0, 0)',
             penColor: 'rgb(17, 24, 39)'
         });
+
+        // Hapus styling error segera setelah user mulai menggoreskan tanda tangan
+        signaturePad.addEventListener('beginStroke', () => {
+            const canvasBox = document.getElementById('signatureCanvasBox') || canvas.closest('.overflow-hidden');
+            if (canvasBox) {
+                canvasBox.classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
+                canvasBox.classList.add('border-gray-300');
+            }
+            document.getElementById('signatureError')?.classList.add('hidden');
+        });
     }
 
     function resizeCanvas() {
         if (!canvas || !signaturePad) return;
+
+        const isEmpty = signaturePad.isEmpty();
+        let data = null;
+        if (!isEmpty) {
+            data = signaturePad.toData();
+        }
 
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
         const rect = canvas.getBoundingClientRect();
@@ -838,13 +908,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const ctx = canvas.getContext('2d');
         ctx.scale(ratio, ratio);
 
-        signaturePad.clear();
+        if (data && !isEmpty) {
+            signaturePad.fromData(data);
+        } else {
+            signaturePad.clear();
+        }
     }
 
     window.addEventListener('resize', resizeCanvas);
 
     document.getElementById('btnClearSignature')?.addEventListener('click', function () {
         signaturePad?.clear();
+        const canvasBox = document.getElementById('signatureCanvasBox') || canvas?.closest('.overflow-hidden');
+        if (canvasBox) {
+            canvasBox.classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
+            canvasBox.classList.add('border-gray-300');
+        }
+        document.getElementById('signatureError')?.classList.add('hidden');
     });
 
     document.getElementById('uraian')?.addEventListener('input', function () {
@@ -853,9 +933,60 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('formAjukan')?.addEventListener('submit', function (event) {
+        const tglVal = document.getElementById('tanggal')?.value;
+        if (tglVal && existingDatesDB[tglVal]) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (window.hideLoading) window.hideLoading();
+            alert(`Anda sudah memiliki pengajuan lembur pada tanggal ${tglVal} (Status: ${existingDatesDB[tglVal]}). Ketentuan BPS hanya memperbolehkan 1 pengajuan lembur per hari. Silakan pilih tanggal lain atau perbarui pengajuan yang sudah ada.`);
+            document.getElementById('tanggal')?.focus();
+            return;
+        }
+
+        const mulai = document.getElementById('jam_mulai')?.value;
+        const selesai = document.getElementById('jam_selesai')?.value;
+
+        if (mulai && selesai) {
+            const [jm, mm] = mulai.split(':').map(Number);
+            const [js, ms] = selesai.split(':').map(Number);
+            let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+            if (totalMenit < 0) totalMenit += 24 * 60;
+            const jam = Math.floor(totalMenit / 60);
+
+            if (jam < 2) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (window.hideLoading) window.hideLoading();
+                alert('Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS. Silakan sesuaikan jam selesai lembur.');
+                document.getElementById('jam_selesai')?.focus();
+                return;
+            }
+            if (jam > 12) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (window.hideLoading) window.hideLoading();
+                alert('Durasi lembur melebihi batas wajar harian (maksimal 12 jam). Silakan sesuaikan jam selesai lembur.');
+                document.getElementById('jam_selesai')?.focus();
+                return;
+            }
+        }
+
         if (!signaturePad || signaturePad.isEmpty()) {
             event.preventDefault();
-            document.getElementById('signatureError')?.classList.remove('hidden');
+            event.stopPropagation();
+            if (window.hideLoading) window.hideLoading();
+            const canvasBox = document.getElementById('signatureCanvasBox') || canvas?.closest('.overflow-hidden');
+            if (canvasBox) {
+                canvasBox.classList.remove('border-gray-300');
+                canvasBox.classList.add('border-rose-500', 'ring-2', 'ring-rose-200');
+            }
+            const sigErr = document.getElementById('signatureError');
+            if (sigErr) {
+                sigErr.textContent = '⚠️ Tanda tangan digital wajib digoreskan sebelum mengirim pengajuan.';
+                sigErr.classList.remove('hidden');
+            }
+            canvas?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            alert('Tanda tangan digital belum diisi! Silakan goreskan tanda tangan Anda pada kotak tanda tangan.');
             return;
         }
 
@@ -875,6 +1006,13 @@ document.addEventListener('DOMContentLoaded', function () {
     window.openModal = function() {
         modal?.classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
+        document.getElementById('errorTanggalDobel')?.classList.add('hidden');
+        document.getElementById('tanggal')?.classList.remove('border-rose-400', 'bg-rose-50/40');
+        const btnSubmit = document.getElementById('btnSubmitAjukan');
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
         setTimeout(resizeCanvas, 80);
     };
 
@@ -897,8 +1035,45 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     const hariLiburDB = @json($hariLibur);
+    const existingDatesDB = @json($existingActiveDates ?? []);
+
+    function periksaTanggalDobel(tglValue) {
+        const errorTglBox = document.getElementById('errorTanggalDobel');
+        const errorTglText = document.getElementById('errorTanggalDobelText');
+        const tanggalInput = document.getElementById('tanggal');
+        const btnSubmit = document.getElementById('btnSubmitAjukan');
+
+        if (tglValue && existingDatesDB[tglValue]) {
+            const statusLabel = existingDatesDB[tglValue];
+            if (errorTglBox) {
+                errorTglBox.classList.remove('hidden');
+                if (errorTglText) {
+                    errorTglText.textContent = `Anda sudah memiliki pengajuan lembur pada tanggal ini (Status: ${statusLabel}).`;
+                }
+            }
+            if (tanggalInput) {
+                tanggalInput.classList.add('border-rose-400', 'bg-rose-50/40');
+            }
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            return true;
+        } else {
+            if (errorTglBox) errorTglBox.classList.add('hidden');
+            if (tanggalInput) {
+                tanggalInput.classList.remove('border-rose-400', 'bg-rose-50/40');
+            }
+            return false;
+        }
+    }
+
+    document.getElementById('tanggal')?.addEventListener('input', function () {
+        periksaTanggalDobel(this.value);
+    });
 
     document.getElementById('tanggal')?.addEventListener('change', function () {
+        periksaTanggalDobel(this.value);
         const date = new Date(this.value);
         const dayOfWeek = date.getUTCDay();
 
@@ -957,7 +1132,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const [jamMulai, menitMulai] = mulai.split(':').map(Number);
         const [jamSelesai, menitSelesai] = selesai.split(':').map(Number);
 
-        const totalMenit = (jamSelesai * 60 + menitSelesai) - (jamMulai * 60 + menitMulai);
+        let totalMenit = (jamSelesai * 60 + menitSelesai) - (jamMulai * 60 + menitMulai);
+        let isCrossMidnight = false;
+        if (totalMenit < 0) {
+            totalMenit += 24 * 60;
+            isCrossMidnight = true;
+        }
 
         if (totalMenit <= 0) {
             preview.classList.add('hidden');
@@ -968,43 +1148,78 @@ document.addEventListener('DOMContentLoaded', function () {
         const menit = totalMenit % 60;
 
         let info = `${jam} jam ${menit > 0 ? menit + ' menit' : ''} (dihitung ${jam} jam)`;
-        let warna = 'text-gray-500';
+        if (isCrossMidnight) {
+            info += ' — 🌙 Lembur lintas tengah malam hingga dini hari';
+        }
+        let warna = isCrossMidnight ? 'text-indigo-600 font-medium' : 'text-gray-500';
+
+        const isDobel = periksaTanggalDobel(document.getElementById('tanggal')?.value);
+        const btnSubmit = document.getElementById('btnSubmitAjukan');
 
         if (jam < 2) {
-            info += ' — ⚠️ Pengajuan jam lembur minimal 2 jam';
-            warna = 'text-amber-500';
-        } else if (jam > 6) {
-            info += ' — ⚠️ Maksimal lembur 6 jam';
-            warna = 'text-amber-500';
+            info += ' — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.';
+            warna = 'text-red-600 font-bold';
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        } else if (jam > 12) {
+            info += ' — ⚠️ Durasi lembur melebihi batas wajar harian (maksimal 12 jam).';
+            warna = 'text-red-600 font-bold';
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        } else {
+            if (btnSubmit && !isDobel) {
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (jam > 6 && !isCrossMidnight) {
+                info += ' — ⚠️ Maksimal lembur 6 jam';
+                warna = 'text-amber-500';
+            }
         }
 
         label.textContent = info;
-        preview.className = `text-xs ${warna}`;
+        preview.className = `rounded-xl border px-3.5 py-2.5 text-xs transition-all ${
+            jam < 2 || jam > 12
+                ? 'border-rose-200 bg-rose-50 text-rose-700 font-medium'
+                : (isCrossMidnight
+                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 font-medium'
+                    : (jam > 6 ? 'border-amber-200 bg-amber-50 text-amber-800 font-medium' : 'border-orange-100 bg-orange-50/70 text-orange-800 font-medium'))
+        }`;
         preview.classList.remove('hidden');
     }
 
     document.getElementById('jam_mulai')?.addEventListener('change', function () {
         const jamSelesai = document.getElementById('jam_selesai');
-
-        if (jamSelesai.value && jamSelesai.value <= this.value) {
-            alert('Jam selesai harus setelah jam mulai');
+        if (jamSelesai.value && jamSelesai.value === this.value) {
+            alert('Jam selesai tidak boleh sama persis dengan jam mulai.');
             jamSelesai.value = '';
         }
-
-        if (this.value) {
-            jamSelesai.setAttribute('min', this.value);
-        }
-
+        jamSelesai.removeAttribute('min');
         hitungDurasi();
     });
 
     document.getElementById('jam_selesai')?.addEventListener('change', function () {
         const jamMulai = document.getElementById('jam_mulai').value;
-
-        if (jamMulai && this.value <= jamMulai) {
-            alert('Jam selesai harus setelah jam mulai');
+        if (jamMulai && this.value === jamMulai) {
+            alert('Jam selesai tidak boleh sama persis dengan jam mulai.');
             this.value = '';
             return;
+        }
+
+        if (jamMulai && this.value) {
+            const [jm, mm] = jamMulai.split(':').map(Number);
+            const [js, ms] = this.value.split(':').map(Number);
+            let totalMenit = (js * 60 + ms) - (jm * 60 + mm);
+            if (totalMenit < 0) totalMenit += 24 * 60;
+            if (totalMenit > 12 * 60) {
+                alert('Durasi lembur melebihi batas wajar harian (maksimal 12 jam). Silakan sesuaikan kembali jam selesai.');
+                this.value = '';
+                return;
+            }
         }
 
         hitungDurasi();

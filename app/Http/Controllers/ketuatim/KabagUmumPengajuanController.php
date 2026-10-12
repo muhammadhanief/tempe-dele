@@ -97,13 +97,14 @@ class KabagUmumPengajuanController extends Controller
                 'mt.nama_ketua',
                 DB::raw('EXISTS(
                     SELECT 1 FROM t_presensi pr
-                    WHERE pr.niplama = p.nip_lama
+                    WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip)
                     AND DATE(pr.tanggal) = t.date
                 ) as has_presensi'),
                 DB::raw('(
                     SELECT DATE_FORMAT(pr.jam_selesai, "%H:%i") FROM t_presensi pr
-                    WHERE pr.niplama = p.nip_lama
+                    WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip)
                     AND DATE(pr.tanggal) = t.date
+                    ORDER BY pr.id_presensi DESC
                     LIMIT 1
                 ) as jam_selesai_presensi')
             ])
@@ -179,11 +180,7 @@ class KabagUmumPengajuanController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
         }
 
-        // Pengajuan berstatus pending belum boleh diproses oleh Kabag Umum
-        if ($transaksi->status === 'pending') {
-            return response()->json(['success' => false, 'message' => 'Pengajuan ini masih menunggu persetujuan Ketua Tim.'], 422);
-        }
-
+        // Jika berstatus pending, Kabag Umum (selaku pimpinan dan/atau Ketua Tim Bagian Umum) dapat langsung memproses persetujuan final.
         // KUNCI STATUS: Jika sudah disetujui final atau ditolak, status keputusannya tidak boleh dibalik
         if (in_array($transaksi->status, ['approved', 'rejected']) && $request->status !== $transaksi->status) {
             return response()->json([

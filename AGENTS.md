@@ -25,6 +25,12 @@ Dokumen ini berisi aturan kerja (*rules*) wajib bagi AI Agent yang bekerja di re
    * Lakukan commit secara berkala dan terpisah per unit fungsional (*discrete logical commits*) segera setelah suatu fitur, perbaikan bug, atau sub-task selesai dikerjakan dan diverifikasi.
    * **Hindari menumpuk perubahan** terlalu banyak berkas (*uncommitted changes*) secara sekaligus. Selalu pisahkan commit untuk kode fitur/logika, tampilan UI, berkas utilitas/dokumen, dan dokumentasi panduan.
 
+5. **Fokus Hanya pada yang Diminta & Konfirmasi Sebelum Mengubah Hal Lain:**
+   * AI Agent **hanya boleh memodifikasi** bagian kode atau berkas yang secara eksplisit diminta oleh pengguna.
+   * Dilarang keras mengubah, merombak, atau "merapikan" bagian lain tanpa instruksi langsung dari pengguna.
+   * Jika terdapat keraguan, bagian yang membingungkan, atau opsi implementasi pada bagian yang hendak diubah, AI Agent **wajib memberitahu pengguna dan meminta pendapat/konfirmasi pengguna terlebih dahulu**.
+
+
 
 <!-- antislop:start -->
 ## antislop
@@ -37,3 +43,16 @@ For UI, copy, people, mobile layout, or code comments work, read `antislop.md` (
 Before starting, ask the user when antislop applies: during the work, or after it is done.
 To update antislop later: download `antislop.md` again, or run `npx antislop-ai --update` if it was installed as skill folders.
 <!-- antislop:end -->
+
+---
+
+## 📌 Konteks Magang MBKM & Laporan Bulanan Oktober 2026
+
+1. **Kelanjutan Masa Magang BPS Jateng:**
+   - Proyek sebelumnya adalah **SWARA JAGAD** (`D:\TUGAS ITTP\BPS - MAGANG\swara-jagad`) yang telah selesai dan resmi di-handover ke Bappeda Jateng pada **Minggu I Oktober 2026 (01 - 07 Oktober 2026)**.
+   - Proyek **Sistem Lembur** ini merupakan penugasan lanjutan magang MBKM untuk **Minggu II - IV Oktober 2026 (08 - 31 Oktober 2026)**.
+
+2. **Pembaruan Laporan Bulanan:**
+   - Berkas laporan bulanan aktif tersimpan di root folder:
+     `LAPORAN_BULANAN_OKTOBER_2026.md`
+   - Setiap kali menyelesaikan fitur, perbaikan bug, atau tugas di proyek Lembur ini, AI Agent wajib membantu mencatatkan logbook harian resmi untuk **Minggu II, III, dan IV** serta memperbarui narasi mingguan, analisa hasil, kendala, dan dokumentasi pada berkas tersebut.

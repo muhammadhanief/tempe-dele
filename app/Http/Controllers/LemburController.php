@@ -20,10 +20,23 @@ class LemburController extends Controller
             ? (int) $request->get('perPage', 10)
             : 10;
 
-        // Filter bulan murni dari URL (bukan session) agar "Semua Bulan" bisa membersihkannya
-        $bulan = $request->query('bulan');
-        if ($bulan && !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $bulan)) {
-            $bulan = null;
+        // Filter bulan & tahun murni dari URL (bukan session) agar "Semua Bulan" / "Semua Tahun" bisa membersihkannya
+        $bulanParam = $request->query('bulan');
+        $tahunParam = $request->query('tahun');
+
+        if ($bulanParam && preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $bulanParam, $matches)) {
+            // Dukung format lama YYYY-MM jika ada (misal di halaman ketua_tim atau bookmark)
+            $tahun = $tahunParam ?: $matches[1];
+            $bulan = ($role === 'ketua_tim') ? $bulanParam : $matches[2];
+            $tahunFilter = $matches[1];
+            $bulanFilter = $matches[2];
+        } else {
+            $tahunFilter = ($tahunParam && preg_match('/^\d{4}$/', $tahunParam)) ? $tahunParam : null;
+            $bulanFilter = ($bulanParam && is_numeric($bulanParam) && (int)$bulanParam >= 1 && (int)$bulanParam <= 12)
+                ? str_pad((string)(int)$bulanParam, 2, '0', STR_PAD_LEFT)
+                : null;
+            $bulan = $bulanFilter;
+            $tahun = $tahunFilter;
         }
 
         // Koreksi otomatis berdasarkan presensi setiap kali halaman dibuka
@@ -35,12 +48,16 @@ class LemburController extends Controller
             ->where('t.submitted_by_NIP', $nipUser)
             ->select('t.*', 'mt.nama_tim', 'mt.nama_ketua', 'md.file_path as file_dokumentasi');
 
-        if ($bulan) {
-            $periode = Carbon::parse($bulan . '-01');
+        if ($tahunFilter && $bulanFilter) {
+            $periode = Carbon::createFromDate((int) $tahunFilter, (int) $bulanFilter, 1);
             $query->whereBetween('t.date', [
                 $periode->copy()->startOfMonth()->toDateString(),
                 $periode->copy()->endOfMonth()->toDateString(),
             ]);
+        } elseif ($tahunFilter) {
+            $query->whereYear('t.date', (int) $tahunFilter);
+        } elseif ($bulanFilter) {
+            $query->whereMonth('t.date', (int) $bulanFilter);
         }
 
         $query->orderBy('t.date', 'desc')
@@ -82,8 +99,41 @@ class LemburController extends Controller
             }
 
         $hariLibur = DB::table('m_hari_libur')->pluck('tanggal')->toArray();
+
+        // Daftar tanggal pengajuan aktif pegawai (untuk proteksi lock anti-dobel di formulir)
+        $existingActiveDates = DB::table('t_transaksi')
+            ->where('submitted_by_NIP', $nipUser)
+            ->whereNotIn('status', ['rejected', 'cancelled'])
+            ->select('date', 'status')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                $label = match($item->status) {
+                    'pending' => 'Menunggu Ketua',
+                    'menunggu_kabag' => 'Menunggu Kabag',
+                    'approved' => 'Disetujui',
+                    default => ucfirst($item->status),
+                };
+                return [$item->date => $label];
+            })
+            ->toArray();
+
+        // Daftar tahun untuk filter tahun
+        $daftarTahun = DB::table('t_transaksi')
+            ->whereNotNull('date')
+            ->whereYear('date', '>=', 2020)
+            ->selectRaw('DISTINCT YEAR(date) as th')
+            ->orderBy('th', 'desc')
+            ->pluck('th')
+            ->toArray();
+
+        $currentYear = (int) now()->year;
+        if (!in_array($currentYear, $daftarTahun)) {
+            $daftarTahun[] = $currentYear;
+            rsort($daftarTahun);
+        }
+
         $view = $role === 'ketua_tim' ? 'ketua-tim.lembur' : 'lembur';
-        return view($view, compact('ketuaTim', 'transaksi', 'hariLibur', 'bulan', 'perPage'));
+        return view($view, compact('ketuaTim', 'transaksi', 'hariLibur', 'bulan', 'tahun', 'daftarTahun', 'perPage', 'existingActiveDates'));
     }
 
     private function koreksiDariPresensi(string $nipUser): void
@@ -93,14 +143,19 @@ class LemburController extends Controller
             ->where('t.submitted_by_NIP', $nipUser)
             ->where('t.status', 'approved')
             ->whereNull('t.eligible')
-            ->select('t.*', 'p.nip_lama')
+            ->select('t.*', 'p.nip_lama', 'p.nip')
             ->get();
 
         foreach ($transaksis as $transaksi) {
 
             $presensi = DB::table('t_presensi')
                 ->whereDate('tanggal', $transaksi->date)
-                ->where('niplama', $transaksi->nip_lama)
+                ->where(function ($q) use ($transaksi) {
+                    $q->where('niplama', $transaksi->nip_lama);
+                    if (!empty($transaksi->nip)) {
+                        $q->orWhere('niplama', $transaksi->nip);
+                    }
+                })
                 ->first();
 
             if (!$presensi || !$presensi->jam_selesai) {
@@ -200,6 +255,25 @@ class LemburController extends Controller
         $nip     = session('user')['nip'];
         $tanggal = Carbon::parse($validated['tanggal']);
 
+        // Cegah pengajuan ganda di tanggal yang sama (1 pengajuan aktif per hari per pegawai)
+        $transaksiAda = DB::table('t_transaksi')
+            ->where('submitted_by_NIP', $nip)
+            ->where('date', $tanggal->toDateString())
+            ->whereNotIn('status', ['rejected', 'cancelled'])
+            ->first();
+
+        if ($transaksiAda) {
+            $statusLabel = match($transaksiAda->status) {
+                'pending' => 'Menunggu Ketua Tim',
+                'menunggu_kabag' => 'Menunggu Kabag Umum',
+                'approved' => 'Sudah Disetujui',
+                default => $transaksiAda->status,
+            };
+            return back()->withErrors([
+                'tanggal' => "Anda sudah memiliki pengajuan lembur pada tanggal ini (Status: {$statusLabel}). Satu pegawai hanya dapat mengajukan 1 kali lembur per hari sesuai ketentuan BPS."
+            ])->withInput();
+        }
+
         $tahun             = $tanggal->year;
         $isWeekend       = $tanggal->isWeekend();
         $isLiburNasional = DB::table('m_hari_libur')  // ganti t_ → m_
@@ -224,15 +298,21 @@ class LemburController extends Controller
             $durasi = $jamMulai->diffInHours($jamSelesai);
 
             if ($durasi < 2) {
-                $status = 'rejected';
-                $note   = 'Durasi lembur kurang dari 2 jam.';
+                return back()->withErrors([
+                    'jam_selesai' => 'Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS.'
+                ])->withInput();
+            }
+
+            if ($durasi > 12) {
+                return back()->withErrors([
+                    'jam_selesai' => 'Durasi lembur melebihi batas wajar harian (maksimal 12 jam).'
+                ])->withInput();
             }
         }
 
-        // Jika tidak ditolak otomatis dan merupakan Tim Bagian Umum atau approver adalah Kabag Umum,
+        // Jika merupakan Tim Bagian Umum atau approver adalah Kabag Umum,
         // pengajuan langsung masuk ke antrean persetujuan Kabag Umum (status: menunggu_kabag)
-        if ($status !== 'rejected') {
-            $isTimBagianUmum = false;
+        $isTimBagianUmum = false;
             if (!empty($validated['kode_tim'])) {
                 $tim = DB::table('m_tim')->where('kode_tim', $validated['kode_tim'])->first();
                 if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
@@ -251,6 +331,12 @@ class LemburController extends Controller
             if ($isTimBagianUmum || $isApproverKabag) {
                 $status = 'menunggu_kabag';
             }
+
+        // Cegah tanda tangan kosong / kanvas polos digital
+        if ($this->isBlankSignature($validated['signature'])) {
+            return back()->withErrors([
+                'signature' => 'Tanda tangan digital tidak boleh kosong atau kanvas polos. Silakan goreskan tanda tangan Anda.'
+            ])->withInput();
         }
 
         $idTransaksi = DB::table('t_transaksi')->insertGetId([
@@ -318,16 +404,14 @@ class LemburController extends Controller
             $params['perPage'] = $perPage;
         }
 
-        $message = $status === 'rejected'
-            ? 'Pengajuan tersimpan namun otomatis ditolak karena durasi lembur kurang dari 2 jam.'
-            : 'Pengajuan lembur berhasil dikirim.';
+        $message = 'Pengajuan lembur berhasil dikirim.';
 
         $targetRoute = (request()->routeIs('ketua-tim.*') || (session('user')['role'] ?? '') === 'ketua_tim')
             ? 'ketua-tim.lembur'
             : 'lembur';
 
         return redirect()->route($targetRoute, $params)
-            ->with($status === 'rejected' ? 'error' : 'success', $message);
+            ->with('success', $message);
     }
 
     public function timPegawai()
@@ -337,7 +421,9 @@ class LemburController extends Controller
         $tim = DB::table('t_anggota_tim as at')
             ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
             ->where('at.pegawai_id_pegawai', $idPegawai)
+            ->where('mt.status', 'aktif')
             ->select('mt.kode_tim', 'mt.nama_tim')
+            ->distinct()
             ->get();
 
         return response()->json($tim);
@@ -426,10 +512,16 @@ class LemburController extends Controller
             return back()->with('error', 'Data pengajuan lembur tidak ditemukan.');
         }
 
-        // Kunci edit: hanya boleh diubah sebelum disetujui oleh ketua tim
-        $canEdit = ($transaksi->status === 'pending') || ($transaksi->status === 'menunggu_kabag' && empty($transaksi->approved_at));
-        if (!$canEdit) {
-            return back()->with('error', 'Pengajuan lembur tidak dapat diubah karena sudah diproses atau disetujui oleh Ketua Tim.');
+        // Kunci edit ketat: hanya boleh diubah jika status masih 'pending' (belum pernah diproses atasan)
+        if ($transaksi->status !== 'pending') {
+            $statusLabel = match($transaksi->status) {
+                'menunggu_kabag' => 'Menunggu Kabag Umum (sudah disetujui Ketua Tim)',
+                'approved'       => 'Sudah Disetujui Final',
+                'rejected'       => 'Ditolak',
+                'cancelled'      => 'Dibatalkan',
+                default          => $transaksi->status,
+            };
+            return back()->with('error', "Pengajuan lembur tidak dapat diubah karena sudah diproses atau disetujui (Status: {$statusLabel}).");
         }
 
         $validated = $request->validate([
@@ -456,7 +548,10 @@ class LemburController extends Controller
 
             $durasi = $jamMulai->diffInHours($jamSelesai);
             if ($durasi < 2) {
-                return back()->with('error', 'Durasi lembur minimal 2 jam.');
+                return back()->with('error', 'Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS.');
+            }
+            if ($durasi > 12) {
+                return back()->with('error', 'Durasi lembur melebihi batas wajar harian (maksimal 12 jam).');
             }
         }
 
@@ -614,5 +709,59 @@ class LemburController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Memverifikasi apakah kanvas tanda tangan benar-benar digoreskan atau hanya gambar polos/kosong.
+     */
+    private function isBlankSignature(?string $base64Data): bool
+    {
+        if (empty($base64Data)) {
+            return true;
+        }
+
+        $raw = str_replace(['data:image/png;base64,', ' '], ['', '+'], $base64Data);
+        $binary = base64_decode($raw);
+        if (!$binary || strlen($binary) < 500) {
+            return true;
+        }
+
+        if (extension_loaded('gd')) {
+            $img = @imagecreatefromstring($binary);
+            if (!$img) {
+                return true;
+            }
+
+            $w = imagesx($img);
+            $h = imagesy($img);
+            $drawnPixels = 0;
+
+            // Sampling per 2 pixel untuk performa tinggi (eksekusi < 2 milidetik)
+            for ($x = 0; $x < $w; $x += 2) {
+                for ($y = 0; $y < $h; $y += 2) {
+                    $rgba = imagecolorat($img, $x, $y);
+                    $alpha = ($rgba & 0x7F000000) >> 24;
+                    // Pada GD, alpha 127 = 100% transparan
+                    if ($alpha < 120) {
+                        $r = ($rgba >> 16) & 0xFF;
+                        $g = ($rgba >> 8) & 0xFF;
+                        $b = $rgba & 0xFF;
+                        // Bukan warna putih/latar belakang polos
+                        if ($r < 240 || $g < 240 || $b < 240) {
+                            $drawnPixels++;
+                            if ($drawnPixels > 35) {
+                                imagedestroy($img);
+                                return false; // Ditemukan goresan tanda tangan asli
+                            }
+                        }
+                    }
+                }
+            }
+
+            imagedestroy($img);
+            return $drawnPixels <= 35;
+        }
+
+        return false;
     }
 }

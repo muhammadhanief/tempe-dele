@@ -201,6 +201,11 @@ class SpklExport implements FromArray, WithTitle, WithStyles, WithColumnWidths, 
                     ],
                 ]);
 
+                // Atur tinggi baris dinamis (auto row height) untuk seluruh baris data pegawai agar uraian kegiatan yang panjang tampil proporsional
+                for ($r = $dataStart; $r <= $dataEnd; $r++) {
+                    $sheet->getRowDimension($r)->setRowHeight(-1);
+                }
+
                 // Kolom No: center
                 $sheet->getStyle("A{$dataStart}:A{$dataEnd}")->applyFromArray([
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],

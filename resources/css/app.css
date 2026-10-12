@@ -118,19 +118,98 @@
     background-color: #e28e14;
 }
 
-/* Drag to scroll enhancement */
+/* Drag to scroll enhancement & Text Selection Support */
 .drag-scrollable {
-    cursor: grab;
+    cursor: default;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.drag-scrollable table,
+.drag-scrollable th,
+.drag-scrollable td,
+.overflow-x-auto table,
+.overflow-x-auto th,
+.overflow-x-auto td,
+.table-responsive table,
+.table-responsive th,
+.table-responsive td {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}
+
+/* Floating Table Navigation Arrows & Pan Mode */
+.table-scroll-parent {
+    position: relative !important;
+}
+
+.table-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%) scale(0.92);
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    color: #334155;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 25;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     user-select: none;
     -webkit-user-select: none;
 }
 
-.drag-scrollable.active-dragging {
+.table-scroll-parent:hover .table-nav-btn.can-scroll {
+    opacity: 0.88;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+}
+
+.table-scroll-parent .table-nav-btn.can-scroll:hover {
+    opacity: 1;
+    background: #faa938;
+    color: #0f172a;
+    border-color: #f59e0b;
+    box-shadow: 0 6px 18px rgba(250, 169, 56, 0.4);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.table-nav-btn.table-nav-left {
+    left: 10px;
+}
+
+.table-nav-btn.table-nav-right {
+    right: 10px;
+}
+
+@media (max-width: 640px) {
+    .table-nav-btn {
+        display: none !important;
+    }
+}
+
+.pan-ready {
+    cursor: grab !important;
+}
+
+.pan-ready * {
+    cursor: grab !important;
+}
+
+.pan-active {
     cursor: grabbing !important;
 }
 
-.drag-scrollable table {
-    pointer-events: auto;
+.pan-active * {
+    cursor: grabbing !important;
 }
 
 /* =========================================================================

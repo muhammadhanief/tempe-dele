@@ -16,28 +16,68 @@ document.addEventListener('click', (e) => {
 });
 
 // Modal Loading
-const overlay = document.getElementById('loadingOverlay');
+let loadingTimeout = null;
+
+function getLoadingOverlay() {
+  return document.getElementById('loadingOverlay');
+}
 
 function showLoading() {
-  if (!overlay) return;
-  overlay.classList.remove('opacity-0', 'pointer-events-none');
-  overlay.classList.add('opacity-100');
+  const el = getLoadingOverlay();
+  if (!el) return;
+  el.classList.remove('opacity-0', 'pointer-events-none');
+  el.classList.add('opacity-100');
+
+  clearTimeout(loadingTimeout);
+  loadingTimeout = setTimeout(() => {
+    hideLoading();
+  }, 12000);
 }
 
 function hideLoading() {
-  if (!overlay) return;
-  overlay.classList.add('opacity-0', 'pointer-events-none');
-  overlay.classList.remove('opacity-100');
+  clearTimeout(loadingTimeout);
+  const el = getLoadingOverlay();
+  if (!el) return;
+  el.classList.add('opacity-0', 'pointer-events-none');
+  el.classList.remove('opacity-100');
 }
 
-document.addEventListener('submit', showLoading);
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+
+document.addEventListener('submit', (e) => {
+  if (e.defaultPrevented) {
+    hideLoading();
+    return;
+  }
+
+  if (e.target && typeof e.target.checkValidity === 'function' && !e.target.checkValidity()) {
+    hideLoading();
+    return;
+  }
+
+  setTimeout(() => {
+    if (e.defaultPrevented) {
+      hideLoading();
+    } else {
+      showLoading();
+    }
+  }, 0);
+});
 
 document.addEventListener('click', (e) => {
   const a = e.target.closest('a');
   if (a && a.href && !a.href.startsWith('#')
       && !a.href.startsWith('javascript')
-      && !a.target) {
-    showLoading();
+      && !a.target
+      && !a.hasAttribute('download')
+      && !a.getAttribute('href')?.startsWith('blob:')
+      && !a.getAttribute('href')?.startsWith('data:')) {
+    setTimeout(() => {
+      if (!e.defaultPrevented) {
+        showLoading();
+      }
+    }, 0);
   }
 });
 
@@ -188,37 +228,157 @@ function initTableScrollbars() {
       });
     }
 
-    // 5. Desktop drag-to-scroll support
-    let isDown = false;
-    let startX = 0;
-    let scrollLeft = 0;
-
+    // 5. Desktop Table Usability: Floating Navigation & Effortless Panning without Scrollbar
     wrapper.classList.add('drag-scrollable');
 
-    wrapper.addEventListener('mousedown', (e) => {
-      if (e.target.closest('a, button, input, select, textarea, label, [role="button"], .no-drag')) {
+    // 5a. Floating Navigation Arrows on Parent Container
+    const parentContainer = wrapper.parentElement;
+    let btnLeft = null;
+    let btnRight = null;
+
+    if (parentContainer && !parentContainer.querySelector('.table-nav-left')) {
+      parentContainer.classList.add('table-scroll-parent');
+
+      btnLeft = document.createElement('button');
+      btnLeft.type = 'button';
+      btnLeft.className = 'table-nav-btn table-nav-left';
+      btnLeft.setAttribute('aria-label', 'Geser tabel ke kiri');
+      btnLeft.innerHTML = '<svg class="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>';
+
+      btnRight = document.createElement('button');
+      btnRight.type = 'button';
+      btnRight.className = 'table-nav-btn table-nav-right';
+      btnRight.setAttribute('aria-label', 'Geser tabel ke kanan');
+      btnRight.innerHTML = '<svg class="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>';
+
+      btnLeft.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        wrapper.scrollBy({ left: -320, behavior: 'smooth' });
+      });
+
+      btnRight.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        wrapper.scrollBy({ left: 320, behavior: 'smooth' });
+      });
+
+      parentContainer.appendChild(btnLeft);
+      parentContainer.appendChild(btnRight);
+    } else if (parentContainer) {
+      btnLeft = parentContainer.querySelector('.table-nav-left');
+      btnRight = parentContainer.querySelector('.table-nav-right');
+    }
+
+    const updateNavButtons = () => {
+      const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+      if (maxScroll <= 10) {
+        if (btnLeft) btnLeft.classList.remove('can-scroll');
+        if (btnRight) btnRight.classList.remove('can-scroll');
         return;
       }
-      isDown = true;
-      wrapper.classList.add('active-dragging');
-      startX = e.pageX - wrapper.offsetLeft;
-      scrollLeft = wrapper.scrollLeft;
+      if (btnLeft) {
+        if (wrapper.scrollLeft > 15) {
+          btnLeft.classList.add('can-scroll');
+        } else {
+          btnLeft.classList.remove('can-scroll');
+        }
+      }
+      if (btnRight) {
+        if (wrapper.scrollLeft < maxScroll - 15) {
+          btnRight.classList.add('can-scroll');
+        } else {
+          btnRight.classList.remove('can-scroll');
+        }
+      }
+    };
+
+    wrapper.addEventListener('scroll', updateNavButtons, { passive: true });
+
+    // 5b. Right-Click Drag & Middle-Click Pan (Left-click stays 100% for text selection!)
+    let isPanDown = false;
+    let panStartX = 0;
+    let panScrollLeft = 0;
+    let hasPanMoved = false;
+
+    wrapper.addEventListener('mousedown', (e) => {
+      if (e.button === 2 || e.button === 1 || (e.button === 0 && (window.__tableSpacePressed || e.altKey))) {
+        if (e.target.closest('a, button, input, select, textarea, [role="button"]')) {
+          return;
+        }
+        isPanDown = true;
+        hasPanMoved = false;
+        panStartX = e.pageX - wrapper.offsetLeft;
+        panScrollLeft = wrapper.scrollLeft;
+        wrapper.classList.add('pan-active');
+        if (e.button === 1) e.preventDefault();
+      }
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
+      if (!isPanDown) return;
       const x = e.pageX - wrapper.offsetLeft;
-      const walk = (x - startX) * 1.35;
+      const walk = (x - panStartX) * 1.4;
       if (Math.abs(walk) > 4) {
-        e.preventDefault();
+        hasPanMoved = true;
       }
-      wrapper.scrollLeft = scrollLeft - walk;
+      wrapper.scrollLeft = panScrollLeft - walk;
     });
 
     window.addEventListener('mouseup', () => {
-      if (isDown) {
-        isDown = false;
-        wrapper.classList.remove('active-dragging');
+      if (isPanDown) {
+        isPanDown = false;
+        wrapper.classList.remove('pan-active');
+      }
+    });
+
+    wrapper.addEventListener('contextmenu', (e) => {
+      if (hasPanMoved) {
+        e.preventDefault();
+        hasPanMoved = false;
+      }
+    });
+
+    // 5c. Selection Edge Auto-Scroll: When dragging text selection to table borders, scroll automatically
+    let isLeftDown = false;
+    let edgeScrollTimer = null;
+
+    wrapper.addEventListener('mousedown', (e) => {
+      if (e.button === 0 && !window.__tableSpacePressed && !e.altKey) {
+        isLeftDown = true;
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isLeftDown) return;
+      const rect = wrapper.getBoundingClientRect();
+      const edgeThreshold = 35;
+
+      if (e.clientX > rect.right - edgeThreshold && e.clientX < rect.right + 80) {
+        if (!edgeScrollTimer) {
+          edgeScrollTimer = setInterval(() => {
+            wrapper.scrollLeft += 16;
+          }, 20);
+        }
+      } else if (e.clientX < rect.left + edgeThreshold && e.clientX > rect.left - 80) {
+        if (!edgeScrollTimer) {
+          edgeScrollTimer = setInterval(() => {
+            wrapper.scrollLeft -= 16;
+          }, 20);
+        }
+      } else {
+        if (edgeScrollTimer) {
+          clearInterval(edgeScrollTimer);
+          edgeScrollTimer = null;
+        }
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      isLeftDown = false;
+      if (edgeScrollTimer) {
+        clearInterval(edgeScrollTimer);
+        edgeScrollTimer = null;
       }
     });
 
@@ -226,16 +386,42 @@ function initTableScrollbars() {
     if (window.ResizeObserver) {
       const ro = new ResizeObserver(() => {
         updateScrollIndicator();
+        updateNavButtons();
       });
       ro.observe(wrapper);
       ro.observe(table);
     }
 
     // Initial indicator sync
-    setTimeout(updateScrollIndicator, 100);
-    setTimeout(updateScrollIndicator, 500);
+    setTimeout(() => {
+      updateScrollIndicator();
+      updateNavButtons();
+    }, 100);
+    setTimeout(() => {
+      updateScrollIndicator();
+      updateNavButtons();
+    }, 500);
   });
 }
+
+// Global listener for Spacebar hold
+window.__tableSpacePressed = false;
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !e.target.closest('input, textarea, select, [contenteditable="true"]')) {
+    window.__tableSpacePressed = true;
+    document.querySelectorAll('.overflow-x-auto, .table-responsive').forEach((w) => {
+      w.classList.add('pan-ready');
+    });
+  }
+});
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') {
+    window.__tableSpacePressed = false;
+    document.querySelectorAll('.overflow-x-auto, .table-responsive').forEach((w) => {
+      w.classList.remove('pan-ready');
+    });
+  }
+});
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initTableScrollbars);

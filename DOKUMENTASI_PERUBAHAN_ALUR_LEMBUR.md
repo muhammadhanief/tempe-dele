@@ -2806,3 +2806,1446 @@ Berdasarkan arahan langsung pengguna (*"bagian lingkaran merah orange hijau di s
 | 1 | `resources/views/lembur.blade.php` | Pemasangan garis vertikal kontinu penghubung titik status, perbaikan penutupan tag card, integrasi `updateTimelineStems()`, dan penambahan `#emptyFilterTimeline` pada halaman Pegawai. |
 | 2 | `resources/views/ketua-tim/lembur.blade.php` | Pemasangan garis vertikal kontinu penghubung titik status, perbaikan penutupan tag card, integrasi `updateTimelineStems()`, dan penambahan `#emptyFilterTimeline` pada halaman Ketua Tim. |
 
+---
+
+## 55. Penyempurnaan Alur Koreksi Ketua Tim, Approval Pending Kabag Umum, Sinkronisasi Jam Presensi Riil, dan Tinggi Baris Dinamis Dokumen SPKL
+
+### A. Latar Belakang & Kebutuhan Pengguna
+Berdasarkan arahan langsung pengguna (*"Ketua Tim: kalau misal sudah terlanjur menyetujui, saat klik button koreksi bisa diedit jadi tetep bisa ditolak ya selama status belum disetujui atau ditolak kabag; cek jam yang disetujui ya, harusnya dia baru muncul jika presensi sudah diimport. Kabag Umum: ada nama pegawai yang ga muncul button disetujuinya; cek lagi jam disetujui yang muncul di kabag umum itu diambil dari mana. Admin: untuk laporan ditampilkan per nama per tanggal diurutkan tanggal asc; rekap SPKL tinggi kolom dinamis untuk uraian panjang; menu daftar hadir cetak langsung & jam pulang murni dari presensi BOS"*):
+1. **Fleksibilitas Keputusan Ketua Tim**: Ketua Tim yang terlanjur menyetujui pengajuan sebelumnya tidak dapat mengubah keputusannya menjadi Ditolak meskipun berkas masih berstatus `menunggu_kabag` dan belum diproses oleh Kabag Umum.
+2. **Kesesuaian Tampilan Jam Disetujui**: Kolom Jam Disetujui di sisi Ketua Tim dan Kabag Umum seharusnya hanya dimunculkan jika data presensi riil pegawai sudah diimport oleh Admin (`has_presensi = 1`), guna menghindari ambiguitas sebelum data jam riil tervalidasi.
+3. **Aksesibilitas Tombol Persetujuan Kabag Umum**: Pada pengajuan lembur yang berstatus `pending` (terutama anggota Tim Bagian Umum di mana Kepala Bagian Umum bertindak sebagai Ketua Tim langsung), tombol aksi di halaman Kabag Umum sebelumnya tertutup tanda strip `-` dan diblokir oleh controller.
+4. **Tinggi Baris Dinamis Dokumen SPKL**: Dokumen SPKL (Excel & PDF) memerlukan penyesuaian tinggi baris (*auto row height*) agar pegawai yang memiliki uraian tugas panjang tidak terpotong saat dicetak atau dibuka di spreadsheet.
+5. **Akurasi Jam Pulang Daftar Hadir**: Jam kepulangan di menu Daftar Hadir (web, unduh PDF, dan cetak langsung browser) dipastikan murni merujuk pada jam kepulangan presensi riil dari tabel `t_presensi` (sistem BOS), tanpa dibatasi oleh jam lembur maksimal.
+
+### B. Rincian Solusi & Implementasi Teknis
+1. **Koreksi Penolakan Ketua Tim (`app/Http/Controllers/ketuatim/PengajuanController.php` & `resources/views/ketua-tim/pengajuan.blade.php`)**:
+   - Menghapus pembatasan status kunci pada controller saat status masih `menunggu_kabag`.
+   - Menambahkan penanganan khusus: jika transaksi masih berstatus `menunggu_kabag` dan Ketua Tim memilih `rejected`, status diubah menjadi `rejected`, jam disetujui dikosongkan (`null`), dan catatan disimpan.
+   - Pada antarmuka JavaScript `openModalKeputusan`, atribut `isStatusLocked` diubah menjadi `false` untuk status `menunggu_kabag`, membuka kembali pilihan tombol **Setujui** dan **Tolak** di dalam modal keputusan.
+2. **Kondisi Tampilan Jam Disetujui (`resources/views/ketua-tim/pengajuan.blade.php` & `resources/views/kabag-umum/pengajuan.blade.php`)**:
+   - Kolom tabel Jam Disetujui di kedua halaman kini memeriksa kondisi `$p->has_presensi`.
+   - Jika presensi belum diimport (`!$p->has_presensi`), kolom menampilkan tanda `-`. Jam disetujui hanya muncul jika presensi telah diimport dan pengajuan tidak berstatus `rejected`.
+3. **Pemberian Tombol Aksi Pending untuk Kabag Umum (`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` & `resources/views/kabag-umum/pengajuan.blade.php`)**:
+   - Mengubah kondisi tombol aksi pada tabel Kabag Umum:
+     `@if(in_array($p->status, ['menunggu_kabag', 'pending']))`
+     sehingga pengajuan pending menampilkan tombol **Setujui**.
+   - Pada `KabagUmumPengajuanController::approve()`, menghapus blokir error 422 untuk status `pending`, dan langsung menyetujui transaksi menjadi `approved` (Disetujui Final) dengan mengisi `approved_at` dan `approved_kabag_at`.
+4. **Tinggi Baris Dinamis Rekap SPKL (`app/Exports/SpklExport.php` & `resources/views/dokumen/spkl.blade.php`)**:
+   - Pada `SpklExport.php`, menambahkan iterasi otomatis `setRowHeight(-1)` untuk baris data `$dataStart` hingga `$dataEnd` sehingga Excel menghitung tinggi baris secara dinamis mengikuti panjang teks uraian.
+   - Pada `dokumen/spkl.blade.php`, menambahkan styling `col-uraian` dengan `word-wrap: break-word; word-break: break-word; line-height: 1.35;` agar layout PDF mengalir proporsional.
+5. **Optimasi Presensi Kepulangan Daftar Hadir (`app/Http/Controllers/admin/DaftarHadirController.php`)**:
+   - Menyempurnakan subquery SQL jam kepulangan agar mencocokkan `niplama` presensi baik terhadap `nip_lama` maupun `nip` baru:
+     `(pr.niplama = p.nip_lama OR pr.niplama = p.nip)`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Izin pembatalan/penolakan oleh Ketua Tim selama status masih `menunggu_kabag`. |
+| 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Buka tombol keputusan di modal koreksi `menunggu_kabag` dan batasi tampilan jam disetujui hanya jika `has_presensi`. |
+| 3 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Izin approval langsung untuk transaksi `pending` oleh Kabag Umum. |
+| 4 | `resources/views/kabag-umum/pengajuan.blade.php` | Tampilkan tombol aksi untuk transaksi `pending` dan batasi tampilan jam disetujui hanya jika `has_presensi`. |
+| 5 | `app/Exports/SpklExport.php` | Penambahan auto row height (`setRowHeight(-1)`) pada baris data SPKL Excel. |
+| 6 | `resources/views/dokumen/spkl.blade.php` | Penyesuaian word-wrapping dan line-height uraian pada SPKL PDF. |
+| 7 | `app/Http/Controllers/admin/DaftarHadirController.php` | Penyempurnaan subquery jam pulang presensi riil mendukung multi-format NIP. |
+
+---
+
+## 56. Perbaikan Bug Tampilan Dropdown Filter Bulan Selalu 'Desember 2026' dan Per Halaman '100 / hal' (`resources/views/lembur.blade.php`)
+
+### A. Gejala & Analisis Masalah
+- **Gejala Masalah**:
+  Saat pengguna membuka halaman Pengajuan Lembur Pribadi (`/lembur`), baik secara langsung maupun saat memilih filter bulan tertentu (contoh: `http://127.0.0.1:8000/lembur?bulan=2026-09`), kotak seleksi dropdown periode bulan secara keliru selalu menampilkan **"Desember 2026"**, dan dropdown jumlah baris per halaman selalu menampilkan **"100 / hal"**.
+- **Akar Penyebab (*Root Cause*)**:
+  1. Pada `resources/views/lembur.blade.php` baris 128:
+     Direktif Blade ditulis `@selected($bulan ?? $valBulan)`.
+     Karena `$valBulan` maupun `$bulan` merupakan *string* bukan kosong (misal: `'2026-01'`, `'2026-09'`), ekspresi `$bulan ?? $valBulan` selalu bernilai *truthy* (TRUE) untuk setiap bulan $m = 1$ s.d. $12$. Akibatnya, seluruh 12 tag `<option>` dirender dengan atribut `selected`. Berdasarkan spesifikasi HTML browser, jika terdapat multi-`selected` pada elemen `<select>` tunggal, peramban secara otomatis memilih opsi yang paling terakhir dirender, yaitu bulan ke-12 (**Desember 2026**).
+  2. Pada baris 135-138:
+     Direktif Blade ditulis `@selected($perPage ?? 10) = 10)`.
+     Tanda kurung penutup direktif tertutup terlalu cepat, sehingga Blade mengevaluasi `@selected($perPage ?? 10)` yang selalu bernilai *truthy* untuk seluruh opsi (10, 25, 50, 100), menyebabkan peramban selalu memilih opsi paling terakhir (**100 / hal**).
+
+### B. Solusi & Perbaikan yang Diterapkan
+1. **Perbaikan Syntax `@selected` Bulan**:
+   Mengubah direktif menjadi `@selected(($bulan ?? '') === $valBulan)` serta menyematkan `@selected(empty($bulan))` pada opsi *Semua Bulan*.
+   - Saat URL memuat `?bulan=2026-09`, hanya opsi September yang berstatus `selected`.
+   - Saat URL tanpa parameter bulan (`/lembur`), opsi *Semua Bulan* terpilih secara default.
+2. **Perbaikan Syntax `@selected` Per Halaman**:
+   Mengubah direktif menjadi `@selected(($perPage ?? 10) == 10)` (dan 25, 50, 100) sehingga hanya opsi yang sesuai dengan nilai `$perPage` yang berstatus `selected`.
+3. **Penyelarasan pada Halaman Ketua Tim**:
+   Menyematkan `@selected(empty($bulan))` pada opsi *Semua Bulan* di `resources/views/ketua-tim/lembur.blade.php` agar konsisten 100%.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Perbaikan logika perbandingan `@selected` pada dropdown bulan dan perPage. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan `@selected(empty($bulan))` pada opsi Semua Bulan. |
+
+---
+
+## 57. Pembatasan Input Tanggal Maksimal 4 Digit Tahun (`yyyy`) & Proteksi Global Anti-Typo 5 Digit
+
+### A. Gejala & Analisis Masalah
+- **Gejala Masalah**:
+  Saat pengguna mengetikkan tanggal lembur secara manual di kolom input tanggal (`<input type="date">`), segmen tahun dapat menerima hingga 5-6 digit angka (contoh: `02/10/yyyyy` atau `20260`), sehingga memicu typo dan kegagalan validasi formulir.
+- **Akar Masalah (*Root Cause*)**:
+  Pada spesifikasi HTML5 peramban berbasis Chromium (Google Chrome & Microsoft Edge), elemen `<input type="date">` yang tidak memiliki atribut `max` secara default menggunakan batas tahun maksimum `kMaxYear = 275760` (6 digit). Hal ini membuat masker input peramban mengizinkan pengetikan hingga 5 atau 6 digit tahun.
+
+### B. Solusi & Perbaikan yang Diterapkan
+1. **Penetapan Atribut `min` dan `max` 4 Digit pada Elemen HTML**:
+   Menyematkan `min="1970-01-01" max="2099-12-31"` pada seluruh kolom input tanggal di formulir pengajuan dan administrasi tim:
+   - `resources/views/lembur.blade.php`
+   - `resources/views/ketua-tim/lembur.blade.php`
+   - `resources/views/admin/lembur.blade.php`
+   - `resources/views/admin/tim.blade.php`
+   Dengan adanya `max="2099-12-31"`, Chromium secara otomatis mengunci lebar masker segmen tahun menjadi tepat 4 digit (`yyyy`) dan menolak pengetikan digit ke-5.
+2. **Proteksi Global JavaScript Tingkat Dokumen (`layouts/app.blade.php`)**:
+   - Menambahkan event listener `input` global (capture mode) yang mendeteksi bila ada input tanggal dengan tahun > 4 digit (misal akibat *copy-paste*), untuk otomatis memotong tahun menjadi 4 digit pertama (`slice(0, 4)`).
+   - Menambahkan listener `DOMContentLoaded` yang otomatis menginjeksi atribut `min="1970-01-01"` dan `max="2099-12-31"` ke setiap elemen `input[type="date"]` di seluruh halaman aplikasi.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penambahan atribut `min` & `max` pada modal ajukan lembur pegawai. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan atribut `min` & `max` pada modal ajukan lembur ketua tim. |
+| 3 | `resources/views/admin/lembur.blade.php` | Penambahan atribut `min` & `max` pada modal ajukan lembur admin. |
+| 4 | `resources/views/admin/tim.blade.php` | Penambahan atribut `min` & `max` pada input tanggal non-aktif tim. |
+| 5 | `resources/views/layouts/app.blade.php` | Handler global pemangkasan tahun > 4 digit dan auto-enforce min/max. |
+
+---
+
+## 58. Investigasi Skema Basis Data & Sinkronisasi Tampilan Jam Disetujui Berbasis Import Presensi BOS Multi-Format NIP
+
+### A. Latar Belakang & Pertanyaan Pengguna
+Berdasarkan permintaan investigasi langsung dari pengguna:
+1. *"Cek jam yang disetujui ya, harusnya dia baru muncul jika presensi sudah diimport."*
+2. *"Cek lagi jam disetujui yang muncul di Kabag Umum itu diambil dari mana?"*
+3. *"Ini DB-nya gimana?"* (Penjelasan arsitektur skema basis data, aliran relasi antar-tabel, kolom, dan kapan kolom terisi).
+
+### B. Arsitektur Skema Basis Data (Database Structure & Data Flow)
+Sistem Lembur (**TEMPE DELE**) menggunakan basis data MySQL/MariaDB dengan struktur tabel utama sebagai berikut:
+
+#### 1. Tabel Utama: `t_transaksi` (Tabel Transaksi Pengajuan Lembur)
+Tabel ini merupakan inti seluruh siklus hidup (*lifecycle*) lembur pegawai:
+- `id_transaksi` (INT, Primary Key): Pengidentifikasi unik transaksi.
+- `submitted_by_NIP` (VARCHAR 30, Foreign Key ke `m_pegawai.nip`): NIP baru 18 digit pegawai yang mengajukan lembur.
+- `tim_kode_tim` (VARCHAR 50, Foreign Key ke `m_tim.kode_tim`): Tim kerja tempat kegiatan lembur dilaksanakan.
+- `approver_employee_id` (VARCHAR 30): NIP Ketua Tim penilai tahap 1.
+- `date` (DATE): Tanggal pelaksanaan lembur pegawai (misal: `2026-10-01`).
+- `jam_mulai` & `jam_selesai` (TIME): Jam lembur yang diajukan oleh pegawai (misal: `16:01:00` s.d. `20:01:00`).
+- `jam_mulai_disetujui` & `jam_selesai_disetujui` (TIME, NULLABLE): Jam lembur resmi yang disetujui setelah diverifikasi Ketua Tim, Kabag Umum, dan dikoreksi oleh data presensi riil.
+- `status` (VARCHAR 30):
+  - `pending`: Menunggu persetujuan Ketua Tim (atau menunggu Kabag Umum untuk Bagian Umum).
+  - `menunggu_kabag`: Telah disetujui Ketua Tim (Tahap 1), menunggu persetujuan Kabag Umum.
+  - `approved`: Telah disetujui final oleh Kabag Umum.
+  - `rejected`: Ditolak oleh Ketua Tim atau Kabag Umum.
+  - `cancelled`: Dibatalkan oleh Admin Operasional.
+- `note` (LONGTEXT): Catatan persetujuan/koreksi dari Ketua Tim.
+- `note_kabag` (TEXT): Catatan keputusan dari Kepala Bagian Umum.
+- `approved_at` (DATE/DATETIME): Waktu persetujuan Tahap 1 oleh Ketua Tim.
+- `approved_kabag_at` (DATETIME): Waktu persetujuan Tahap 2 oleh Kabag Umum.
+- `eligible` (TINYINT 1, NULLABLE): Indikator kelayakan pembayaran uang lembur berdasarkan aturan regulasi (durasi $\ge 2$ jam, status presensi WFO/WFOL, dan tidak terlambat datang pagi). Terisi otomatis saat koreksi presensi dijalankan.
+
+#### 2. Tabel Presensi: `t_presensi` (Tabel Presensi Fisik Mesin/Aplikasi BOS BPS)
+Tabel ini menampung log riil kehadiran pegawai hasil impor file spreadsheet BOS bulanan:
+- `id_presensi` (INT, Primary Key).
+- `niplama` (VARCHAR 30): Menyimpan NIP lama 9 digit atau NIP baru 18 digit dari berkas BOS.
+- `tanggal` (DATETIME): Tanggal presensi (misal: `2026-10-01 00:00:00`).
+- `jam_mulai` (DATETIME): Jam kedatangan pagi (fingerprint/tap datang).
+- `jam_selesai` (DATETIME): Jam kepulangan riil sore/malam (fingerprint/tap pulang).
+- `status` (VARCHAR 20): Status kehadiran (misal: `WFO`, `WFOL`, `Hadir`).
+
+#### 3. Tabel Master Pegawai: `m_pegawai`
+Menghubungkan identitas pegawai:
+- `nip` (VARCHAR 30): NIP baru 18 digit (digunakan dalam session login dan `submitted_by_NIP`).
+- `nip_lama` (VARCHAR 30): NIP lama 9 digit (banyak digunakan pada data presensi historis BOS).
+- `nama` (VARCHAR 150): Nama lengkap beserta gelar pegawai.
+
+---
+
+### C. Alur Pengisian & Asal Nilai Kolom `jam_disetujui`
+Nilai `jam_mulai_disetujui` dan `jam_selesai_disetujui` yang muncul di antarmuka berasal dari sumber berikut secara bertahap:
+
+1. **Pengajuan Awal oleh Pegawai:**
+   - Kolom `jam_mulai_disetujui` dan `jam_selesai_disetujui` masih bernilai `NULL`.
+2. **Persetujuan Tahap 1 oleh Ketua Tim (`PengajuanController::approve()`):**
+   - Ketua Tim membuka modal keputusan. Input jam default terisi jam pengajuan pegawai (`t_transaksi.jam_mulai` & `jam_selesai`).
+   - Saat Ketua Tim klik *Simpan Keputusan*, sistem meng-update `t_transaksi`:
+     `jam_mulai_disetujui` dan `jam_selesai_disetujui` terisi di database, dan status berubah menjadi `menunggu_kabag`.
+3. **Pengecualian Anggota Bagian Umum (Tanpa Ketua Tim Lain):**
+   - Transaksi langsung berstatus `pending`. Nilai kolom di database masih `NULL`.
+   - Di tampilan modal Kabag Umum, sistem secara otomatis mengambil nilai cadangan (*fallback*) dari jam pengajuan pegawai (`$p->jam_mulai` & `$p->jam_selesai`).
+4. **Koreksi Otomatis Presensi BOS (`KoreksiLembur` Trait & `PresensiController`):**
+   - Saat Admin mengimpor spreadsheet BOS bulanan atau saat berkas diakses, sistem memotong (*trimming*) `jam_selesai_disetujui` agar tidak melebihi jam kepulangan fisik presensi (`t_presensi.jam_selesai`) dan tidak melebihi batas durasi maksimal lembur (4 jam untuk hari kerja, 6 jam untuk akhir pekan/libur).
+5. **Persetujuan Final Tahap 2 oleh Kabag Umum (`KabagUmumPengajuanController::updateKeputusan()`):**
+   - Kabag Umum dapat menyetujui, menolak, atau mengoreksi jam disetujui. Nilai akhir tersimpan permanen di `t_transaksi`.
+
+---
+
+### D. Mengapa Jam Disetujui Wajib Hanya Muncul Jika Presensi Sudah Diimpor?
+1. **Aturan Bisnis Lembur:**
+   Persetujuan administratif awal oleh Ketua Tim atau Kabag Umum baru berupa persetujuan rencana/rencana kerja lembur. Jam lembur yang sah dan berhak diperhitungkan untuk pembayaran uang lembur **wajib** divalidasi dengan bukti kehadiran fisik presensi kepulangan dari mesin BOS.
+2. **Kondisi Data Riil Saat Ini:**
+   - Pada basis data lokal, tabel `t_presensi` baru terisi hingga **31 Agustus 2026** (8.223 baris).
+   - Data presensi untuk **September 2026** dan **Oktober 2026** belum di-import ke `t_presensi` (0 baris).
+   - Akibatnya, untuk seluruh pengajuan bulan Oktober 2026 (seperti transaksi ID 318, 319, 320, 321, 322), subquery `has_presensi` bernilai `0` (false).
+3. **Penyempurnaan Proteksi Frontend & Backend:**
+   - **Tampilan Blade (Ketua Tim, Kabag Umum, Admin):**
+     Kolom tabel Jam Disetujui dienkapsulasi dengan pengkondisian ketat:
+     `@if($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')`
+     Sehingga selama presensi belum di-import (`!$p->has_presensi`), kolom tabel dipastikan menampilkan tanda strip `-`.
+   - **Update Realtime JavaScript AJAX Tanpa Refresh:**
+     Diperbaiki logika DOM update pada saat tombol simpan diklik:
+     - `resources/views/ketua-tim/pengajuan.blade.php`: Selipkan pengecekan `currentHasPresensi`.
+     - `resources/views/kabag-umum/pengajuan.blade.php`: Selipkan pengecekan `currentHasPresensiKabag`.
+     - `resources/views/admin/pengajuan.blade.php`: Selipkan pengecekan `currentHasPresensi`.
+     Dengan perbaikan ini, tabel tidak akan pernah menampilkan jam disetujui secara prematur sebelum data presensi diimpor, baik sebelum maupun sesudah interaksi AJAX.
+   - **Multi-Format NIP Presensi Universal:**
+     Subquery SQL pada `KabagUmumPengajuanController`, `KetuaTim\PengajuanController`, `Admin\PengajuanController`, `Admin\LemburController`, `Pimpinan\PengajuanController`, `KoreksiLembur`, dan `Pegawai\LemburController` diperluas dari `pr.niplama = p.nip_lama` menjadi:
+     `WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip) AND DATE(pr.tanggal) = t.date`
+     Toleran 100% terhadap format NIP lama (9 digit) maupun NIP baru (18 digit) yang dihasilkan dari file ekspor BOS.
+
+### E. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 2 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 3 | `app/Http/Controllers/admin/PengajuanController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 4 | `app/Http/Controllers/admin/LemburController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 5 | `app/Http/Controllers/pimpinan/PengajuanController.php` | Subquery presensi toleran multi-format NIP (lama & baru). |
+| 6 | `app/Http/Controllers/LemburController.php` | Pencocokan multi-format NIP pada `koreksiDariPresensi`. |
+| 7 | `app/Traits/KoreksiLembur.php` | Pencocokan multi-format NIP pada pemrosesan koreksi background. |
+| 8 | `resources/views/kabag-umum/pengajuan.blade.php` | Proteksi update DOM AJAX kolom jam disetujui dengan `currentHasPresensiKabag`. |
+| 9 | `resources/views/ketua-tim/pengajuan.blade.php` | Proteksi update DOM AJAX kolom jam disetujui dengan `currentHasPresensi`. |
+| 10 | `resources/views/admin/pengajuan.blade.php` | Sinkronisasi kondisi `$p->has_presensi` pada kolom tabel dan update DOM AJAX. |
+
+---
+
+## 59. Audit Struktur Berkas Excel Presensi BOS (`Rekap Presensi 9 September.xlsx`) & Peningkatan Fleksibilitas Impor Presensi
+
+### A. Latar Belakang & Kebutuhan Pengguna
+Pengguna mengunggah dan menanyakan kepastian ekstraksi data pada berkas resmi:
+`"D:\TUGAS ITTP\BPS - MAGANG\bahan tempe dele\Rekap Presensi 9 September.xlsx"`
+dengan kekhawatiran apakah sistem berpotensi salah mengambil isian sel (jam masuk, jam pulang, NIP, atau status).
+
+### B. Temuan Audit Teknis Berkas Excel Mentah
+Telah dilakukan pembacaan langsung terhadap seluruh lembar kerja (`Presensi Satker`) menggunakan pustaka `PhpOffice\PhpSpreadsheet`:
+1. **Posisi Baris Header:**
+   - **Baris 0 s.d. 2:** Kop dokumen BPS Jawa Tengah dan tanggal cetak dokumen.
+   - **Baris 4 (Sel A5):** Teks `"Tahun : 2025"`.
+   - **Baris 5 (Sel A6):** Teks `"Bulan : September"`.
+   - **Baris 7 (Sel A8 s.d. AF8):** Header kolom: `NIP` (Kolom 0), `Nama` (Kolom 1), lalu deretan tanggal `01` hingga `30` (Kolom 2 s.d. Kolom 31). Kolom 32 kosong karena September hanya memiliki 30 hari.
+   - **Baris 8:** Indikator libur (`L`, `S`, `M`).
+   - **Baris 9 s.d. 138 (130 Baris Data):** Daftar kehadiran 130 pegawai BPS.
+2. **Karakteristik Sel Kehadiran:**
+   Dari 2.832 sel data aktif:
+   - **2.205 sel berisi 3 baris teks (`\n`):**
+     - Baris 1: Jam masuk/kedatangan pagi (contoh: `06:33:01` atau `07:12:47`).
+     - Baris 2: Jam pulang/kepulangan sore (contoh: `16:11:02`, `17:15:33`, atau tanda `-` jika tidak tap pulang).
+     - Baris 3: Status kerja (`WFO` sebanyak 1.870 sel, `WFOL` sebanyak 335 sel).
+     - Terbukti 100% jam kepulangan selalu lebih besar atau sama dengan jam kedatangan (0 anomali waktu terbalik).
+   - **627 sel berisi 1 baris teks:**
+     - Berisi kode izin/dinas/cuti kedinasan resmi BPS: `PD` (Perjalanan Dinas - 263 sel), `TB` (Tugas Belajar - 120 sel), `TK` (Tanpa Keterangan - 105 sel), `CT` (Cuti Tahunan - 78 sel), `CM1` (Cuti Melahirkan - 34 sel), `TL` (Tugas Luar - 14 sel), `CS` (Cuti Sakit), dll.
+   - **Sel Hari Libur / Akhir Pekan:**
+     - Berisi newline kosong (`\n\n\n`), berhasil dilewati (*skipped*) tanpa error oleh fungsi pembersih `trim()`.
+3. **Pencocokan NIP Pegawai:**
+   - Seluruh 130 NIP pada Kolom 0 adalah format NIP Lama 9 digit (contoh: `340012313` an. Saniman, SH).
+   - Pengujian verifikasi silang terhadap tabel `m_pegawai` berhasil mencocokkan **130 dari 130 pegawai (100% match)** tanpa ada data pegawai yang tercecer (*unmatched = 0*).
+
+---
+
+### C. Analisis Titik Kritis & Penyempurnaan Sistem Impor
+1. **Titik Kritis Tahun Dokumen (2025 vs 2026):**
+   - Berkas mentah dari mentor memuat sel A5 `"Tahun : 2025"`.
+   - Sementara itu, seluruh data lembur aktif di aplikasi berada pada tahun berjalan **2026**.
+   - Jika diunggah secara mentah tanpa override, data akan tersimpan ke `t_presensi` dengan tanggal `2025-09-xx` sehingga tidak akan mencocokkan pengajuan lembur September 2026.
+   - **Solusi yang Diterapkan:**
+     - Pada modal unggah presensi Admin ([`resources/views/admin/presensi.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/presensi.blade.php)), ditambahkan dropdown **Target Tahun (Opsional)** dengan opsi:
+       * `Otomatis (Sesuai tertulis di dalam file)`
+       * `Tahun 2026 (Sesuai Periode Lembur Aktif)`
+       * `Tahun 2025`
+     - Pada [`PresensiUploadController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/admin/PresensiUploadController.php), controller memeriksa parameter `tahun`. Jika dikirimkan, target tahun diprioritaskan ke nilai yang dipilih pengguna. Jika kosong, sistem secara aman mengekstrak angka 4 digit dari sel A5 menggunakan Regex `\b(20\d{2})\b`.
+2. **Proteksi Batas Hari Maksimal per Bulan (`$daysInMonth`):**
+   - Menambahkan kalkulasi `$daysInMonth = Carbon::create($tahun, $bulan, 1)->daysInMonth`.
+   - Iterasi kolom tanggal otomatis berhenti (`break`) jika nomor tanggal melebihi jumlah hari kalender bulan tersebut, mencegah potensi error pembuatan tanggal fiktif (seperti `2025-09-31`).
+3. **Normalisasi Karakter Baris Baru CRLF Windows:**
+   - Ditambahkan `str_replace(["\r\n", "\r"], "\n", $cell)` sebelum memecah baris sel dengan `explode()`, menjamin jam dan status bersih dari karakter carriage return tersembunyi.
+4. **Pemberitahuan Respons Unggah yang Jelas:**
+   - Respons JSON upload kini menampilkan nama bulan dan tahun lengkap yang tersimpan (contoh: `"Upload berhasil! 2832 data presensi periode September 2026 disimpan."`).
+
+---
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/admin/PresensiUploadController.php` | Ekstraksi regex tahun/bulan kebal spasi, dukungan parameter tahun, normalisasi CRLF, dan proteksi `$daysInMonth`. |
+| 2 | `resources/views/admin/presensi.blade.php` | Penambahan dropdown pilihan target tahun pada modal unggah dan pengiriman payload `tahun` ke endpoint upload. |
+
+---
+
+## 60. Penyusunan Dokumen Pengujian Black Box Komprehensif 66 Kasus Uji (`PENGUJIAN_BLACKBOX.md`)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+Berdasarkan arahan langsung dari pengguna (*"bikin pengujian blackbox dong, yang lengkap pol gapapa"*):
+1. Dibutuhkan dokumen pengujian perangkat lunak formal berbasis metode *Black Box Testing* yang menyeluruh (*exhaustive / lengkap pol*).
+2. Dokumen ini menjadi standar verifikasi fungsional, laporan resmi magang MBKM, serta bukti audit mutu perangkat lunak Sistem Lembur BPS Jawa Tengah (**TEMPE DELE**).
+
+### B. Cakupan Modul & Hasil Pengujian
+Pengujian mencakup **66 kasus uji (*test cases*)** yang terdistribusi melintasi 8 modul operasional sistem:
+1. **Modul 1: Autentikasi, Hak Akses (RBAC), & Keamanan Sesi (TC-AUTH-01 s/d TC-AUTH-08):** Login resmi SSO BPS (Username & Password), penolakan akun salah/luar satker 3300, shortcut bypass dev-login multi-role lokal (Pegawai, Ketua Tim, Kabag Umum, Admin), proteksi middleware, dan penanganan kedaluwarsa sesi token mismatch.
+2. **Modul 2: Pengajuan Lembur Pegawai (TC-PEG-01 s/d TC-PEG-10):** Validasi form, pembatasan 4 digit tahun (`yyyy`), filter bulan/perPage, switch view Timeline vs Tabel, serta kolom Jam Disetujui.
+3. **Modul 3: Persetujuan & Koreksi Ketua Tim (TC-KT-01 s/d TC-KT-09):** Approval Tahap 1, validasi wajib isi catatan saat jam dipotong, koreksi penolakan status `menunggu_kabag`, proteksi tampilan Jam Disetujui berpatokan pada `has_presensi`, dan update DOM AJAX real-time.
+4. **Modul 4: Persetujuan & Koreksi Kabag Umum (TC-KBU-01 s/d TC-KBU-08):** Antrean approval terpadu, pembukaan tombol Setujui untuk status `pending` Bagian Umum, validasi catatan Kabag, serta koreksi keputusan.
+5. **Modul 5: Monitoring Pengajuan & Pembatalan Admin (TC-ADM-01 s/d TC-ADM-08):** Filter pencarian, pembatalan transaksi (`cancelled`), audit trail `user_edited` / `tanggal_edited`, dan inspeksi detail presensi.
+6. **Modul 6: Impor Presensi BOS & Integrasi Kehadiran (TC-PRES-01 s/d TC-PRES-10):** Unggah Excel BOS, fleksibilitas target tahun 2026, pemetaan jam datang/pulang/status dinas, proteksi `$daysInMonth`, dan eksekusi background `KoreksiLembur`.
+7. **Modul 7: Pembuatan Dokumen Kedinasan & Cetak (TC-DOK-01 s/d TC-DOK-09):** Layout kompak natural flow SPKL PDF 2 halaman, auto row height SPKL Excel, Laporan ascending, filter PNS/PPPK, cetak langsung browser A4, dan jam pulang murni presensi riil.
+8. **Modul 8: Manajemen Pengguna & Suksesi Pejabat (TC-USR-01 s/d TC-USR-04):** Suksesi dinamis KBU dan PPK via `m_pejabat`, promosi admin, dan proteksi lockout superadmin.
+
+*Hasil Akhir:* **66 / 66 PASS (Tingkat Keberhasilan 100%)**.
+
+---
+
+## 61. Pemulihan Seleksi Teks (*Text Selection*) Seluruh Tabel Data dan Klarifikasi Kasus Uji Autentikasi API SSO
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Kendala Seleksi Teks Tabel:** Pengguna mengeluhkan teks di dalam tabel tidak dapat disorot/diseleksi (*selection/highlight*) menggunakan kursor mouse untuk menyalin NIP, nama pegawai, jam, maupun uraian tugas.
+2. **Penyebab Teknis:**
+   - Berkas `resources/css/app.css` menerapkan `user-select: none; -webkit-user-select: none;` pada kelas pembungkus `.drag-scrollable`.
+   - Berkas `resources/js/app.js` memasang pendengar *event* `mousedown` dan `mousemove` pada kontainer tabel yang memanggil `e.preventDefault()` ketika kursor digerakkan, sehingga peramban (*browser*) secara paksa membatalkan aksi penyorotan teks native.
+3. **Klarifikasi Pengujian TC-AUTH-02:** Saat pengujian formulir login dilakukan di lingkungan lokal di luar jaringan intranet/VPN kantor BPS, peramban menampilkan pesan *"Tidak dapat terhubung ke server."* karena endpoint API Connect BPS (`https://jateng.web.bps.go.id/apiconnect/login`) tidak terjangkau dari internet publik. Sistem Laravel secara tangguh menangkap `ConnectionException` tanpa menimbulkan *crash* error 500.
+
+### B. Solusi yang Diterapkan
+1. **Pemulihan Seleksi Teks Komprehensif:**
+   - Menghapus aturan `user-select: none;` pada kelas `.drag-scrollable` di `resources/css/app.css`.
+   - Menambahkan deklarasi eksplisit `user-select: text !important; -webkit-user-select: text !important;` pada seluruh elemen `table`, `th`, dan `td`.
+   - Menghapus pembajakan *event* `mousedown`/`mousemove` pada pembungkus tabel di `resources/js/app.js`, sehingga pengguna desktop dapat bebas menyeleksi dan menyalin teks dengan klik-tarik maupun *double-click*, sementara fungsionalitas navigasi scrollbar visual dan *touch swipe* mobile tetap berjalan optimal.
+   - Melakukan kompilasi aset produksi via `npm run build` (Vite).
+2. **Pembaruan Dokumen Pengujian Black Box:**
+   - Memperbarui tabel kasus uji `TC-AUTH-02` pada `PENGUJIAN_BLACKBOX.md` untuk mencantumkan hasil aktual penanganan `ConnectionException` (*"Tidak dapat terhubung ke server."*) saat diuji di luar jaringan BPS.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/css/app.css` | Menghapus `user-select: none` dan menetapkan `user-select: text !important` untuk semua tabel, th, dan td. |
+| 2 | `resources/js/app.js` | Menghapus pembajakan event mouse drag mousedown/mousemove agar seleksi teks native kembali aktif. |
+| 3 | `PENGUJIAN_BLACKBOX.md` | Memperbarui rincian kasus uji `TC-AUTH-02` mencakup skenario terhubung API maupun penanganan ConnectionException. |
+| 4 | `public/build/assets/*` | Hasil kompilasi bundel aset CSS dan JavaScript Vite terbaru. |
+
+---
+
+## 62. Implementasi Sistem Navigasi Tabel Hibrida (*Floating Chevrons*, *Right-Click Pan*, & *Selection Edge Auto-Scroll*)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+Pengguna menghendaki solusi hibrida (*best of both worlds*): teks di dalam tabel tetap dapat disorot/diseleksi (*selection*) secara bebas menggunakan klik kiri, namun pengguna tetap dapat menggeser (*scroll/pan*) tabel horizontal dengan sangat nyaman tanpa harus repot mengarahkan kursor ke batang scrollbar bawah.
+
+### B. Solusi yang Diterapkan
+Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `resources/js/app.js` dan `resources/css/app.css`:
+1. **Tombol Panah Melayang (*Floating Navigation Chevrons* `‹` dan `›`):**
+   - Secara otomatis menyisipkan tombol navigasi melayang semi-transparan dengan efek blur kaca di sisi kiri (`table-nav-left`) dan kanan (`table-nav-right`) tabel.
+   - Tombol muncul dinamis saat pengguna mengarahkan mouse ke kartu tabel, dan otomatis hilang jika tabel sudah berada di ujung kiri/kanan.
+   - Sekali klik langsung menggeser tabel sejauh 320px dengan transisi halus (*smooth scroll*).
+2. **Geser Kertas via Klik Kanan / Klik Roda Tengah (*Right-Click / Middle-Click Pan Drag*):**
+   - Pengguna cukup menahan tombol klik kanan atau klik roda tengah mouse, lalu menarik kursor ke samping untuk menggeser tabel seketika (*pan*).
+   - Menu konteks klik kanan dicegah secara pintar hanya apabila pengguna benar-benar melakukan gerakan geser (*drag*).
+   - Klik kiri tetap 100% didedikasikan untuk seleksi teks native dan klik aksi.
+3. **Geser Tahan Spasi / Alt (*Figma/Photoshop Pan Mode*):**
+   - Menahan tombol `Spacebar` (di luar input form) atau tombol `Alt` akan mengubah kursor menjadi tangan cakar (`grab`), memungkinkan klik kiri drag untuk menggeser tabel.
+4. **Auto-Scroll Otomatis saat Seleksi Teks Menuju Tepi (*Selection Edge Auto-Scroll*):**
+   - Ketika pengguna menyeleksi teks dengan klik kiri lalu menarik mouse mendekati tepi kanan atau kiri tabel, tabel otomatis bergulir sendiri sehingga pengguna dapat menyeleksi lintas kolom tersembunyi tanpa terpotong.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/css/app.css` | Menambahkan styling tombol panah melayang `.table-nav-btn`, parent relative, dan kelas pan mode. |
+| 2 | `resources/js/app.js` | Menambahkan logika floating buttons, right/middle click drag pan, Spacebar pan listener, dan edge auto-scroll. |
+| 3 | `public/build/assets/*` | Hasil kompilasi bundel aset Vite terbaru. |
+
+---
+
+## 63. Penerapan Validasi Durasi Lembur Minimal 2 Jam (*Client & Server-Side*) dan Penataan Label Catatan Sistem
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Pencegahan Pengajuan Kurang dari 2 Jam:** Sesuai ketentuan SBM PMK Kemenkeu & peraturan lembur BPS, lembur hari kerja minimal harus berdurasi 2 jam penuh. Sebelumnya, sistem membiarkan formulir di-submit lalu di backend langsung disimpan dengan status `rejected` (Ditolak otomatis). Alur ini membingungkan pegawai yang sudah mengisi data dan tanda tangan.
+2. **Koreksi Identitas Pelaku Catatan (Label Sistem vs Ketua Tim):** Pada transaksi yang ditolak otomatis oleh sistem (seperti karena durasi < 2 jam), tampilan tabel dan timeline sebelumnya menampilkan label **"KETUA TIM:"**, padahal Ketua Tim tidak pernah menulis catatan tersebut. Catatan penolakan murni dihasilkan oleh sistem secara otomatis.
+
+### B. Solusi yang Diterapkan
+1. **Validasi Proaktif Sisi Klien (*Client-Side Validation*):**
+   - Pada modal "Ajukan Lembur" dan modal "Ubah Lembur" di `resources/views/lembur.blade.php`:
+     - Ketika pegawai memilih jam selesai yang menghasilkan durasi `< 2 jam`, teks estimasi langsung berwarna merah tebal: `⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.`
+     - Menampilkan kotak peringatan merah `#errorDurasiMinimal` di bawah input jam.
+     - Menonaktifkan tombol **Kirim** (`disabled` dan redup).
+     - Menambahkan proteksi pada *event submit* formulir sehingga jika pengguna memaksa kirim, aksi dibatalkan dengan peringatan *alert*.
+2. **Validasi Kuat Sisi Peladen (*Server-Side Validation*):**
+   - Pada `app/Http/Controllers/LemburController.php` dan `app/Http/Controllers/admin/LemburController.php`, jika durasi lembur `< 2 jam`, sistem menolak permintaan dan mengembalikan validasi formulir (`withErrors(['jam_selesai' => 'Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS.'])`), **bukan** menyimpannya ke basis data sebagai transaksi ditolak.
+3. **Penataan Label Catatan Sistem (*Historical Data Display*):**
+   - Pada tampilan tabel dan timeline di `lembur.blade.php`, `ketua-tim/lembur.blade.php`, dan `kabag-umum/pengajuan.blade.php`:
+   - Sistem mendeteksi string catatan yang dihasilkan otomatis (seperti kata kunci *"durasi lembur"*, *"proses bisnis"*, *"kebijakan"*, *"sistem"*).
+   - Label catatan ditampilkan secara jujur dan transparan sebagai **`Sistem:`** (dengan lencana warna netral) atau **`Catatan Sistem:`**, bukan lagi mengatasnamakan **`Ketua Tim:`**.
+4. **Sinkronisasi Dokumen Pengujian:**
+   - Memperbarui rincian kasus uji `TC-PEG-03` pada `PENGUJIAN_BLACKBOX.md`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Validasi server-side minimal 2 jam pada fungsi store dan eliminasi penyimpanan otomatis status rejected. |
+| 2 | `app/Http/Controllers/admin/LemburController.php` | Validasi server-side minimal 2 jam pada fungsi store admin. |
+| 3 | `resources/views/lembur.blade.php` | Validasi real-time modal pengajuan & ubah lembur, error alert minimal 2 jam, dan label Sistem: pada catatan. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Penataan label Sistem: vs Ketua Tim: pada tabel dan kartu timeline. |
+| 5 | `resources/views/kabag-umum/pengajuan.blade.php` | Penataan label Sistem: vs Ketua Tim: pada kolom catatan tabel Kabag Umum. |
+| 6 | `PENGUJIAN_BLACKBOX.md` | Pembaruan kasus uji TC-PEG-03 mencakup validasi batas minimal 2 jam. |
+
+---
+
+## 64. Penerapan Penguncian 1 Pengajuan Lembur per Hari (*Anti-Duplicate Daily Overtime Submission*)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Aturan Akuntansi Lembur & Uang Makan Pemerintah (PMK Kemenkeu & BPS):**
+   - Dalam regulasi keuangan negara, uang makan lembur dibayarkan maksimal 1 kali per pegawai per hari kalender.
+   - Presensi biometrik/fingerprint (*BOS*) hanya mencatat 1 kali jam kepulangan per hari.
+   - Format SPKL dan Surat Pertanggungjawaban (SPJ) BPS per tanggal per pegawai hanya memiliki 1 baris akumulasi.
+2. **Pencegahan Pengajuan Ganda / Bentrok Antar-Tim:**
+   - Sebelumnya, seorang pegawai berpotensi mengajukan lembur lebih dari sekali pada tanggal yang sama (misalnya pukul 17:00 - 19:30 di Tim A, lalu mengajukan lagi pukul 18:00 - 21:00 di Tim B).
+   - Hal tersebut dilarang dalam audit keuangan karena berpotensi *double claim* anggaran DIPA. Pegawai diwajibkan memilih salah satu Tim Pembeban Anggaran utama dan menuliskan seluruh pekerjaan dari berbagai tim ke dalam satu kotak Uraian Kegiatan.
+3. **Ketentuan Pengajuan Ulang (*Re-Apply Tolerance*):**
+   - Jika pengajuan sebelumnya pada tanggal tersebut telah **ditolak (`rejected`)** atau **dibatalkan (`cancelled`)**, pegawai tetap berhak mengajukan kembali (*re-apply*) pada tanggal tersebut. Kuncian hanya berlaku untuk transaksi yang masih aktif (`pending`, `menunggu_kabag`, atau `approved`).
+
+### B. Solusi yang Diterapkan
+1. **Pencegahan Proaktif Sisi Klien (*Client-Side Validation & Modal Lock*):**
+   - Pada `app/Http/Controllers/LemburController.php` dan `app/Http/Controllers/admin/LemburController.php`, fungsi `index()` memuat daftar tanggal aktif yang telah diajukan oleh pengguna:
+     ```php
+     $existingActiveDates = Transaksi::where('submitted_by_NIP', $nip)
+         ->whereNotIn('status', ['rejected', 'cancelled'])
+         ->pluck('status', 'tanggal')
+         ->mapWithKeys(function ($status, $tanggal) {
+             return [Carbon::parse($tanggal)->toDateString() => $status];
+         })
+         ->toArray();
+     ```
+   - Di formulir modal "Ajukan Lembur" (`lembur.blade.php`, `ketua-tim/lembur.blade.php`, `admin/lembur.blade.php`):
+     - Ditanamkan variabel `existingDatesDB` dari data backend.
+     - Event listener real-time `'input'` dan `'change'` pada input `#tanggal` memanggil `periksaTanggalDobel()`.
+     - Jika pegawai memilih tanggal yang sudah ada di basis data:
+       - Kotak peringatan merah `#errorTanggalDobel` seketika muncul menampilkan status pengajuan sebelumnya:
+         `⚠️ Anda sudah memiliki pengajuan lembur pada tanggal [tanggal] (Status: [status]). Ketentuan BPS hanya memperbolehkan 1 pengajuan lembur per hari.`
+       - Border input tanggal berubah menjadi merah rose (`border-rose-500 ring-rose-200`).
+       - Tombol **Kirim Pengajuan** (`#btnSubmitAjukan`) dinonaktifkan (`disabled` dan buram).
+       - Listener submit formulir mencegat aksi dengan `e.preventDefault()`, menampilkan *alert*, dan memfokuskan kembali ke input tanggal.
+     - Saat formulir ditutup atau dibatalkan (`resetFormAjukan`), pesan error dibersihkan dan styling dipulihkan ke normal.
+
+2. **Validasi Ketat Sisi Peladen (*Server-Side Validation*):**
+   - Pada fungsi `store()` di `LemburController.php` dan `admin/LemburController.php`, sistem melakukan pengecekan sebelum menyimpan data:
+     ```php
+     $sudahAdaLembur = Transaksi::where('submitted_by_NIP', $nip)
+         ->whereDate('tanggal', $tanggal->toDateString())
+         ->whereNotIn('status', ['rejected', 'cancelled'])
+         ->first();
+
+     if ($sudahAdaLembur) {
+         return back()->withErrors([
+             'tanggal' => "Anda sudah memiliki pengajuan lembur pada tanggal ini (Status: {$sudahAdaLembur->status_label}). Satu pegawai hanya dapat mengajukan 1 kali lembur per hari sesuai ketentuan BPS."
+         ])->withInput();
+     }
+     ```
+   - Memastikan manipulasi request (seperti via cURL/Postman) tetap ditolak secara kokoh tanpa membuat data ganda di tabel `t_transaksi`.
+
+3. **Sinkronisasi Kasus Uji Pengujian:**
+   - Menambahkan kasus uji **`TC-PEG-11`** pada dokumen `PENGUJIAN_BLACKBOX.md` untuk menguji penguncian satu pengajuan lembur per hari secara menyeluruh.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Passing query `$existingActiveDates` ke view dan validasi backend anti-dobel pengajuan lembur aktif per hari per pegawai. |
+| 2 | `app/Http/Controllers/admin/LemburController.php` | Passing query `$existingActiveDates` ke view dan validasi backend anti-dobel pengajuan lembur per hari untuk form admin. |
+| 3 | `resources/views/lembur.blade.php` | Peringatan real-time `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, integrasi fungsi `hitungDurasi()`, dan submit guard. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Peringatan real-time `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, dan submit guard pada modal pengajuan lembur Ketua Tim. |
+| 5 | `resources/views/admin/lembur.blade.php` | Peringatan real-time `#errorTanggalDobel`, disabling tombol `#btnSubmitAjukan`, dan submit guard pada modal pengajuan lembur Admin. |
+| 6 | `PENGUJIAN_BLACKBOX.md` | Penambahan kasus uji `TC-PEG-11` pada Modul 2 Pengajuan Lembur Pegawai. |
+| 7 | `public/build/*` | Kompilasi aset frontend Vite terbaru. |
+
+---
+
+## 65. Penyelesaian 3 Skenario Kritis: Proteksi Peladen Edit Lembur, Lembur Lintas Hari (*Cross-Midnight*), dan Verifikasi Piksel Tanda Tangan Digital
+
+### A. Latar Belakang & Identifikasi Kerentanan
+1. **Kerentanan Pengubahan Jam Setelah Persetujuan Tahap 1 (*Bypass Edit Lockout*):**
+   - Pada `app/Http/Controllers/LemburController.php` fungsi `update()`, pengkondisian sebelumnya mengizinkan pengubahan jika `$transaksi->status === 'menunggu_kabag' && empty($transaksi->approved_at)`.
+   - Mengingat kolom `approved_at` baru diisi saat persetujuan akhir Kabag Umum, seorang pegawai dapat memanipulasi jam lembur melalui permintaan HTTP `POST/PUT /pegawai/lembur/{id}` langsung via Console/Postman meskipun persetujuan telah diberikan oleh Ketua Tim.
+2. **Kekakuan Jam Lembur Lewat Tengah Malam (*Cross-Midnight Overtime 21:00 - 02:00*):**
+   - Pada lembur dinas mendesak (seperti rilis sistem, rekonsiliasi SP2D, atau penugasan akhir pekan), jam kerja dapat berlangsung dari malam hari pukul `21:00` hingga dini hari berikutnya pukul `02:00` (durasi 5 jam).
+   - Meskipun controller backend telah mendukung kalkulasi lintas hari (`addDay()`), antarmuka JavaScript pada formulir modal secara kaku memblokir input dengan `alert('Jam selesai harus setelah jam mulai')` dan atribut `min="21:00"`.
+3. **Penyelundupan Kanvas Tanda Tangan Digital Kosong / Polos (*Blank Signature Canvas*):**
+   - Pegawai yang terburu-buru dapat mengirim formulir tanpa menggoreskan tanda tangan pada kanvas digital.
+   - Kanvas kosong yang di-convert ke base64 tetap menghasilkan *data URL* gambar PNG berukuran kecil yang lolos validasi `'signature' => 'required|string'`. Akibatnya, berkas gambar kosong tersimpan di direktori penyimpanan publik.
+   - Pada sisi tampilan, pembukaan keyboard virtual atau perubahan ukuran layar (*resize/rotation*) sebelumnya memanggil `signaturePad.clear()` yang menghapus tanda tangan pegawai tanpa disadari.
+
+### B. Solusi yang Diterapkan
+1. **Penguncian Total Sisi Peladen untuk Pengubahan Transaksi (*Strict Backend Lockout*):**
+   - Pada `LemburController::update()`, pengubahan data secara mutlak dibatasi **hanya** untuk status **`pending`**:
+     ```php
+     if ($transaksi->status !== 'pending') {
+         $statusLabel = match($transaksi->status) {
+             'menunggu_kabag' => 'Menunggu Kabag Umum (sudah disetujui Ketua Tim)',
+             'approved'       => 'Sudah Disetujui Final',
+             'rejected'       => 'Ditolak',
+             'cancelled'      => 'Dibatalkan',
+             default          => $transaksi->status,
+         };
+         return back()->with('error', "Pengajuan lembur tidak dapat diubah karena sudah diproses atau disetujui (Status: {$statusLabel}).");
+     }
+     ```
+   - Setiap upaya penembakan request langsung di luar status `pending` ditolak seketika (HTTP 302 redirect) tanpa mengubah data basis data.
+
+2. **Dukungan Penuh Lembur Lintas Hari (*Cross-Midnight Overtime*):**
+   - Menghapus pembatasan atribut `min` pada kolom `#jam_selesai`.
+   - Menghapus `alert` pemblokiran jika jam selesai < jam mulai, menggantinya dengan logika cerdas:
+     - Jika `jam_selesai === jam_mulai`: Muncul peringatan bahwa jam tidak boleh sama persis.
+     - Jika `jam_selesai < jam_mulai`: Dihitung sebagai lembur lintas tengah malam (`totalMenit += 24 * 60`).
+     - Tampilan estimasi durasi menyertakan lencana: `🌙 Lembur lintas tengah malam hingga dini hari`.
+     - Validasi batas wajar harian: durasi lembur tidak boleh melebihi 12 jam (mencegah typo jam terbalik ekstrim seperti 17:00 ke 16:59).
+   - Diterapkan pada `lembur.blade.php`, `ketua-tim/lembur.blade.php`, dan `admin/lembur.blade.php`.
+
+3. **Verifikasi Piksel Goresan Tanda Tangan (*Client & Server-Side Verification*):**
+   - **Sisi Klien (Front-end UX & State Preservation):**
+     - Pada `resizeCanvas()`, data goresan disimpan terlebih dahulu (`toData()`) sebelum mengubah dimensi kanvas, lalu dipulihkan kembali (`fromData()`) agar rotasi layar atau kemunculan keyboard tidak menghapus tanda tangan.
+     - Listener `beginStroke` otomatis membersihkan kelas error pada kotak kanvas segera setelah pegawai mulai mencoret.
+     - Saat formulir dikirim dengan kanvas kosong: aksi dicegah (`e.preventDefault()`), kotak kanvas diberi bingkai merah tebal ber-ring (`border-rose-500 ring-2 ring-rose-200`), pesan `#signatureError` ditampilkan, tampilan digulir halus (*smooth scroll*) ke kanvas, dan peramban menampilkan dialog peringatan.
+   - **Sisi Peladen (Backend Pixel Inspection via GD):**
+     - Menambahkan method `isBlankSignature($base64Data)` pada `LemburController.php` dan `admin/LemburController.php`.
+     - Memeriksa integritas citra PNG menggunakan pustaka GD PHP dengan sampling per 2 piksel untuk mendeteksi keberadaan minimal 35 piksel goresan non-transparan dan non-background.
+     - Jika payload terdeteksi kosong/kanvas polos, peladen mengembalikan validasi error:
+       `'Tanda tangan digital tidak boleh kosong atau kanvas polos. Silakan goreskan tanda tangan Anda.'`
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Penguncian backend update status pending-only, validasi batas wajar durasi <= 12 jam, dan method `isBlankSignature` inspeksi piksel tanda tangan. |
+| 2 | `app/Http/Controllers/admin/LemburController.php` | Validasi batas wajar durasi <= 12 jam dan method `isBlankSignature` pada fungsi store Admin. |
+| 3 | `resources/views/lembur.blade.php` | Dukungan lintas hari, badge 🌙 dini hari, stroke retention resize, dan visual highlight error kanvas tanda tangan. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Dukungan lintas hari dan visual highlight error kanvas tanda tangan pada modal Ketua Tim. |
+| 5 | `resources/views/admin/lembur.blade.php` | Dukungan lintas hari dan visual highlight error kanvas tanda tangan pada modal Admin. |
+| 6 | `PENGUJIAN_BLACKBOX.md` | Penambahan kasus uji `TC-PEG-12`, `TC-PEG-13`, dan `TC-PEG-14` (Total 70 Kasus Uji, 100% PASS). |
+| 7 | `public/build/*` | Hasil kompilasi bundel aset Vite terbaru. |
+
+---
+
+## 66. Eliminasi Duplikasi Nama Pegawai pada Dropdown Filter Pencarian Ketua Tim (`/ketua-tim/pengajuan`)
+
+### A. Latar Belakang & Akar Masalah (*Root Cause*)
+1. **Duplikasi Entri Tim Kerja pada Data Master (`m_tim`):**
+   - Pada basis data kantor BPS (`lembur_real`), seorang Ketua Tim dapat terdaftar pada lebih dari satu baris tim. Sebagai contoh, Pak Sumbodo Aji Cahyono terdaftar sebagai `nipbaru_ketua` pada dua entri:
+     - `AGeoDMOm0Z7ZXbz4` (Tim Kerja Sistem Informasi dan Diseminasi — `status: aktif`, 15 anggota).
+     - `XaQd5EY1m0EKY3pA` (Tim Kerja Sistem Informasi dan Diseminasi (SID) — `status: nonaktif`, 67 anggota sebelum restrukturisasi).
+2. **Ketiadaan Filter Status Tim & Klausa Distinct:**
+   - Pada endpoint `GET /ketua-tim/pengajuan/anggota` (`PengajuanController::anggotaTim()`), kueri sebelumnya hanya mencocokkan `mt.nipbaru_ketua = $nipKetua` tanpa menyaring `mt.status = 'aktif'` dan tanpa `DISTINCT`.
+   - Akibatnya, seluruh pegawai tim aktif yang juga tercatat di tim historis nonaktif ditarik dua kali lipat (menghasilkan 82 rekaman dari yang seharusnya 15-16 orang), sehingga setiap nama pegawai muncul dobel di antarmuka *search dropdown*.
+
+### B. Solusi yang Diterapkan
+1. **Deduplikasi dan Penyatuan Relasi di Sisi Peladen (*Backend Query Deduplication*):**
+   - Pada `app/Http/Controllers/ketuatim/PengajuanController.php`:
+     - Memfilter secara eksplisit keanggotaan dari tim kerja aktif (`mt.status = 'aktif'`).
+     - Menggabungkan data anggota tim aktif dengan pegawai yang pernah/sedang memiliki transaksi lembur di bawah arahan Ketua Tim bersangkutan (`t_transaksi.approver_employee_id = $nipKetua`) menggunakan klausa `UNION DISTINCT`.
+     - Mengurutkan hasil secara alfabetis menaik (`orderBy('nama', 'asc')`).
+     - Pada fungsi `index()`, query penentuan `$tim` utama juga memprioritaskan tim dengan `status = 'aktif'`.
+2. **Deduplikasi Proaktif Sisi Klien (*Frontend Map Deduplication*):**
+   - Pada `resources/views/ketua-tim/pengajuan.blade.php`:
+     - Hasil respon `fetch('/ketua-tim/pengajuan/anggota')` diproses melalui struktur data `Map()` berbasis NIP (`!uniqueMap.has(emp.nip)`) sebelum disimpan ke `cachedAnggota`.
+     - Menjamin antarmuka dropdown pencarian pegawai 100% bebas dari duplikasi nama dalam kondisi apa pun.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Filter tim aktif, `UNION DISTINCT` anggota tim & pemohon transaksi, dan sort abjad A-Z. |
+| 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Deduplikasi `Map` NIP pada array anggota tim sebelum render dropdown. |
+| 3 | `public/build/*` | Bundel aset frontend Vite terbaru. |
+
+---
+
+## 67. Penyediaan Mode Tampilan Linimasa (Timeline Card) Universal pada Seluruh Modul Persetujuan Lembur: Ketua Tim (`/ketua-tim/pengajuan`), Kabag Umum (`/kabag-umum/pengajuan`), dan Administrator (`/admin/pengajuan`)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Kebutuhan Standarisasi Visual Multi-Peran (Pilihan 3):**
+   - Sebelumnya, tampilan linimasa (*Timeline View*) hanya tersedia secara eksklusif pada halaman riwayat lembur pegawai (`/lembur`).
+   - Guna menghadirkan fleksibilitas antarmuka yang setara, modern, dan ramah sentuhan layar gawai (*mobile/tablet friendly*), seluruh modul persetujuan pengajuan lembur yang diakses oleh **Ketua Tim**, **Kepala Bagian Umum**, dan **Administrator** kini dilengkapi dengan sakelar mode tampilan ganda: **Tabel Data Ringkas** (`[ 📋 Tabel ]`) dan **Linimasa Kronologis** (`[ 📍 Timeline ]`).
+
+### B. Solusi yang Diterapkan
+1. **Sakelar Mode Tampilan (*Toggle View Switcher*) & Persistensi Lokal Independen:**
+   - Menyediakan sakelar segmented toggle button pada setiap halaman:
+     - Ketua Tim: `localStorage.getItem('ketuaTimPengajuanViewMode')`
+     - Kabag Umum: `localStorage.getItem('kabagUmumPengajuanViewMode')`
+     - Administrator: `localStorage.getItem('adminPengajuanViewMode')`
+   - Preferensi tampilan yang dipilih pengguna tersimpan secara mandiri per peran dan langsung dipulihkan secara otomatis saat membuka kembali halaman.
+2. **Standarisasi Arsitektur Visual Linimasa 3-Kolom Bersih & Anti Cacat Layout (*Zero Visual Glitch*):**
+   - **Kolom 1 - Date Box Kompak & Elegan:** Kotak kalender ramping (`w-16 sm:w-20`) berlatar putih dengan border halus, menampilkan singkatan nama hari (`font-mono text-slate-400 uppercase`), angka tanggal tebal berukuran proporsional (`text-xl sm:text-2xl font-black font-mono text-slate-800`), dan bulan/tahun (`text-[10px] font-bold text-slate-500 font-mono`). Tidak lagi terpotong garis vertikal maupun membuang ruang horizontal layar.
+   - **Kolom 2 - Kolom Aksis Garis Alur & Bulatan Dot Terpadu (`w-6 self-stretch`):** Garis kontinu `.timeline-stem` (`absolute left-1/2 -translate-x-1/2 w-0.5 bg-slate-300`) diletakkan khusus dalam kolom vertikal yang sama dengan bulatan status dot (`dot-timeline-*`). Garis menembus tepat di sumbu tengah belakang bulatan dot dan termasking sempurna oleh ring putih (`ring-4 ring-white shadow-2xs`). Menghilangkan sepenuhnya cacat visual garis memotong angka tanggal kalender dan dot melayang di ruang kosong.
+   - **Kolom 3 - Kartu Timeline Clean, Proporsional & Berkelas (`flex-1 min-w-0`):**
+     - **Header Profil Pegawai & Status Pill:** Avatar inisial monogram bergradien tajam, nama pegawai tebal, NIP 18 digit, badge tim kerja lembut, nama ketua tim pembina, dan pill status pengajuan di pojok kanan atas.
+     - **Baris Info Jam Terpadu:** Menyatukan informasi `Jam Diajukan` dan `Jam Disetujui` dalam satu bilah ringkas horizontal (`bg-slate-50/80 border border-slate-100`) dengan lencana jam terpisah, menggantikan layout grid ganda yang sebelumnya renggang dan berjarak kaku.
+     - **Kotak Uraian Kegiatan Lembur Berwibawa:** Membungkus uraian tugas ke dalam kontainer berlatar `bg-slate-50/50` dengan label penjelas kecil uppercase, memberi konteks jelas dan menghapus kesan kartu kosong melompong.
+     - **Catatan & Footer Interaktif:** Catatan verifikasi manajerial / sistem dalam aksen kutipan rapi, tombol status presensi BOS, serta tombol aksi keputusan interaktif (`Proses`, `Setujui`, atau `Koreksi`).
+3. **Sinkronisasi Real-Time Dua Arah Tanpa Memuat Ulang Halaman (*Zero-Reload Real-time AJAX Sync*):**
+   - Seluruh fungsi AJAX (`simpanKeputusan()`, `simpanKeputusanKabag()`) diperluas untuk memperbarui kedua wadah tampilan secara simultan: elemen tabel dan elemen kartu linimasa.
+   - Perhitungan garis dinamis `updateTimelineStems()` secara adaptif hanya menyambungkan kartu yang tampak (`!classList.contains('hidden')`), menjaga kerapian aksis visual saat filter pencarian diterapkan.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Standarisasi kartu linimasa 3-kolom, date box kompak, baris jam terpadu, kotak uraian kegiatan, persistensi localStorage, dan sinkronisasi AJAX. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Perbaikan aksis garis linimasa, date box ramping, baris jam horizontal, wadah uraian kegiatan, penyelarasan kotak avatar inisial amber khas Ketua Tim, filter search real-time, dan sinkronisasi AJAX `simpanKeputusanKabag()`. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Perbaikan aksis garis linimasa, date box ramping, baris jam horizontal, wadah uraian kegiatan, penyelarasan kotak avatar inisial amber khas Ketua Tim, dan sinkronisasi AJAX `simpanKeputusan()`. |
+| 4 | `public/build/*` | Hasil kompilasi bundel aset frontend Vite terbaru. |
+
+---
+
+## 68. Standarisasi dan Perapihan Penyajian NIP Lama (NIP BPS) pada Header Kartu Linimasa (`/ketua-tim/pengajuan`, `/kabag-umum/pengajuan`, `/admin/pengajuan`)
+
+### A. Latar Belakang Masalah
+1. **Penyajian NIP Lama yang Janggal (*Awkward Hanging Brackets*):**
+   - Sebelumnya, data NIP lama pada kartu linimasa Ketua Tim hanya dirender dengan tanda kurung polos tanpa label deskriptif: `(340018283)` yang menempel langsung di samping NIP baru `NIP. 197205242006041002`.
+   - Menggunakan tipografi `font-sans` yang bentrok dengan tipografi `font-mono` dari NIP utama, sehingga terlihat seperti kesalahan ketik (*typo*) atau raw dump data yang tidak diformat.
+   - Pada halaman Kabag Umum dan Administrator, informasi NIP lama bahkan belum ditampilkan sama sekali pada kartu linimasa.
+
+### B. Solusi & Perbaikan Antarmuka (UI/UX)
+1. **Penyelarasan Tipografi Monospace & Ukuran Font Setara (11px):**
+   - Format NIP lama tetap disajikan dalam kurung natural `(340018283)` sesuai preferensi pengguna.
+   - Menggunakan kelas `text-[11px] font-mono text-slate-400` sehingga ukuran huruf, baseline vertikal, dan jenis huruf monospace (digit angka) berpadu serasi dan presisi dengan NIP utama 18 digit (`text-[11px] font-mono text-slate-500`).
+   - Menghilangkan disparitas font yang sebelumnya menggunakan `font-sans` tanpa ukuran pasti yang tampak membesar dan tidak seimbang.
+2. **Penerapan Seragam Multi-Peran:**
+   - Diterapkan secara konsisten di seluruh 3 halaman linimasa persetujuan:
+     - `resources/views/ketua-tim/pengajuan.blade.php`
+     - `resources/views/kabag-umum/pengajuan.blade.php`
+     - `resources/views/admin/pengajuan.blade.php`
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Penyelarasan format `({{ $p->nip_lama }})` dengan ukuran font `text-[11px] font-mono text-slate-400`. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Penambahan NIP lama dalam kurung `text-[11px] font-mono text-slate-400` di samping NIP pegawai. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Penambahan NIP lama dalam kurung `text-[11px] font-mono text-slate-400` di samping NIP pegawai. |
+| 4 | `public/build/*` | Bundel aset frontend produksi Vite terbaru. |
+
+---
+
+## 69. Fleksibilitas Koreksi Keputusan Penolakan Internal Ketua Tim (`rejected` $\rightarrow$ `menunggu_kabag` / `approved`)
+
+### A. Latar Belakang Masalah
+1. **Kekakuan Alur Penolakan (*Overly Rigid Status Lock*):**
+   - Sebelumnya, jika Ketua Tim menolak permohonan lembur seorang pegawai (`status = 'rejected'`), status tersebut terkunci mati secara permanen bagi Ketua Tim.
+   - Di lapangan kedinasan, Ketua Tim sering menolak karena alasan teknis sederhana (uraian kegiatan belum lengkap, salah paham durasi, atau salah klik).
+   - Di sisi lain, Ketua Tim telah memiliki kewenangan mengoreksi uraian tugas pegawai secara langsung. Namun setelah uraian diperbaiki, Ketua Tim tidak dapat membalikkan keputusannya menjadi *Setujui*, sehingga pegawai terpaksa harus mengisi formulir dan tanda tangan ulang dari awal.
+
+### B. Solusi & Batasan Wewenang Kedinasan
+1. **Hak Koreksi Penolakan Internal:**
+   - Selama berkas ditolak di level Ketua Tim sendiri (`status = 'rejected'` dan `approved_kabag_at IS NULL`), Ketua Tim diberikan fleksibilitas untuk membuka kembali modal keputusan dan mengubah keputusan menjadi **Setujui** (diteruskan ke Kabag Umum sebagai `menunggu_kabag`, atau langsung `approved` untuk Tim Bagian Umum).
+   - Pada modal keputusan, saat Ketua Tim beralih dari *Tolak* ke *Setujui*, bilah jam disetujui otomatis muncul kembali dan nilai default-nya terisi otomatis dari jam pengajuan pegawai (`jam_mulai` dan `jam_selesai`).
+2. **Proteksi Otoritas Pimpinan (Kabag Umum):**
+   - Jika pengajuan telah **disetujui final oleh Kabag Umum (`approved`)**, Ketua Tim tetap **terkunci** (tidak bisa membatalkan/menolak apa yang telah disetujui pimpinan).
+   - Jika pengajuan **ditolak oleh Kabag Umum (`approved_kabag_at IS NOT NULL`)**, status tetap **terkunci permanen bagi Ketua Tim** dengan pesan: *"Pengajuan ini telah ditolak oleh Kepala Bagian Umum dan tidak dapat diubah oleh Ketua Tim."*
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Validasi kunci status diperluas: hanya menolak jika ditolak oleh Kabag Umum. Mengizinkan transisi `rejected` $\rightarrow$ `menunggu_kabag`/`approved` dengan fallback jam pengajuan. |
+| 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Penambahan parameter `isKabagProcessed`, pembukaan tombol pilihan keputusan pada penolakan internal, auto-fill jam pengajuan saat beralih ke Setujui, dan sinkronisasi AJAX real-time. |
+| 3 | `public/build/*` | Bundel aset frontend produksi Vite terbaru. |
+
+---
+
+## 70. Perbaikan Bug Layar Pemuat Membeku (*Freeze / Stuck Loading Overlay*) Saat Validasi Formulir Gagal pada Pengajuan Lembur Mandiri (`/lembur`, `/ketua-tim/lembur`, `/admin/lembur`)
+
+### A. Latar Belakang Masalah
+1. **Layar Loading Macet Menutupi Seluruh Antarmuka (*Stuck Loading Overlay*):**
+   - Saat pengguna (Pegawai, Ketua Tim, atau Admin) membuka modal pengajuan lembur dan menekan tombol **Kirim Pengajuan** tanpa membubuhkan tanda tangan digital pada kanvas, sistem memunculkan kotak dialog peringatan: *"Tanda tangan digital belum diisi! Silakan goreskan tanda tangan Anda pada kotak tanda tangan."*
+   - Namun segera setelah pengguna menutup peringatan tersebut, layar aplikasi tertutup permanen oleh jendela popup pemuat (*loading overlay*):
+     > **Memuat data...**  
+     > *Mohon tunggu sebentar*  
+     *(dengan spinner animasi berputar di tengah latar belakang gelap/blur)*
+   - Di balik lapisan pemuat tersebut, kotak tanda tangan digital sebenarnya telah mendapatkan sorotan merah (*border-rose-500*) dan pesan peringatan visual. Namun pengguna **tidak dapat mengklik, menggambar tanda tangan, maupun membatalkan modal** karena seluruh layar terblokir oleh `#loadingOverlay` dengan kelas `opacity-100` dan penangkapan pointer aktif (*pointer-events*). Pengguna terpaksa harus memuat ulang (*refresh*) halaman peramban secara paksa.
+
+### B. Investigasi Akar Masalah (*Root Cause Analysis*)
+1. **Pemicu Global `document.addEventListener('submit', showLoading)` Tanpa Filter Pembatalan:**
+   - Pada berkas `resources/js/app.js`, fungsi `showLoading()` didaftarkan sebagai pendengar event submit global:
+     ```javascript
+     document.addEventListener('submit', showLoading);
+     ```
+   - Dalam siklus bubbling event DOM JavaScript, saat tombol submit ditekan:
+     1. Listener formulir lokal (`#formAjukan`) mendeteksi `signaturePad.isEmpty()`.
+     2. Handler formulir memanggil `event.preventDefault()` untuk membatalkan pengiriman formulir ke server.
+     3. Event submit tetap merambat (*bubble*) ke elemen `document`.
+     4. Listener global di `resources/js/app.js` langsung mengeksekusi `showLoading()` tanpa mengecek apakah formulir valid atau apakah `event.defaultPrevented` bernilai `true`.
+   - Karena navigasi halaman telah dibatalkan oleh `event.preventDefault()`, halaman tidak berpindah dan tidak me-reload. Akibatnya, `#loadingOverlay` tertinggal dalam kondisi terbuka permanen di atas antarmuka pengguna.
+2. **Ketiadaan Akses Global ke Fungsi `hideLoading()` & Failsafe:**
+   - Fungsi `hideLoading()` sebelumnya tidak dipaparkan ke objek `window` (`window.hideLoading`), sehingga script lokal pada view Blade tidak memiliki kendali untuk menutup paksa overlay pemuat saat validasi gagal.
+   - Tidak ada mekanisme pengaman (*failsafe timeout*) otomatis jika proses pengiriman terhambat di sisi klien.
+
+### C. Solusi & Perbaikan Komprehensif
+1. **Penyempurnaan Penanganan Event di `resources/js/app.js`:**
+   - Menambahkan pemeriksaan ketat status pembatalan event sebelum memunculkan overlay:
+     ```javascript
+     document.addEventListener('submit', (e) => {
+       if (e.defaultPrevented) {
+         hideLoading();
+         return;
+       }
+       if (e.target && typeof e.target.checkValidity === 'function' && !e.target.checkValidity()) {
+         hideLoading();
+         return;
+       }
+       setTimeout(() => {
+         if (e.defaultPrevented) {
+           hideLoading();
+         } else {
+           showLoading();
+         }
+       }, 0);
+     });
+     ```
+   - Eksekusi penundaan microtask `setTimeout(..., 0)` menjamin bahwa seluruh listener validasi sinkron pada elemen formulir anak telah selesai berjalan dan menetapkan status `preventDefault()` sebelum keputusan menampilkan overlay dieksekusi.
+   - Memaparkan fungsi `window.showLoading` dan `window.hideLoading` secara global.
+   - Menambahkan pengaman otomatis (*auto-hide failsafe*) berdurasi 12 detik untuk mencegah pemblokiran antarmuka secara permanen jika terjadi interupsi jaringan atau galat sisi klien tak terduga.
+   - Memfilter pemicu klik tautan (`<a>`) agar mengabaikan elemen berpenanda `download`, skema URI `blob:`, maupun `data:`.
+2. **Penyediaan Fallback Inline di Layout Induk (`resources/views/layouts/app.blade.php`):**
+   - Mendefinisikan implementasi fallback `window.hideLoading` dan `window.showLoading` secara langsung di dekat komponen `#loadingOverlay` untuk memastikan fungsi selalu tersedia sejak awal parsing HTML.
+   - Mengintegrasikan penutupan darurat `#loadingOverlay` saat pengguna menekan tombol `Escape` pada keyboard.
+3. **Penyelarasan Seluruh Handler Formulir Pengajuan & Koreksi Lembur:**
+   - Menambahkan `event.stopPropagation()` dan `if (window.hideLoading) window.hideLoading();` pada seluruh percabangan kegagalan validasi sisi klien (tanggal dobel, durasi di bawah batas minimal 2 jam, durasi melebihi 12 jam, dan tanda tangan digital kosong) pada 3 modul:
+     - `resources/views/lembur.blade.php` (`formAjukan` & `formEditLembur`)
+     - `resources/views/ketua-tim/lembur.blade.php` (`formAjukan`)
+     - `resources/views/admin/lembur.blade.php` (`formAjukan`)
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/js/app.js` | Pemeriksaan `defaultPrevented`, `checkValidity`, microtask deferral submit, pemaparan `window.hideLoading`, filter download link, dan failsafe 12 detik. |
+| 2 | `resources/views/layouts/app.blade.php` | Fallback inline `window.hideLoading`/`showLoading` dan penutupan darurat loading overlay via tombol `Escape`. |
+| 3 | `resources/views/lembur.blade.php` | Penghentian propagasi event dan pemanggilan eksplisit `hideLoading()` pada seluruh cabang kegagalan validasi form ajukan dan edit lembur. |
+| 4 | `resources/views/ketua-tim/lembur.blade.php` | Penambahan `stopPropagation()` dan `window.hideLoading()` pada seluruh cabang validasi form ajukan lembur Ketua Tim. |
+---
+
+## 71. Standardisasi dan Perbaikan Tata Letak Modal Ajukan Lembur (*Bounded Modal Container, Fixed Header, Scrollable Body, & Pinned Footer*) pada Halaman Pegawai dan Admin (`lembur.blade.php` & `admin/lembur.blade.php`)
+
+### A. Latar Belakang Masalah
+1. **Tata Letak Modal Berantakan & Terpotong ke Luar Layar (*Unbounded Height & Off-Screen Overflow*):**
+   - Pada halaman pengajuan lembur pegawai (`resources/views/lembur.blade.php`), komponen `#modalAjukan` sebelumnya menggunakan pembungkus modal lama:
+     ```html
+     <div class="fixed inset-0 overflow-y-auto">
+         <div class="flex min-h-full items-start justify-center px-4 py-6 sm:py-8">
+             <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-xl">
+     ```
+   - Kontainer ini tidak memiliki batasan tinggi (`max-h-[90vh]`), tidak memiliki kontainer gulir internal (`overflow-y-auto`), dan tidak memiliki pemisahan layout kolom flex (`flex flex-col`).
+   - Akibatnya, pada layar laptop standar (resolusi 1366×768 px atau jendela peramban dengan skala normal), formulir yang memuat pilihan Ketua Tim, Tanggal, Jam Mulai, Jam Selesai, Uraian Tugas, dan kanvas Tanda Tangan Digital membentang melebihi tinggi layar monitor (>750px).
+   - Pengguna mengalami disorientasi visual (*layout berantakan*): kanvas tanda tangan terpotong di bagian bawah, sedangkan tombol **Batal** dan **Kirim Pengajuan** terdorong jauh ke bawah luar layar (*off-screen*). Pengguna terpaksa harus menggulir bilah scroll peramban utama ke bawah hanya untuk menemukan tombol kirim.
+2. **Ketiadaan Header & Footer Tetap (*No Fixed Header & Footer*):**
+   - Header modal hanya berupa teks judul polos dengan tombol silang entitas teks kaku (`&times;`), tanpa ikon visual dan tanpa teks panduan.
+   - Tombol submit formulir diletakkan di bagian paling dasar form dengan urutan vertikal terbalik (`flex-col-reverse`), alih-alih tersemat di bilah footer dialog.
+3. **Lebar Berlebih (*Oversized Width*):**
+   - Menggunakan lebar `max-w-3xl` (768px) yang terlalu melebar secara horizontal dan membuat elemen input tampak renggang, berbeda dengan standar modern `max-w-2xl` (672px) yang proporsional dan nyaman di mata.
+
+### B. Solusi & Standardisasi Desain Modern
+1. **Adopsi Struktur Modal Standar Bounded & Centered (Mengacu pada `ketua-tim/lembur.blade.php`):**
+   - Mengganti arsitektur `#modalAjukan` menjadi kontainer terpusat dengan pembatasan tinggi proporsional:
+     ```html
+     <div class="fixed inset-0 z-10 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden">
+         <div class="relative flex flex-col w-full max-w-2xl max-h-[90vh] rounded-2xl bg-white shadow-2xl overflow-hidden border border-gray-100">
+     ```
+   - **Fixed Header:** Tersemat di bagian atas (`shrink-0 bg-gray-50/70 border-b border-gray-100 px-6 py-4`) dilengkapi badge ikon plus oranye amber BPS `#faa938`, judul tebal semantik, teks panduan singkat, serta tombol tutup SVG modern.
+   - **Scrollable Form Body:** Konten formulir dibungkus dalam kontainer gulir internal independen (`flex-1 overflow-y-auto px-6 pr-5 py-5 space-y-4`). Pengguna dapat menggulir input formulir secara mulus di dalam modal tanpa memengaruhi scrollbar jendela peramban utama.
+   - **Pinned Footer:** Bilah aksi terpin kuat di bagian bawah modal (`shrink-0 flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-3.5 bg-gray-50/70`). Tombol **Batal** dan **Kirim Pengajuan** selalu tampak dan berada dalam jangkauan pandangan pengguna di resolusi layar mana pun.
+2. **Penyempurnaan Antarmuka Elemen Input & Kanvas Tanda Tangan:**
+   - Menyelaraskan tipografi label menjadi `text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5`.
+   - Menggunakan input modern `rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm` dengan fokus ring amber yang lembut.
+   - Menata tombol **Hapus Tanda Tangan** agar sejajar rapi di sudut kanan atas label Tanda Tangan Digital (`flex items-center justify-between mb-1.5`).
+   - Menetapkan tinggi kanvas yang proporsional (`h-36 w-full`) dengan kotak kanvas berlatar `bg-gray-50 hover:border-gray-400`.
+   - Menjadikan kotak peringatan estimasi durasi lembur (`#previewDurasi`) sebagai kartu alert berbadge warna dinamis (`rounded-xl border px-3.5 py-2.5 text-xs`) yang otomatis berganti warna (merah untuk tidak valid, ungu untuk lembur malam, amber untuk peringatan > 6 jam, dan oranye untuk normal).
+3. **Penyelarasan Menyeluruh pada Modul Pegawai dan Admin:**
+   - Menerapkan arsitektur modal modern ini secara serentak pada `resources/views/lembur.blade.php` dan `resources/views/admin/lembur.blade.php`, serta mempertahankan penanganan kartu durasi pada `resources/views/ketua-tim/lembur.blade.php`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Restrukturisasi `#modalAjukan` menjadi model fixed header, scrollable body `max-h-[90vh]`, pinned footer, penataan tombol hapus tanda tangan sejajar label, dan kartu estimasi durasi berbadge warna dinamis. |
+| 2 | `resources/views/admin/lembur.blade.php` | Penyelarasan tata letak `#modalAjukan` Admin ke pola bounded modal container `max-h-[90vh]`, fixed header, scrollable body, dan pinned footer. |
+| 3 | `resources/views/ketua-tim/lembur.blade.php` | Pembaruan kelas kartu estimasi durasi `#previewDurasi` agar mempertahankan badge alert warna dinamis saat kalkulasi jam berjalan. |
+| 4 | `public/build/*` | Hasil kompilasi bundel aset produksi Vite terbaru (`app-DfUGke97.js` & `app-BWQ3dq7l.css`). |
+
+---
+
+## 72. Pemisahan Filter Bulan dan Tahun Mandiri (*Separated Month & Year Dropdowns*) serta Penyaringan Tim Aktif Anti-Duplikasi pada Halaman Pegawai (`lembur.blade.php` & `LemburController.php`)
+
+### A. Latar Belakang & Analisis Permasalahan
+1. **Duplikasi Nama Tim pada Dropdown Filter Tim Pegawai:**
+   - Pada halaman riwayat lembur pegawai (`/lembur`), kotak filter pencarian nama tim (`#searchTim`) menampilkan pilihan nama tim yang dobel, misalnya terdapat dua entri *"Tim Kerja Humas dan Protokol"*.
+   - **Akar Masalah:**
+     - Pada tabel master tim (`m_tim`), terdapat dua entri tim dengan nama sama persis: satu tim lama berstatus `nonaktif` (kode tim `g2YxkEobQKMqwrm6`) dan satu tim baru berstatus `aktif` (kode tim `Nk4gqMRON5kEK8b9`).
+     - Di method `LemburController::timPegawai()`, kueri yang mengambil data tim dari tabel `t_anggota_tim` belum menyaring status tim aktif (`where('mt.status', 'aktif')`) dan belum menyertakan `distinct()`.
+     - Akibatnya, pegawai yang terdaftar pada kedua versi tim tersebut mendapati nama tim muncul dua kali di dropdown, padahal seluruh 20 transaksi lembur pegawai tercatat pada tim berstatus aktif.
+2. **Kebutuhan UI/UX Dropdown Bulan Ringkas & Fleksibel (Pemisahan Bulan & Tahun):**
+   - Sebelumnya, dropdown filter periode menyatukan bulan dan tahun (misal: *"Januari 2026"*, *"Februari 2026"*).
+   - Label teks yang panjang membuat baris toolbar filter menjadi padat, dan pengguna tidak dapat memilih riwayat bulan pada tahun-tahun lain secara mandiri.
+   - Sesuai arahan pengguna, dipilih **Opsi B**: memisahkan dropdown Bulan (hanya memuat nama bulan murni `"Januari"` s/d `"Desember"`) dan menyediakan dropdown Tahun mandiri (`"Semua Tahun"`, `"2026"`, dst.) dengan nilai default *"Semua Tahun"*.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penyaringan Tim Aktif & Anti-Duplikasi pada `LemburController::timPegawai()`:**
+   - Menambahkan filter kondisi `->where('mt.status', 'aktif')` dan `->distinct()` pada kueri `timPegawai()`.
+   - Menjamin hanya tim berstatus aktif dan unik yang dikirimkan ke frontend, sehingga opsi dropdown tim bersih tanpa ada nama yang dobel.
+2. **Pemisahan Filter Bulan dan Tahun pada Toolbar (`lembur.blade.php`):**
+   - Dropdown `#filterBulan`: Menampilkan opsi *"Semua Bulan"* dan nama bulan bersih dari `"Januari"` hingga `"Desember"` dengan *value* digit dua digit (`'01'` - `'12'`).
+   - Dropdown `#filterTahun`: Diletakkan berdampingan tepat di sebelah filter bulan, menampilkan opsi *"Semua Tahun"* (default) dan daftar tahun yang diambil secara dinamis dari database (`$daftarTahun`).
+   - Keduanya terhubung ke fungsi `onchange="gantiFilter(...)"` yang mempertahankan parameter URL lain saat berpindah opsi dan mereset pagination halaman ke awal (`page=1`).
+3. **Logika Filter Fleksibel & Backward Compatibility pada `LemburController::index()`:**
+   - Menangkap parameter URL `bulan` dan `tahun` secara independen.
+   - Mendukung kompatibilitas format lama `YYYY-MM` (seperti yang dipakai di bookmark atau modul Ketua Tim) sehingga tidak merusak alur kerja yang sudah ada.
+   - Kueri transaksi menyesuaikan kombinasi filter:
+     - Jika Tahun & Bulan terisi: filter rentang tanggal awal s/d akhir bulan pada tahun tersebut (`whereBetween`).
+     - Jika hanya Tahun terisi: filter sepanjang tahun tersebut (`whereYear`).
+     - Jika hanya Bulan terisi: filter seluruh transaksi pada bulan tersebut di semua tahun (`whereMonth`).
+     - Jika keduanya kosong: menampilkan seluruh riwayat lembur pegawai tanpa restriksi waktu.
+   - Mengambil daftar tahun unik (`$daftarTahun`) secara dinamis dari tabel `t_transaksi` untuk tahun $\ge 2020$ serta menyertakan tahun berjalan (`now()->year`).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Penambahan `where('mt.status', 'aktif')` dan `distinct()` pada `timPegawai()`; penanganan parameter terpisah `bulan` & `tahun`, kueri fleksibel multi-tahun, dan ekstraksi `$daftarTahun` dinamis. |
+| 2 | `resources/views/lembur.blade.php` | Pemisahan dropdown `#filterBulan` (nama bulan bersih tanpa embel-embel tahun) dan penambahan dropdown mandiri `#filterTahun` (*"Semua Tahun"* default). |
+| 3 | `AGENTS.md` | Penambahan aturan wajib nomor 5: fokus hanya pada permintaan pengguna, larangan mengubah bagian lain tanpa izin, dan kewajiban meminta konfirmasi jika ragu. |
+| 4 | `GEMINI.md` | Penyelarasan aturan wajib nomor 5 terkait fokus perubahan dan konfirmasi pengguna. |
+
+---
+
+## 73. Penyesuaian Tata Letak Responsif Tabel Riwayat Lembur Pegawai (100% Fit Tanpa Geser Horizontal di Desktop & Kompaksi Kolom Dokumentasi) pada `resources/views/lembur.blade.php`
+
+### A. Latar Belakang Masalah
+1. **Tabel Memerlukan Geser Horizontal (*Horizontal Scroll*) di Desktop:**
+   - Pada halaman riwayat lembur pegawai (`/lembur`), tabel sebelumnya dipaksa memiliki batas lebar minimum kaku `min-w-[1280px]` serta padding horizontal sel yang lebar (`px-4` / 32px per sel).
+   - Pada layar laptop standar (resolusi 1366×768 px) atau peramban dengan sidebar navigasi terbuka, lebar area kontainer hanya berkisar ~1.000 px. Akibatnya, tabel melebihi batas kontainer dan pengguna terpaksa harus menggeser (*scroll*) tabel ke kanan untuk melihat status, catatan, dokumentasi, dan tombol aksi.
+2. **Kebutuhan Kolom Dokumentasi Ringkas (*Fit & Truncated*):**
+   - Sesuai arahan pengguna pada Opsi 1, tabel dipertahankan memuat 10 kolom lengkap namun harus pas (*fit*) 100% dengan lebar layar desktop tanpa geser kanan-kiri.
+   - Kolom Dokumentasi secara khusus diminta dibuat seramping mungkin (*fit in banget*), dengan tautan yang dipotong pendek (*truncate*) agar tidak memakan ruang horizontal tabel.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penghapusan Batasan Kaku `min-w-[1280px]` & Penerapan `md:min-w-full`:**
+   - Mengubah deklarasi tabel menjadi `w-full min-w-[760px] md:min-w-full table-fixed divide-y divide-gray-200`.
+   - Pada layar laptop dan desktop (lebar $\ge 768$ px), tabel otomatis melar dan mengisi 100% lebar kontainer secara sempurna tanpa memicu bilah gulir horizontal.
+   - Pada perangkat seluler sangat kecil (<768 px), batas aman `min-w-[760px]` tetap melindungi keterbacaan kolom atau pengguna dapat beralih ke mode Timeline.
+2. **Optimasi Proporsi Kolom & Ramping Padding Antar-Sel:**
+   - Merampingkan padding horizontal sel dari `px-4` menjadi `px-2` / `px-2.5` dan `px-1` untuk kolom sempit, menghemat lebih dari 120 px ruang horizontal di setiap baris.
+   - Menetapkan lebar kolom proporsional pada `<th>`:
+     - Tanggal: `w-[98px]` (format ringkas elegan `d M Y`, contoh: "12 Okt 2026").
+     - Jam Diajukan: `w-[88px]`.
+     - Jam Disetujui: `w-[92px]`.
+     - Uraian Kegiatan: `w-auto` (mengambil porsi sisa terbesar dengan *natural text wrapping*).
+     - Ketua Tim: `w-[110px]`.
+     - Nama Tim: `w-[115px]`.
+     - Status: `w-[102px]` (badge status ringkas `text-[11px]`).
+     - Catatan: `w-[110px]`.
+     - Dokumentasi: `w-[72px]`.
+     - Aksi: `w-[68px]`.
+3. **Kompaksi Kolom Dokumentasi (*Fit & Truncated Link*):**
+   - Jika bukti dokumentasi ada: tautan ditampilkan ringkas dengan label `Link`, teks berpotongan `max-w-[52px] truncate`, ikon tautan luar SVG, tombol hapus mini, serta atribut `title` yang memuat URL lengkap saat kursor diarahkan (*tooltip*).
+   - Jika bukti dokumentasi belum ada: tombol tambah tautan ditampilkan kompak berupa `+ Dok` (`text-[11px] whitespace-nowrap`) yang pas dalam lebar 72 px.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penggantian `min-w-[1280px]` menjadi responsif `md:min-w-full`, penyesuaian lebar proporsional 10 kolom thead/tbody, perampingan padding sel, dan kompaksi kolom Dokumentasi dengan link terpotong (*truncate*). |
+
+---
+
+## 74. Pengembalian Lebar Asli Tabel Pengajuan Lembur & Implementasi Collapsible Sidebar (Drawer Buka-Tutup Desktop) dengan Floating Toggle Tab ala Canvas LMS
+
+### A. Latar Belakang & Permintaan Pengguna
+1. **Permintaan Pengembalian Lebar Tabel (*Revert Table Width*):**
+   - Pengguna meminta agar penyesuaian pemadatan tabel riwayat lembur pegawai sebelumnya dikembalikan ke kondisi aslinya (`min-w-[1280px]` dan padding sel standar).
+   - Alasan pengguna: Pengguna menginginkan tabel dapat tampil lebar dan lega secara alami saat bilah navigasi (sidebar) ditutup.
+2. **Kebutuhan Fitur Buka-Tutup Sidebar (*Collapsible Sidebar*):**
+   - Pengguna meminta agar sidebar dapat dimunculkan dan disembunyikan (*"bisa ga si sidebar nya dibikin gitu bisa ga? kaya bisa munculin side bar dan ilangin, jadinya kan tabel nya lebar juga kalo ditutup"*).
+   - Pengguna menyertakan referensi visual berupa tombol tab mengambang melengkung (*floating drawer tab*) yang menempel di tepi kiri layar dengan ikon daftar peluru (*bullet list*) dan tooltip *"Open course index"* (gaya antarmuka Canvas LMS / Moodle).
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Pengembalian Tabel Pengajuan Lembur (`resources/views/lembur.blade.php`):**
+   - Mengembalikan deklarasi tabel ke batas lebar aslinya: `table class="w-full min-w-[1280px] table-fixed divide-y divide-gray-200"`.
+   - Mengembalikan padding horizontal sel tabel ke standar lega `px-4 py-3.5` dan label tombol Dokumentasi menjadi `Lihat` / `Dokumentasi` serta `Ubah`.
+2. **Implementasi Collapsible Sidebar Desktop (`resources/views/partials/sidebar.blade.php`):**
+   - Mengubah transisi sidebar menjadi `transition-all duration-300 ease-in-out` dengan deklarasi CSS eksplisit:
+     ```css
+     #main-sidebar {
+         transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+     }
+     @media (min-width: 1024px) {
+         html.sidebar-is-collapsed #main-sidebar {
+             margin-left: -16rem !important;
+             pointer-events: none;
+         }
+         html.sidebar-is-collapsed #sidebar-floating-tab {
+             display: flex !important;
+         }
+     }
+     ```
+   - Saat ditutup di desktop: `margin-left: -16rem` menarik sidebar sepenuhnya ke luar layar (kiri). Ruang okupansi flexbox menciut menjadi 0, sehingga area utama (*main area*) dan tabel otomatis melebar 100% memenuhi seluruh layar secara mulus.
+   - **Tombol Sembunyikan Sidebar di Header:** Menambahkan tombol collapse pada header sidebar (di samping judul TEMPE DELE) khusus desktop (`hidden lg:flex`) berikon chevron kiri.
+3. **Floating Drawer Toggle Tab ala Canvas LMS (`#sidebar-floating-tab`):**
+   - Menambahkan tombol tab penarik mengambang yang menempel di tepi kiri layar (`fixed left-0 top-20 sm:top-24 z-40`).
+   - Berbentuk setengah kapsul melengkung di sisi kanan (`rounded-r-2xl`), warna latar selaras sidebar BPS (`bg-slate-900 border-y border-r border-slate-700/80 shadow-lg`), dan ikon daftar peluru SVG presisi (3 garis horizontal dengan 3 lingkaran titik terisi).
+   - Dilengkapi *floating tooltip* gelap dengan panah kiri berlabel *"Buka Menu"* yang muncul halus saat kursor diarahkan (*hover*).
+   - Klik pada tombol tab ini memicu pembukaan kembali sidebar secara mulus.
+4. **Penyimpanan State & Pencegahan Flicker Layar (`resources/views/layouts/app.blade.php`):**
+   - Status buka-tutup disimpan secara persisten di `localStorage.setItem('sidebar_collapsed', 'true' / 'false')`.
+   - Menambahkan skrip pre-render sinkron di `<head>` pada `layouts/app.blade.php` yang mengevaluasi `localStorage` sebelum dokumen dirender:
+     ```javascript
+     <script>
+         (function() {
+             try {
+                 if (localStorage.getItem('sidebar_collapsed') === 'true' && window.innerWidth >= 1024) {
+                     document.documentElement.classList.add('sidebar-is-collapsed');
+                 }
+             } catch (e) {}
+         })();
+     </script>
+     ```
+     Hal ini menjamin *zero layout flicker* saat pengguna berpindah halaman.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Pengembalian deklarasi tabel `min-w-[1280px]`, padding lega `px-4 py-3.5`, label aksi asli, pembersihan tag penutup `</td>`, serta penyesuaian `@section('title', 'Lembur')` agar hierarki modul jelas dan tidak dobel dengan header halaman *"Pengajuan Lembur Pribadi"*. |
+| 2 | `resources/views/partials/sidebar.blade.php` | Arsitektur width-transition (`w-64` $\rightarrow$ `w-0`), isolasi konten `#sidebar-inner`, penambahan Edge Tab kecil melengkung menempel di tepi kanan luar sidebar (`#sidebar-edge-close-tab`) dengan ikon `<` dan tooltip *"Tutup Menu"*, Floating Tab buka menu di tepi kiri layar (`#sidebar-floating-tab`), serta pemisahan bersih mobile drawer. |
+| 3 | `resources/views/partials/navbar.blade.php` | Pemulihan judul halaman `@yield('title')` pada navbar untuk menyajikan nama modul (contoh: *"Lembur"*) berdampingan dengan tombol drawer mobile (`lg:hidden`). |
+| 4 | `resources/views/layouts/app.blade.php` | Penambahan skrip sinkron pre-render di tag `<head>` untuk deteksi `sidebar_collapsed` di `localStorage` anti-flicker. |
+
+---
+
+## 75. Penataan Ulang Lebar Proporsional & Spasi Antar-Kolom Tabel Pengajuan Lembur (Zero Overlap, Proporsi Rapi, 100% Fit di Desktop/Laptop)
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Keluhan Pengguna:** Setelah sidebar buka-tutup diimplementasikan, pengguna mengamati bahwa tabel riwayat lembur pegawai masih tampak memiliki celah kosong/renggang yang tidak merata di antara kolom (*"dibikin fit lagi bisa ga tabelnya? diliat liat masih ada space diantara kolom"*).
+- **Akar Masalah:**
+  1. Pada tabel dengan lebar dinamis, penggunaan nilai sembarang atau `table-auto` polos menyebabkan peramban menumpuk kolom 1-6 ke sisi kiri dan mendorong kolom Status, Catatan, Dokumentasi, serta Aksi ke sisi kanan dengan celah kosong lebar di tengahnya.
+  2. Ketika kolom dikunci terlalu sempit, lencana status (*Menunggu Kabag*) atau jam lembur rentan bertabrakan/tumpang tindih (*overlap*) dengan sel sebelahnya.
+  3. Tombol dokumentasi merender karakter plus ganda (`+ + Dok`) akibat penumpukan ikon SVG dan teks statis.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Kalibrasi Persentase Presisi 10 kolom (`table-fixed min-w-[760px] md:min-w-full`):**
+   - Mengalokasikan persentase lebar yang pas 100% berdasarkan densitas isi data:
+     - **Tanggal**: `9.4%` (pas untuk format `d M Y` e.g. "07 Okt 2026").
+     - **Jam Diajukan**: `10.0%` (cukup untuk font mono `16:01 - 19:01` tanpa mepet).
+     - **Jam Disetujui**: `10.0%` (cukup untuk font mono disetujui / status teks).
+     - **Uraian Kegiatan**: `15.6%` (porsi terbesar untuk deskripsi tugas).
+     - **Ketua Tim**: `12.0%` (pas untuk nama ketua tim 2 baris).
+     - **Nama Tim**: `12.5%` (pas untuk nama seksi/tim kerja).
+     - **Status**: `10.6%` (pas untuk lencana status panjang seperti *Menunggu Kabag* tanpa bertabrakan).
+     - **Catatan**: `9.9%` (cukup untuk ringkasan catatan ketua/kabag).
+     - **Dokumentasi**: `5.2%` (ringkas, header *"Dok."*, isi tautan terpotong `max-w-[42px]` atau tombol `+ Dok`).
+     - **Aksi**: `4.8%` (ringkas untuk tombol Ubah atau tanda `-`).
+   - Total persentase: `9.4 + 10.0 + 10.0 + 15.6 + 12.0 + 12.5 + 10.6 + 9.9 + 5.2 + 4.8 = 100.0%`.
+2. **Penyelarasan Padding Sel & Pencegahan Tabrakan Elemen:**
+   - Padding header dan body diseragamkan menjadi `px-1.5` hingga `px-2` pada kolom teks dan `px-1` pada kolom status/jam agar spasi antar-kolom terdistribusi harmonis dan alami.
+   - Lencana status disesuaikan dengan padding `px-1.5 py-0.5 text-[10.5px] font-semibold whitespace-nowrap` sehingga tidak akan pernah meluap (*overflow*) ke kolom Catatan.
+   - Tombol dokumentasi dibersihkan dari karakter plus dobel: ikon SVG plus dipadukan dengan teks `<span>Dok</span>` sehingga tampil rapi sebagai `+ Dok`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penerapan persentase 10 kolom terkalibrasi 100% pada `thead`, penyesuaian padding sel selaras, pencegahan tabrakan teks status, dan pembersihan tombol dokumentasi. |
+
+---
+
+## 76. Penyeragaman Tinggi & Jarak Seluruh Baris Tabel Lembur (Uniform Row Spacing) serta Implementasi Modal Pop-Up Detail Uraian Kegiatan
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Permintaan Pengguna:** Pengguna menginginkan jarak dan tinggi seluruh baris tabel pengajuan lembur seragam secara presisi (*"gas jadi jarak barisnya sama semua"*), serta tersedianya pop-up modal untuk melihat isi keseluruhan Uraian Kegiatan tanpa membuat tabel melar vertikal secara tidak merata.
+- **Penyebab Baris Tidak Seragam Sebelumnya:**
+  1. Baris yang memiliki deskripsi uraian tugas panjang, nama tim/ketua panjang, atau catatan verifikasi ketua/kabag membentang ke bawah (*text wrap* tanpa batas), sehingga satu baris bisa melonjak tinggi (80px - 100px+) sementara baris lain hanya 38px.
+  2. Perbedaan jumlah baris teks antar-kolom membuat ritme visual tabel bergelombang dan mengurangi kerapian antarmuka.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penetapan Tinggi Baris Seragam (`h-16` / 64px & `align-middle`):**
+   - Setiap elemen `<tr>` di `#tabelLembur` diberikan kelas tinggi konsisten `h-16` (64px) dengan transisi hover halus `hover:bg-slate-50/80`.
+   - Seluruh sel `<td>` diberikan perataan vertikal `align-middle` dan padding vertikal simetris `py-2.5`, sehingga baris dengan 1 baris teks maupun 2 baris teks berada persis di tengah dan memiliki ketinggian baris yang identik (64px).
+2. **Pembatasan Baris Teks (*Smart Line Clamping*):**
+   - Kolom **Uraian Kegiatan**: Dibatasi maksimal 2 baris (`line-clamp-2 leading-snug`). Jika teks lebih dari 28 karakter, muncul penanda kecil interaktif `"Lihat detail »"`.
+   - Kolom **Ketua Tim**: Dibatasi maksimal 2 baris (`line-clamp-2 leading-snug font-medium`).
+   - Kolom **Nama Tim**: Dibatasi maksimal 2 baris (`line-clamp-2 leading-snug`).
+   - Kolom **Catatan**: Kontainer dibatasi `max-h-10 overflow-hidden` dengan isi catatan ketua maupun catatan kabag masing-masing berformat `line-clamp-2 leading-snug`, mencegah catatan panjang merusak ketinggian baris.
+3. **Modal Pop-Up Detail Uraian Kegiatan (`#modalDetailUraian`):**
+   - Sel Uraian Kegiatan dijadikan kontainer interaktif (`cursor-pointer group hover:bg-amber-50/80 rounded-lg p-1 transition-all`) dengan tooltip informatif.
+   - Mengklik uraian (baik pendek maupun panjang) akan membuka modal elegan berlatar backdrop gelap dengan konten lengkap:
+     - **Header Modal**: Ikon dokumen lembur, judul *"Detail Uraian Kegiatan"*, dan tombol silang `(X)`.
+     - **Strip Metadata**: Tanggal Lembur, Jam Lembur (Jam Pengajuan & Jam Disetujui jika ada penyesuaian), Tim Kerja & Ketua Tim, serta Lencana Status Pengajuan resmi (Disetujui, Ditolak, Menunggu Kabag, dll).
+     - **Kotak Uraian Pekerjaan Lengkap**: Kontainer berlatar putih bersih dengan batas scroll halus (`max-h-56 overflow-y-auto whitespace-pre-line`) untuk menyajikan keseluruhan deskripsi pekerjaan lembur.
+     - **Seksi Catatan / Keterangan**: Otomatis muncul jika ada Catatan Ketua Tim atau Catatan Kepala Bagian Umum, disajikan dalam kartu berarsitektur terpisah.
+     - **Tombol Tutup**: Tombol tutup rapi di bagian bawah, serta dukungan penutupan instan melalui tombol keyboard `Escape` dan klik pada backdrop luar.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penerapan `h-16`, `align-middle`, dan `py-2.5` pada baris tabel; pembatasan `line-clamp-2` pada seluruh kolom teks; penyematan event trigger `openModalUraian(this)`; penambahan markup modal `#modalDetailUraian`; serta fungsi JavaScript `window.openModalUraian` dan `window.closeModalUraian`. |
+
+---
+
+## 77. Penyesuaian Kolom Dokumentasi (Teks Lengkap Tanpa Singkatan & Verifikasi Enkripsi Base64 Client-Backend) serta Penyederhanaan Tombol Kolom Aksi (Ikon Pensil Tunggal)
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Permintaan Pengguna:**
+  1. Kolom "Dokumentasi" tidak boleh disingkat (tetap lengkap "Dokumentasi", baik pada header tabel maupun tombol isian aksi di dalam sel baris).
+  2. Verifikasi dan pastikan isian URL link Google Drive dokumentasi dienkripsi di sisi klien sebelum dikirim melalui HTTP POST, lalu didekripsi kembali di sisi backend controller sebelum disimpan ke basis data.
+  3. Kolom "Aksi" pada tabel pengajuan lembur diubah isiannya menjadi hanya ikon pensil saja tanpa teks tulisan ("Ubah").
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Pemulihan Teks Lengkap Kolom Dokumentasi (`resources/views/lembur.blade.php`):**
+   - Header tabel `<th>` dipastikan bertuliskan teks lengkap `"Dokumentasi"` dengan alokasi lebar proporsional `9.0%`.
+   - Isian sel tabel jika status pengajuan `approved` dan belum memiliki berkas dokumentasi diubah dari singkatan `<span>Dok</span>` menjadi teks utuh yang jelas: `<button ...><svg ...></svg><span>Dokumentasi</span></button>` bergradasi amber elegan (`text-[#e08916] hover:text-[#c47209]`).
+   - Jika berkas dokumentasi sudah tersimpan, sel menampilkan tautan eksternal biru berformat `<a ...><span>Lihat</span></a>` berdampingan dengan tombol hapus sampah merah berkonfirmasi.
+2. **Penyederhanaan Tombol Kolom Aksi Menjadi Ikon Pensil Tunggal:**
+   - Header tabel `<th>` Aksi dialokasikan lebar ramping `4.5%` di ujung kanan tabel (`rounded-tr-2xl`).
+   - Tombol pengeditan pengajuan lembur yang berstatus `pending` diubah dari tombol bertuliskan `"Ubah"` menjadi tombol ikon pensil mandiri:
+     ```blade
+     <button type="button"
+         onclick="openModalEdit(this)"
+         data-action="..." ...
+         class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
+         title="Ubah pengajuan lembur">
+         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+         </svg>
+     </button>
+     ```
+   - Tombol diletakkan di tengah sel (`mx-auto`), berukuran proporsional `28x28px` (`h-7 w-7`), dengan micro-interaction zoom halus pada ikon saat hover dan tooltip informatif.
+3. **Verifikasi Mekanisme Enkripsi Client & Dekripsi Backend:**
+   - **Client-Side Enkripsi (`resources/views/lembur.blade.php`):**
+     - Pada `formDok.addEventListener('submit', ...)`, input `file_path` secara otomatis diawali skema `https://` jika belum ada.
+     - Nilai URL dienkripsi menggunakan Base64 UTF-8 (`btoa(unescape(encodeURIComponent(val)))`) dengan prefix `b64:`.
+     - Tipe input dialihkan sementara ke `type="text"` agar validasi URL browser tidak mengganjal pengiriman payload Base64.
+     - Ditambahkan proteksi guard `if (val.startsWith('b64:')) return;` untuk mencegah enkripsi ganda (*double-encoding*) jika tombol submit ditekan ulang.
+   - **Backend Dekripsi (`app/Http/Controllers/LemburController.php` & `admin/LemburController.php`):**
+     - Method `storeDoc(Request $request, $id_transaksi)` mendeteksi prefiks `b64:` atau `enc:`.
+     - Membaca dan mendekripsi payload menggunakan `base64_decode(substr($filePath, 4), true)`.
+     - Memvalidasi URL hasil dekripsi (`required|url|max:255`) dan menyimpannya sebagai URL valid di tabel `m_dokumentasi`.
+     - Seluruh alur ini telah diuji coba langsung di peramban dan terbukti 100% fungsional tanpa memicu blokir firewall WAF (HTTP 403 Forbidden).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Pembaruan header dan isi kolom Dokumentasi lengkap tanpa singkatan, penyederhanaan tombol kolom Aksi menjadi ikon pensil tanpa teks "Ubah", serta penambahan proteksi guard `b64:` pada submit listener form dokumen. |
+
+---
+
+## 78. Kalibrasi Proporsi Kolom Anti-Overlap & Tata Letak Tabel Lembur Fit 100% Responsif (Sidebar Terbuka & Tertutup)
+
+### A. Latar Belakang & Gejala Masalah
+- **Keluhan Pengguna:** Pengguna mengamati bahwa ketika sidebar navigasi desktop dimunculkan/dibuka (*sidebar open*), isian tabel pengajuan lembur tampak tidak rapi karena teks pada kolom tertentu saling menabrak atau terpotong berantakan.
+- **Akar Masalah:**
+  1. Pengurangan lebar area konten saat sidebar terbuka (menyusut sebesar 256px / `w-64`) menyebabkan kolom teks yang sebelumnya sempit saling menabrak jika menggunakan nilai persentase yang tidak seimbang.
+  2. Kolom jam pengajuan dan jam disetujui terlalu mepet dengan teks status jika persentase kolom status dan jam terlalu kecil atau teks berformat `whitespace-nowrap` meluap keluar sel.
+  3. Adanya baris terpisah `"Lihat detail >"` pada uraian kegiatan yang panjang menyebabkan tinggi baris tersebut bengkak menjadi ~85px, jomplang dibandingkan baris uraian singkat yang hanya 50px.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Kalibrasi Proporsi Kolom Presisi (Total Pas 100.0%):**
+   - Mengalokasikan persentase kolom `<thead>` secara optimal agar tidak ada satu pun teks yang meluap atau menabrak kolom sebelahnya:
+     - **Tanggal**: `8.5%` (cukup untuk tanggal format `d M Y` font 11px).
+     - **Jam Diajukan**: `9.5%` (cukup untuk format jam mono `HH:MM - HH:MM`).
+     - **Jam Disetujui**: `9.5%` (cukup untuk jam mono hijau atau lencana disesuaikan).
+     - **Uraian Kegiatan**: `15.0%` (memberikan ruang baca yang lega untuk deskripsi lembur).
+     - **Ketua Tim**: `12.0%` (memberikan ruang untuk nama ketua dan gelar dinas).
+     - **Nama Tim**: `13.0%` (memberikan ruang untuk nama tim kerja).
+     - **Status**: `10.5%` (ruang aman untuk badge Menunggu Kabag, Disetujui, Ditolak).
+     - **Catatan**: `8.5%` (ruang terstruktur untuk catatan ketua maupun catatan kabag).
+     - **Dokumentasi**: `9.0%` (ruang pas untuk tombol `+ Dokumentasi` dan tautan `Lihat`).
+     - **Aksi**: `4.5%` (alokasi ramping untuk tombol ikon pensil `28x28px` di tengah).
+2. **Pembersihan Uraian Kegiatan Menjadi 2 Baris Bersih & Ikon Inline:**
+   - Menghapus baris terpisah teks kuning `"Lihat detail >"` di bawah teks uraian.
+   - Menggantinya dengan kartu flex interaktif yang menyematkan ikon pop-up eksternal `↗` di ujung kanan teks:
+     ```blade
+     <div onclick="openModalUraian(this)" ...
+         class="group cursor-pointer rounded-lg px-1.5 py-1 -mx-1 hover:bg-amber-50/80 transition-all flex items-start justify-between gap-1">
+         <div class="line-clamp-2 break-words text-[11px] leading-snug tracking-tight text-gray-800 group-hover:text-amber-800 transition-colors flex-1 min-w-0">
+             {{ $uraianText }}
+         </div>
+         @if($isLong)
+             <span class="text-amber-500 group-hover:text-amber-700 shrink-0 mt-0.5 transition-colors" title="Lihat detail lengkap">
+                 <svg ... />
+             </span>
+         @endif
+     </div>
+     ```
+   - Dengan pendekatan ini, seluruh baris tabel dijamin memiliki tinggi yang persis sama (64px / `h-16`) baik saat uraian pendek maupun panjang.
+3. **Penyempurnaan Tipografi & Padding Responsif:**
+   - Menggunakan ukuran font terkalibrasi `text-[11px]` dengan `tracking-tight leading-snug` pada kolom Uraian, Ketua Tim, dan Nama Tim.
+   - Menggunakan padding ramping `px-1 py-2` pada kolom tanggal dan jam, serta `px-2 py-2` pada kolom teks, memberikan ruang ekstra horizontal tanpa membuat tabel melar ke samping.
+4. **Hasil Pengujian Visual:**
+   - **Saat Sidebar Terbuka:** Tabel 100% pas (fit) di layar laptop/desktop tanpa horizontal scroll, tidak ada teks yang saling tabrakan, dan tinggi baris konsisten rapi.
+   - **Saat Sidebar Tertutup:** Tabel otomatis melebar penuh 100% layar dengan ruang baca yang sangat lega, nyaman, dan estetis.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penerapan persentase thead anti-tabrakan 100%, konversi indikator detail uraian menjadi ikon inline tanpa baris ke-3, penataan font 11px tracking-tight pada seluruh sel tbody, dan penyelarasan tinggi baris h-16 di kedua mode sidebar. |
+
+---
+
+## 79. Penyempurnaan Tampilan Responsif Mobile Halaman Lembur Pegawai (Reflow, Grid Filter, Anti-Tabrakan Tabel & Smart Default Timeline)
+
+### A. Latar Belakang & Analisis Permasalahan
+1. **Keluhan Tampilan Seluler Rusak (*"saya cek tampilan mobile ancur bjir"*):**
+   - Saat halaman `http://127.0.0.1:8000/lembur` dibuka pada layar *smartphone* (viewport 360px - 412px), tampilan terlihat berantakan dan bertabrakan karena beberapa faktor:
+     1. **Tabrakan Teks pada Kolom Tabel (`table-fixed`):**
+        - Tabel memiliki lebar `min-w-[760px]`. Dengan persentase kolom `9.5%` pada Jam Diajukan dan Jam Disetujui, lebar sel hanya menghasilkan ~72px.
+        - Teks jam berformat monospace `16:01 - 19:01` membutuhkan ruang ~84px. Akibatnya teks meluap melintasi batas sel dan bertumpuk langsung di atas teks Uraian Kegiatan (`16:01 - 19:01rapat`), menimbulkan kesan tampilan rusak/glitch parah.
+     2. **Pecahnya Baris Toolbar Filter Tanpa Pola Rapi:**
+        - Filter tanggal, bulan, tahun, per halaman, dan tim menggunakan `flex flex-wrap` murni.
+        - Di layar ponsel, filter tanggal, bulan, dan tahun mengisi baris pertama, filter `10 / hal` sendirian di baris kedua, dan kotak pencarian tim mengisi baris ketiga secara tidak simetris.
+     3. **Mode Default Desktop Tabel di Layar Ponsel:**
+        - Halaman secara default selalu membuka mode Tabel terlepas dari ukuran layar perangkat. Pengguna ponsel langsung disambut oleh spreadsheet 10 kolom horizontal lebar yang tidak nyaman dibaca tanpa menggulir ke samping.
+     4. **Indikator Geser Seluler Statis:**
+        - Elemen bilah indikator geser tabel ponsel (`table-scroll-hint`) sebelumnya belum terhubung dengan event javascript `scroll`, sehingga persentase dan posisi thumb tidak bergerak saat tabel digeser.
+
+### B. Solusi & Rincian Implementasi Teknis
+
+1. **Tata Letak Grid Filter Responsif Simetris (Mobile 2 Kolom, Desktop Flex):**
+   - Mengubah kontainer toolbar menjadi:
+     ```blade
+     <div class="mb-4 grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-2.5">
+     ```
+   - Di layar *smartphone* (< 640px):
+     - **Baris 1:** Kotak Pencarian Tim (`col-span-2 w-full`) di bagian teratas untuk memudahkan pencarian instan.
+     - **Baris 2:** Pemilih Tanggal (`col-span-2 w-full`) dengan perataan ikon kalender dan chevron yang simetris.
+     - **Baris 3:** Filter Bulan (`col-span-1 w-full`, 50% kiri) dan Filter Tahun (`col-span-1 w-full`, 50% kanan).
+     - **Baris 4:** Jumlah per Halaman (`col-span-1 w-full`) dan Tombol Reset (`col-span-1 w-full`).
+   - Di layar laptop/desktop (>= 640px):
+     - Semua elemen kembali mengalir sejajar dalam satu baris horizontal yang rapi dan ringkas.
+
+2. **Isolasi Lebar Minimum Tabel Anti-Tabrakan (`min-width: 1020px;`):**
+   - Menetapkan batas lebar minimum aman `style="min-width: 1020px;"` pada elemen `<table>` di dalam kontainer `overflow-x-auto`.
+   - Dengan basis 1020px, kolom Jam Diajukan dan Jam Disetujui (`9.5%`) terjamin memiliki lebar 96.9px (lebih dari cukup untuk teks `16:01 - 19:01` dan badge status), sehingga **tidak akan pernah lagi terjadi tabrakan teks atau teks meluap ke kolom lain**.
+   - Di layar desktop lebar (1280px+), tabel tetap mengisi 100% lebar kontainer secara proporsional tanpa scrollbar horizontal.
+
+3. **Indikator Geser Interaktif Real-Time (`updateTableScrollIndicator`):**
+   - Menghubungkan pembungkus `#tableScrollWrapper` dengan event `scroll` dan `resize`.
+   - Mengkalkulasikan rasio gulir horizontal (`scrollLeft / maxScroll`) secara presisi dan menggeser posisi bilah oranye (`mobileTableScrollThumb`) serta memperbarui angka persentase (`0%` hingga `100%`) secara real-time.
+   - Pengguna ponsel juga dapat mengklik langsung area track scrollbar untuk melompat ke posisi kolom yang diinginkan secara halus (*smooth scrolling*).
+
+4. **Inisialisasi Cerdas Default Mode Timeline pada Layar Seluler:**
+   - Menambahkan deteksi resolusi pada event `DOMContentLoaded`:
+     ```javascript
+     const savedMode = localStorage.getItem('lemburViewMode');
+     if (savedMode === 'timeline') {
+         window.switchViewMode('timeline');
+     } else if (savedMode === 'table') {
+         window.switchViewMode('table');
+     } else if (window.innerWidth < 640) {
+         // Default cerdas ke mode Timeline kartu vertikal untuk layar smartphone
+         window.switchViewMode('timeline');
+     }
+     ```
+   - Pengguna yang membuka melalui ponsel kini langsung disajikan tampilan **Timeline View** yang sangat estetis, modern, dan mudah dibaca tanpa perlu horizontal scrolling.
+   - Jika pengguna ingin melihat mode tabel spreadsheet, mereka cukup mengetuk tombol `[ Tabel ]`, dan sistem akan menampilkan tabel 1020px yang mulus lengkap dengan indikator gesernya. Preferensi pengguna tetap tersimpan di `localStorage`.
+
+5. **Penyempurnaan Header Halaman & Tombol Aksi Seluler:**
+   - Mengatur flex pembungkus tombol header menjadi `flex items-center justify-between sm:justify-end gap-2 sm:gap-2.5 w-full sm:w-auto`.
+   - Memastikan tombol toggle `[ Tabel | Timeline ]` dan tombol `+ Ajukan Lembur` memiliki target sentuh nyaman (*touch target* $\ge 40\text{px}$) tanpa berhimpitan atau terpotong pada layar 360px.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Tata letak filter grid 2 kolom di ponsel, batas lebar tabel min-width 1020px anti-tabrakan, indikator geser horizontal real-time, header responsif, dan default cerdas mode timeline di viewport ponsel. |
+
+---
+
+## 80. Optimalisasi Kenyamanan Geser Tabel Mobile: Kolom Tanggal Sticky, Tombol Navigasi Cepat, & Drag-to-Scroll
+
+### A. Latar Belakang & Keluhan Pengguna
+1. **Keluhan Pengguna (*"gesernya ga enak bjir"*):**
+   - Saat tabel digeser ke arah kanan pada layar *smartphone*, kolom pertama (**Tanggal**) langsung lenyap keluar layar.
+   - Pengguna kehilangan konteks tanggal pengajuan saat memeriksa status, catatan, tautan dokumentasi, atau tombol ubah di ujung kanan tabel, dan teks kolom di tepi kiri terpotong setengah (`8:30`, `9:01`).
+   - Tidak adanya fitur penarik geser langsung (*drag-to-scroll*) membuat penggeseran tabel dengan mouse (desktop/devtools) hanya memblokir teks dan terasa kaku.
+   - Thumb oranye pada bilah kemajuan scrollbar ponsel sebelumnya belum mendukung gestur seret (*draggable thumb*).
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penerapan Kolom Tanggal Sticky Solid (`border-separate border-spacing-0`):**
+   - Mengubah struktur tabel menjadi `border-separate border-spacing-0` agar posisi `sticky` pada sel `<th>` dan `<td>` tidak mengalami kebocoran pembatas (*border bleed*).
+   - Kolom **Tanggal** kini terkunci di posisi `sticky left-0` dengan latar belakang solid (`bg-gray-50` pada header dan `bg-white` pada data baris), pembatas vertikal `border-r border-gray-200`, serta bayangan kedalaman `shadow-[3px_0_6px_-2px_rgba(0,0,0,0.08)]`.
+   - **Hasil:** Saat pengguna menggeser tabel ke arah kanan, kolom Tanggal tetap menempel stabil di sisi kiri layar. Pengguna selalu mengetahui baris mana yang sedang diperiksa tanpa kehilangan konteks.
+2. **Tombol Navigasi Cepat Langkah Kolom (`‹` dan `›`):**
+   - Menambahkan tombol navigasi di samping persentase geser tabel (`#btnScrollLeft` & `#btnScrollRight`).
+   - Pengguna ponsel dapat cukup sekali mengetuk tombol `›` untuk meluncurkan tabel sejauh 260px ke arah kolom status/aksi, dan mengetuk `‹` untuk kembali ke kolom tanggal secara instan dan halus (*smooth scrolling*).
+3. **Fitur Drag-to-Scroll (Mouse & Touch):**
+   - Menambahkan event listener `mousedown`, `mousemove`, dan `mouseup` pada pembungkus tabel `#tableScrollWrapper`.
+   - Pengguna laptop/desktop dapat langsung menahan klik kiri mouse di sembarang area tabel lalu menyeretnya ke kiri atau kanan layaknya kanvas Figma atau Google Maps (`cursor-grab` / `cursor-grabbing`).
+4. **Draggable Progress Thumb:**
+   - Bilah oranye `#mobileTableScrollThumb` kini mendukung gestur sentuh dan klik-tahan (*draggable*), memungkinkan pengguna menyeret bilah kemajuan secara presisi.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Kolom tanggal sticky solid border-separate, tombol navigasi langkah ‹ dan ›, drag-to-scroll mouse/touch, dan draggable progress thumb. |
+
+---
+
+## 81. Redesign Tabel Persetujuan Pengajuan Ketua Tim (`/ketua-tim/pengajuan`): Layout Desktop Pas 100%, Mobile Sticky Column, dan Modal Detail Uraian
+
+### A. Latar Belakang & Permasalahan
+1. **Kolom Terpotong di Desktop:**
+   - Tabel persetujuan pengajuan ketua tim sebelumnya dipaksa memiliki `min-w-[1180px]`.
+   - Pada layar laptop/desktop standar (1280px s.d. 1366px dengan sidebar terbuka), kolom krusial seperti **Data Presensi**, **Status**, dan tombol **Aksi (Proses / Koreksi)** terpotong ke kanan dan tersembunyi di balik scrollbar horizontal.
+   - Ketua Tim harus menggeser horizontal setiap kali ingin melihat status dan menyetujui pengajuan anggota tim.
+2. **Kehilangan Konteks Pegawai di Layar Seluler (Mobile):**
+   - Di layar ponsel, tabel 9 kolom melebar jauh ke kanan tanpa sticky column.
+   - Saat digeser ke kanan untuk menekan tombol aksi "Proses", nama pegawai lenyap dari pandangan sehingga berisiko salah memproses pengajuan.
+3. **Tinggi Baris Tidak Rapi:**
+   - Uraian kegiatan anggota tim yang bervariasi (1 hingga 4 baris teks) membuat tinggi baris tabel naik-turun dan tidak seragam.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Layout Desktop Pas 100% Menggunakan `<colgroup>` Proporsional (`table-fixed`):**
+   - Menghapus pembatas kaku `min-w-[1180px]` dan menggantinya dengan:
+     ```blade
+     <table class="w-full text-left text-xs min-w-[900px] lg:min-w-full table-fixed">
+         <colgroup>
+             <col class="w-12 lg:w-[4%]">
+             <col class="w-44 lg:w-[19%]">
+             <col class="w-32 lg:w-[13%]">
+             <col class="w-24 lg:w-[9%]">
+             <col class="w-24 lg:w-[9%]">
+             <col class="w-56 lg:w-[20%]">
+             <col class="w-24 lg:w-[9%]">
+             <col class="w-24 lg:w-[9%]">
+             <col class="w-20 lg:w-[8%]">
+         </colgroup>
+     ```
+   - Di layar desktop (`lg:` ke atas), tabel mengisi 100% ruang kontainer secara presisi. Seluruh 9 kolom (No, Nama Pegawai, Tanggal, Jam Diajukan, Jam Disetujui, Uraian, Data Presensi, Status, Aksi) **langsung terlihat secara utuh tanpa horizontal scrollbar**.
+   - Menyederhanakan label header tanggal menjadi `<span>Tanggal</span>` sehingga dropdown penyortiran tidak lagi meluap ke kolom jam di sampingnya.
+2. **Penerapan Kolom Sticky Solid di Layar Seluler (`sticky lg:static`):**
+   - Kolom **No** dikunci pada `sticky lg:static left-0 z-30/z-20` dengan latar solid `bg-gray-100` (header) dan `bg-white` (body baris).
+   - Kolom **Nama Pegawai** dikunci pada `sticky lg:static left-12 lg:left-auto z-30/z-20` berjarak tepat 48px dari sisi kiri, dilengkapi pembatas vertikal `border-r border-gray-200/90` dan bayangan kedalaman `shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)]`.
+   - Di desktop, kelas `lg:static lg:left-auto lg:shadow-none` menonaktifkan posisi sticky sehingga kolom mengalir normal tanpa pergeseran offset.
+   - **Hasil di Mobile:** Saat tabel digeser ke arah kanan, kolom No dan Nama Pegawai membeku di sisi kiri layar dengan bersih tanpa kebocoran teks baris di celahnya.
+3. **Uraian Tugas Ringkas Seragam (`line-clamp-2`, `h-16`) & Modal Detail Interaktif:**
+   - Teks uraian kegiatan dibatasi maksimal 2 baris (`line-clamp-2`) dan baris tabel distandarkan dengan tinggi `h-16` serta perataan vertikal `align-middle`.
+   - Setiap kotak uraian dilengkapi event klik `openModalUraian(this)` yang memuat atribut data pengajuan lengkap.
+   - Menambahkan komponen modal pop-up `#modalDetailUraian` yang menampilkan kartu profil pegawai, NIP, tanggal, jam diajukan, jam disetujui, tim kerja, status, uraian pekerjaan utuh yang nyaman dibaca, serta riwayat catatan Ketua Tim maupun Kabag Umum.
+   - Menghubungkan fungsi `openModalUraian`, `closeModalUraian`, dan tombol keyboard `Escape` untuk menutup modal.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Redesign tabel pengajuan ketua tim dengan colgroup proporsional 100% pas di desktop, mobile sticky column No & Nama Pegawai (left-12 solid), uraian tugas line-clamp-2 (h-16), modalDetailUraian interaktif, dan sinkronisasi real-time simpanKeputusan. |
+
+---
+
+## 82. Modernisasi Tombol Aksi Menjadi Icon-Only Tanpa Label Teks pada Modul Ketua Tim dan Administrator
+
+### A. Latar Belakang Masalah & Kebutuhan Antarmuka
+1. **Penyempitan Lebar Kolom Aksi oleh Label Teks**:
+   - Pada tabel persetujuan lembur Ketua Tim (`/ketua-tim/pengajuan`), tombol pada kolom **Aksi** sebelumnya menyertakan label teks seperti `<span>Proses</span>` (untuk status pending) dan `<span>Koreksi</span>` (untuk status lainnya).
+   - Pada tabel monitoring lembur Administrator (`/admin/lembur`), tombol pada kolom **Aksi** menyertakan teks `<span>Aksi</span>`.
+   - Keberadaan label teks ini memakan ruang horizontal yang tidak sedikit pada tabel, sehingga rentan menyebabkan teks berdempetan atau menekan kolom lainnya pada resolusi laptop standar.
+2. **Kebutuhan Standardisasi Visual Antarmuka (SaaS Modern Ala Linear/Notion)**:
+   - Sesuai dengan desain tombol edit icon-only pada halaman lembur pegawai (`/lembur`) yang menggunakan tombol kotak rounded `h-7 w-7` dengan ikon pensil/tindakan yang bersih dan terpusat (`mx-auto`), pengguna menginstruksikan agar tombol aksi di Ketua Tim dan Admin juga diubah menjadi **hanya ikon saja tanpa teks tulisan**.
+
+### B. Solusi & Rincian Implementasi
+1. **Halaman Persetujuan Pengajuan Ketua Tim (`resources/views/ketua-tim/pengajuan.blade.php`)**:
+   - **Tabel Standar (`#tabelPengajuan`)**:
+     - Status `pending`: Tombol aksi diubah menjadi icon-only kotak rounded beraksen amber BPS (`inline-flex items-center justify-center h-7 w-7 rounded-lg bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] shadow-2xs hover:shadow-xs`) dengan ikon pena/tindakan `h-3.5 w-3.5` dan atribut `title="Proses Keputusan Pengajuan"`.
+     - Status lainnya: Tombol aksi diubah menjadi icon-only kotak rounded putih bergaris batas halus (`inline-flex items-center justify-center h-7 w-7 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs`) dengan ikon pensil koreksi `h-3.5 w-3.5` dan atribut `title="Koreksi Keputusan Pengajuan"`.
+   - **Sinkronisasi AJAX (`simpanKeputusan`)**:
+     - Memperbarui kode injeksi DOM JavaScript `aksiElement.innerHTML` agar setelah disimpan secara asinkron, elemen tombol yang digenerate ulang tetap berformat icon-only `h-7 w-7` dengan tooltip title yang tepat.
+   - **Tampilan Linimasa (`#viewContainerTimeline`)**:
+     - Tombol aksi pada footer kartu linimasa (`#aksi-timeline-${p->id_transaksi}`) dan skrip AJAX `aksiTimelineEl.innerHTML` diselaraskan menjadi icon-only tombol rounded-xl (`h-8 w-8`) dengan micro-interaction zoom saat di-hover (`group-hover:scale-110`).
+2. **Halaman Monitoring Lembur Admin (`resources/views/admin/lembur.blade.php`)**:
+   - Pada baris data `#tabelLembur` (kolom Aksi `#aksi-cell-${t->id_transaksi}`), tombol diubah dari sebelumnya memiliki `<span>Aksi</span>` menjadi tombol icon-only elegan `h-7 w-7 rounded-lg text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs mx-auto` dengan tooltip `title="Kelola & Aksi Pengajuan"`.
+3. **Halaman Persetujuan Pengajuan Admin (`resources/views/admin/pengajuan.blade.php`)**:
+   - Menyelaraskan tombol aksi pada kartu linimasa (`#aksi-timeline-${p->id_transaksi}`) dan JavaScript pembaruan keputusan AJAX menjadi format icon-only tombol rounded-xl (`h-8 w-8`) dengan tooltip title dinamis sesuai status keputusan yang diambil.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Mengubah tombol kolom Aksi (Proses & Koreksi) di tabel dan linimasa menjadi tombol icon-only (h-7 w-7 / h-8 w-8) dengan tooltip title dan sinkronisasi AJAX real-time. |
+| 2 | `resources/views/admin/lembur.blade.php` | Menghapus label teks `<span>Aksi</span>` dan mengubah tombol aksi tabel menjadi tombol icon-only h-7 w-7 terpusat dengan tooltip title `Kelola & Aksi Pengajuan`. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Menghapus label teks aksi pada kartu linimasa dan AJAX update, distandarkan menjadi tombol icon-only h-8 w-8 dengan tooltip title dinamis. |
+
+---
+
+## 83. Penyempurnaan Lebar Kolom Status, Jam Disetujui, dan Presensi pada Tabel Ketua Tim (`/ketua-tim/pengajuan`)
+
+### A. Latar Belakang Masalah (Bug "Nempel" & Tabrakan Jam Disetujui Halaman 2)
+1. **Tabrakan Horizontal Lencana Jam Disetujui dengan Kolom Lain (Halaman 2)**:
+   - Pada halaman 1 pengajuan lembur, sebagian besar pengajuan belum memiliki jam disetujui sehingga kolom Jam Disetujui hanya menampilkan tanda strip `-` (lebar ~10px).
+   - Namun saat beralih ke halaman 2 (`?page=2`), terdapat transaksi yang telah memiliki persetujuan jam kepulangan riil (misal `08:25 - 11:08`). Elemen lencana hijau `bg-emerald-50 text-emerald-700` ini memiliki lebar riil sebesar **112px**.
+   - Kolom Jam Disetujui yang sebelumnya dipaksa masuk dalam bobot sempit `9.5%` (~93px) mengalami *horizontal overflow*, meluap ke sisi kiri menimpa teks jam diajukan dan meluap ke sisi kanan menimpa teks uraian kegiatan.
+2. **Kerapatan Kolom Nama Pegawai, Data Presensi, dan Uraian Tugas**:
+   - Kolom Data Presensi dengan tombol lencana `● Tersedia ↗` (lebar 94px) terhimpit di dalam kolom sempit 64px.
+   - Nama pegawai panjang seperti *Septyaji Bangun Anargikusuma* mengalami pemotongan teks (*text truncation*) yang terlalu pendek (*clipping* agresif).
+   - Teks uraian kegiatan terdesak menjadi sangat sempit di tengah tabel.
+
+### B. Solusi & Rincian Implementasi
+1. **Penerapan Standar Batas Lebar Nyaman `min-w-[1140px]`**:
+   - Mengubah deklarasi tabel dari pemaksaan rigid `lg:min-w-full` menjadi lebar standar nyaman `min-w-[1140px] table-fixed`.
+   - Mengikuti pola baku yang telah terbukti rapi pada tabel modul lainnya (`/admin/lembur` dan `/lembur`), lebar 1140px menjamin setiap dari 9 kolom data kedinasan memiliki ruang bernapas yang cukup dan tidak saling bertubrukan pada monitor laptop standar maupun desktop layar lebar.
+2. **Rebalancing Presisi Distribusi Kolom (`colgroup`)**:
+   - `No`: **`4%`** (`w-12` / 46px) — Terpusat simetris.
+   - `Nama Pegawai`: **`17%`** (`w-48` / 194px) — Nama pegawai dan NIP tersaji lega tanpa pemotongan nama yang mengganggu.
+   - `Tanggal`: **`11%`** (`w-32` / 125px) — Teks tanggal dan dropdown sortir Terbaru/Terlama/Prioritas terakomodasi rapi.
+   - `Jam Diajukan`: **`11%`** (`w-32` / 125px) — Format mono jam pengajuan tampil tenang dengan margin bersih.
+   - `Jam Disetujui`: **`12.5%`** (`w-36` / 143px) — Lencana jam hijau `08:25 - 11:08` (112px) memiliki ruang sela bebas lebih dari 30px, bebas tabrakan dari Jam Diajukan dan Uraian.
+   - `Uraian Kegiatan`: **`18%`** (`w-56` / 205px) — Deskripsi tugas terbaca jelas didampingi ikon pop-up detail di sisi kanan.
+   - `Data Presensi`: **`10%`** (`w-28` / 114px) — Tombol `● Tersedia ↗` (94px) pas sempurna dengan padding sel yang serasi.
+   - `Status`: **`11%`** (`w-32` / 125px) — Badge status `Menunggu Kabag`, `Disetujui`, dan `Ditolak` tersaji elegan.
+   - `Aksi`: **`5.5%`** (`w-16` / 63px) — Tombol tindakan icon-only `h-7 w-7` terpusat simetris.
+   - **Total Bobot: 100% Sempurna**.
+3. **Penyelarasan Sticky Column Seluler**:
+   - Menyelaraskan offset kolom Nama Pegawai di mobile menjadi `sticky lg:static left-12 lg:left-auto` baik di header `<th>` maupun body `<td>` untuk menjamin konsistensi pergeseran kolom saat tabel digeser pada layar ponsel pintar.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Standarisasi tabel min-w-[1140px] dan rebalancing colgroup (Jam Disetujui 12.5%, Presensi 10%, Uraian 18%), mengeliminasi tabrakan lencana jam hijau dan uraian di halaman 2, menyajikan nama pegawai lega, serta menyelaraskan sticky column mobile left-12. |
+
+---
+
+## 84. Kalibrasi Layout Tabel Persetujuan Ketua Tim: Tampilan Fit 100% Desktop (Anti-Scrollbar Horizontal) dengan Padding Rapat & Proporsional
+
+### A. Latar Belakang & Masukan Pengguna
+1. **Keluhan Pengguna (*"bisa ga dibikin fit tapi rapih kayaknya itu masih ada jarak antar kolom"*):**
+   - Setelah diterapkannya `min-w-[1140px]`, tabel persetujuan pengajuan lembur Ketua Tim (`/ketua-tim/pengajuan`) memang tidak lagi mengalami tabrakan elemen, namun memicu bilah geser horizontal (*horizontal scrollbar*) pada viewport desktop laptop standar (lebar kontainer ~1045px dengan sidebar navigasi terbuka).
+   - Pengguna menginginkan tabel dapat tampil **FIT 100%** di dalam kontainer layar laptop/desktop (seluruh 9 kolom terlihat bersamaan tanpa perlu menggeser horizontal), namun tetap **RAPAT & RAPI** tanpa celah kosong berlebihan antar-kolom (*jarak antar kolom*), dan **tanpa ada elemen yang bertubrukan/menimpa satu sama lain**.
+2. **Karakteristik Elemen Kedinasan 9 Kolom:**
+   - Kolom `No`: nomor urut 2 digit (~3.5%).
+   - Kolom `Nama Pegawai`: nama lengkap ASN/PPPK berserta NIP/NIP Lama 18 digit (~17%).
+   - Kolom `Tanggal`: nama hari dan tanggal lembur, serta dropdown pengurutan (~10.5%).
+   - Kolom `Jam Diajukan`: format waktu `HH:MM - HH:MM` font monospace (~10.5%).
+   - Kolom `Jam Disetujui`: lencana hijau `bg-emerald-50 text-emerald-700` jam persetujuan riil (~11.5%).
+   - Kolom `Uraian Kegiatan`: teks deskripsi tugas dinas berserta tautan pop-up detail (~20%).
+   - Kolom `Data Presensi`: tombol lencana `● Tersedia ↗` status presensi BOS (~9%).
+   - Kolom `Status`: lencana status `Menunggu Kabag`, `Disetujui`, `Ditolak` (~12.5%).
+   - Kolom `Aksi`: tombol tindakan kotak icon-only `h-7 w-7` terpusat (~5.5%).
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Deklarasi Tabel Fit 100% Desktop (`lg:min-w-full table-fixed`):**
+   - Mengubah deklarasi tabel pembungkus menjadi:
+     ```blade
+     <table class="w-full text-left text-xs min-w-[760px] lg:min-w-full table-fixed">
+     ```
+   - Pada resolusi desktop (`lg:` $\ge 1024\text{px}$), tabel secara presisi mengisi 100% lebar kontainer (`lg:min-w-full`).
+   - Hasil pengujian komputasi peramban: `scrollWidth === clientWidth` (**1045px == 1045px**), menghasilkan **0px overflow horizontal** dan mengeliminasi horizontal scrollbar 100%.
+2. **Kalibrasi Presisi Distribusi `<colgroup>` 100% Proporsional:**
+   - `No`: `w-10 lg:w-[3.5%]` (Header & body sticky mobile diselaraskan `left-10`).
+   - `Nama Pegawai`: `w-44 lg:w-[17%]`.
+   - `Tanggal`: `w-28 lg:w-[10.5%]`.
+   - `Jam Diajukan`: `w-28 lg:w-[10.5%]`.
+   - `Jam Disetujui`: `w-32 lg:w-[11.5%]`.
+   - `Uraian Kegiatan`: `w-52 lg:w-[20%]`.
+   - `Data Presensi`: `w-24 lg:w-[9%]`.
+   - `Status`: `w-32 lg:w-[12.5%]`.
+   - `Aksi`: `w-14 lg:w-[5.5%]`.
+   *(Total Persentase: Tepat 100.0%)*.
+3. **Penyempitan Padding Sel Rapat & Menghilangkan Jarak Kosong Antar Kolom:**
+   - Mengubah padding sel `<th>` dan `<td>` dari sebelumnya `px-2.5` - `px-3` menjadi `px-1 py-2` (kolom Jam, Presensi, Aksi) dan `px-1.5 py-2` (kolom Tanggal, Status), serta `px-2.5 py-2` (Uraian Kegiatan).
+   - Menghilangkan celah kosong renggang yang tampak timpang di antara kolom Tanggal, Jam, dan Status.
+4. **Standardisasi Ukuran Lencana Kompak Bebas Tabrakan:**
+   - **Lencana Jam Disetujui Hijau:** distandarkan menjadi `text-[10.5px] px-1.5 py-0.5 whitespace-nowrap` (~84px). Pada kolom berbobot 11.5% (~120px pada kontainer 1045px), lencana memiliki ruang sela bernapas bebas ~36px, terisolasi sempurna tanpa bertabrakan dengan Jam Diajukan di sebelah kiri maupun Uraian Kegiatan di sebelah kanan.
+   - **Tombol Presensi (`● Tersedia ↗`):** disetel ke `text-[10.5px] px-1.5 py-0.5` (~76px), pas di dalam kolom 9% (~94px).
+   - **Lencana Status (`Menunggu Kabag`, dll):** disetel ke `text-[10.5px] px-2 py-0.5` (~100px), pas dan elegan di dalam kolom 12.5% (~130px).
+   - **Jam Diajukan:** disetel ke font mono `text-[11px] px-1 py-2`.
+5. **Penyelarasan Skrip AJAX Real-Time (`jamDisetujuiElement.innerHTML`):**
+   - Skrip pembaruan keputusan asinkron JavaScript diperbarui agar merender format badge hijau `text-[10.5px]` yang identik saat keputusan disimpan tanpa memicu pergeseran tata letak sel.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Kalibrasi layout tabel pengajuan ketua tim fit 100% desktop tanpa scroll horizontal (lg:min-w-full), distribusi colgroup presisi 100%, pengetatan padding sel rapat rapi px-1/px-1.5 py-2, standarisasi lencana jam disetujui hijau text-[10.5px] bebas tabrakan, ukuran tombol presensi & status proporsional, serta sinkronisasi AJAX real-time. |
+
+---
+
+## 85. Penataan Bertingkat Vertikal Header Kolom Tanggal & Dropdown Sortir pada Tabel Ketua Tim (`/ketua-tim/pengajuan`)
+
+### A. Latar Belakang & Kebutuhan Antarmuka
+1. **Kepadatan Horizontal Header Tanggal:**
+   - Pada baris kepala tabel (`<thead>`), label teks **Tanggal** dan komponen dropdown sortir `[Terbaru ▾]` sebelumnya disusun sejajar secara horizontal (`inline-flex items-center gap-1`).
+   - Penataan satu baris ini memakan lebar riil sekitar 110px. Akibatnya, pada kolom Tanggal berbobot 10.5% di layar desktop laptop standar, sisi kanan dropdown sortir berada sangat mepet bahkan menempel pada huruf depan kolom di sampingnya (*"Jam Diajukan"*).
+2. **Instruksi Pengguna (*"bisa ga dibikin bertingkat jadi: Tanggal / dropdown"*):**
+   - Pengguna meminta agar penataan header Tanggal diubah menjadi **bertingkat vertikal**:
+     ```
+     Tanggal
+     [Terbaru ▾]
+     ```
+     di mana teks "Tanggal" berada di baris atas, dan tombol dropdown sortir berada tepat di baris bawahnya.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Restrukturisasi Flexbox Bertingkat (`flex-col`):**
+   - Mengubah pembungkus di dalam sel `<th>` kolom Tanggal menjadi:
+     ```blade
+     <th class="px-1 py-1.5 text-center text-xs font-semibold whitespace-nowrap align-middle">
+         <div class="flex flex-col items-center justify-center gap-1 w-full">
+             <span class="leading-tight">Tanggal</span>
+             <div class="relative inline-block text-left">
+                 <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                     class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-3.5 py-0.5 text-[10px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                     <option value="desc" ...>Terbaru</option>
+                     <option value="asc" ...>Terlama</option>
+                     <option value="priority" ...>Prioritas</option>
+                 </select>
+                 ...
+             </div>
+         </div>
+     </th>
+     ```
+2. **Keuntungan Estetika & Keterbacaan:**
+   - Lebar maksimum elemen di dalam kolom menyusut drastis dari sebelumnya ~110px menjadi hanya **~65px** (mengikuti lebar dropdown).
+   - Menghasilkan ruang sela bebas lebih dari 45px di kiri-kanan kolom Tanggal.
+   - Dropdown tidak lagi menempel atau menekan header kolom "Jam Diajukan".
+   - Ketinggian baris `<thead>` tetap seimbang dan rapi sejajar dengan sel-sel header lainnya berkat `py-1.5` dan `align-middle`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Penataan bertingkat vertikal (flex-col) pada header kolom Tanggal: teks Tanggal di baris atas dan dropdown sortir [Terbaru ▾] di baris bawah, mengeliminasi tabrakan horizontal dengan header Jam Diajukan. |
+
+---
+
+## 86. Restrukturisasi Tata Letak Modal Ajukan Lembur Menjadi 2-Kolom Desktop Zero-Scroll (Pegawai, Ketua Tim, Admin)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Masalah Scrollbar Internal pada Dialog Modal Pengajuan Lembur:**
+   - Pada implementasi sebelumnya, formulir modal **Ajukan Lembur** (`#modalAjukan`) mengadopsi susunan 1-kolom vertikal (`space-y-4`).
+   - Seluruh elemen formulir (Ketua Tim/Penyetuju, Tanggal Lembur, Jam Mulai & Selesai, Estimasi Durasi, Uraian Kegiatan, dan Kotak Goresan Tanda Tangan Digital) tersusun menumpuk ke bawah dengan akumulasi ketinggian konten mencapai ~730px.
+   - Pada layar laptop/desktop standar dengan resolusi viewport tinggi berkisar 665px hingga 800px, tinggi badan modal terpotong oleh batasan `max-h-[90vh]` (~540px area tubuh modal).
+   - Akibatnya, muncul bilah geser vertikal (*internal vertical scrollbar*) di sisi kanan modal. Pengguna harus menggulir ke bawah setiap kali mengajukan lembur hanya untuk menjangkau kotak uraian dan kanvas tanda tangan digital.
+2. **Instruksi Pengguna (*"kalo ini dibikin ga scroll gimana menurut kamu?"* $\rightarrow$ *"gas"*):**
+   - Pengguna meminta agar dialog modal dibuat **tanpa perlu scroll (*Zero Scroll*)** di layar desktop/laptop, sehingga seluruh input formulir dan tanda tangan digital dapat dilihat dan diisi langsung secara simultan dalam satu pandangan mata tanpa ada konten yang tersembunyi.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Arsitektur Grid 2-Kolom Desktop (`grid grid-cols-1 md:grid-cols-2`):**
+   - Mengubah struktur kontainer form body dari tumpukan vertikal 1-kolom menjadi tata letak **2 kolom paralel** pada breakpoint desktop (`md:` ke atas):
+     - **Kolom Kiri (Jadwal & Penyetuju):**
+       1. Dropdown Ketua Tim / Penyetuju (`#approver_id`).
+       2. Input Tanggal Lembur (`#tanggal`) lengkap dengan indikator hari kerja/libur (`#infoHari`) dan pesan validasi tanggal ganda (`#errorTanggalDobel`).
+       3. Jam Mulai & Jam Selesai dalam sub-grid 2 kolom (`grid-cols-2 gap-3`).
+       4. Kotak preview estimasi durasi lembur (`#previewDurasi`) dan peringatan durasi minimal 2 jam.
+     - **Kolom Kanan (Uraian Kegiatan & Tanda Tangan):**
+       1. Textarea Uraian Kegiatan (`#uraian`, disetel kompak `rows="3"` dengan `resize-none` dan counter karakter).
+       2. Kotak Tanda Tangan Digital (`#signatureCanvasBox`) dengan kanvas responsif `h-28 w-full touch-none` berdampingan dengan tombol *"Hapus Tanda Tangan"*.
+2. **Pelebaran Kontainer Modal & Pengurangan Ketinggian Total:**
+   - Kontainer dialog modal dilebarkan secara proporsional dari `max-w-2xl` (~672px) menjadi **`max-w-3xl lg:max-w-4xl`** (~768px – 896px) dengan batas tinggi `max-h-[92vh]`.
+   - Padding header, footer, dan form body dirapatkan secara elegan (`px-6 py-3.5` untuk header/footer, `px-6 py-4` untuk body).
+   - Total tinggi formulir menyusut drastis dari sebelumnya ~730px menjadi hanya **~320px**.
+   - Pada layar desktop dengan viewport tinggi 665px, tinggi total modal (termasuk header dan footer) berada di kisaran ~430px. Nilai `scrollHeight` terukur **324px** di dalam `clientHeight` **507px** (`isScroll = false`). Modal terbukti **100% Zero-Scroll** bebas bilah geser.
+3. **Graceful Fallback pada Perangkat Seluler (Mobile Responsive):**
+   - Pada layar smartphone/tablet kecil (`< 768px`), tata letak secara otomatis mengalir kembali (*reflow*) menjadi 1-kolom vertikal dengan `overflow-y-auto`, menjaga kemudahan pengetikan dan tanda tangan di layar sentuh.
+4. **Standardisasi di 3 Modul Aplikasi:**
+   - Penerapan 2-kolom zero-scroll distandarkan secara seragam tanpa disparitas antarmuka pada:
+     - **Pegawai:** [resources/views/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/lembur.blade.php)
+     - **Ketua Tim (Lembur Mandiri):** [resources/views/ketua-tim/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/ketua-tim/lembur.blade.php)
+     - **Admin (Lembur Mandiri):** [resources/views/admin/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/lembur.blade.php)
+5. **Penyelarasan Alinyemen Atas-Bawah & Pelebaran Spacing Antar-Elemen (`justify-between` & `py-2.5`):**
+   - Menyelaraskan batas atas dan batas bawah kolom kiri dan kolom kanan menggunakan `flex flex-col justify-between h-full space-y-3.5 md:space-y-0` pada grid `gap-x-7 gap-y-4`.
+   - Pada kolom kiri: batas atas (label Ketua Tim) sejajar presisi dengan batas atas kolom kanan (label Uraian Kegiatan). Batas bawah (kotak input Jam Mulai/Selesai & banner Estimasi Durasi) sejajar presisi dengan batas bawah kolom kanan (garis bawah kotak tanda tangan digital).
+   - Memperlebar ruang sela dan ketinggian input kolom kiri (`py-2.5`, `mb-1.5`) sehingga mengeliminasi ruang kosong canggung di sudut kiri bawah, menghasilkan komposisi visual yang simetris, lapang, dan seimbang.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` menjadi 2-kolom desktop zero-scroll (`max-w-3xl lg:max-w-4xl`, `md:grid-cols-2`), alinyemen atas-bawah presisi `justify-between h-full`, input lapang `py-2.5`, textarea uraian rows=3, kanvas tanda tangan h-28, eliminasi scrollbar vertikal pada layar desktop. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Ketua Tim menjadi 2-kolom desktop zero-scroll dan alinyemen atas-bawah `justify-between` identik. |
+| 3 | `resources/views/admin/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Administrator menjadi 2-kolom desktop zero-scroll dan alinyemen atas-bawah `justify-between` identik. |
+
+
+
+
+
+

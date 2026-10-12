@@ -23,7 +23,7 @@ class DaftarHadirController extends Controller
             ->whereDate('t.date', $tanggal)
             ->select(
                 't.date', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui',
-                DB::raw("(SELECT DATE_FORMAT(pr.jam_selesai, '%H:%i') FROM t_presensi pr WHERE pr.niplama = p.nip_lama AND DATE(pr.tanggal) = DATE(t.date) ORDER BY pr.id_presensi DESC LIMIT 1) as jam_pulang"),
+                DB::raw("(SELECT DATE_FORMAT(pr.jam_selesai, '%H:%i') FROM t_presensi pr WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip) AND DATE(pr.tanggal) = DATE(t.date) ORDER BY pr.id_presensi DESC LIMIT 1) as jam_pulang"),
                 'p.nama', 'p.nip', 'p.nip_lama',
                 'mt.kode_tim', 'mt.nama_tim',
                 't.signature_path'
@@ -59,7 +59,7 @@ class DaftarHadirController extends Controller
             ->whereDate('t.date', $tanggal)
             ->select(
                 't.date', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui',
-                DB::raw("(SELECT DATE_FORMAT(pr.jam_selesai, '%H:%i') FROM t_presensi pr WHERE pr.niplama = p.nip_lama AND DATE(pr.tanggal) = DATE(t.date) ORDER BY pr.id_presensi DESC LIMIT 1) as jam_pulang"),
+                DB::raw("(SELECT DATE_FORMAT(pr.jam_selesai, '%H:%i') FROM t_presensi pr WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip) AND DATE(pr.tanggal) = DATE(t.date) ORDER BY pr.id_presensi DESC LIMIT 1) as jam_pulang"),
                 'p.nama', 'p.nip', 'p.nip_lama',
                 'mt.kode_tim', 'mt.nama_tim',
                 't.signature_path'
@@ -134,7 +134,7 @@ class DaftarHadirController extends Controller
             ->whereDate('t.date', $tanggal)
             ->select(
                 't.date', 't.jam_mulai_disetujui', 't.jam_selesai_disetujui',
-                DB::raw("(SELECT DATE_FORMAT(pr.jam_selesai, '%H:%i') FROM t_presensi pr WHERE pr.niplama = p.nip_lama AND DATE(pr.tanggal) = DATE(t.date) ORDER BY pr.id_presensi DESC LIMIT 1) as jam_pulang"),
+                DB::raw("(SELECT DATE_FORMAT(pr.jam_selesai, '%H:%i') FROM t_presensi pr WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip) AND DATE(pr.tanggal) = DATE(t.date) ORDER BY pr.id_presensi DESC LIMIT 1) as jam_pulang"),
                 'p.nama', 'p.nip', 'p.nip_lama',
                 'mt.kode_tim', 'mt.nama_tim',
                 't.signature_path'

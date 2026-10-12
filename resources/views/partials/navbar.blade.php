@@ -42,7 +42,7 @@
         };
     @endphp
 
-    {{-- Left Side: Hamburger Toggle (mobile) + Page Title --}}
+    {{-- Left Side: Hamburger Toggle (mobile only) + Page Title --}}
     <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
         {{-- Custom Toggle Button (mobile only - on LEFT) --}}
         <button

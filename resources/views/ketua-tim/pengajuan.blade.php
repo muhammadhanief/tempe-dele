@@ -6,6 +6,34 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-5">
 
+    {{-- Page Header --}}
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-gray-100">
+        <div>
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-gray-900">
+                Persetujuan Pengajuan Lembur
+            </h1>
+            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+                {{ $tim->nama_tim ?? 'Tim Kerja BPS' }} — Kelola dan verifikasi persetujuan lembur anggota tim.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+            {{-- Toggle Mode Tampilan (Tabel vs Timeline) --}}
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/80 shadow-2xs shrink-0">
+                <button type="button" id="btnViewTable" onclick="switchViewMode('table')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-white text-slate-800 shadow-2xs cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Tabel</span>
+                </button>
+                <button type="button" id="btnViewTimeline" onclick="switchViewMode('timeline')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Timeline</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- Toolbar --}}
     @php
         $currentStatus = $status ?? 'all';
@@ -207,7 +235,9 @@
         </div>
     </div>
 
-    {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
+    {{-- Container 1: Tampilan Tabel Standar --}}
+    <div id="viewContainerTable">
+        {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
     <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
         <div class="flex items-center justify-between">
             <span class="inline-flex items-center gap-1.5">
@@ -223,19 +253,30 @@
         </div>
     </div>
 
-    {{-- Tabel: mobile/tablet/desktop tetap tabel, hanya horizontal scroll --}}
-    <div class="overflow-x-auto rounded-xl bg-white">
-        <table class="w-full min-w-[1180px] table-fixed rounded-xl">
+    {{-- Tabel: mobile horizontal scroll dengan sticky header/column, desktop pas 100% --}}
+    <div class="overflow-x-auto rounded-xl bg-white shadow-2xs border border-gray-200/80">
+        <table class="w-full text-left text-xs min-w-[760px] lg:min-w-full table-fixed">
+            <colgroup>
+                <col class="w-10 lg:w-[3.5%]">
+                <col class="w-44 lg:w-[17%]">
+                <col class="w-28 lg:w-[10.5%]">
+                <col class="w-28 lg:w-[10.5%]">
+                <col class="w-32 lg:w-[11.5%]">
+                <col class="w-52 lg:w-[20%]">
+                <col class="w-24 lg:w-[9%]">
+                <col class="w-32 lg:w-[12.5%]">
+                <col class="w-14 lg:w-[5.5%]">
+            </colgroup>
             <thead>
-                <tr class="bg-gray-100">
-                    <th class="w-12 rounded-tl-xl px-3 py-3 text-center text-xs font-semibold text-gray-900">No</th>
-                    <th class="w-48 px-3 py-3 text-center text-xs font-semibold text-gray-900">Nama Pegawai</th>
-                    <th class="w-36 px-3 py-3 text-center text-xs font-semibold text-gray-900">
-                        <div class="inline-flex items-center justify-center gap-1.5 w-full">
-                            <span>Tanggal Lembur</span>
+                <tr class="bg-gray-100/90 text-gray-800 border-b border-gray-200">
+                    <th class="px-1 py-2.5 text-center text-xs font-semibold rounded-tl-xl sticky lg:static left-0 bg-gray-100 z-30">No</th>
+                    <th class="px-2.5 py-2.5 text-left text-xs font-semibold sticky lg:static left-10 lg:left-auto bg-gray-100 z-30 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none">Nama Pegawai</th>
+                    <th class="px-1 py-1.5 text-center text-xs font-semibold whitespace-nowrap align-middle">
+                        <div class="flex flex-col items-center justify-center gap-1 w-full">
+                            <span class="leading-tight">Tanggal</span>
                             <div class="relative inline-block text-left">
                                 <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
-                                    class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                    class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-3.5 py-0.5 text-[10px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
                                     <option value="desc" {{ (($sort ?? 'desc') === 'desc') ? 'selected' : '' }}>Terbaru</option>
                                     <option value="asc" {{ (($sort ?? 'desc') === 'asc') ? 'selected' : '' }}>Terlama</option>
                                     <option value="priority" {{ (($sort ?? 'desc') === 'priority') ? 'selected' : '' }}>Prioritas</option>
@@ -248,16 +289,16 @@
                             </div>
                         </div>
                     </th>
-                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold text-gray-900">Jam Diajukan</th>
-                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold text-gray-900">Jam Disetujui</th>
-                    <th class="w-72 px-3 py-3 text-center text-xs font-semibold text-gray-900">Uraian Kegiatan</th>
-                    <th class="w-40 px-3 py-3 text-center text-xs font-semibold text-gray-900">Data Presensi</th>
-                    <th class="w-32 px-3 py-3 text-center text-xs font-semibold text-gray-900">Status</th>
-                    <th class="w-24 rounded-tr-xl px-3 py-3 text-center text-xs font-semibold text-gray-900">Aksi</th>
+                    <th class="px-1 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Jam Diajukan</th>
+                    <th class="px-1 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Jam Disetujui</th>
+                    <th class="px-2.5 py-2.5 text-left text-xs font-semibold">Uraian Kegiatan</th>
+                    <th class="px-1 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Data Presensi</th>
+                    <th class="px-1.5 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Status</th>
+                    <th class="rounded-tr-xl px-1 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Aksi</th>
                 </tr>
             </thead>
 
-            <tbody class="divide-y divide-gray-300" id="tabelPengajuan">
+            <tbody class="divide-y divide-gray-200" id="tabelPengajuan">
                 @forelse($pengajuan as $i => $p)
                     @php
                         $jamPengajuanMulai = $p->jam_mulai ? substr($p->jam_mulai, 0, 5) : '';
@@ -273,91 +314,136 @@
                             : substr($p->jam_selesai_disetujui, 0, 5);
                     @endphp
 
-                    <tr class="bg-white transition-all duration-200 hover:bg-gray-50"
+                    <tr class="group bg-white h-16 transition-all duration-150 hover:bg-amber-50/30"
                         data-nama="{{ strtolower($p->nama_pegawai) }}"
                         data-nip="{{ $p->nip_pegawai }}"
                         data-tanggal="{{ $p->date }}">
 
-                        <td class="px-3 py-3 text-center text-xs text-gray-900">
+                        {{-- 1. No (Sticky di mobile, normal di desktop) --}}
+                        <td class="px-1 py-2 text-center text-xs text-gray-600 align-middle sticky lg:static left-0 bg-white group-hover:bg-amber-50/60 z-20 transition-colors">
                             {{ $pengajuan->firstItem() + $i }}
                         </td>
 
-                        <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[180px] whitespace-normal break-words">
+                        {{-- 2. Nama Pegawai (Sticky di mobile dengan border pemisah, normal di desktop) --}}
+                        <td class="px-2.5 py-2 text-xs text-gray-900 align-middle sticky lg:static left-10 lg:left-auto bg-white group-hover:bg-amber-50/60 z-20 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none transition-colors">
+                            <div class="font-semibold text-gray-900 truncate" title="{{ $p->nama_pegawai }}">
                                 {{ $p->nama_pegawai }}
                             </div>
-                            <div class="text-xs text-slate-500">
+                            <div class="text-[11px] font-mono text-slate-500 mt-0.5 truncate">
                                 {{ $p->nip_pegawai }}
                             </div>
                         </td>
 
-                        <td class="whitespace-nowrap px-3 py-3 text-left text-xs text-gray-900">
-                            {{ \Carbon\Carbon::parse($p->date)->translatedFormat('d F Y') }}
+                        {{-- 3. Tanggal Lembur --}}
+                        <td class="whitespace-nowrap px-1 py-2 text-center text-xs text-gray-800 align-middle">
+                            <span class="font-medium">{{ \Carbon\Carbon::parse($p->date)->translatedFormat('d M Y') }}</span>
                         </td>
 
-                        <td class="whitespace-nowrap px-3 py-3 text-center text-xs text-gray-900">
+                        {{-- 4. Jam Diajukan --}}
+                        <td class="whitespace-nowrap px-1 py-2 text-center font-mono text-[11px] text-gray-700 align-middle">
                             {{ $p->jam_mulai ? substr($p->jam_mulai, 0, 5) . ' - ' . substr($p->jam_selesai, 0, 5) : '-' }}
                         </td>
 
-                        <td class="whitespace-nowrap px-3 py-3 text-center text-xs text-gray-900" id="jam-disetujui-{{ $p->id_transaksi }}">
-                            @if($p->jam_mulai_disetujui && $p->jam_selesai_disetujui)
-                                {{ substr($p->jam_mulai_disetujui, 0, 5) }} - {{ substr($p->jam_selesai_disetujui, 0, 5) }}
+                        {{-- 5. Jam Disetujui --}}
+                        <td class="whitespace-nowrap px-1 py-2 text-center text-xs align-middle" id="jam-disetujui-{{ $p->id_transaksi }}">
+                            @if($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')
+                                <span class="inline-flex items-center justify-center font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded text-[10.5px] whitespace-nowrap">
+                                    {{ substr($p->jam_mulai_disetujui, 0, 5) }} - {{ substr($p->jam_selesai_disetujui, 0, 5) }}
+                                </span>
                             @else
-                                -
+                                <span class="text-gray-400 font-mono">-</span>
                             @endif
                         </td>
 
-                        <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[280px] whitespace-normal break-words" id="uraian-display-{{ $p->id_transaksi }}">
-                                {{ $p->uraian ?? '-' }}
-                            </div>
+                        {{-- 6. Uraian Kegiatan (Line-clamp-2 + Modal Detail) --}}
+                        <td class="px-2.5 py-2 text-gray-800 align-middle">
+                            @php
+                                $uraianText = trim($p->uraian ?? '');
+                                $isLong = mb_strlen($uraianText) > 28;
+                            @endphp
+                            @if(empty($uraianText) || $uraianText === '-')
+                                <span class="text-gray-400 text-xs">-</span>
+                            @else
+                                <div id="trigger-uraian-{{ $p->id_transaksi }}" onclick="openModalUraian(this)"
+                                    data-pegawai="{{ $p->nama_pegawai }}"
+                                    data-nip="{{ $p->nip_pegawai }}"
+                                    data-tanggal="{{ \Carbon\Carbon::parse($p->date)->translatedFormat('l, d F Y') }}"
+                                    data-jam="{{ ($p->jam_mulai && $p->jam_selesai) ? substr($p->jam_mulai, 0, 5).' - '.substr($p->jam_selesai, 0, 5) : '-' }}"
+                                    data-jam-disetujui="{{ ($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected') ? substr($p->jam_mulai_disetujui, 0, 5).' - '.substr($p->jam_selesai_disetujui, 0, 5) : '' }}"
+                                    data-tim="{{ $p->nama_tim ?? ($tim->nama_tim ?? '-') }}"
+                                    data-status="{{ $p->status }}"
+                                    data-uraian="{{ $uraianText }}"
+                                    data-catatan="{{ $p->note ?? '' }}"
+                                    data-catatan-kabag="{{ $p->note_kabag ?? '' }}"
+                                    class="group/item cursor-pointer rounded-lg px-1.5 py-1 -mx-1 hover:bg-amber-50/80 transition-all flex items-start justify-between gap-1"
+                                    title="Klik untuk melihat rincian lengkap uraian kegiatan">
+                                    <div class="line-clamp-2 break-words text-xs leading-snug tracking-tight text-gray-800 group-hover/item:text-amber-800 transition-colors flex-1 min-w-0" id="uraian-display-{{ $p->id_transaksi }}">
+                                        {{ $uraianText }}
+                                    </div>
+                                    @if($isLong)
+                                        <span class="text-amber-500 group-hover/item:text-amber-700 shrink-0 mt-0.5 transition-colors" title="Lihat detail lengkap">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                            </svg>
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
                         </td>
 
-                        <td class="px-3 py-3 text-center">
+                        {{-- 7. Data Presensi --}}
+                        <td class="px-1 py-2 text-center align-middle whitespace-nowrap">
                             <button type="button" onclick="openModalPresensi({{ $p->id_transaksi }})"
-                                class="inline-flex items-center justify-center gap-1 text-xs font-medium
-                                {{ $p->has_presensi ? 'text-green-600 underline' : 'text-slate-500' }}">
-                                {{ $p->has_presensi ? 'Informasi tersedia' : 'Tidak ada informasi' }}
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/>
-                                </svg>
+                                class="inline-flex items-center justify-center gap-1 text-[10.5px] font-medium transition-colors px-1.5 py-0.5 rounded-md
+                                {{ $p->has_presensi ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/70' : 'text-slate-400 hover:text-slate-600' }}">
+                                @if($p->has_presensi)
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <span>Tersedia</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/>
+                                    </svg>
+                                @else
+                                    <span>-</span>
+                                @endif
                             </button>
                         </td>
 
-                        <td class="px-3 py-3 text-center" id="status-{{ $p->id_transaksi }}">
+                        {{-- 8. Status --}}
+                        <td class="px-1.5 py-2 text-center align-middle whitespace-nowrap" id="status-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
-                                <span class="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">Menunggu</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">Menunggu</span>
                             @elseif($p->status === 'menunggu_kabag')
-                                <span class="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">Menunggu Kabag</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">Menunggu Kabag</span>
                             @elseif($p->status === 'approved')
-                                <span class="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Disetujui</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">Disetujui</span>
                             @elseif($p->status === 'rejected')
-                                <span class="whitespace-nowrap rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-600">Ditolak</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">Ditolak</span>
                             @elseif($p->status === 'cancelled')
-                                <span class="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 border border-gray-300">Dibatalkan</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-gray-50 text-gray-700 border border-gray-300 whitespace-nowrap">Dibatalkan</span>
                             @endif
                         </td>
 
-                        <td class="px-3 py-3 text-center" id="aksi-{{ $p->id_transaksi }}">
+                        {{-- 9. Aksi --}}
+                        <td class="px-1 py-2 text-center align-middle whitespace-nowrap" id="aksi-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
                                 <button type="button"
-                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
-                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
+                                    class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
+                                    title="Proses Keputusan Pengajuan">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                    <span>Proses</span>
                                 </button>
                             @elseif($p->status === 'cancelled')
-                                <span class="text-slate-500 text-xs italic">Dibatalkan</span>
+                                <span class="text-slate-400 text-xs italic">-</span>
                             @else
                                 <button type="button"
-                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}')"
-                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
+                                    class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
+                                    title="Koreksi Keputusan Pengajuan">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                                     </svg>
-                                    <span>Koreksi</span>
                                 </button>
                             @endif
                         </td>
@@ -371,6 +457,242 @@
                 @endforelse
             </tbody>
         </table>
+    </div>
+    </div>
+
+    {{-- Container 2: Tampilan Visual Timeline Card --}}
+    <div id="viewContainerTimeline" class="hidden">
+        @if($pengajuan->isEmpty())
+            <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-12 sm:p-16 text-center shadow-xs">
+                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-[#faa938] mb-3 border border-amber-100/80 shadow-xs">
+                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-900 mb-1">Belum Ada Pengajuan Lembur</h3>
+                <p class="text-xs text-gray-500 mb-4 text-center leading-relaxed">Belum ada pengajuan lembur anggota tim yang sesuai dengan kriteria yang dipilih.</p>
+            </div>
+        @else
+            <div class="max-w-4xl mx-auto py-2">
+                <div class="relative" id="timelineList">
+                    @foreach($pengajuan as $p)
+                        @php
+                            $carbonDate = \Carbon\Carbon::parse($p->date);
+                            $jamMulai = $p->jam_mulai ? substr($p->jam_mulai, 0, 5) : '-';
+                            $jamSelesai = $p->jam_selesai ? substr($p->jam_selesai, 0, 5) : '-';
+                            $jamMulaiAcc = $p->jam_mulai_disetujui ? substr($p->jam_mulai_disetujui, 0, 5) : null;
+                            $jamSelesaiAcc = $p->jam_selesai_disetujui ? substr($p->jam_selesai_disetujui, 0, 5) : null;
+                            $isAdjusted = $p->status === 'approved' && $jamMulaiAcc && $jamSelesaiAcc && ($jamMulaiAcc !== $jamMulai || $jamSelesaiAcc !== $jamSelesai);
+                            $jamMulaiDefault = $p->jam_mulai_disetujui ? substr($p->jam_mulai_disetujui, 0, 5) : $jamMulai;
+                            $jamSelesaiDefault = $p->jam_selesai_disetujui ? substr($p->jam_selesai_disetujui, 0, 5) : $jamSelesai;
+                            $jamPengajuanMulai = $jamMulai;
+                            $jamPengajuanSelesai = $jamSelesai;
+                        @endphp
+
+                        <div class="flex items-start gap-3 sm:gap-5 group timeline-item pb-5 sm:pb-6 last:pb-2" data-tanggal="{{ $p->date }}" data-nip="{{ $p->nip_pegawai }}">
+                            {{-- 1. Date Box Kompak & Elegan --}}
+                            <div class="w-16 sm:w-20 shrink-0 flex flex-col items-center justify-center rounded-2xl bg-white border border-slate-300 py-2.5 px-1.5 shadow-2xs group-hover:border-slate-400 transition-all duration-200">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                                    {{ $carbonDate->translatedFormat('D') }}
+                                </span>
+                                <span class="text-xl sm:text-2xl font-black font-mono text-slate-800 leading-none my-1 tracking-tight">
+                                    {{ $carbonDate->format('d') }}
+                                </span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                                    {{ $carbonDate->translatedFormat('M Y') }}
+                                </span>
+                            </div>
+
+                            {{-- 2. Kolom Bulatan Status + Garis Aksis Vertikal Menyambung --}}
+                            <div class="relative flex flex-col items-center shrink-0 w-6 self-stretch pt-3.5">
+                                <div class="timeline-stem absolute left-1/2 -translate-x-1/2 bg-slate-300 z-0"
+                                     style="width: 2px; display: none;"></div>
+
+                                <div class="relative z-10 flex items-center justify-center" id="dot-timeline-{{ $p->id_transaksi }}">
+                                    @if($p->status === 'approved')
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-emerald-500 ring-4 ring-white shadow-2xs"></span>
+                                    @elseif($p->status === 'menunggu_kabag')
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-blue-600 ring-4 ring-white shadow-2xs animate-pulse"></span>
+                                    @elseif($p->status === 'pending')
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-amber-500 ring-4 ring-white shadow-2xs animate-pulse"></span>
+                                    @elseif($p->status === 'rejected')
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-rose-500 ring-4 ring-white shadow-2xs"></span>
+                                    @else
+                                        <span class="block h-3.5 w-3.5 rounded-full bg-slate-400 ring-4 ring-white shadow-2xs"></span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- 3. Kartu Timeline Clean, Proporsional & Elegan --}}
+                            <div class="flex-1 min-w-0">
+                                <div class="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all duration-200 space-y-3.5">
+                                    {{-- Header: Profil Pegawai (Kiri) + Status Pill (Kanan) --}}
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-gray-100">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-xs font-bold text-amber-700 border border-amber-200/60 shadow-2xs">
+                                                {{ strtoupper(substr($p->nama_pegawai, 0, 2)) }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate">{{ $p->nama_pegawai }}</h4>
+                                                <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                                    <span class="text-[11px] font-mono text-slate-500">NIP. {{ $p->nip_pegawai ?? $p->submitted_by_NIP }}</span>
+                                                    @if(!empty($p->nip_lama))
+                                                        <span class="text-[11px] font-mono text-slate-400">({{ $p->nip_lama }})</span>
+                                                    @endif
+                                                    @if(!empty($p->nama_tim))
+                                                        <span class="text-slate-300">·</span>
+                                                        <span class="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                                                            {{ $p->nama_tim }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="status-timeline-{{ $p->id_transaksi }}" class="shrink-0">
+                                            @if($p->status === 'pending')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                                    Menunggu
+                                                </span>
+                                            @elseif($p->status === 'menunggu_kabag')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                                                    Menunggu Kabag
+                                                </span>
+                                            @elseif($p->status === 'approved')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                    Disetujui
+                                                </span>
+                                            @elseif($p->status === 'rejected')
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                                                    Ditolak
+                                                </span>
+                                            @elseif($p->status === 'cancelled')
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                                                    Dibatalkan
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- Baris Jam Pengajuan & Jam Disetujui --}}
+                                    <div class="flex flex-wrap items-center gap-2 sm:gap-4 py-2 px-3 rounded-xl bg-slate-50/80 border border-slate-100 text-xs">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-slate-400 text-[11px] font-medium">Jam Diajukan:</span>
+                                            <span class="font-mono font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200/60 shadow-2xs">
+                                                {{ $jamMulai }} - {{ $jamSelesai }}
+                                            </span>
+                                        </div>
+                                        <span class="text-slate-300 hidden sm:inline">|</span>
+                                        <div class="flex items-center gap-1.5" id="jam-disetujui-box-timeline-{{ $p->id_transaksi }}">
+                                            <span class="text-slate-400 text-[11px] font-medium">Jam Disetujui:</span>
+                                            @if($p->has_presensi && $p->status !== 'rejected' && $jamMulaiAcc && $jamSelesaiAcc)
+                                                <span class="font-mono font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-200/80 px-2 py-0.5 rounded shadow-2xs" id="jam-disetujui-timeline-{{ $p->id_transaksi }}">
+                                                    {{ $jamMulaiAcc }} - {{ $jamSelesaiAcc }}
+                                                </span>
+                                            @else
+                                                <span class="font-mono font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200/60 shadow-2xs" id="jam-disetujui-timeline-{{ $p->id_transaksi }}">
+                                                    -
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- Uraian Tugas Kegiatan Lembur --}}
+                                    <div class="bg-slate-50/50 rounded-xl p-3 border border-slate-100/80">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Uraian Kegiatan Lembur:</span>
+                                        <p class="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed break-words" id="uraian-timeline-{{ $p->id_transaksi }}">
+                                            {{ $p->uraian ?? 'Pengajuan Tugas Lembur' }}
+                                        </p>
+                                    </div>
+
+                                    {{-- Catatan Persetujuan (Clean Quote Bar) --}}
+                                    <div id="catatan-timeline-{{ $p->id_transaksi }}">
+                                        @if(!empty($p->note) || !empty($p->note_kabag))
+                                            <div class="space-y-1.5 pt-1">
+                                                @php
+                                                    $isSystemNote = !empty($p->note) && (
+                                                        str_contains(strtolower($p->note), 'durasi lembur') ||
+                                                        str_contains(strtolower($p->note), 'proses bisnis') ||
+                                                        str_contains(strtolower($p->note), 'kebijakan') ||
+                                                        str_contains(strtolower($p->note), 'sistem')
+                                                    );
+                                                @endphp
+                                                @if(!empty($p->note))
+                                                    @if($isSystemNote)
+                                                        <div class="border-l-2 border-slate-400 pl-3 py-0.5 text-xs text-slate-600 bg-slate-50 rounded-r-lg">
+                                                            <span class="font-semibold text-slate-700">Catatan Sistem:</span>
+                                                            <span class="italic text-slate-700 ml-1">"{{ $p->note }}"</span>
+                                                        </div>
+                                                    @else
+                                                        <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
+                                                            <span class="font-semibold text-amber-800">Catatan Ketua:</span>
+                                                            <span class="italic text-slate-700 ml-1">"{{ $p->note }}"</span>
+                                                        </div>
+                                                    @endif
+                                                @endif
+                                                @if(!empty($p->note_kabag))
+                                                    <div class="border-l-2 border-blue-400 pl-3 py-0.5 text-xs text-slate-600 bg-blue-50/40 rounded-r-lg">
+                                                        <span class="font-semibold text-blue-800">Catatan Kabag:</span>
+                                                        <span class="italic text-slate-800 ml-1">"{{ $p->note_kabag }}"</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    {{-- Footer Card: Presensi (Kiri) & Tombol Aksi (Kanan) --}}
+                                    <div class="flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
+                                        {{-- Informasi Presensi --}}
+                                        <div>
+                                            @if($p->has_presensi)
+                                                <button type="button"
+                                                    onclick="openModalPresensi({{ $p->id_transaksi }}, '{{ $p->nama_pegawai }}', '{{ $p->nip_pegawai }}')"
+                                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200/60 shadow-2xs cursor-pointer">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                    <span>Lihat Presensi ↗</span>
+                                                </button>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 text-[11px] text-slate-400">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
+                                                    <span>Presensi belum ada</span>
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        {{-- Tombol Aksi (Proses / Koreksi) --}}
+                                        <div id="aksi-timeline-{{ $p->id_transaksi }}">
+                                            @if($p->status === 'pending')
+                                                <button type="button"
+                                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
+                                                    class="inline-flex items-center justify-center h-8 w-8 rounded-xl text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] shadow-2xs hover:shadow transition-all cursor-pointer group"
+                                                    title="Proses Keputusan Pengajuan">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    </svg>
+                                                </button>
+                                            @elseif($p->status === 'cancelled')
+                                                <span class="text-slate-500 text-xs italic">Dibatalkan</span>
+                                            @else
+                                                <button type="button"
+                                                    onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
+                                                    class="inline-flex items-center justify-center h-8 w-8 rounded-xl text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+                                                    title="Koreksi Keputusan Pengajuan">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 
     {{-- Pagination --}}
@@ -572,6 +894,114 @@
     </div>
 </div>
 
+{{-- Modal Detail Uraian Kegiatan --}}
+<div id="modalDetailUraian" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity" onclick="closeModalUraian()"></div>
+
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 sm:p-6 text-center">
+            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 w-full max-w-lg border border-slate-100">
+
+                {{-- Header Modal --}}
+                <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6 bg-slate-50/70">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700 ring-1 ring-amber-200/60">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900">Detail Uraian Kegiatan</h3>
+                            <p class="text-[11px] text-slate-500">Rincian pekerjaan & status pengajuan lembur</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeModalUraian()"
+                        class="rounded-lg p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer" title="Tutup">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Body Modal --}}
+                <div class="px-5 py-5 sm:px-6 space-y-4">
+                    {{-- Metadata Strip --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-slate-50/80 border border-slate-200/70 rounded-xl p-3 text-xs">
+                        <div class="sm:col-span-2">
+                            <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Pegawai</span>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span id="detailPegawai" class="font-bold text-slate-900">-</span>
+                                <span class="text-slate-300">•</span>
+                                <span id="detailNip" class="text-slate-500 font-mono text-[11px]">-</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Tanggal Lembur</span>
+                            <span id="detailTanggal" class="font-medium text-slate-800 mt-0.5 block">-</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Jam Lembur</span>
+                            <span id="detailJam" class="font-mono font-medium text-slate-800 mt-0.5 block">-</span>
+                        </div>
+                        <div class="sm:col-span-2 pt-1 border-t border-slate-200/50 flex items-center justify-between">
+                            <div>
+                                <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Tim Kerja</span>
+                                <span id="detailTim" class="font-medium text-slate-800 mt-0.5 block">-</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Status Pengajuan</span>
+                                <span id="detailStatusBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 mt-0.5">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Isi Uraian Lengkap --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <svg class="h-3.5 w-3.5 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
+                            </svg>
+                            <span>Uraian Pekerjaan Lengkap</span>
+                        </label>
+                        <div class="max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                            <p id="detailUraian" class="whitespace-pre-line text-xs sm:text-sm text-slate-800 leading-relaxed font-normal break-words selection:bg-amber-100">
+                                -
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Catatan (Ketua & Kabag) --}}
+                    <div id="detailCatatanWrapper" class="hidden space-y-2 pt-1 border-t border-slate-100">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="h-3.5 w-3.5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v4.77z" />
+                            </svg>
+                            <span>Catatan / Keterangan</span>
+                        </label>
+                        <div id="detailCatatanKetuaBox" class="hidden rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
+                            <span class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Catatan Ketua Tim:</span>
+                            <p id="detailCatatanKetua" class="text-slate-800 italic whitespace-pre-line leading-relaxed">-</p>
+                        </div>
+                        <div id="detailCatatanKabagBox" class="hidden rounded-xl border border-blue-200 bg-blue-50/60 p-3 text-xs">
+                            <span class="block text-[10px] font-bold uppercase text-blue-700 mb-1">Catatan Kepala Bagian Umum:</span>
+                            <p id="detailCatatanKabag" class="text-blue-950 italic whitespace-pre-line leading-relaxed">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Footer Modal --}}
+                <div class="border-t border-slate-100 bg-slate-50/50 px-5 py-3.5 sm:px-6 flex justify-end">
+                    <button type="button" onclick="closeModalUraian()"
+                        class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
+                        <span>Tutup</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 function makeBtn(text, className, onClick) {
@@ -606,7 +1036,13 @@ let cachedAnggota = [];
 fetch('/ketua-tim/pengajuan/anggota')
     .then(response => response.json())
     .then(data => {
-        cachedAnggota = Array.isArray(data) ? data : [];
+        const uniqueMap = new Map();
+        (Array.isArray(data) ? data : []).forEach(emp => {
+            if (emp && emp.nip && !uniqueMap.has(emp.nip)) {
+                uniqueMap.set(emp.nip, emp);
+            }
+        });
+        cachedAnggota = Array.from(uniqueMap.values());
         if (activeNip) {
             const emp = cachedAnggota.find(e => e.nip === activeNip);
             if (emp) {
@@ -1111,11 +1547,12 @@ function updateCatatanWajibHint() {
     }
 }
 
-window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, uraian, hasPresensi, jamSelesaiPresensi, jamPengajuanMulai, jamPengajuanSelesai) {
+window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, uraian, hasPresensi, jamSelesaiPresensi, jamPengajuanMulai, jamPengajuanSelesai, isKabagProcessed) {
     currentId = id;
     const currentStatus = status || 'pending';
-    isStatusLocked = (currentStatus !== 'pending');
-    keputusan = isStatusLocked ? currentStatus : null;
+    const kabagProcessed = Boolean(isKabagProcessed);
+    isStatusLocked = (currentStatus === 'approved' || (currentStatus === 'rejected' && kabagProcessed));
+    keputusan = (currentStatus === 'approved' || currentStatus === 'menunggu_kabag') ? 'approved' : (currentStatus === 'rejected' ? 'rejected' : null);
     currentUraian = (uraian !== undefined && uraian !== null) ? uraian : '';
     currentHasPresensi = Boolean(hasPresensi);
     currentJamSelesaiPresensi = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
@@ -1179,14 +1616,13 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, 
     resetBtnKeputusan();
 
     if (currentStatus === 'menunggu_kabag') {
-        modalTitle.textContent = 'Koreksi Jam & Catatan';
-        modalSubtitle.textContent = 'Status Menunggu Kabag terkunci. Anda dapat mengoreksi jam disetujui atau catatan.';
-        wrapperPilihan.classList.add('hidden');
-        wrapperLocked.classList.remove('hidden');
-        bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-blue-50 p-3 border border-blue-200 text-xs text-blue-800 font-medium';
-        lockedText.innerHTML = 'Status <b>Menunggu Kabag</b> terkunci. Pengajuan telah diteruskan ke Kabag Umum. Anda hanya dapat mengoreksi jam disetujui dan catatan.';
+        modalTitle.textContent = 'Koreksi Keputusan & Jam';
+        modalSubtitle.textContent = 'Status masih Menunggu Kabag. Anda masih dapat mengubah keputusan menjadi Ditolak atau mengoreksi jam & catatan.';
+        wrapperPilihan.classList.remove('hidden');
+        wrapperLocked.classList.add('hidden');
         wrapperJam.classList.remove('hidden');
-        btnSimpan.textContent = 'Simpan Koreksi';
+        btnSimpan.textContent = 'Simpan Keputusan';
+        setKeputusan('approved');
     } else if (currentStatus === 'approved') {
         modalTitle.textContent = 'Koreksi Jam & Catatan';
         modalSubtitle.textContent = 'Status Disetujui Final terkunci. Anda dapat mengoreksi jam disetujui atau catatan.';
@@ -1197,14 +1633,24 @@ window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, 
         wrapperJam.classList.remove('hidden');
         btnSimpan.textContent = 'Simpan Koreksi';
     } else if (currentStatus === 'rejected') {
-        modalTitle.textContent = 'Koreksi Catatan Penolakan';
-        modalSubtitle.textContent = 'Status Ditolak terkunci. Anda dapat mengoreksi catatan alasan penolakan.';
-        wrapperPilihan.classList.add('hidden');
-        wrapperLocked.classList.remove('hidden');
-        bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800 font-medium';
-        lockedText.innerHTML = 'Status <b>Ditolak</b> terkunci. Anda dapat mengoreksi catatan alasan penolakan.';
-        wrapperJam.classList.add('hidden');
-        btnSimpan.textContent = 'Simpan Koreksi';
+        if (kabagProcessed) {
+            modalTitle.textContent = 'Koreksi Catatan Penolakan';
+            modalSubtitle.textContent = 'Pengajuan ditolak oleh Kabag Umum. Anda hanya dapat mengoreksi catatan alasan penolakan.';
+            wrapperPilihan.classList.add('hidden');
+            wrapperLocked.classList.remove('hidden');
+            bannerLocked.className = 'flex items-center gap-2 rounded-xl bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800 font-medium';
+            lockedText.innerHTML = 'Status <b>Ditolak Kabag Umum</b> terkunci. Anda tidak dapat mengubah keputusan pimpinan.';
+            wrapperJam.classList.add('hidden');
+            btnSimpan.textContent = 'Simpan Koreksi';
+        } else {
+            modalTitle.textContent = 'Koreksi Keputusan (Sebelumnya Ditolak)';
+            modalSubtitle.textContent = 'Pengajuan ini sebelumnya Anda tolak. Anda dapat mengubah keputusan menjadi Disetujui (diteruskan ke Kabag) atau memperbarui catatan penolakan.';
+            wrapperPilihan.classList.remove('hidden');
+            wrapperLocked.classList.add('hidden');
+            btnSimpan.textContent = 'Simpan Keputusan';
+            setKeputusan('rejected');
+            wrapperJam.classList.add('hidden');
+        }
     } else {
         // Pending
         modalTitle.textContent = 'Keputusan Lembur';
@@ -1250,7 +1696,12 @@ window.setKeputusan = function(value) {
     } else {
         document.getElementById('kBtnSetujui').className = 'flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-800 transition-all shadow-xs';
         wrapperJam.classList.remove('hidden');
+        const elM = document.getElementById('kJamMulai');
+        const elS = document.getElementById('kJamSelesai');
+        if (!elM.value && currentJamPengajuanMulai) elM.value = currentJamPengajuanMulai;
+        if (!elS.value && currentJamPengajuanSelesai) elS.value = currentJamPengajuanSelesai;
     }
+    cekWarningDurasi();
     updateCatatanWajibHint();
 };
 
@@ -1397,27 +1848,132 @@ window.simpanKeputusan = function() {
             }
         }
 
+        const triggerUraianEl = document.getElementById(`trigger-uraian-${currentId}`);
+        if (triggerUraianEl) {
+            if (data.uraian !== undefined) triggerUraianEl.setAttribute('data-uraian', data.uraian || '');
+            triggerUraianEl.setAttribute('data-status', finalStatus);
+            if (approvedMulai && approvedSelesai) {
+                triggerUraianEl.setAttribute('data-jam-disetujui', `${approvedMulai} - ${approvedSelesai}`);
+            }
+            if (data.note || catatan) {
+                triggerUraianEl.setAttribute('data-catatan', data.note || catatan);
+            }
+        }
+
+        const safeKabagProcessed = (finalStatus === 'approved' || (data.approved_kabag_at ? 1 : 0));
+
         const aksiElement = document.getElementById(`aksi-${currentId}`);
         if (aksiElement) {
             const safeNote = JSON.stringify(data.note || catatan || '');
             const safeUraian = JSON.stringify(currentUraian);
             const presensiFlag = currentHasPresensi ? 1 : 0;
             aksiElement.innerHTML = `
-                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}")'
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}", ${safeKabagProcessed})'
+                    class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
+                    title="Koreksi Keputusan Pengajuan">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                     </svg>
-                    <span>Koreksi</span>
                 </button>
             `;
         }
 
         const jamDisetujuiElement = document.getElementById(`jam-disetujui-${currentId}`);
         if (jamDisetujuiElement) {
-            jamDisetujuiElement.textContent = (finalStatus !== 'rejected' && approvedMulai && approvedSelesai)
-                ? `${approvedMulai} - ${approvedSelesai}`
-                : '-';
+            if (currentHasPresensi && finalStatus !== 'rejected' && approvedMulai && approvedSelesai) {
+                jamDisetujuiElement.innerHTML = `
+                    <span class="inline-flex items-center justify-center font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded text-[10.5px] whitespace-nowrap">
+                        ${approvedMulai} - ${approvedSelesai}
+                    </span>
+                `;
+            } else {
+                jamDisetujuiElement.innerHTML = `<span class="text-gray-400 font-mono">-</span>`;
+            }
+        }
+
+        // ==========================================
+        // Sinkronisasi Real-Time Elemen Visual Timeline
+        // ==========================================
+        const statusTimelineEl = document.getElementById(`status-timeline-${currentId}`);
+        if (statusTimelineEl) {
+            let pillBg = 'bg-amber-50 text-amber-700';
+            let dotBg = 'bg-amber-500';
+            if (finalStatus === 'menunggu_kabag') {
+                pillBg = 'bg-blue-50 text-blue-700';
+                dotBg = 'bg-blue-600';
+            } else if (finalStatus === 'approved') {
+                pillBg = 'bg-emerald-50 text-emerald-700';
+                dotBg = 'bg-emerald-500';
+            } else if (finalStatus === 'rejected') {
+                pillBg = 'bg-rose-50 text-rose-700';
+                dotBg = 'bg-rose-500';
+            }
+            statusTimelineEl.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${pillBg}"><span class="h-1.5 w-1.5 rounded-full ${dotBg}"></span>${badgeText}</span>`;
+        }
+
+        const dotTimelineEl = document.getElementById(`dot-timeline-${currentId}`);
+        if (dotTimelineEl) {
+            let dotColor = 'bg-amber-500';
+            let pulse = ' animate-pulse';
+            if (finalStatus === 'menunggu_kabag') { dotColor = 'bg-blue-600'; pulse = ' animate-pulse'; }
+            else if (finalStatus === 'approved') { dotColor = 'bg-emerald-500'; pulse = ''; }
+            else if (finalStatus === 'rejected') { dotColor = 'bg-rose-500'; pulse = ''; }
+            dotTimelineEl.innerHTML = `<span class="block h-3.5 w-3.5 rounded-full ${dotColor} ring-4 ring-white shadow-2xs${pulse}"></span>`;
+        }
+
+        const uraianTimelineEl = document.getElementById(`uraian-timeline-${currentId}`);
+        if (uraianTimelineEl && data.uraian !== undefined) {
+            uraianTimelineEl.textContent = data.uraian || '-';
+        }
+
+        const aksiTimelineEl = document.getElementById(`aksi-timeline-${currentId}`);
+        if (aksiTimelineEl) {
+            const safeNote = JSON.stringify(data.note || catatan || '');
+            const safeUraian = JSON.stringify(currentUraian);
+            const presensiFlag = currentHasPresensi ? 1 : 0;
+            aksiTimelineEl.innerHTML = `
+                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}", ${safeKabagProcessed})'
+                    class="inline-flex items-center justify-center h-8 w-8 rounded-xl text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+                    title="Koreksi Keputusan Pengajuan">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                    </svg>
+                </button>
+            `;
+        }
+
+        const jamDisetujuiBoxTimelineEl = document.getElementById(`jam-disetujui-box-timeline-${currentId}`);
+        if (jamDisetujuiBoxTimelineEl) {
+            if (currentHasPresensi && finalStatus !== 'rejected' && approvedMulai && approvedSelesai) {
+                jamDisetujuiBoxTimelineEl.innerHTML = `
+                    <span class="text-slate-400 text-[11px] font-medium">Jam Disetujui:</span>
+                    <span class="font-mono font-bold text-emerald-800 bg-emerald-100/70 border border-emerald-200/80 px-2 py-0.5 rounded shadow-2xs" id="jam-disetujui-timeline-${currentId}">
+                        ${approvedMulai} - ${approvedSelesai}
+                    </span>
+                `;
+            } else {
+                jamDisetujuiBoxTimelineEl.innerHTML = `
+                    <span class="text-slate-400 text-[11px] font-medium">Jam Disetujui:</span>
+                    <span class="font-mono font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200/60 shadow-2xs" id="jam-disetujui-timeline-${currentId}">
+                        -
+                    </span>
+                `;
+            }
+        }
+
+        const catatanTimelineEl = document.getElementById(`catatan-timeline-${currentId}`);
+        if (catatanTimelineEl) {
+            const newNote = (data.note || catatan || '').trim();
+            if (newNote) {
+                catatanTimelineEl.innerHTML = `
+                    <div class="space-y-1.5 pt-1">
+                        <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
+                            <span class="font-semibold text-amber-800">Catatan Ketua:</span>
+                            <span class="italic text-slate-700 ml-1">"${newNote}"</span>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         closeModalKeputusan();
@@ -1430,6 +1986,181 @@ window.simpanKeputusan = function() {
         btn.textContent = isStatusLocked ? 'Simpan Koreksi' : 'Simpan Keputusan';
     });
 };
+
+// =====================
+// TOGGLE VIEW MODE (TABEL VS TIMELINE)
+// =====================
+window.switchViewMode = function(mode) {
+    const containerTable = document.getElementById('viewContainerTable');
+    const containerTimeline = document.getElementById('viewContainerTimeline');
+    const btnTable = document.getElementById('btnViewTable');
+    const btnTimeline = document.getElementById('btnViewTimeline');
+
+    if (mode === 'timeline') {
+        containerTable?.classList.add('hidden');
+        containerTimeline?.classList.remove('hidden');
+
+        btnTable?.classList.remove('bg-white', 'text-slate-800', 'shadow-2xs');
+        btnTable?.classList.add('text-slate-500');
+
+        btnTimeline?.classList.add('bg-white', 'text-slate-800', 'shadow-2xs');
+        btnTimeline?.classList.remove('text-slate-500');
+
+        updateTimelineStems();
+        localStorage.setItem('ketuaTimPengajuanViewMode', 'timeline');
+    } else {
+        containerTimeline?.classList.add('hidden');
+        containerTable?.classList.remove('hidden');
+
+        btnTimeline?.classList.remove('bg-white', 'text-slate-800', 'shadow-2xs');
+        btnTimeline?.classList.add('text-slate-500');
+
+        btnTable?.classList.add('bg-white', 'text-slate-800', 'shadow-2xs');
+        btnTable?.classList.remove('text-slate-500');
+
+        localStorage.setItem('ketuaTimPengajuanViewMode', 'table');
+    }
+};
+
+function updateTimelineStems() {
+    const visibleItems = Array.from(document.querySelectorAll('#viewContainerTimeline .timeline-item')).filter(el => !el.classList.contains('hidden'));
+    if (!visibleItems.length) return;
+
+    visibleItems.forEach((item, idx) => {
+        const stem = item.querySelector('.timeline-stem');
+        if (!stem) return;
+
+        if (visibleItems.length === 1) {
+            stem.style.display = 'none';
+        } else if (idx === 0) {
+            stem.style.display = 'block';
+            stem.style.top = '21px';
+            stem.style.bottom = '0';
+            stem.style.height = '';
+        } else if (idx === visibleItems.length - 1) {
+            stem.style.display = 'block';
+            stem.style.top = '0';
+            stem.style.height = '21px';
+            stem.style.bottom = '';
+        } else {
+            stem.style.display = 'block';
+            stem.style.top = '0';
+            stem.style.bottom = '0';
+            stem.style.height = '';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const savedMode = localStorage.getItem('ketuaTimPengajuanViewMode') || 'table';
+    if (savedMode === 'timeline') {
+        window.switchViewMode('timeline');
+    }
+});
+
+window.addEventListener('resize', updateTimelineStems);
+
+// ==========================================
+// MODAL DETAIL RINCIAN URAIAN KEGIATAN
+// ==========================================
+window.openModalUraian = function (el) {
+    if (!el) return;
+    const pegawai = el.getAttribute('data-pegawai') || '-';
+    const nip = el.getAttribute('data-nip') || '-';
+    const tanggal = el.getAttribute('data-tanggal') || '-';
+    const jam = el.getAttribute('data-jam') || '-';
+    const jamDisetujui = el.getAttribute('data-jam-disetujui') || '';
+    const tim = el.getAttribute('data-tim') || '-';
+    const uraian = el.getAttribute('data-uraian') || '-';
+    const status = el.getAttribute('data-status') || '';
+    const catatanKetua = el.getAttribute('data-catatan') || '';
+    const catatanKabag = el.getAttribute('data-catatan-kabag') || '';
+
+    const labelPegawai = document.getElementById('detailPegawai');
+    const labelNip = document.getElementById('detailNip');
+    const labelTanggal = document.getElementById('detailTanggal');
+    const labelJam = document.getElementById('detailJam');
+    const labelTim = document.getElementById('detailTim');
+    const textUraian = document.getElementById('detailUraian');
+    const badgeStatus = document.getElementById('detailStatusBadge');
+
+    if (labelPegawai) labelPegawai.textContent = pegawai;
+    if (labelNip) labelNip.textContent = `NIP. ${nip}`;
+    if (labelTanggal) labelTanggal.textContent = tanggal;
+    if (labelJam) {
+        labelJam.textContent = jamDisetujui ? `${jam} (Disetujui: ${jamDisetujui})` : jam;
+    }
+    if (labelTim) labelTim.textContent = tim;
+    if (textUraian) textUraian.textContent = uraian;
+
+    if (badgeStatus) {
+        if (status === 'approved') {
+            badgeStatus.textContent = 'Disetujui';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
+        } else if (status === 'rejected') {
+            badgeStatus.textContent = 'Ditolak';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200';
+        } else if (status === 'menunggu_kabag') {
+            badgeStatus.textContent = 'Menunggu Kabag';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200';
+        } else if (status === 'cancelled') {
+            badgeStatus.textContent = 'Dibatalkan';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-50 text-gray-700 border border-gray-300';
+        } else {
+            badgeStatus.textContent = 'Menunggu';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200';
+        }
+    }
+
+    const wrapperCatatan = document.getElementById('detailCatatanWrapper');
+    const boxKetua = document.getElementById('detailCatatanKetuaBox');
+    const textCatatanKetua = document.getElementById('detailCatatanKetua');
+    const boxKabag = document.getElementById('detailCatatanKabagBox');
+    const textCatatanKabag = document.getElementById('detailCatatanKabag');
+
+    let hasCatatan = false;
+    if (catatanKetua.trim()) {
+        if (boxKetua) boxKetua.classList.remove('hidden');
+        if (textCatatanKetua) textCatatanKetua.textContent = catatanKetua;
+        hasCatatan = true;
+    } else {
+        if (boxKetua) boxKetua.classList.add('hidden');
+    }
+
+    if (catatanKabag.trim()) {
+        if (boxKabag) boxKabag.classList.remove('hidden');
+        if (textCatatanKabag) textCatatanKabag.textContent = catatanKabag;
+        hasCatatan = true;
+    } else {
+        if (boxKabag) boxKabag.classList.add('hidden');
+    }
+
+    if (hasCatatan) {
+        wrapperCatatan?.classList.remove('hidden');
+    } else {
+        wrapperCatatan?.classList.add('hidden');
+    }
+
+    const modal = document.getElementById('modalDetailUraian');
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+};
+
+window.closeModalUraian = function () {
+    const modal = document.getElementById('modalDetailUraian');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        window.closeModalUraian?.();
+    }
+});
 </script>
 @endpush
 

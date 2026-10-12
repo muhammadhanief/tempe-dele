@@ -185,6 +185,17 @@
             <p id="fileName" class="text-xs text-gray-400 mt-1">Belum ada file dipilih</p>
             <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden" onchange="handleFileSelect(this)"/>
         </div>
+
+        <div class="mt-3.5">
+            <label for="uploadTahun" class="block text-xs font-semibold text-gray-700 mb-1">Target Tahun (Opsional)</label>
+            <select id="uploadTahun" class="w-full h-9 rounded-xl border border-gray-200 text-xs text-gray-700 px-3 bg-white focus:border-[#faa938] focus:outline-none">
+                <option value="">Otomatis (Sesuai tertulis di dalam file)</option>
+                <option value="2026">Tahun 2026 (Sesuai Periode Lembur Aktif)</option>
+                <option value="2025">Tahun 2025</option>
+            </select>
+            <p class="text-[11px] text-gray-400 mt-1">Gunakan opsi ini jika berkas BOS tertulis tahun 2025 namun data diperuntukkan untuk lembur 2026.</p>
+        </div>
+
         <div id="uploadAlert" class="hidden mt-3 rounded-xl px-4 py-3 text-sm font-medium"></div>
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-5">
             <button onclick="closeUploadModal()" class="w-full sm:w-auto px-4 py-2 rounded-lg text-sm text-gray-600 border border-gray-200 hover:bg-gray-50">Batal</button>
@@ -566,6 +577,10 @@ window.submitUpload = async function () {
     const formData = new FormData();
     formData.append('file', selectedFile);
     formData.append('_token', '{{ csrf_token() }}');
+    const tahunVal = document.getElementById('uploadTahun')?.value;
+    if (tahunVal) {
+        formData.append('tahun', tahunVal);
+    }
 
     try {
         showUploadAlert('Sedang memproses...');

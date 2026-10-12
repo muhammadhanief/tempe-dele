@@ -129,7 +129,7 @@
                             <span class="cell-display {{ !$t->tanggal_non_aktif ? 'text-gray-400' : '' }}">
                                 {{ $t->tanggal_non_aktif ? \Carbon\Carbon::parse($t->tanggal_non_aktif)->format('d/m/Y') : '—' }}
                             </span>
-                            <input type="date" name="tanggal_non_aktif" value="{{ $t->tanggal_non_aktif }}"
+                            <input type="date" name="tanggal_non_aktif" value="{{ $t->tanggal_non_aktif }}" min="1970-01-01" max="2099-12-31"
                                 class="cell-edit hidden w-full rounded-lg border border-gray-200 px-2 py-1 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"/>
                         </td>
 
@@ -297,7 +297,7 @@
 
             <div>
                 <label class="mb-1 block text-xs font-medium text-gray-600">Tanggal Non-aktif</label>
-                <input type="date" id="new_tanggal_non_aktif"
+                <input type="date" id="new_tanggal_non_aktif" min="1970-01-01" max="2099-12-31"
                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20"/>
             </div>
         </div>

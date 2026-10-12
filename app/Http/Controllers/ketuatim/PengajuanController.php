@@ -55,9 +55,21 @@ class PengajuanController extends Controller
             : 'desc';
 
         $tim = DB::table('m_tim')
-            ->where('nipbaru_ketua', $nipKetua)
-            ->orWhere('niplama_ketua', $nipLamaKetua)
+            ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                if ($nipKetua) $q->where('nipbaru_ketua', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('niplama_ketua', $nipLamaKetua);
+            })
+            ->where('status', 'aktif')
             ->first();
+
+        if (!$tim) {
+            $tim = DB::table('m_tim')
+                ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                    if ($nipKetua) $q->where('nipbaru_ketua', $nipKetua);
+                    if ($nipLamaKetua) $q->orWhere('niplama_ketua', $nipLamaKetua);
+                })
+                ->first();
+        }
 
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
@@ -72,13 +84,14 @@ class PengajuanController extends Controller
                 'mt.nama_ketua',
                 DB::raw('EXISTS(
                     SELECT 1 FROM t_presensi pr
-                    WHERE pr.niplama = p.nip_lama
+                    WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip)
                     AND DATE(pr.tanggal) = t.date
                 ) as has_presensi'),
                 DB::raw('(
                     SELECT DATE_FORMAT(pr.jam_selesai, "%H:%i") FROM t_presensi pr
-                    WHERE pr.niplama = p.nip_lama
+                    WHERE (pr.niplama = p.nip_lama OR pr.niplama = p.nip)
                     AND DATE(pr.tanggal) = t.date
+                    ORDER BY pr.id_presensi DESC
                     LIMIT 1
                 ) as jam_selesai_presensi')
             ])
@@ -137,20 +150,21 @@ class PengajuanController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
         }
 
-        // KUNCI STATUS: Jika sudah diproses (menunggu_kabag, approved, atau rejected), status keputusan tidak boleh dibalik
-        if (in_array($transaksi->status, ['menunggu_kabag', 'approved', 'rejected'])) {
-            if ($transaksi->status === 'rejected' && $request->status !== 'rejected') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Status Ditolak sudah terkunci. Anda hanya dapat mengoreksi catatan penolakan.'
-                ], 422);
-            }
-            if (in_array($transaksi->status, ['menunggu_kabag', 'approved']) && $request->status === 'rejected') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Pengajuan yang sudah diproses atau disetujui tidak dapat dibatalkan menjadi Ditolak. Anda hanya dapat mengoreksi jam disetujui atau catatan.'
-                ], 422);
-            }
+        // KUNCI STATUS:
+        // 1. Jika sudah disetujui final (approved) oleh Kabag Umum, Ketua Tim tidak dapat membatalkan menjadi Ditolak.
+        if ($transaksi->status === 'approved' && $request->status === 'rejected') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengajuan yang sudah disetujui final oleh Kabag Umum tidak dapat dibatalkan menjadi Ditolak oleh Ketua Tim.'
+            ], 422);
+        }
+
+        // 2. Jika pengajuan ditolak oleh Kabag Umum, Ketua Tim tidak dapat mengubah keputusan penolakan pimpinan.
+        if ($transaksi->status === 'rejected' && !empty($transaksi->approved_kabag_at) && $request->status !== 'rejected') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengajuan ini telah ditolak oleh Kepala Bagian Umum dan tidak dapat diubah oleh Ketua Tim.'
+            ], 422);
         }
 
         $noteKetua = trim($request->note ?? '');
@@ -188,13 +202,32 @@ class PengajuanController extends Controller
             } else {
                 $finalStatus = 'rejected';
             }
+        } elseif ($transaksi->status === 'menunggu_kabag') {
+            // Selama belum disetujui/ditolak kabag, Ketua Tim tetap bisa mengubah keputusan menjadi Ditolak
+            if ($request->status === 'rejected') {
+                $finalStatus = 'rejected';
+            } else {
+                $finalStatus = 'menunggu_kabag';
+            }
+        } elseif ($transaksi->status === 'rejected') {
+            // Pengajuan ditolak di level Ketua Tim: Ketua Tim dapat mengoreksi menjadi Disetujui (diteruskan ke Kabag)
+            if ($request->status === 'approved') {
+                if ($isTimBagianUmum || $isApproverKabag) {
+                    $finalStatus = 'approved';
+                    $approvedKabagAt = now();
+                } else {
+                    $finalStatus = 'menunggu_kabag';
+                }
+            } else {
+                $finalStatus = 'rejected';
+            }
         }
 
         if ($finalStatus !== 'rejected' && $transaksi->jam_mulai && $transaksi->jam_selesai) {
             $mulaiAwal = substr($transaksi->jam_mulai, 0, 5);
             $selesaiAwal = substr($transaksi->jam_selesai, 0, 5);
-            $mulaiBaru = $request->jam_mulai_disetujui ? substr($request->jam_mulai_disetujui, 0, 5) : null;
-            $selesaiBaru = $request->jam_selesai_disetujui ? substr($request->jam_selesai_disetujui, 0, 5) : null;
+            $mulaiBaru = $request->jam_mulai_disetujui ? substr($request->jam_mulai_disetujui, 0, 5) : $mulaiAwal;
+            $selesaiBaru = $request->jam_selesai_disetujui ? substr($request->jam_selesai_disetujui, 0, 5) : $selesaiAwal;
 
             if (($mulaiBaru !== $mulaiAwal || $selesaiBaru !== $selesaiAwal) && empty($noteKetua)) {
                 return response()->json([
@@ -220,9 +253,12 @@ class PengajuanController extends Controller
             }
         } else {
             // approved atau menunggu_kabag
-            if ($request->jam_mulai_disetujui && $request->jam_selesai_disetujui) {
-                $jamMulaiDisetujui   = Carbon::parse($transaksi->date . ' ' . $request->jam_mulai_disetujui);
-                $jamSelesaiDisetujui = Carbon::parse($transaksi->date . ' ' . $request->jam_selesai_disetujui);
+            $jamMulaiVal = $request->jam_mulai_disetujui ?: $transaksi->jam_mulai;
+            $jamSelesaiVal = $request->jam_selesai_disetujui ?: $transaksi->jam_selesai;
+
+            if ($jamMulaiVal && $jamSelesaiVal) {
+                $jamMulaiDisetujui   = Carbon::parse($transaksi->date . ' ' . $jamMulaiVal);
+                $jamSelesaiDisetujui = Carbon::parse($transaksi->date . ' ' . $jamSelesaiVal);
 
                 if ($jamSelesaiDisetujui->lessThan($jamMulaiDisetujui)) {
                     $jamSelesaiDisetujui->addDay();
@@ -230,7 +266,10 @@ class PengajuanController extends Controller
 
                 // Validasi: Jam selesai disetujui tidak boleh melebihi jam kepulangan presensi (jika data presensi tersedia)
                 $presensi = DB::table('t_presensi')
-                    ->where('niplama', $transaksi->nip_lama)
+                    ->where(function($q) use ($transaksi) {
+                        if ($transaksi->nip_lama) $q->where('niplama', $transaksi->nip_lama);
+                        if ($transaksi->submitted_by_NIP) $q->orWhere('niplama', $transaksi->submitted_by_NIP);
+                    })
                     ->whereDate('tanggal', $transaksi->date)
                     ->first();
 
@@ -259,6 +298,8 @@ class PengajuanController extends Controller
                 $updateData['approved_kabag_at'] = $approvedKabagAt;
             } elseif ($finalStatus === 'approved' && ($isTimBagianUmum || $isApproverKabag) && empty($transaksi->approved_kabag_at)) {
                 $updateData['approved_kabag_at'] = now();
+            } elseif ($finalStatus === 'menunggu_kabag') {
+                $updateData['approved_kabag_at'] = null;
             }
         }
 
@@ -334,14 +375,48 @@ class PengajuanController extends Controller
 
     public function anggotaTim()
     {
-        $nipKetua = session('user')['nip'];
+        $nipKetua = session('user')['nip'] ?? null;
+        $nipLamaKetua = session('user')['nip_lama'] ?? null;
 
-        $anggota = DB::table('t_anggota_tim as at')
+        // 1. Ambil anggota tim definitif dari tim aktif yang diketuai
+        $queryTim = DB::table('t_anggota_tim as at')
             ->join('m_pegawai as p', 'at.pegawai_id_pegawai', '=', 'p.id_pegawai')
             ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
-            ->where('mt.nipbaru_ketua', $nipKetua)
-            ->select('p.nama', 'p.nip')
+            ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                if ($nipKetua) $q->where('mt.nipbaru_ketua', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('mt.niplama_ketua', $nipLamaKetua);
+            })
+            ->where('mt.status', 'aktif')
+            ->select('p.nama', 'p.nip');
+
+        // 2. Ambil pegawai yang memiliki riwayat transaksi pengajuan lembur ke ketua tim ini
+        $queryTransaksi = DB::table('t_transaksi as t')
+            ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
+            ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                if ($nipKetua) $q->where('t.approver_employee_id', $nipKetua);
+                if ($nipLamaKetua) $q->orWhere('t.approver_employee_id', $nipLamaKetua);
+            })
+            ->select('p.nama', 'p.nip');
+
+        // Gabungkan keduanya via UNION DISTINCT agar 100% unik tanpa duplikasi
+        $anggota = $queryTim->union($queryTransaksi)
+            ->orderBy('nama', 'asc')
             ->get();
+
+        // Fallback jika belum ada tim aktif/transaksi (misal data master belum sinkron)
+        if ($anggota->isEmpty()) {
+            $anggota = DB::table('t_anggota_tim as at')
+                ->join('m_pegawai as p', 'at.pegawai_id_pegawai', '=', 'p.id_pegawai')
+                ->join('m_tim as mt', 'at.tim_kode_tim', '=', 'mt.kode_tim')
+                ->where(function ($q) use ($nipKetua, $nipLamaKetua) {
+                    if ($nipKetua) $q->where('mt.nipbaru_ketua', $nipKetua);
+                    if ($nipLamaKetua) $q->orWhere('mt.niplama_ketua', $nipLamaKetua);
+                })
+                ->select('p.nama', 'p.nip')
+                ->distinct()
+                ->orderBy('p.nama', 'asc')
+                ->get();
+        }
 
         return response()->json($anggota);
     }

@@ -71,18 +71,18 @@ class LemburController extends Controller
             'md.file_path as file_dokumentasi',
             DB::raw('EXISTS(
                 SELECT 1 FROM t_presensi pr
-                WHERE pr.niplama = pg.nip_lama
+                WHERE (pr.niplama = pg.nip_lama OR pr.niplama = pg.nip)
                 AND DATE(pr.tanggal) = t.date
             ) as has_presensi'),
             DB::raw('(
                 SELECT DATE_FORMAT(pr.jam_selesai, "%H:%i") FROM t_presensi pr
-                WHERE pr.niplama = pg.nip_lama
+                WHERE (pr.niplama = pg.nip_lama OR pr.niplama = pg.nip)
                 AND DATE(pr.tanggal) = t.date
                 LIMIT 1
             ) as jam_selesai_presensi'),
             DB::raw('(
                 SELECT DATE_FORMAT(pr.jam_mulai, "%H:%i") FROM t_presensi pr
-                WHERE pr.niplama = pg.nip_lama
+                WHERE (pr.niplama = pg.nip_lama OR pr.niplama = pg.nip)
                 AND DATE(pr.tanggal) = t.date
                 LIMIT 1
             ) as jam_masuk_presensi')
@@ -159,6 +159,23 @@ class LemburController extends Controller
             ->pluck('tanggal')
             ->toArray();
 
+        // Daftar tanggal pengajuan aktif pegawai (untuk proteksi lock anti-dobel di formulir)
+        $existingActiveDates = DB::table('t_transaksi')
+            ->where('submitted_by_NIP', $nipUser)
+            ->whereNotIn('status', ['rejected', 'cancelled'])
+            ->select('date', 'status')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                $label = match($item->status) {
+                    'pending' => 'Menunggu Ketua',
+                    'menunggu_kabag' => 'Menunggu Kabag',
+                    'approved' => 'Disetujui',
+                    default => ucfirst($item->status),
+                };
+                return [$item->date => $label];
+            })
+            ->toArray();
+
         return view('admin.lembur', compact(
             'transaksi',
             'ketuaTim',
@@ -166,7 +183,8 @@ class LemburController extends Controller
             'hariLibur',
             'status',
             'statusCounts',
-            'sort'
+            'sort',
+            'existingActiveDates'
         ));
     }
 
@@ -188,6 +206,25 @@ class LemburController extends Controller
 
         $nip     = session('user')['nip'];
         $tanggal = Carbon::parse($validated['tanggal']);
+
+        // Cegah pengajuan ganda di tanggal yang sama (1 pengajuan aktif per hari per pegawai)
+        $transaksiAda = DB::table('t_transaksi')
+            ->where('submitted_by_NIP', $nip)
+            ->where('date', $tanggal->toDateString())
+            ->whereNotIn('status', ['rejected', 'cancelled'])
+            ->first();
+
+        if ($transaksiAda) {
+            $statusLabel = match($transaksiAda->status) {
+                'pending' => 'Menunggu Ketua Tim',
+                'menunggu_kabag' => 'Menunggu Kabag Umum',
+                'approved' => 'Sudah Disetujui',
+                default => $transaksiAda->status,
+            };
+            return back()->withErrors([
+                'tanggal' => "Anda sudah memiliki pengajuan lembur pada tanggal ini (Status: {$statusLabel}). Satu pegawai hanya dapat mengajukan 1 kali lembur per hari sesuai ketentuan BPS."
+            ])->withInput();
+        }
 
         $isWeekend = $tanggal->isWeekend();
 
@@ -214,9 +251,23 @@ class LemburController extends Controller
             $durasi = $jamMulai->diffInHours($jamSelesai);
 
             if ($durasi < 2) {
-                $status = 'rejected';
-                $note   = 'Durasi lembur kurang dari 2 jam.';
+                return back()->withErrors([
+                    'jam_selesai' => 'Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS.'
+                ])->withInput();
             }
+
+            if ($durasi > 12) {
+                return back()->withErrors([
+                    'jam_selesai' => 'Durasi lembur melebihi batas wajar harian (maksimal 12 jam).'
+                ])->withInput();
+            }
+        }
+
+        // Cegah tanda tangan kosong / kanvas polos digital
+        if ($this->isBlankSignature($validated['signature'])) {
+            return back()->withErrors([
+                'signature' => 'Tanda tangan digital tidak boleh kosong atau kanvas polos. Silakan goreskan tanda tangan Anda.'
+            ])->withInput();
         }
 
         $idTransaksi = DB::table('t_transaksi')->insertGetId([
@@ -256,14 +307,9 @@ class LemburController extends Controller
                 'signature_path' => $fileName,
             ]);
 
-        $message = $status === 'rejected'
-            ? 'Pengajuan tersimpan namun otomatis ditolak karena durasi lembur kurang dari 2 jam.'
-            : 'Pengajuan lembur berhasil dikirim.';
+        $message = 'Pengajuan lembur berhasil dikirim.';
 
-        return back()->with(
-            $status === 'rejected' ? 'error' : 'success',
-            $message
-        );
+        return back()->with('success', $message);
     }
 
     public function quickApprove($id)
@@ -594,5 +640,59 @@ class LemburController extends Controller
         }
 
         return back()->with('success', 'Pengajuan lembur berhasil dibatalkan.');
+    }
+
+    /**
+     * Memverifikasi apakah kanvas tanda tangan benar-benar digoreskan atau hanya gambar polos/kosong.
+     */
+    private function isBlankSignature(?string $base64Data): bool
+    {
+        if (empty($base64Data)) {
+            return true;
+        }
+
+        $raw = str_replace(['data:image/png;base64,', ' '], ['', '+'], $base64Data);
+        $binary = base64_decode($raw);
+        if (!$binary || strlen($binary) < 500) {
+            return true;
+        }
+
+        if (extension_loaded('gd')) {
+            $img = @imagecreatefromstring($binary);
+            if (!$img) {
+                return true;
+            }
+
+            $w = imagesx($img);
+            $h = imagesy($img);
+            $drawnPixels = 0;
+
+            // Sampling per 2 pixel untuk performa tinggi (eksekusi < 2 milidetik)
+            for ($x = 0; $x < $w; $x += 2) {
+                for ($y = 0; $y < $h; $y += 2) {
+                    $rgba = imagecolorat($img, $x, $y);
+                    $alpha = ($rgba & 0x7F000000) >> 24;
+                    // Pada GD, alpha 127 = 100% transparan
+                    if ($alpha < 120) {
+                        $r = ($rgba >> 16) & 0xFF;
+                        $g = ($rgba >> 8) & 0xFF;
+                        $b = $rgba & 0xFF;
+                        // Bukan warna putih/latar belakang polos
+                        if ($r < 240 || $g < 240 || $b < 240) {
+                            $drawnPixels++;
+                            if ($drawnPixels > 35) {
+                                imagedestroy($img);
+                                return false; // Ditemukan goresan tanda tangan asli
+                            }
+                        }
+                    }
+                }
+            }
+
+            imagedestroy($img);
+            return $drawnPixels <= 35;
+        }
+
+        return false;
     }
 }
