@@ -4196,6 +4196,51 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Penataan bertingkat vertikal (flex-col) pada header kolom Tanggal: teks Tanggal di baris atas dan dropdown sortir [Terbaru ▾] di baris bawah, mengeliminasi tabrakan horizontal dengan header Jam Diajukan. |
 
+---
+
+## 86. Restrukturisasi Tata Letak Modal Ajukan Lembur Menjadi 2-Kolom Desktop Zero-Scroll (Pegawai, Ketua Tim, Admin)
+
+### A. Latar Belakang & Kebutuhan Pengguna
+1. **Masalah Scrollbar Internal pada Dialog Modal Pengajuan Lembur:**
+   - Pada implementasi sebelumnya, formulir modal **Ajukan Lembur** (`#modalAjukan`) mengadopsi susunan 1-kolom vertikal (`space-y-4`).
+   - Seluruh elemen formulir (Ketua Tim/Penyetuju, Tanggal Lembur, Jam Mulai & Selesai, Estimasi Durasi, Uraian Kegiatan, dan Kotak Goresan Tanda Tangan Digital) tersusun menumpuk ke bawah dengan akumulasi ketinggian konten mencapai ~730px.
+   - Pada layar laptop/desktop standar dengan resolusi viewport tinggi berkisar 665px hingga 800px, tinggi badan modal terpotong oleh batasan `max-h-[90vh]` (~540px area tubuh modal).
+   - Akibatnya, muncul bilah geser vertikal (*internal vertical scrollbar*) di sisi kanan modal. Pengguna harus menggulir ke bawah setiap kali mengajukan lembur hanya untuk menjangkau kotak uraian dan kanvas tanda tangan digital.
+2. **Instruksi Pengguna (*"kalo ini dibikin ga scroll gimana menurut kamu?"* $\rightarrow$ *"gas"*):**
+   - Pengguna meminta agar dialog modal dibuat **tanpa perlu scroll (*Zero Scroll*)** di layar desktop/laptop, sehingga seluruh input formulir dan tanda tangan digital dapat dilihat dan diisi langsung secara simultan dalam satu pandangan mata tanpa ada konten yang tersembunyi.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Arsitektur Grid 2-Kolom Desktop (`grid grid-cols-1 md:grid-cols-2`):**
+   - Mengubah struktur kontainer form body dari tumpukan vertikal 1-kolom menjadi tata letak **2 kolom paralel** pada breakpoint desktop (`md:` ke atas):
+     - **Kolom Kiri (Jadwal & Penyetuju):**
+       1. Dropdown Ketua Tim / Penyetuju (`#approver_id`).
+       2. Input Tanggal Lembur (`#tanggal`) lengkap dengan indikator hari kerja/libur (`#infoHari`) dan pesan validasi tanggal ganda (`#errorTanggalDobel`).
+       3. Jam Mulai & Jam Selesai dalam sub-grid 2 kolom (`grid-cols-2 gap-3`).
+       4. Kotak preview estimasi durasi lembur (`#previewDurasi`) dan peringatan durasi minimal 2 jam.
+     - **Kolom Kanan (Uraian Kegiatan & Tanda Tangan):**
+       1. Textarea Uraian Kegiatan (`#uraian`, disetel kompak `rows="3"` dengan `resize-none` dan counter karakter).
+       2. Kotak Tanda Tangan Digital (`#signatureCanvasBox`) dengan kanvas responsif `h-28 w-full touch-none` berdampingan dengan tombol *"Hapus Tanda Tangan"*.
+2. **Pelebaran Kontainer Modal & Pengurangan Ketinggian Total:**
+   - Kontainer dialog modal dilebarkan secara proporsional dari `max-w-2xl` (~672px) menjadi **`max-w-3xl lg:max-w-4xl`** (~768px – 896px) dengan batas tinggi `max-h-[92vh]`.
+   - Padding header, footer, dan form body dirapatkan secara elegan (`px-6 py-3.5` untuk header/footer, `px-6 py-4` untuk body).
+   - Total tinggi formulir menyusut drastis dari sebelumnya ~730px menjadi hanya **~320px**.
+   - Pada layar desktop dengan viewport tinggi 665px, tinggi total modal (termasuk header dan footer) berada di kisaran ~430px. Nilai `scrollHeight` terukur **324px** di dalam `clientHeight` **507px** (`isScroll = false`). Modal terbukti **100% Zero-Scroll** bebas bilah geser.
+3. **Graceful Fallback pada Perangkat Seluler (Mobile Responsive):**
+   - Pada layar smartphone/tablet kecil (`< 768px`), tata letak secara otomatis mengalir kembali (*reflow*) menjadi 1-kolom vertikal dengan `overflow-y-auto`, menjaga kemudahan pengetikan dan tanda tangan di layar sentuh.
+4. **Standardisasi di 3 Modul Aplikasi:**
+   - Penerapan 2-kolom zero-scroll distandarkan secara seragam tanpa disparitas antarmuka pada:
+     - **Pegawai:** [resources/views/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/lembur.blade.php)
+     - **Ketua Tim (Lembur Mandiri):** [resources/views/ketua-tim/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/ketua-tim/lembur.blade.php)
+     - **Admin (Lembur Mandiri):** [resources/views/admin/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/lembur.blade.php)
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` menjadi 2-kolom desktop zero-scroll (`max-w-3xl lg:max-w-4xl`, `md:grid-cols-2`), textarea uraian rows=3, kanvas tanda tangan h-28, eliminasi scrollbar vertikal pada layar desktop. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Ketua Tim menjadi 2-kolom desktop zero-scroll identik. |
+| 3 | `resources/views/admin/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Administrator menjadi 2-kolom desktop zero-scroll identik. |
+
+
 
 
 

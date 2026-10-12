@@ -298,6 +298,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 196. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Standarisasi lebar nyaman tabel pengajuan ketua tim min-w-[1140px] dan rebalancing colgroup: eliminasi tabrakan lencana jam disetujui hijau dan uraian di halaman 2, pelonggaran nama pegawai dan presensi, serta pemisahan bersih lencana status dari tombol aksi)*.
 197. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Kalibrasi layout tabel pengajuan ketua tim fit 100% desktop tanpa scroll horizontal [lg:min-w-full], distribusi colgroup presisi 100% [3.5%, 17%, 10.5%, 10.5%, 11.5%, 20%, 9%, 12.5%, 5.5%], padding sel rapat rapi px-1 / px-1.5 py-2, standarisasi lencana jam disetujui hijau text-[10.5px] px-1.5 py-0.5 bebas tabrakan, tombol presensi & badge status proporsional, serta sinkronisasi AJAX real-time)*.
 198. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Penataan bertingkat vertikal flex-col header kolom Tanggal: teks Tanggal di atas dan dropdown sortir [Terbaru ▾] di bawahnya, mengeliminasi tabrakan horizontal dengan header Jam Diajukan)*.
+199. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Restrukturisasi tata letak modal #modalAjukan menjadi 2-kolom desktop md:grid-cols-2 zero-scroll: max-w-3xl lg:max-w-4xl max-h-[92vh], textarea uraian rows=3, kanvas tanda tangan h-28 touch-none, mengeliminasi scrollbar vertikal pada layar laptop/desktop dengan fallback responsif 1-kolom di mobile)*.
 
 ---
 
@@ -1366,6 +1367,24 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Periksa kepala kolom Tanggal: teks **"Tanggal"** berada di baris atas, dan kotak dropdown sortir **`[Terbaru ▾]`** berada tepat di baris bawahnya secara simetris dan terpusat (`flex flex-col items-center justify-center gap-1`).
   - Verifikasi: Dropdown sortir tidak lagi berada sejajar horizontal di samping kata "Tanggal", sehingga memiliki sela ruang kosong yang luas (> 45px) dan **sama sekali tidak menempel atau menyenggol huruf header kolom "Jam Diajukan"**.
   - Verifikasi: Fungsi sortir dropdown (*Terbaru*, *Terlama*, *Prioritas*) tetap berfungsi normal saat dipilih.
+
+### BS. Uji Restrukturisasi Modal Ajukan Lembur 2-Kolom Desktop Zero-Scroll
+- [ ] **Uji Modal Ajukan Lembur Pegawai (`/lembur`)**:
+  - Masuk sebagai Pegawai (misal: Ibu Indah Purnamasari), buka menu **Pengajuan Lembur** (`/lembur`).
+  - Klik tombol **`+ Ajukan Lembur`**: dialog modal `#modalAjukan` terbuka di tengah layar.
+  - Verifikasi: Pada resolusi layar laptop/desktop (viewport height $\ge 600\text{px}$), modal tersaji dalam format **2 kolom berdampingan** (`md:grid-cols-2`, `max-w-3xl lg:max-w-4xl`).
+  - Verifikasi: **Zero Scroll**: Seluruh elemen formulir (Kolom kiri: Ketua Tim, Tanggal, Jam Mulai & Selesai, Estimasi Durasi; Kolom kanan: Uraian Kegiatan, Kotak Tanda Tangan Digital) tampil utuh secara simultan **tanpa memicu bilah geser internal (*no internal vertical scrollbar*)**.
+  - Verifikasi: Kanvas tanda tangan digital (`h-28`) dapat digoreskan secara mulus dan tombol *"Hapus Tanda Tangan"* berfungsi membersihkan goresan.
+- [ ] **Uji Modal Ajukan Lembur Ketua Tim (`/ketua-tim/lembur`)**:
+  - Masuk sebagai Ketua Tim (misal: Bpk. Joko Suwarjo), buka menu **Pengajuan Lembur Mandiri** (`/ketua-tim/lembur`).
+  - Klik tombol **`+ Ajukan Lembur`**: dialog modal tersaji dalam format 2-kolom desktop zero-scroll yang identik dan proporsional.
+- [ ] **Uji Modal Ajukan Lembur Administrator (`/admin/lembur`)**:
+  - Masuk sebagai Administrator (Ibu Rizki Dianing Wardhani), buka menu **Kelola Lembur** (`/admin/lembur`).
+  - Klik tombol **`+ Ajukan Lembur`**: dialog modal tersaji dalam format 2-kolom desktop zero-scroll yang identik dan proporsional.
+- [ ] **Uji Responsif Mobile (< 768px)**:
+  - Buka dialog modal pada mode inspeksi mobile (lebar layar 375px atau 414px):
+  - Verifikasi: Formulir secara otomatis mengalir kembali (*reflow*) menjadi 1 kolom vertikal yang dapat digulir secara wajar (`overflow-y-auto`) demi kenyamanan pengisian di layar sentuh.
+
 
 
 
