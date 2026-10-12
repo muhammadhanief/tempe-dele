@@ -29,16 +29,16 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-2.5 w-full sm:w-auto">
             {{-- Toggle Mode Tampilan (Tabel vs Timeline) --}}
             <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/80 shadow-2xs shrink-0">
                 <button type="button" id="btnViewTable" onclick="switchViewMode('table')"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-white text-slate-800 shadow-2xs">
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-white text-slate-800 shadow-2xs cursor-pointer">
                     <svg class="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <span>Tabel</span>
                 </button>
                 <button type="button" id="btnViewTimeline" onclick="switchViewMode('timeline')"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all">
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all cursor-pointer">
                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span>Timeline</span>
                 </button>
@@ -46,7 +46,7 @@
 
             {{-- Tombol Ajukan Lembur --}}
             <a href="javascript:void(0)" id="btnAjukan"
-                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#faa938] px-4 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow-sm transition-all shrink-0">
+                class="inline-flex h-10 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[#faa938] px-3.5 sm:px-4 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-[#fd9a10] hover:shadow-sm transition-all shrink-0 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
                 </svg>
@@ -55,13 +55,36 @@
         </div>
     </div>
 
-    {{-- Toolbar --}}
-    <div class="mb-4 flex flex-wrap items-center gap-2.5">
+    {{-- Toolbar Filter Terstruktur (Grid 2 Kolom di Mobile, Flex di Layar Lebar) --}}
+    <div class="mb-4 grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-2.5">
+
+        {{-- Filter Tim (Pencarian Nama Tim) --}}
+        <div class="relative col-span-2 sm:col-span-1 w-full sm:w-64" id="wrapSearchTim">
+            <input type="text" id="searchTim" placeholder="Cari nama tim..."
+                onclick="openDropdownTim()" onfocus="openDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
+                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+
+            <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
+                <button type="button" id="btnClearTim" onclick="pilihTim(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter tim">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <button type="button" onclick="toggleDropdownTim()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar tim">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
+                        <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="dropdownTim"
+                class="absolute z-40 mt-1 hidden max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                <ul id="listTim"></ul>
+            </div>
+        </div>
 
         {{-- Filter Tanggal --}}
-        <div class="relative" id="datePicker">
+        <div class="relative col-span-2 sm:col-span-1 w-full sm:w-auto" id="datePicker">
             <button type="button" id="dateBtn"
-                class="inline-flex h-10 items-center justify-between gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all whitespace-nowrap">
+                class="inline-flex h-10 w-full sm:w-auto items-center justify-between gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all whitespace-nowrap cursor-pointer">
                 <span class="inline-flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3.5 w-3.5 fill-current text-[#faa938] shrink-0">
                         <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
@@ -78,7 +101,7 @@
 
             {{-- Date Panel --}}
             <div id="datePanel"
-                class="absolute left-0 z-50 mt-2 hidden w-72 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-xl">
+                class="absolute left-0 z-50 mt-2 hidden w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 bg-white p-3.5 shadow-xl">
                 <div class="mb-3 flex items-center justify-between">
                     <button type="button" id="datePrev"
                         class="rounded-lg border border-gray-200 p-2 transition-all hover:border-[#faa938] hover:text-[#faa938]">
@@ -117,7 +140,7 @@
 
         {{-- Filter Bulan --}}
         <select id="filterBulan" onchange="gantiFilter('bulan', this.value)"
-            class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
+            class="col-span-1 w-full sm:w-auto h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
             <option value="" @selected(empty($bulan))>Semua Bulan</option>
             @php
                 $daftarNamaBulan = [
@@ -133,7 +156,7 @@
 
         {{-- Filter Tahun --}}
         <select id="filterTahun" onchange="gantiFilter('tahun', this.value)"
-            class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
+            class="col-span-1 w-full sm:w-auto h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
             <option value="" @selected(empty($tahun))>Semua Tahun</option>
             @foreach(($daftarTahun ?? [now()->year]) as $th)
                 <option value="{{ $th }}" @selected(($tahun ?? '') == $th)>{{ $th }}</option>
@@ -142,39 +165,16 @@
 
         {{-- Jumlah per Halaman --}}
         <select id="perHalaman" onchange="gantiFilter('perPage', this.value)"
-            class="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
+            class="col-span-1 sm:w-auto w-full h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer whitespace-nowrap">
             <option value="10"  @selected(($perPage ?? 10) == 10)>10 / hal</option>
             <option value="25"  @selected(($perPage ?? 10) == 25)>25 / hal</option>
             <option value="50"  @selected(($perPage ?? 10) == 50)>50 / hal</option>
             <option value="100" @selected(($perPage ?? 10) == 100)>100 / hal</option>
         </select>
 
-        {{-- Filter Tim --}}
-        <div class="relative w-full sm:w-64" id="wrapSearchTim">
-            <input type="text" id="searchTim" placeholder="Cari nama tim..."
-                onclick="openDropdownTim()" onfocus="openDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
-                class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
-
-            <div class="absolute inset-y-0 right-2.5 flex items-center gap-1">
-                <button type="button" id="btnClearTim" onclick="pilihTim(null)" class="hidden p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors" title="Hapus filter tim">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-                <button type="button" onclick="toggleDropdownTim()" class="flex items-center text-gray-400 hover:text-gray-600 focus:outline-none p-0.5" title="Buka daftar tim">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-3 w-3">
-                        <path fill="currentColor" d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
-                    </svg>
-                </button>
-            </div>
-
-            <div id="dropdownTim"
-                class="absolute z-40 mt-1 hidden max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
-                <ul id="listTim"></ul>
-            </div>
-        </div>
-
         {{-- Reset Filter --}}
         <button type="button" id="btnResetFilter"
-            class="hidden h-10 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-500 shadow-2xs hover:border-red-300 hover:text-red-500 transition-colors whitespace-nowrap">
+            class="col-span-1 sm:w-auto w-full hidden h-10 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-500 shadow-2xs hover:border-red-300 hover:text-red-500 transition-colors whitespace-nowrap text-center cursor-pointer">
             Reset
         </button>
 
@@ -182,8 +182,8 @@
 
     {{-- Container 1: Tampilan Tabel --}}
     <div id="viewContainerTable">
-        {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
-        <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
+        {{-- Petunjuk Geser & Scrollbar Interaktif di Layar HP (Mobile) --}}
+        <div id="mobileTableScrollHint" class="sm:hidden flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
             <div class="flex items-center justify-between">
                 <span class="inline-flex items-center gap-1.5">
                     <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -191,17 +191,17 @@
                     </svg>
                     <span>Geser tabel ke kiri / kanan</span>
                 </span>
-                <span class="table-scroll-pct text-[10px] font-mono text-slate-400 shrink-0">Geser »</span>
+                <span id="mobileTableScrollPct" class="text-[10px] font-mono text-slate-400 shrink-0">0%</span>
             </div>
-            <div class="table-scroll-track w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
-                <div class="table-scroll-thumb absolute top-0 left-0 h-full bg-[#faa938] rounded-full" style="width: 30%; transform: translateX(0px);"></div>
+            <div id="mobileTableScrollTrack" class="w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
+                <div id="mobileTableScrollThumb" class="absolute top-0 left-0 h-full bg-[#faa938] rounded-full transition-transform duration-75" style="width: 35%; transform: translateX(0px);"></div>
             </div>
         </div>
 
         {{-- Card Tabel --}}
         <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs">
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[760px] md:min-w-full table-fixed divide-y divide-gray-200">
+            <div id="tableScrollWrapper" class="overflow-x-auto w-full overscroll-x-contain">
+                <table class="w-full table-fixed divide-y divide-gray-200" style="min-width: 1020px;">
                     <thead class="bg-gray-50/90 border-b border-gray-200">
                         <tr>
                             <th style="width: 8.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl">Tanggal</th>
@@ -543,7 +543,7 @@
                             <div class="flex-1 min-w-0">
                                 <div class="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all duration-200 space-y-3">
                                     {{-- Header: Status Pill (Kiri) + Jam Diajukan (Kanan) --}}
-                                    <div class="flex items-center justify-between gap-2 pb-1">
+                                    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 pb-1">
                                         <div>
                                             @if($t->status === 'pending')
                                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">
@@ -2415,6 +2415,53 @@
     });
 
     // =====================
+    // SINKRONISASI INDIKATOR GESER TABEL (MOBILE SCROLLBAR)
+    // =====================
+    const scrollWrapper = document.getElementById('tableScrollWrapper');
+    const scrollThumb = document.getElementById('mobileTableScrollThumb');
+    const scrollPct = document.getElementById('mobileTableScrollPct');
+    const scrollTrack = document.getElementById('mobileTableScrollTrack');
+
+    function updateTableScrollIndicator() {
+        if (!scrollWrapper || !scrollThumb) return;
+        const scrollLeft = scrollWrapper.scrollLeft;
+        const maxScroll = scrollWrapper.scrollWidth - scrollWrapper.clientWidth;
+
+        if (maxScroll <= 0) {
+            scrollThumb.style.width = '100%';
+            scrollThumb.style.transform = 'translateX(0px)';
+            if (scrollPct) scrollPct.textContent = '100%';
+            return;
+        }
+
+        const visibleRatio = Math.min(1, Math.max(0.2, scrollWrapper.clientWidth / scrollWrapper.scrollWidth));
+        const thumbWidthPct = visibleRatio * 100;
+        const scrollFraction = Math.max(0, Math.min(1, scrollLeft / maxScroll));
+        const trackWidth = scrollTrack ? scrollTrack.clientWidth : 200;
+        const thumbPixelWidth = (trackWidth * thumbWidthPct) / 100;
+        const maxTranslate = trackWidth - thumbPixelWidth;
+        const translateX = scrollFraction * maxTranslate;
+
+        scrollThumb.style.width = `${thumbWidthPct}%`;
+        scrollThumb.style.transform = `translateX(${translateX}px)`;
+        if (scrollPct) scrollPct.textContent = `${Math.round(scrollFraction * 100)}%`;
+    }
+
+    if (scrollWrapper) {
+        scrollWrapper.addEventListener('scroll', updateTableScrollIndicator, { passive: true });
+        window.addEventListener('resize', updateTableScrollIndicator, { passive: true });
+    }
+
+    if (scrollTrack && scrollWrapper) {
+        scrollTrack.addEventListener('click', (e) => {
+            const rect = scrollTrack.getBoundingClientRect();
+            const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            const maxScroll = scrollWrapper.scrollWidth - scrollWrapper.clientWidth;
+            scrollWrapper.scrollTo({ left: clickRatio * maxScroll, behavior: 'smooth' });
+        });
+    }
+
+    // =====================
     // TOGGLE VIEW MODE (TABEL VS TIMELINE)
     // =====================
     window.switchViewMode = function(mode) {
@@ -2447,6 +2494,7 @@
             btnTable?.classList.remove('text-slate-500');
 
             localStorage.setItem('lemburViewMode', 'table');
+            setTimeout(updateTableScrollIndicator, 50);
         }
     };
 
@@ -2454,7 +2502,13 @@
         const savedMode = localStorage.getItem('lemburViewMode');
         if (savedMode === 'timeline') {
             window.switchViewMode('timeline');
+        } else if (savedMode === 'table') {
+            window.switchViewMode('table');
+        } else if (window.innerWidth < 640) {
+            // Pengaturan default cerdas: aktifkan Timeline di layar seluler (mobile)
+            window.switchViewMode('timeline');
         }
+        updateTableScrollIndicator();
     });
 
 })();
