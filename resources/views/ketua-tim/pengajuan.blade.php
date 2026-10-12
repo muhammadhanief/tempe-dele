@@ -253,30 +253,30 @@
         </div>
     </div>
 
-    {{-- Tabel: mobile horizontal scroll dengan sticky header/column --}}
+    {{-- Tabel: mobile horizontal scroll dengan sticky header/column, desktop pas 100% --}}
     <div class="overflow-x-auto rounded-xl bg-white shadow-2xs border border-gray-200/80">
-        <table class="w-full text-left text-xs min-w-[1140px] table-fixed">
+        <table class="w-full text-left text-xs min-w-[760px] lg:min-w-full table-fixed">
             <colgroup>
-                <col class="w-12 lg:w-[4%]">
-                <col class="w-48 lg:w-[17%]">
-                <col class="w-32 lg:w-[11%]">
-                <col class="w-32 lg:w-[11%]">
-                <col class="w-36 lg:w-[12.5%]">
-                <col class="w-56 lg:w-[18%]">
-                <col class="w-28 lg:w-[10%]">
-                <col class="w-32 lg:w-[11%]">
-                <col class="w-16 lg:w-[5.5%]">
+                <col class="w-10 lg:w-[3.5%]">
+                <col class="w-44 lg:w-[17%]">
+                <col class="w-28 lg:w-[10.5%]">
+                <col class="w-28 lg:w-[10.5%]">
+                <col class="w-32 lg:w-[11.5%]">
+                <col class="w-52 lg:w-[20%]">
+                <col class="w-24 lg:w-[9%]">
+                <col class="w-32 lg:w-[12.5%]">
+                <col class="w-14 lg:w-[5.5%]">
             </colgroup>
             <thead>
                 <tr class="bg-gray-100/90 text-gray-800 border-b border-gray-200">
-                    <th class="px-2 py-3 text-center text-xs font-semibold rounded-tl-xl sticky lg:static left-0 bg-gray-100 z-30">No</th>
-                    <th class="px-3 py-3 text-left text-xs font-semibold sticky lg:static left-12 lg:left-auto bg-gray-100 z-30 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none">Nama Pegawai</th>
-                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">
-                        <div class="inline-flex items-center justify-center gap-1.5 w-full">
+                    <th class="px-1 py-2.5 text-center text-xs font-semibold rounded-tl-xl sticky lg:static left-0 bg-gray-100 z-30">No</th>
+                    <th class="px-2.5 py-2.5 text-left text-xs font-semibold sticky lg:static left-10 lg:left-auto bg-gray-100 z-30 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none">Nama Pegawai</th>
+                    <th class="px-1 py-2.5 text-center text-xs font-semibold whitespace-nowrap">
+                        <div class="inline-flex items-center justify-center gap-1 w-full">
                             <span>Tanggal</span>
                             <div class="relative inline-block text-left">
                                 <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
-                                    class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[10.5px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                    class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-3.5 py-0.5 text-[10px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
                                     <option value="desc" {{ (($sort ?? 'desc') === 'desc') ? 'selected' : '' }}>Terbaru</option>
                                     <option value="asc" {{ (($sort ?? 'desc') === 'asc') ? 'selected' : '' }}>Terlama</option>
                                     <option value="priority" {{ (($sort ?? 'desc') === 'priority') ? 'selected' : '' }}>Prioritas</option>
@@ -289,12 +289,12 @@
                             </div>
                         </div>
                     </th>
-                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Jam Diajukan</th>
-                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Jam Disetujui</th>
-                    <th class="px-3 py-3 text-left text-xs font-semibold">Uraian Kegiatan</th>
-                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Data Presensi</th>
-                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Status</th>
-                    <th class="rounded-tr-xl px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Aksi</th>
+                    <th class="px-1 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Jam Diajukan</th>
+                    <th class="px-1 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Jam Disetujui</th>
+                    <th class="px-2.5 py-2.5 text-left text-xs font-semibold">Uraian Kegiatan</th>
+                    <th class="px-1 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Data Presensi</th>
+                    <th class="px-1.5 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Status</th>
+                    <th class="rounded-tr-xl px-1 py-2.5 text-center text-xs font-semibold whitespace-nowrap">Aksi</th>
                 </tr>
             </thead>
 
@@ -320,12 +320,12 @@
                         data-tanggal="{{ $p->date }}">
 
                         {{-- 1. No (Sticky di mobile, normal di desktop) --}}
-                        <td class="px-2 py-2 text-center text-xs text-gray-600 align-middle sticky lg:static left-0 bg-white group-hover:bg-amber-50/60 z-20 transition-colors">
+                        <td class="px-1 py-2 text-center text-xs text-gray-600 align-middle sticky lg:static left-0 bg-white group-hover:bg-amber-50/60 z-20 transition-colors">
                             {{ $pengajuan->firstItem() + $i }}
                         </td>
 
                         {{-- 2. Nama Pegawai (Sticky di mobile dengan border pemisah, normal di desktop) --}}
-                        <td class="px-3 py-2 text-xs text-gray-900 align-middle sticky lg:static left-12 lg:left-auto bg-white group-hover:bg-amber-50/60 z-20 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none transition-colors">
+                        <td class="px-2.5 py-2 text-xs text-gray-900 align-middle sticky lg:static left-10 lg:left-auto bg-white group-hover:bg-amber-50/60 z-20 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none transition-colors">
                             <div class="font-semibold text-gray-900 truncate" title="{{ $p->nama_pegawai }}">
                                 {{ $p->nama_pegawai }}
                             </div>
@@ -335,19 +335,19 @@
                         </td>
 
                         {{-- 3. Tanggal Lembur --}}
-                        <td class="whitespace-nowrap px-2 py-2 text-center text-xs text-gray-800 align-middle">
+                        <td class="whitespace-nowrap px-1 py-2 text-center text-xs text-gray-800 align-middle">
                             <span class="font-medium">{{ \Carbon\Carbon::parse($p->date)->translatedFormat('d M Y') }}</span>
                         </td>
 
                         {{-- 4. Jam Diajukan --}}
-                        <td class="whitespace-nowrap px-2 py-2 text-center font-mono text-xs text-gray-700 align-middle">
+                        <td class="whitespace-nowrap px-1 py-2 text-center font-mono text-[11px] text-gray-700 align-middle">
                             {{ $p->jam_mulai ? substr($p->jam_mulai, 0, 5) . ' - ' . substr($p->jam_selesai, 0, 5) : '-' }}
                         </td>
 
                         {{-- 5. Jam Disetujui --}}
-                        <td class="whitespace-nowrap px-2 py-2 text-center text-xs align-middle" id="jam-disetujui-{{ $p->id_transaksi }}">
+                        <td class="whitespace-nowrap px-1 py-2 text-center text-xs align-middle" id="jam-disetujui-{{ $p->id_transaksi }}">
                             @if($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')
-                                <span class="font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded">
+                                <span class="inline-flex items-center justify-center font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded text-[10.5px] whitespace-nowrap">
                                     {{ substr($p->jam_mulai_disetujui, 0, 5) }} - {{ substr($p->jam_selesai_disetujui, 0, 5) }}
                                 </span>
                             @else
@@ -356,7 +356,7 @@
                         </td>
 
                         {{-- 6. Uraian Kegiatan (Line-clamp-2 + Modal Detail) --}}
-                        <td class="px-3 py-2 text-gray-800 align-middle">
+                        <td class="px-2.5 py-2 text-gray-800 align-middle">
                             @php
                                 $uraianText = trim($p->uraian ?? '');
                                 $isLong = mb_strlen($uraianText) > 28;
@@ -392,9 +392,9 @@
                         </td>
 
                         {{-- 7. Data Presensi --}}
-                        <td class="px-2 py-2 text-center align-middle whitespace-nowrap">
+                        <td class="px-1 py-2 text-center align-middle whitespace-nowrap">
                             <button type="button" onclick="openModalPresensi({{ $p->id_transaksi }})"
-                                class="inline-flex items-center justify-center gap-1 text-[11px] font-medium transition-colors px-2 py-1 rounded-md
+                                class="inline-flex items-center justify-center gap-1 text-[10.5px] font-medium transition-colors px-1.5 py-0.5 rounded-md
                                 {{ $p->has_presensi ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/70' : 'text-slate-400 hover:text-slate-600' }}">
                                 @if($p->has_presensi)
                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"></span>
@@ -409,22 +409,22 @@
                         </td>
 
                         {{-- 8. Status --}}
-                        <td class="px-2.5 py-2.5 text-center align-middle whitespace-nowrap" id="status-{{ $p->id_transaksi }}">
+                        <td class="px-1.5 py-2 text-center align-middle whitespace-nowrap" id="status-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">Menunggu</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">Menunggu</span>
                             @elseif($p->status === 'menunggu_kabag')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">Menunggu Kabag</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">Menunggu Kabag</span>
                             @elseif($p->status === 'approved')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">Disetujui</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">Disetujui</span>
                             @elseif($p->status === 'rejected')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">Ditolak</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">Ditolak</span>
                             @elseif($p->status === 'cancelled')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-50 text-gray-700 border border-gray-300 whitespace-nowrap">Dibatalkan</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-gray-50 text-gray-700 border border-gray-300 whitespace-nowrap">Dibatalkan</span>
                             @endif
                         </td>
 
                         {{-- 9. Aksi --}}
-                        <td class="px-2.5 py-2.5 text-center align-middle whitespace-nowrap" id="aksi-{{ $p->id_transaksi }}">
+                        <td class="px-1 py-2 text-center align-middle whitespace-nowrap" id="aksi-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
                                 <button type="button"
                                     onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
@@ -1880,9 +1880,15 @@ window.simpanKeputusan = function() {
 
         const jamDisetujuiElement = document.getElementById(`jam-disetujui-${currentId}`);
         if (jamDisetujuiElement) {
-            jamDisetujuiElement.textContent = (currentHasPresensi && finalStatus !== 'rejected' && approvedMulai && approvedSelesai)
-                ? `${approvedMulai} - ${approvedSelesai}`
-                : '-';
+            if (currentHasPresensi && finalStatus !== 'rejected' && approvedMulai && approvedSelesai) {
+                jamDisetujuiElement.innerHTML = `
+                    <span class="inline-flex items-center justify-center font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded text-[10.5px] whitespace-nowrap">
+                        ${approvedMulai} - ${approvedSelesai}
+                    </span>
+                `;
+            } else {
+                jamDisetujuiElement.innerHTML = `<span class="text-gray-400 font-mono">-</span>`;
+            }
         }
 
         // ==========================================
