@@ -253,30 +253,30 @@
         </div>
     </div>
 
-    {{-- Tabel: mobile horizontal scroll dengan sticky header/column, desktop pas 100% --}}
+    {{-- Tabel: mobile horizontal scroll dengan sticky header/column --}}
     <div class="overflow-x-auto rounded-xl bg-white shadow-2xs border border-gray-200/80">
-        <table class="w-full text-left text-xs min-w-[860px] lg:min-w-full table-fixed">
+        <table class="w-full text-left text-xs min-w-[1140px] table-fixed">
             <colgroup>
-                <col class="w-10 lg:w-[4%]">
-                <col class="w-40 lg:w-[18.5%]">
-                <col class="w-28 lg:w-[11.5%]">
-                <col class="w-24 lg:w-[9.5%]">
-                <col class="w-24 lg:w-[9.5%]">
-                <col class="w-44 lg:w-[16.5%]">
-                <col class="w-16 lg:w-[6.5%]">
-                <col class="w-36 lg:w-[16.5%]">
-                <col class="w-16 lg:w-[7.5%]">
+                <col class="w-12 lg:w-[4%]">
+                <col class="w-48 lg:w-[17%]">
+                <col class="w-32 lg:w-[11%]">
+                <col class="w-32 lg:w-[11%]">
+                <col class="w-36 lg:w-[12.5%]">
+                <col class="w-56 lg:w-[18%]">
+                <col class="w-28 lg:w-[10%]">
+                <col class="w-32 lg:w-[11%]">
+                <col class="w-16 lg:w-[5.5%]">
             </colgroup>
             <thead>
                 <tr class="bg-gray-100/90 text-gray-800 border-b border-gray-200">
                     <th class="px-2 py-3 text-center text-xs font-semibold rounded-tl-xl sticky lg:static left-0 bg-gray-100 z-30">No</th>
-                    <th class="px-3 py-3 text-left text-xs font-semibold sticky lg:static left-10 lg:left-auto bg-gray-100 z-30 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none">Nama Pegawai</th>
-                    <th class="px-1 py-3 text-center text-xs font-semibold whitespace-nowrap">
-                        <div class="inline-flex items-center justify-center gap-1 w-full">
+                    <th class="px-3 py-3 text-left text-xs font-semibold sticky lg:static left-12 lg:left-auto bg-gray-100 z-30 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none">Nama Pegawai</th>
+                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">
+                        <div class="inline-flex items-center justify-center gap-1.5 w-full">
                             <span>Tanggal</span>
                             <div class="relative inline-block text-left">
                                 <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
-                                    class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-3.5 py-0.5 text-[10px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
+                                    class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[10.5px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
                                     <option value="desc" {{ (($sort ?? 'desc') === 'desc') ? 'selected' : '' }}>Terbaru</option>
                                     <option value="asc" {{ (($sort ?? 'desc') === 'asc') ? 'selected' : '' }}>Terlama</option>
                                     <option value="priority" {{ (($sort ?? 'desc') === 'priority') ? 'selected' : '' }}>Prioritas</option>
@@ -289,10 +289,10 @@
                             </div>
                         </div>
                     </th>
-                    <th class="px-1.5 py-3 text-center text-xs font-semibold whitespace-nowrap">Jam Diajukan</th>
-                    <th class="px-1.5 py-3 text-center text-xs font-semibold whitespace-nowrap">Jam Disetujui</th>
-                    <th class="px-2.5 py-3 text-left text-xs font-semibold">Uraian Kegiatan</th>
-                    <th class="px-1 py-3 text-center text-xs font-semibold whitespace-nowrap">Data Presensi</th>
+                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Jam Diajukan</th>
+                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Jam Disetujui</th>
+                    <th class="px-3 py-3 text-left text-xs font-semibold">Uraian Kegiatan</th>
+                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Data Presensi</th>
                     <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Status</th>
                     <th class="rounded-tr-xl px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Aksi</th>
                 </tr>
