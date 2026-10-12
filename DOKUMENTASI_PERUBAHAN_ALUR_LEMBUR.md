@@ -3566,6 +3566,49 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 3 | `resources/views/ketua-tim/lembur.blade.php` | Pembaruan kelas kartu estimasi durasi `#previewDurasi` agar mempertahankan badge alert warna dinamis saat kalkulasi jam berjalan. |
 | 4 | `public/build/*` | Hasil kompilasi bundel aset produksi Vite terbaru (`app-DfUGke97.js` & `app-BWQ3dq7l.css`). |
 
+---
+
+## 72. Pemisahan Filter Bulan dan Tahun Mandiri (*Separated Month & Year Dropdowns*) serta Penyaringan Tim Aktif Anti-Duplikasi pada Halaman Pegawai (`lembur.blade.php` & `LemburController.php`)
+
+### A. Latar Belakang & Analisis Permasalahan
+1. **Duplikasi Nama Tim pada Dropdown Filter Tim Pegawai:**
+   - Pada halaman riwayat lembur pegawai (`/lembur`), kotak filter pencarian nama tim (`#searchTim`) menampilkan pilihan nama tim yang dobel, misalnya terdapat dua entri *"Tim Kerja Humas dan Protokol"*.
+   - **Akar Masalah:**
+     - Pada tabel master tim (`m_tim`), terdapat dua entri tim dengan nama sama persis: satu tim lama berstatus `nonaktif` (kode tim `g2YxkEobQKMqwrm6`) dan satu tim baru berstatus `aktif` (kode tim `Nk4gqMRON5kEK8b9`).
+     - Di method `LemburController::timPegawai()`, kueri yang mengambil data tim dari tabel `t_anggota_tim` belum menyaring status tim aktif (`where('mt.status', 'aktif')`) dan belum menyertakan `distinct()`.
+     - Akibatnya, pegawai yang terdaftar pada kedua versi tim tersebut mendapati nama tim muncul dua kali di dropdown, padahal seluruh 20 transaksi lembur pegawai tercatat pada tim berstatus aktif.
+2. **Kebutuhan UI/UX Dropdown Bulan Ringkas & Fleksibel (Pemisahan Bulan & Tahun):**
+   - Sebelumnya, dropdown filter periode menyatukan bulan dan tahun (misal: *"Januari 2026"*, *"Februari 2026"*).
+   - Label teks yang panjang membuat baris toolbar filter menjadi padat, dan pengguna tidak dapat memilih riwayat bulan pada tahun-tahun lain secara mandiri.
+   - Sesuai arahan pengguna, dipilih **Opsi B**: memisahkan dropdown Bulan (hanya memuat nama bulan murni `"Januari"` s/d `"Desember"`) dan menyediakan dropdown Tahun mandiri (`"Semua Tahun"`, `"2026"`, dst.) dengan nilai default *"Semua Tahun"*.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penyaringan Tim Aktif & Anti-Duplikasi pada `LemburController::timPegawai()`:**
+   - Menambahkan filter kondisi `->where('mt.status', 'aktif')` dan `->distinct()` pada kueri `timPegawai()`.
+   - Menjamin hanya tim berstatus aktif dan unik yang dikirimkan ke frontend, sehingga opsi dropdown tim bersih tanpa ada nama yang dobel.
+2. **Pemisahan Filter Bulan dan Tahun pada Toolbar (`lembur.blade.php`):**
+   - Dropdown `#filterBulan`: Menampilkan opsi *"Semua Bulan"* dan nama bulan bersih dari `"Januari"` hingga `"Desember"` dengan *value* digit dua digit (`'01'` - `'12'`).
+   - Dropdown `#filterTahun`: Diletakkan berdampingan tepat di sebelah filter bulan, menampilkan opsi *"Semua Tahun"* (default) dan daftar tahun yang diambil secara dinamis dari database (`$daftarTahun`).
+   - Keduanya terhubung ke fungsi `onchange="gantiFilter(...)"` yang mempertahankan parameter URL lain saat berpindah opsi dan mereset pagination halaman ke awal (`page=1`).
+3. **Logika Filter Fleksibel & Backward Compatibility pada `LemburController::index()`:**
+   - Menangkap parameter URL `bulan` dan `tahun` secara independen.
+   - Mendukung kompatibilitas format lama `YYYY-MM` (seperti yang dipakai di bookmark atau modul Ketua Tim) sehingga tidak merusak alur kerja yang sudah ada.
+   - Kueri transaksi menyesuaikan kombinasi filter:
+     - Jika Tahun & Bulan terisi: filter rentang tanggal awal s/d akhir bulan pada tahun tersebut (`whereBetween`).
+     - Jika hanya Tahun terisi: filter sepanjang tahun tersebut (`whereYear`).
+     - Jika hanya Bulan terisi: filter seluruh transaksi pada bulan tersebut di semua tahun (`whereMonth`).
+     - Jika keduanya kosong: menampilkan seluruh riwayat lembur pegawai tanpa restriksi waktu.
+   - Mengambil daftar tahun unik (`$daftarTahun`) secara dinamis dari tabel `t_transaksi` untuk tahun $\ge 2020$ serta menyertakan tahun berjalan (`now()->year`).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Penambahan `where('mt.status', 'aktif')` dan `distinct()` pada `timPegawai()`; penanganan parameter terpisah `bulan` & `tahun`, kueri fleksibel multi-tahun, dan ekstraksi `$daftarTahun` dinamis. |
+| 2 | `resources/views/lembur.blade.php` | Pemisahan dropdown `#filterBulan` (nama bulan bersih tanpa embel-embel tahun) dan penambahan dropdown mandiri `#filterTahun` (*"Semua Tahun"* default). |
+| 3 | `AGENTS.md` | Penambahan aturan wajib nomor 5: fokus hanya pada permintaan pengguna, larangan mengubah bagian lain tanpa izin, dan kewajiban meminta konfirmasi jika ragu. |
+| 4 | `GEMINI.md` | Penyelarasan aturan wajib nomor 5 terkait fokus perubahan dan konfirmasi pengguna. |
+
+
 
 
 

@@ -25,6 +25,12 @@ Dokumen ini berisi aturan kerja (*rules*) wajib bagi AI Agent yang bekerja di re
    * Lakukan commit secara berkala dan terpisah per unit fungsional (*discrete logical commits*) segera setelah suatu fitur, perbaikan bug, atau sub-task selesai dikerjakan dan diverifikasi.
    * **Hindari menumpuk perubahan** terlalu banyak berkas (*uncommitted changes*) secara sekaligus. Selalu pisahkan commit untuk kode fitur/logika, tampilan UI, berkas utilitas/dokumen, dan dokumentasi panduan.
 
+5. **Fokus Hanya pada yang Diminta & Konfirmasi Sebelum Mengubah Hal Lain:**
+   * AI Agent **hanya boleh memodifikasi** bagian kode atau berkas yang secara eksplisit diminta oleh pengguna.
+   * Dilarang keras mengubah, merombak, atau "merapikan" bagian lain tanpa instruksi langsung dari pengguna.
+   * Jika terdapat keraguan, bagian yang membingungkan, atau opsi implementasi pada bagian yang hendak diubah, AI Agent **wajib memberitahu pengguna dan meminta pendapat/konfirmasi pengguna terlebih dahulu**.
+
+
 
 <!-- antislop:start -->
 ## antislop

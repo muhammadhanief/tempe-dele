@@ -279,6 +279,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 177. 📄 **`resources/views/admin/lembur.blade.php`** *(Standardisasi tata letak modal `#modalAjukan` Admin ke pola fixed header, scrollable body `max-h-[90vh]`, dan pinned footer)*.
 178. 📄 **`resources/views/ketua-tim/lembur.blade.php`** *(Penyempurnaan kartu estimasi durasi berbadge warna dinamis pada form pengajuan lembur Ketua Tim)*.
 179. 📁 **`public/build/`** *(Bundel produksi Vite terbaru: `app-BWQ3dq7l.css` & `app-DfUGke97.js`)*.
+180. 📄 **`app/Http/Controllers/LemburController.php`** *(Penyaringan status aktif `where('mt.status', 'aktif')` & `distinct()` pada `timPegawai()` untuk mencegah nama tim dobel; penanganan parameter fleksibel `bulan` & `tahun`, kueri multi-tahun, dan ekstraksi `$daftarTahun` dinamis)*.
+181. 📄 **`resources/views/lembur.blade.php`** *(Pemisahan dropdown `#filterBulan` hanya menampilkan nama bulan bersih tanpa tahun, dan penambahan dropdown mandiri `#filterTahun` dengan opsi default Semua Tahun)*.
 
 ---
 
@@ -1157,6 +1159,21 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - **Verifikasi Kritis:** Bilah Footer modal dengan tombol **Batal** dan **Kirim Pengajuan** terpin kuat di dasar modal (`shrink-0`) dan **SELALU TERLIHAT JELAS 100%** di layar tanpa terdorong ke bawah atau terpotong ke luar layar monitor.
     - Verifikasi: Tombol *Hapus Tanda Tangan* terletak sejajar rapi di sudut kanan atas label *Tanda Tangan*.
     - Verifikasi: Kartu estimasi durasi lembur tampil elegan dengan indikator badge warna dinamis sesuai durasi dan ketentuan lembur.
+
+### BF. Uji Pemisahan Filter Bulan & Tahun serta Penyaringan Tim Aktif Anti-Duplikasi
+- [ ] **Uji Penyaringan Tim Aktif Tanpa Duplikasi Nama Tim (`/lembur`)**:
+  - Buka halaman **Lembur** Pegawai (`/lembur`).
+  - Klik kotak pencarian nama tim (`#searchTim`).
+  - Verifikasi: Daftar nama tim yang tampil hanya berisi tim-tim yang berstatus aktif. Tidak ada lagi nama tim yang muncul dobel (seperti *"Tim Kerja Humas dan Protokol"* yang sebelumnya muncul dua kali karena terdapat data riwayat nonaktif di database).
+- [ ] **Uji Dropdown Bulan & Tahun Terpisah (`/lembur`)**:
+  - Buka halaman **Lembur** Pegawai (`/lembur`).
+  - Verifikasi: Dropdown Bulan menampilkan pilihan *"Semua Bulan"* dan nama bulan bersih (*"Januari"*, *"Februari"*, ..., *"Desember"*) tanpa embel-embel tahun.
+  - Verifikasi: Di samping dropdown bulan, terdapat dropdown Tahun mandiri yang menampilkan *"Semua Tahun"* (terpilih secara default) serta daftar tahun dari riwayat lembur.
+  - Uji ganti pilihan Bulan (misal pilih *"Oktober"*): riwayat lembur terfilter untuk bulan Oktober.
+  - Uji ganti pilihan Tahun (misal pilih *"2026"*): riwayat lembur terfilter untuk Oktober 2026.
+  - Uji kembalikan Bulan ke *"Semua Bulan"*: riwayat lembur menampilkan seluruh transaksi pada tahun 2026.
+  - Uji kembalikan Tahun ke *"Semua Tahun"*: riwayat lembur kembali menampilkan seluruh data transaksi tanpa filter tahun.
+
 
 
 
