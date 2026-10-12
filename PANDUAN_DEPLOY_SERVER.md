@@ -286,6 +286,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 184. 📄 **`resources/views/layouts/app.blade.php`** *(Skrip sinkron pre-render di tag `<head>` untuk deteksi `sidebar_collapsed` di `localStorage` anti-flicker)*.
 185. 📄 **`resources/views/lembur.blade.php`** *(Pengembalian deklarasi tabel `min-w-[1280px]`, padding lega `px-4 py-3.5`, pembersihan tag penutup `</td>`, serta penyesuaian `@section('title', 'Lembur')` agar hierarki nama modul tidak dobel dengan header halaman)*.
 186. 📄 **`resources/views/lembur.blade.php`** *(Penataan ulang proporsi kolom tabel riwayat lembur pegawai dengan persentase terkalibrasi 100% [9.4%, 10%, 10%, 15.6%, 12%, 12.5%, 10.6%, 9.9%, 5.2%, 4.8%], padding sel ramping rapi, perbaikan double plus tombol dokumentasi, dan penyesuaian status badge agar pas 100% tanpa celah renggang dan tanpa overlap)*.
+187. 📄 **`resources/views/lembur.blade.php`** *(Penyeragaman tinggi seluruh baris tabel riwayat lembur pegawai menggunakan h-16 [64px] dan align-middle, line-clamp teks 2 baris pada Uraian, Ketua, Tim, dan Catatan, serta implementasi Modal Pop-up Detail Uraian Kegiatan lengkap dengan metadata tanggal, jam pengajuan & disetujui, ketua, tim kerja, status pengajuan, serta catatan terstruktur)*.
 
 ---
 
@@ -1209,6 +1210,22 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Lebar Asli Tabel Pengajuan Lembur Saat Sidebar Terbuka vs Tertutup**:
   - Saat sidebar ditutup: tabel pengajuan lembur memiliki bidang pandang ekstra lebar 100% layar, muat secara nyaman, lega, dan leluasa.
   - Saat sidebar dibuka: tabel memiliki scroll horizontal dan tombol geser visual yang terlindungi tanpa merusak keterbacaan data.
+
+### BI. Uji Penyeragaman Tinggi Baris Tabel (Uniform Row Height) & Modal Pop-Up Detail Uraian Kegiatan Lembur
+- [ ] **Uji Kerapian dan Keseragaman Tinggi Seluruh Baris Tabel (`/lembur`)**:
+  - Buka halaman Pengajuan Lembur Pegawai di browser laptop/desktop.
+  - Periksa baris-baris pada `#tabelLembur`: seluruh baris tabel memiliki tinggi persis sama (64px) tanpa ada baris yang mencelat tinggi atau melorot pendek.
+  - Teks pada Uraian Kegiatan, Ketua Tim, Nama Tim, dan Catatan terbatasi rapi maksimal 2 baris (`line-clamp-2`), dengan teks dan ikon vertikal di tengah (`align-middle`).
+- [ ] **Uji Interaksi & Pembukaan Modal Pop-Up Uraian Kegiatan**:
+  - Arahkan mouse ke teks Uraian Kegiatan pada sembarang baris: teks berubah menjadi warna amber dengan kursor pointer dan highlight latar belakang halus.
+  - Klik teks Uraian Kegiatan: modal pop-up `#modalDetailUraian` seketika terbuka menyajikan informasi lengkap:
+    - Metadata Tanggal Lembur, Jam Lembur (Jam Diajukan & Disetujui), Tim Kerja, Ketua Tim, dan Badge Status Pengajuan.
+    - Kotak Uraian Pekerjaan Lengkap dengan scrolling teks utuh tanpa terpotong.
+    - Seksi Catatan Ketua Tim dan Catatan Kabag jika ada catatan yang tersimpan di sistem.
+- [ ] **Uji Penutupan Modal**:
+  - Klik tombol **Tutup** atau tombol silang `(X)`: modal langsung tertutup kembali.
+  - Buka kembali modal lalu tekan tombol keyboard `Escape` atau klik area backdrop gelap: modal tertutup secara instan.
+
 
 
 

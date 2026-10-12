@@ -3745,6 +3745,40 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/lembur.blade.php` | Penerapan persentase 10 kolom terkalibrasi 100% pada `thead`, penyesuaian padding sel selaras, pencegahan tabrakan teks status, dan pembersihan tombol dokumentasi. |
 
+---
+
+## 76. Penyeragaman Tinggi & Jarak Seluruh Baris Tabel Lembur (Uniform Row Spacing) serta Implementasi Modal Pop-Up Detail Uraian Kegiatan
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Permintaan Pengguna:** Pengguna menginginkan jarak dan tinggi seluruh baris tabel pengajuan lembur seragam secara presisi (*"gas jadi jarak barisnya sama semua"*), serta tersedianya pop-up modal untuk melihat isi keseluruhan Uraian Kegiatan tanpa membuat tabel melar vertikal secara tidak merata.
+- **Penyebab Baris Tidak Seragam Sebelumnya:**
+  1. Baris yang memiliki deskripsi uraian tugas panjang, nama tim/ketua panjang, atau catatan verifikasi ketua/kabag membentang ke bawah (*text wrap* tanpa batas), sehingga satu baris bisa melonjak tinggi (80px - 100px+) sementara baris lain hanya 38px.
+  2. Perbedaan jumlah baris teks antar-kolom membuat ritme visual tabel bergelombang dan mengurangi kerapian antarmuka.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penetapan Tinggi Baris Seragam (`h-16` / 64px & `align-middle`):**
+   - Setiap elemen `<tr>` di `#tabelLembur` diberikan kelas tinggi konsisten `h-16` (64px) dengan transisi hover halus `hover:bg-slate-50/80`.
+   - Seluruh sel `<td>` diberikan perataan vertikal `align-middle` dan padding vertikal simetris `py-2.5`, sehingga baris dengan 1 baris teks maupun 2 baris teks berada persis di tengah dan memiliki ketinggian baris yang identik (64px).
+2. **Pembatasan Baris Teks (*Smart Line Clamping*):**
+   - Kolom **Uraian Kegiatan**: Dibatasi maksimal 2 baris (`line-clamp-2 leading-snug`). Jika teks lebih dari 28 karakter, muncul penanda kecil interaktif `"Lihat detail »"`.
+   - Kolom **Ketua Tim**: Dibatasi maksimal 2 baris (`line-clamp-2 leading-snug font-medium`).
+   - Kolom **Nama Tim**: Dibatasi maksimal 2 baris (`line-clamp-2 leading-snug`).
+   - Kolom **Catatan**: Kontainer dibatasi `max-h-10 overflow-hidden` dengan isi catatan ketua maupun catatan kabag masing-masing berformat `line-clamp-2 leading-snug`, mencegah catatan panjang merusak ketinggian baris.
+3. **Modal Pop-Up Detail Uraian Kegiatan (`#modalDetailUraian`):**
+   - Sel Uraian Kegiatan dijadikan kontainer interaktif (`cursor-pointer group hover:bg-amber-50/80 rounded-lg p-1 transition-all`) dengan tooltip informatif.
+   - Mengklik uraian (baik pendek maupun panjang) akan membuka modal elegan berlatar backdrop gelap dengan konten lengkap:
+     - **Header Modal**: Ikon dokumen lembur, judul *"Detail Uraian Kegiatan"*, dan tombol silang `(X)`.
+     - **Strip Metadata**: Tanggal Lembur, Jam Lembur (Jam Pengajuan & Jam Disetujui jika ada penyesuaian), Tim Kerja & Ketua Tim, serta Lencana Status Pengajuan resmi (Disetujui, Ditolak, Menunggu Kabag, dll).
+     - **Kotak Uraian Pekerjaan Lengkap**: Kontainer berlatar putih bersih dengan batas scroll halus (`max-h-56 overflow-y-auto whitespace-pre-line`) untuk menyajikan keseluruhan deskripsi pekerjaan lembur.
+     - **Seksi Catatan / Keterangan**: Otomatis muncul jika ada Catatan Ketua Tim atau Catatan Kepala Bagian Umum, disajikan dalam kartu berarsitektur terpisah.
+     - **Tombol Tutup**: Tombol tutup rapi di bagian bawah, serta dukungan penutupan instan melalui tombol keyboard `Escape` dan klik pada backdrop luar.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penerapan `h-16`, `align-middle`, dan `py-2.5` pada baris tabel; pembatasan `line-clamp-2` pada seluruh kolom teks; penyematan event trigger `openModalUraian(this)`; penambahan markup modal `#modalDetailUraian`; serta fungsi JavaScript `window.openModalUraian` dan `window.closeModalUraian`. |
+
+
 
 
 
