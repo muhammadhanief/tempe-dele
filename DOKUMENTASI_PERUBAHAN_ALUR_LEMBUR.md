@@ -4059,3 +4059,41 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 2 | `resources/views/admin/lembur.blade.php` | Menghapus label teks `<span>Aksi</span>` dan mengubah tombol aksi tabel menjadi tombol icon-only h-7 w-7 terpusat dengan tooltip title `Kelola & Aksi Pengajuan`. |
 | 3 | `resources/views/admin/pengajuan.blade.php` | Menghapus label teks aksi pada kartu linimasa dan AJAX update, distandarkan menjadi tombol icon-only h-8 w-8 dengan tooltip title dinamis. |
 
+---
+
+## 83. Penyempurnaan Lebar Kolom Status dan Jarak Spasi Bebas Kolom Aksi pada Tabel Ketua Tim (`/ketua-tim/pengajuan`)
+
+### A. Latar Belakang Masalah (Bug "Nempel" & Teks Terpotong)
+1. **Badge Status "Menunggu Kabag" Meluap & Bertabrakan dengan Tombol Aksi**:
+   - Pada pengujian antarmuka riil resolusi laptop 1280×800 / 1366×768 (lebar kontainer ~980px - 1050px), kolom **Status** sebelumnya hanya dialokasikan bobot `9%` (`w-24` / ~89px–94px).
+   - Elemen badge status panjang seperti `"Menunggu Kabag"` (`bg-blue-50 text-blue-700`) memiliki lebar konten riil sebesar **113px**.
+   - Akibatnya pada tabel berkategori `table-fixed`, badge tersebut meluap (*overflow*) keluar dari batas sel kolom Status dan menimpa sel kolom Aksi di sampingnya. Hal ini menyebabkan huruf akhir terpotong (tampak menjadi `"Menunggu Kaba"`) dan batas kanan badge menempel rapat (*gap 0px*) dengan tombol ikon pensil aksi.
+2. **Kerapatan Header Tanggal dan Kolom Jam**:
+   - Elemen dropdown penyortiran `<select id="headerSortTanggal">` di dalam header kolom Tanggal sebelumnya memakan ruang horizontal yang mendesak kolom Jam Diajukan dan Jam Disetujui, sehingga judul kolom header tampak bertumpukan tanpa ruang napas yang cukup.
+
+### B. Solusi & Rincian Implementasi
+1. **Rebalancing Distribusi Persentase Kolom (`colgroup`) Pas 100% di Layar Laptop**:
+   - Kolom **Status** diperlebar dari `9%` menjadi **`16.5%`** (`w-36` / ~162px). Dengan alokasi ini, badge `"Menunggu Kabag"` (113px) memiliki ruang sisa lega sebesar ~50px sehingga tampil utuh tanpa terpotong dan berjarak nyaman dari sel berikutnya.
+   - Kolom **Aksi** disesuaikan secara proporsional menjadi **`7.5%`** (`w-16` / ~74px–80px), memberikan ruang pemusatan simetris yang ideal bagi tombol ikon `h-7 w-7` (28px).
+   - Pengukuran komputasi DOM browser membuktikan jarak bersih (*gap*) antara ujung kanan badge `"Menunggu Kabag"` dengan tombol ikon pensil Aksi kini mencapai **54px** (sebelumnya -5px / menempel bertabrakan).
+   - Mengoptimalkan bobot kolom lain agar tabel tetap **pas 100% tanpa memicu horizontal scrollbar** pada desktop/laptop (`scrollWidth: 1045px == clientWidth: 1045px`):
+     - `No`: `4%` (`w-10`)
+     - `Nama Pegawai`: `18.5%` (`w-40`)
+     - `Tanggal`: `11.5%` (`w-28`)
+     - `Jam Diajukan`: `9.5%` (`w-24`)
+     - `Jam Disetujui`: `9.5%` (`w-24`)
+     - `Uraian Kegiatan`: `16.5%` (`w-44`)
+     - `Data Presensi`: `6.5%` (`w-16`)
+     - `Status`: `16.5%` (`w-36`)
+     - `Aksi`: `7.5%` (`w-16`)
+     - **Total: 100% Presisi**.
+2. **Penyempurnaan Padding & Tipografi Dropdown Header**:
+   - Mengatur padding dropdown sort tanggal menjadi `text-[10px]` dan padding `pr-3.5`, serta mengatur `px-1.5` pada header jam agar setiap judul kolom memiliki ruang pemisah visual yang rapi.
+   - Mengatur `min-w-[860px] lg:min-w-full` agar di mobile tetap memanfaatkan fitur sticky solid scroll dengan nyaman, sementara di laptop/desktop tabel membentang rapi memenuhi lebar kontainer.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Mengoptimasi colgroup tabel pengajuan (Status 16.5%, Aksi 7.5%), menghilangkan overflow badge Menunggu Kabag, menciptakan jarak bebas 54px ke tombol aksi, dan merapikan header kolom tanpa scroll horizontal di desktop. |
+
+

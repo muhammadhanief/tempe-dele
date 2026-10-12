@@ -295,6 +295,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 193. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Standardisasi tombol Aksi [Proses & Koreksi] di tabel dan linimasa menjadi tombol icon-only h-7 w-7 / h-8 w-8 tanpa teks label dengan tooltip title dan sinkronisasi AJAX real-time)*.
 194. 📄 **`resources/views/admin/lembur.blade.php`** *(Standardisasi tombol Aksi di tabel monitoring lembur admin menjadi tombol icon-only h-7 w-7 terpusat tanpa teks label Aksi)*.
 195. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Standardisasi tombol aksi kartu linimasa dan script keputusan AJAX menjadi tombol icon-only h-8 w-8 dengan tooltip title dinamis)*.
+196. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Optimasi colgroup tabel persetujuan pengajuan ketua tim: Status 16.5% dan Aksi 7.5%, eliminasi overflow badge Menunggu Kabag, penciptaan jarak bebas 54px ke tombol aksi, dan perataan kolom pas 100% di desktop tanpa scroll horizontal)*.
 
 ---
 
@@ -1328,3 +1329,15 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Tombol Aksi Icon-Only pada Mode Linimasa (Timeline Card Footer)**:
   - Pada halaman `/ketua-tim/pengajuan` dan `/admin/pengajuan`, alihkan mode tampilan ke **Timeline**.
   - Periksa footer setiap kartu pengajuan: tombol tindakan di sisi kanan kartu tersaji berupa tombol rounded-xl (`h-8 w-8`) icon-only yang ringkas dan proporsional tanpa tulisan yang memadati kartu.
+
+### BP. Uji Bebas Tabrakan Kolom Status & Aksi pada Tabel Ketua Tim (`/ketua-tim/pengajuan`)
+- [ ] **Uji Kerapian Badge Status Panjang & Jarak ke Tombol Aksi**:
+  - Masuk sebagai akun Ketua Tim (misal: Bpk. Sumbodo Aji / Bpk. Joko Suwarjo), buka halaman **Persetujuan Pengajuan Lembur** (`/ketua-tim/pengajuan`) di laptop resolusi standar 1280×800.
+  - Periksa baris berstatus `menunggu_kabag`:
+    - Verifikasi: Badge status biru tampil utuh bertuliskan **"Menunggu Kabag"** tanpa ada huruf yang terpotong menjadi *"Menunggu Kaba"*.
+    - Verifikasi: Terdapat jarak pemisah bebas yang lega (berkisar 54px) antara sisi kanan badge status dan tombol ikon pensil aksi di kolom Aksi. Tidak ada elemen yang saling bertumpuk atau menempel.
+  - Periksa baris berstatus `pending`: badge lencana *"Menunggu"* berjarak lega dari tombol ikon aksi amber BPS.
+- [ ] **Uji Keterbacaan Header Tanggal & Jam Tanpa Horizontal Scroll di Desktop**:
+  - Periksa seluruh 9 kolom tabel pada layar desktop: tabel membentang pas 100% mengisi kontainer tanpa memicu bilah geser horizontal (`scrollWidth == clientWidth`).
+  - Header kolom **Tanggal** beserta dropdown sort *"Terbaru/Terlama/Prioritas"* tersaji rapi dan tidak mendesak header kolom **Jam Diajukan** dan **Jam Disetujui**.
+
