@@ -4232,13 +4232,17 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
      - **Pegawai:** [resources/views/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/lembur.blade.php)
      - **Ketua Tim (Lembur Mandiri):** [resources/views/ketua-tim/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/ketua-tim/lembur.blade.php)
      - **Admin (Lembur Mandiri):** [resources/views/admin/lembur.blade.php](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/lembur.blade.php)
+5. **Penyelarasan Alinyemen Atas-Bawah & Pelebaran Spacing Antar-Elemen (`justify-between` & `py-2.5`):**
+   - Menyelaraskan batas atas dan batas bawah kolom kiri dan kolom kanan menggunakan `flex flex-col justify-between h-full space-y-3.5 md:space-y-0` pada grid `gap-x-7 gap-y-4`.
+   - Pada kolom kiri: batas atas (label Ketua Tim) sejajar presisi dengan batas atas kolom kanan (label Uraian Kegiatan). Batas bawah (kotak input Jam Mulai/Selesai & banner Estimasi Durasi) sejajar presisi dengan batas bawah kolom kanan (garis bawah kotak tanda tangan digital).
+   - Memperlebar ruang sela dan ketinggian input kolom kiri (`py-2.5`, `mb-1.5`) sehingga mengeliminasi ruang kosong canggung di sudut kiri bawah, menghasilkan komposisi visual yang simetris, lapang, dan seimbang.
 
 ### C. Berkas yang Diperbarui
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
-| 1 | `resources/views/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` menjadi 2-kolom desktop zero-scroll (`max-w-3xl lg:max-w-4xl`, `md:grid-cols-2`), textarea uraian rows=3, kanvas tanda tangan h-28, eliminasi scrollbar vertikal pada layar desktop. |
-| 2 | `resources/views/ketua-tim/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Ketua Tim menjadi 2-kolom desktop zero-scroll identik. |
-| 3 | `resources/views/admin/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Administrator menjadi 2-kolom desktop zero-scroll identik. |
+| 1 | `resources/views/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` menjadi 2-kolom desktop zero-scroll (`max-w-3xl lg:max-w-4xl`, `md:grid-cols-2`), alinyemen atas-bawah presisi `justify-between h-full`, input lapang `py-2.5`, textarea uraian rows=3, kanvas tanda tangan h-28, eliminasi scrollbar vertikal pada layar desktop. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Ketua Tim menjadi 2-kolom desktop zero-scroll dan alinyemen atas-bawah `justify-between` identik. |
+| 3 | `resources/views/admin/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Administrator menjadi 2-kolom desktop zero-scroll dan alinyemen atas-bawah `justify-between` identik. |
 
 
 

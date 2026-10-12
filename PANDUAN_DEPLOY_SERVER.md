@@ -1384,6 +1384,10 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Responsif Mobile (< 768px)**:
   - Buka dialog modal pada mode inspeksi mobile (lebar layar 375px atau 414px):
   - Verifikasi: Formulir secara otomatis mengalir kembali (*reflow*) menjadi 1 kolom vertikal yang dapat digulir secara wajar (`overflow-y-auto`) demi kenyamanan pengisian di layar sentuh.
+- [ ] **Uji Alinyemen Atas-Bawah & Keseimbangan Kolom Kiri-Kanan**:
+  - Verifikasi: Batas atas kolom kiri (Ketua Tim) sejajar rapi dengan kolom kanan (Uraian Kegiatan).
+  - Verifikasi: Batas bawah kolom kiri (Jam Mulai/Selesai & Estimasi Durasi) sejajar horizontal dengan batas bawah kolom kanan (Kotak Tanda Tangan Digital).
+  - Verifikasi: Jarak antar-elemen di kolom kiri lapang dan proporsional (`justify-between`, `py-2.5`), mengeliminasi ruang kosong canggung di sudut kiri bawah.
 
 
 
