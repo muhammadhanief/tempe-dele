@@ -291,6 +291,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 189. 📄 **`resources/views/lembur.blade.php`** *(Kalibrasi persentase kolom thead anti-tabrakan [8.5%, 9.5%, 9.5%, 15.0%, 12.0%, 13.0%, 10.5%, 8.5%, 9.0%, 4.5%], pembersihan baris ketiga teks lihat detail pada uraian kegiatan menjadi ikon pop-up inline tanpa baris ganjil, dan penataan font 11px tracking-tight agar tabel 100% fit dan rapi baik saat sidebar terbuka maupun tertutup)*.
 190. 📄 **`resources/views/lembur.blade.php`** *(Penyempurnaan tampilan responsif mobile halaman lembur: reflow filter toolbar ke grid 2 kolom simetris pada layar seluler, batas lebar tabel min-width 1020px anti-tabrakan kolom jam dan teks uraian, sinkronisasi indikator geser horizontal real-time 0%-100%, serta inisialisasi default cerdas mode timeline pada layar smartphone < 640px)*.
 191. 📄 **`resources/views/lembur.blade.php`** *(Penerapan kolom Tanggal sticky solid ber-border-separate yang terkunci di kiri layar saat tabel digeser, penambahan tombol navigasi cepat ‹ dan ›, mouse drag-to-scroll, dan draggable progress thumb)*.
+192. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Redesign Tabel Persetujuan Pengajuan Ketua Tim: Layout Desktop Pas 100% tanpa scroll horizontal dengan colgroup proporsional [4%, 19%, 13%, 9%, 9%, 20%, 9%, 9%, 8%], penyederhanaan header Tanggal, Kolom No dan Nama Pegawai Sticky Solid di mobile [left-0 dan left-12] dengan batas vertikal dan bayangan elevasi halus, pembatasan uraian ke line-clamp-2 h-16 berseragam, implementasi modal pop-up interaktif detail uraian tugas lengkap dengan status dan catatan, serta sinkronisasi realtime atribut baris data setelah keputusan disimpan)*.
 
 ---
 
@@ -1286,18 +1287,25 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Tahan klik mouse pada sembarang area tabel dan seret ke kiri/kanan: tabel bergeser mulus tanpa memblokir teks.
   - Tahan dan seret bilah thumb oranye pada scrollbar indikator: tabel bergeser presisi mengikuti posisi tarikan.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### BN. Uji Redesign Tabel Persetujuan Pengajuan Ketua Tim (`/ketua-tim/pengajuan`): Layout Desktop Pas 100%, Mobile Sticky Column, dan Modal Detail Uraian
+- [ ] **Uji Tampilan Desktop Pas 100% Tanpa Horizontal Scrollbar**:
+  - Masuk sebagai akun Ketua Tim (misal: Bpk. Joko Suwarjo / `nip=197106131993121001`), buka halaman **Persetujuan Pengajuan Lembur** (`/ketua-tim/pengajuan`) di layar laptop/desktop (viewport $\ge 1024\text{px}$).
+  - Verifikasi: Seluruh 9 kolom tabel (No, Nama Pegawai, Tanggal, Jam Diajukan, Jam Disetujui, Uraian Kegiatan, Data Presensi, Status, Aksi) muat pas 100% di dalam kontainer tabel tanpa memunculkan bilah geser horizontal.
+  - Verifikasi: Kolom Status dan tombol Aksi (tombol "Proses Keputusan" atau "Koreksi Keputusan") langsung tampak jelas di sisi kanan tanpa perlu digeser.
+  - Verifikasi: Header kolom Tanggal dan dropdown sortir (Terbaru/Terlama/Prioritas) tersaji rapi dalam batas kolom tanpa meluap ke kolom jam.
+- [ ] **Uji Kolom No dan Nama Pegawai Sticky Solid di Layar Mobile**:
+  - Buka halaman `/ketua-tim/pengajuan` di smartphone atau mode responsive browser (lebar 375px s.d. 420px).
+  - Geser tabel ke arah kanan:
+    - Verifikasi: Kolom **No** (`left-0`) dan **Nama Pegawai** (`left-12`) tetap membeku menempel stabil di sisi kiri layar (*sticky*).
+    - Verifikasi: Latar belakang kedua kolom solid (`bg-white` pada baris ganjil, `bg-slate-50/70` pada baris genap, `bg-slate-50` pada header) dengan garis pemisah vertikal dan bayangan elevasi halus di sisi kanan kolom Nama Pegawai.
+    - Verifikasi: Teks kolom Tanggal, Jam, Presensi, Status, dan Aksi meluncur mulus di belakang kolom Nama Pegawai tanpa ada teks yang bocor atau tembus pandang di celah antar-kolom.
+- [ ] **Uji Kerapian Baris Tabel & Modal Pop-Up Detail Uraian Kegiatan**:
+  - Periksa baris-baris pada tabel pengajuan ketua tim: tinggi baris seragam rapi (`h-16` / 64px) dengan teks uraian kegiatan terbatasi maksimal 2 baris (`line-clamp-2`) dan tanda ikon pop-up `↗`.
+  - Klik teks uraian kegiatan pada sembarang baris:
+    - Verifikasi: Modal pop-up `#modalDetailUraian` terbuka dengan transisi halus.
+    - Verifikasi: Menampilkan informasi lengkap pegawai (Nama, NIP/NIP Lama), Tanggal Lembur, Jam Lembur, Jam Disetujui, Status Pengajuan, Kotak Uraian Pekerjaan utuh tanpa terpotong, dan Catatan Terstruktur (Catatan Ketua Tim dan Catatan Kabag Umum jika ada).
+  - Tutup modal menggunakan tombol **Tutup**, tombol silang `(X)`, tombol keyboard `Escape`, atau klik di luar modal (backdrop).
+- [ ] **Uji Sinkronisasi Real-Time Atribut Baris Setelah Keputusan Disimpan**:
+  - Buka modal keputusan pengajuan, lakukan penyesuaian jam atau persetujuan, lalu klik **Simpan Keputusan**.
+  - Verifikasi: Setelah AJAX berhasil tersimpan dan alert sukses tertutup, elemen baris tabel ter-update secara otomatis tanpa reload halaman, dan jika teks uraian diklik kembali, modal detail uraian langsung mencerminkan status, jam disetujui, serta catatan yang baru diperbarui.
 

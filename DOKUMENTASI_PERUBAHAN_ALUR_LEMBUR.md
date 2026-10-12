@@ -3976,6 +3976,57 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/lembur.blade.php` | Kolom tanggal sticky solid border-separate, tombol navigasi langkah ‹ dan ›, drag-to-scroll mouse/touch, dan draggable progress thumb. |
 
+---
+
+## 81. Redesign Tabel Persetujuan Pengajuan Ketua Tim (`/ketua-tim/pengajuan`): Layout Desktop Pas 100%, Mobile Sticky Column, dan Modal Detail Uraian
+
+### A. Latar Belakang & Permasalahan
+1. **Kolom Terpotong di Desktop:**
+   - Tabel persetujuan pengajuan ketua tim sebelumnya dipaksa memiliki `min-w-[1180px]`.
+   - Pada layar laptop/desktop standar (1280px s.d. 1366px dengan sidebar terbuka), kolom krusial seperti **Data Presensi**, **Status**, dan tombol **Aksi (Proses / Koreksi)** terpotong ke kanan dan tersembunyi di balik scrollbar horizontal.
+   - Ketua Tim harus menggeser horizontal setiap kali ingin melihat status dan menyetujui pengajuan anggota tim.
+2. **Kehilangan Konteks Pegawai di Layar Seluler (Mobile):**
+   - Di layar ponsel, tabel 9 kolom melebar jauh ke kanan tanpa sticky column.
+   - Saat digeser ke kanan untuk menekan tombol aksi "Proses", nama pegawai lenyap dari pandangan sehingga berisiko salah memproses pengajuan.
+3. **Tinggi Baris Tidak Rapi:**
+   - Uraian kegiatan anggota tim yang bervariasi (1 hingga 4 baris teks) membuat tinggi baris tabel naik-turun dan tidak seragam.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Layout Desktop Pas 100% Menggunakan `<colgroup>` Proporsional (`table-fixed`):**
+   - Menghapus pembatas kaku `min-w-[1180px]` dan menggantinya dengan:
+     ```blade
+     <table class="w-full text-left text-xs min-w-[900px] lg:min-w-full table-fixed">
+         <colgroup>
+             <col class="w-12 lg:w-[4%]">
+             <col class="w-44 lg:w-[19%]">
+             <col class="w-32 lg:w-[13%]">
+             <col class="w-24 lg:w-[9%]">
+             <col class="w-24 lg:w-[9%]">
+             <col class="w-56 lg:w-[20%]">
+             <col class="w-24 lg:w-[9%]">
+             <col class="w-24 lg:w-[9%]">
+             <col class="w-20 lg:w-[8%]">
+         </colgroup>
+     ```
+   - Di layar desktop (`lg:` ke atas), tabel mengisi 100% ruang kontainer secara presisi. Seluruh 9 kolom (No, Nama Pegawai, Tanggal, Jam Diajukan, Jam Disetujui, Uraian, Data Presensi, Status, Aksi) **langsung terlihat secara utuh tanpa horizontal scrollbar**.
+   - Menyederhanakan label header tanggal menjadi `<span>Tanggal</span>` sehingga dropdown penyortiran tidak lagi meluap ke kolom jam di sampingnya.
+2. **Penerapan Kolom Sticky Solid di Layar Seluler (`sticky lg:static`):**
+   - Kolom **No** dikunci pada `sticky lg:static left-0 z-30/z-20` dengan latar solid `bg-gray-100` (header) dan `bg-white` (body baris).
+   - Kolom **Nama Pegawai** dikunci pada `sticky lg:static left-12 lg:left-auto z-30/z-20` berjarak tepat 48px dari sisi kiri, dilengkapi pembatas vertikal `border-r border-gray-200/90` dan bayangan kedalaman `shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)]`.
+   - Di desktop, kelas `lg:static lg:left-auto lg:shadow-none` menonaktifkan posisi sticky sehingga kolom mengalir normal tanpa pergeseran offset.
+   - **Hasil di Mobile:** Saat tabel digeser ke arah kanan, kolom No dan Nama Pegawai membeku di sisi kiri layar dengan bersih tanpa kebocoran teks baris di celahnya.
+3. **Uraian Tugas Ringkas Seragam (`line-clamp-2`, `h-16`) & Modal Detail Interaktif:**
+   - Teks uraian kegiatan dibatasi maksimal 2 baris (`line-clamp-2`) dan baris tabel distandarkan dengan tinggi `h-16` serta perataan vertikal `align-middle`.
+   - Setiap kotak uraian dilengkapi event klik `openModalUraian(this)` yang memuat atribut data pengajuan lengkap.
+   - Menambahkan komponen modal pop-up `#modalDetailUraian` yang menampilkan kartu profil pegawai, NIP, tanggal, jam diajukan, jam disetujui, tim kerja, status, uraian pekerjaan utuh yang nyaman dibaca, serta riwayat catatan Ketua Tim maupun Kabag Umum.
+   - Menghubungkan fungsi `openModalUraian`, `closeModalUraian`, dan tombol keyboard `Escape` untuk menutup modal.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Redesign tabel pengajuan ketua tim dengan colgroup proporsional 100% pas di desktop, mobile sticky column No & Nama Pegawai (left-12 solid), uraian tugas line-clamp-2 (h-16), modalDetailUraian interaktif, dan sinkronisasi real-time simpanKeputusan. |
+
+
 
 
 
