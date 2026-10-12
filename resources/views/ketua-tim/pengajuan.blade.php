@@ -428,22 +428,22 @@
                             @if($p->status === 'pending')
                                 <button type="button"
                                     onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
-                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
+                                    title="Proses Keputusan Pengajuan">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                    <span>Proses</span>
                                 </button>
                             @elseif($p->status === 'cancelled')
                                 <span class="text-slate-400 text-xs italic">-</span>
                             @else
                                 <button type="button"
                                     onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
-                                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
+                                    title="Koreksi Keputusan Pengajuan">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                                     </svg>
-                                    <span>Koreksi</span>
                                 </button>
                             @endif
                         </td>
@@ -666,22 +666,22 @@
                                             @if($p->status === 'pending')
                                                 <button type="button"
                                                     onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
-                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#faa938] text-white hover:bg-[#fd9a10] shadow-2xs hover:shadow transition-all cursor-pointer">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
+                                                    class="inline-flex items-center justify-center h-8 w-8 rounded-xl text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] shadow-2xs hover:shadow transition-all cursor-pointer group"
+                                                    title="Proses Keputusan Pengajuan">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                     </svg>
-                                                    <span>Proses</span>
                                                 </button>
                                             @elseif($p->status === 'cancelled')
                                                 <span class="text-slate-500 text-xs italic">Dibatalkan</span>
                                             @else
                                                 <button type="button"
                                                     onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
-                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    class="inline-flex items-center justify-center h-8 w-8 rounded-xl text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+                                                    title="Koreksi Keputusan Pengajuan">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                                                     </svg>
-                                                    <span>Koreksi</span>
                                                 </button>
                                             @endif
                                         </div>
@@ -1869,11 +1869,11 @@ window.simpanKeputusan = function() {
             const presensiFlag = currentHasPresensi ? 1 : 0;
             aksiElement.innerHTML = `
                 <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}", ${safeKabagProcessed})'
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
+                    title="Koreksi Keputusan Pengajuan">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                     </svg>
-                    <span>Koreksi</span>
                 </button>
             `;
         }
@@ -1927,11 +1927,11 @@ window.simpanKeputusan = function() {
             const presensiFlag = currentHasPresensi ? 1 : 0;
             aksiTimelineEl.innerHTML = `
                 <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}", ${safeKabagProcessed})'
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    class="inline-flex items-center justify-center h-8 w-8 rounded-xl text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+                    title="Koreksi Keputusan Pengajuan">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                     </svg>
-                    <span>Koreksi</span>
                 </button>
             `;
         }

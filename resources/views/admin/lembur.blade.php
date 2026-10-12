@@ -635,12 +635,11 @@
                                     @if($t->status !== 'cancelled')
                                         <button type="button"
                                             onclick="openModalAksiAdmin({{ $t->id_transaksi }}, {{ json_encode($t->nama_pegawai ?? '-') }}, '{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}', {{ json_encode($t->uraian ?? '') }})"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs transition-all cursor-pointer group"
+                                            class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
                                             title="Kelola & Aksi Pengajuan">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 group-hover:text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                                             </svg>
-                                            <span>Aksi</span>
                                         </button>
                                     @else
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-gray-400 bg-gray-50 border border-gray-200/60 italic">Dibatalkan</span>
