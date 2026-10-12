@@ -4026,23 +4026,36 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Redesign tabel pengajuan ketua tim dengan colgroup proporsional 100% pas di desktop, mobile sticky column No & Nama Pegawai (left-12 solid), uraian tugas line-clamp-2 (h-16), modalDetailUraian interaktif, dan sinkronisasi real-time simpanKeputusan. |
 
+---
 
+## 82. Modernisasi Tombol Aksi Menjadi Icon-Only Tanpa Label Teks pada Modul Ketua Tim dan Administrator
 
+### A. Latar Belakang Masalah & Kebutuhan Antarmuka
+1. **Penyempitan Lebar Kolom Aksi oleh Label Teks**:
+   - Pada tabel persetujuan lembur Ketua Tim (`/ketua-tim/pengajuan`), tombol pada kolom **Aksi** sebelumnya menyertakan label teks seperti `<span>Proses</span>` (untuk status pending) dan `<span>Koreksi</span>` (untuk status lainnya).
+   - Pada tabel monitoring lembur Administrator (`/admin/lembur`), tombol pada kolom **Aksi** menyertakan teks `<span>Aksi</span>`.
+   - Keberadaan label teks ini memakan ruang horizontal yang tidak sedikit pada tabel, sehingga rentan menyebabkan teks berdempetan atau menekan kolom lainnya pada resolusi laptop standar.
+2. **Kebutuhan Standardisasi Visual Antarmuka (SaaS Modern Ala Linear/Notion)**:
+   - Sesuai dengan desain tombol edit icon-only pada halaman lembur pegawai (`/lembur`) yang menggunakan tombol kotak rounded `h-7 w-7` dengan ikon pensil/tindakan yang bersih dan terpusat (`mx-auto`), pengguna menginstruksikan agar tombol aksi di Ketua Tim dan Admin juga diubah menjadi **hanya ikon saja tanpa teks tulisan**.
 
+### B. Solusi & Rincian Implementasi
+1. **Halaman Persetujuan Pengajuan Ketua Tim (`resources/views/ketua-tim/pengajuan.blade.php`)**:
+   - **Tabel Standar (`#tabelPengajuan`)**:
+     - Status `pending`: Tombol aksi diubah menjadi icon-only kotak rounded beraksen amber BPS (`inline-flex items-center justify-center h-7 w-7 rounded-lg bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] shadow-2xs hover:shadow-xs`) dengan ikon pena/tindakan `h-3.5 w-3.5` dan atribut `title="Proses Keputusan Pengajuan"`.
+     - Status lainnya: Tombol aksi diubah menjadi icon-only kotak rounded putih bergaris batas halus (`inline-flex items-center justify-center h-7 w-7 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs`) dengan ikon pensil koreksi `h-3.5 w-3.5` dan atribut `title="Koreksi Keputusan Pengajuan"`.
+   - **Sinkronisasi AJAX (`simpanKeputusan`)**:
+     - Memperbarui kode injeksi DOM JavaScript `aksiElement.innerHTML` agar setelah disimpan secara asinkron, elemen tombol yang digenerate ulang tetap berformat icon-only `h-7 w-7` dengan tooltip title yang tepat.
+   - **Tampilan Linimasa (`#viewContainerTimeline`)**:
+     - Tombol aksi pada footer kartu linimasa (`#aksi-timeline-${p->id_transaksi}`) dan skrip AJAX `aksiTimelineEl.innerHTML` diselaraskan menjadi icon-only tombol rounded-xl (`h-8 w-8`) dengan micro-interaction zoom saat di-hover (`group-hover:scale-110`).
+2. **Halaman Monitoring Lembur Admin (`resources/views/admin/lembur.blade.php`)**:
+   - Pada baris data `#tabelLembur` (kolom Aksi `#aksi-cell-${t->id_transaksi}`), tombol diubah dari sebelumnya memiliki `<span>Aksi</span>` menjadi tombol icon-only elegan `h-7 w-7 rounded-lg text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs mx-auto` dengan tooltip `title="Kelola & Aksi Pengajuan"`.
+3. **Halaman Persetujuan Pengajuan Admin (`resources/views/admin/pengajuan.blade.php`)**:
+   - Menyelaraskan tombol aksi pada kartu linimasa (`#aksi-timeline-${p->id_transaksi}`) dan JavaScript pembaruan keputusan AJAX menjadi format icon-only tombol rounded-xl (`h-8 w-8`) dengan tooltip title dinamis sesuai status keputusan yang diambil.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Mengubah tombol kolom Aksi (Proses & Koreksi) di tabel dan linimasa menjadi tombol icon-only (h-7 w-7 / h-8 w-8) dengan tooltip title dan sinkronisasi AJAX real-time. |
+| 2 | `resources/views/admin/lembur.blade.php` | Menghapus label teks `<span>Aksi</span>` dan mengubah tombol aksi tabel menjadi tombol icon-only h-7 w-7 terpusat dengan tooltip title `Kelola & Aksi Pengajuan`. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Menghapus label teks aksi pada kartu linimasa dan AJAX update, distandarkan menjadi tombol icon-only h-8 w-8 dengan tooltip title dinamis. |
 

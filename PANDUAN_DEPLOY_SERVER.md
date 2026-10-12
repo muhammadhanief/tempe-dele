@@ -292,6 +292,9 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 190. 📄 **`resources/views/lembur.blade.php`** *(Penyempurnaan tampilan responsif mobile halaman lembur: reflow filter toolbar ke grid 2 kolom simetris pada layar seluler, batas lebar tabel min-width 1020px anti-tabrakan kolom jam dan teks uraian, sinkronisasi indikator geser horizontal real-time 0%-100%, serta inisialisasi default cerdas mode timeline pada layar smartphone < 640px)*.
 191. 📄 **`resources/views/lembur.blade.php`** *(Penerapan kolom Tanggal sticky solid ber-border-separate yang terkunci di kiri layar saat tabel digeser, penambahan tombol navigasi cepat ‹ dan ›, mouse drag-to-scroll, dan draggable progress thumb)*.
 192. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Redesign Tabel Persetujuan Pengajuan Ketua Tim: Layout Desktop Pas 100% tanpa scroll horizontal dengan colgroup proporsional [4%, 19%, 13%, 9%, 9%, 20%, 9%, 9%, 8%], penyederhanaan header Tanggal, Kolom No dan Nama Pegawai Sticky Solid di mobile [left-0 dan left-12] dengan batas vertikal dan bayangan elevasi halus, pembatasan uraian ke line-clamp-2 h-16 berseragam, implementasi modal pop-up interaktif detail uraian tugas lengkap dengan status dan catatan, serta sinkronisasi realtime atribut baris data setelah keputusan disimpan)*.
+193. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Standardisasi tombol Aksi [Proses & Koreksi] di tabel dan linimasa menjadi tombol icon-only h-7 w-7 / h-8 w-8 tanpa teks label dengan tooltip title dan sinkronisasi AJAX real-time)*.
+194. 📄 **`resources/views/admin/lembur.blade.php`** *(Standardisasi tombol Aksi di tabel monitoring lembur admin menjadi tombol icon-only h-7 w-7 terpusat tanpa teks label Aksi)*.
+195. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Standardisasi tombol aksi kartu linimasa dan script keputusan AJAX menjadi tombol icon-only h-8 w-8 dengan tooltip title dinamis)*.
 
 ---
 
@@ -1309,3 +1312,19 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Buka modal keputusan pengajuan, lakukan penyesuaian jam atau persetujuan, lalu klik **Simpan Keputusan**.
   - Verifikasi: Setelah AJAX berhasil tersimpan dan alert sukses tertutup, elemen baris tabel ter-update secara otomatis tanpa reload halaman, dan jika teks uraian diklik kembali, modal detail uraian langsung mencerminkan status, jam disetujui, serta catatan yang baru diperbarui.
 
+### BO. Uji Standardisasi Tombol Aksi Icon-Only Tanpa Label Teks (Ketua Tim & Administrator)
+- [ ] **Uji Tombol Kolom Aksi Icon-Only pada Tabel Ketua Tim (`/ketua-tim/pengajuan`)**:
+  - Buka `/ketua-tim/pengajuan` di browser laptop/desktop.
+  - Periksa kolom **Aksi**:
+    - Baris berstatus `pending`: Tombol tampil berupa kotak rounded beraksen amber (`h-7 w-7 rounded-lg`) dengan **hanya ikon tindakan tanpa teks kata "Proses"**. Arahkan mouse (hover): muncul tooltip *"Proses Keputusan Pengajuan"*.
+    - Baris selain `pending`: Tombol tampil berupa kotak rounded putih bergaris batas halus (`h-7 w-7 rounded-lg`) dengan **hanya ikon pensil tanpa teks kata "Koreksi"**. Arahkan mouse (hover): muncul tooltip *"Koreksi Keputusan Pengajuan"*.
+    - Tombol terpusat rapi simetris di tengah kolom Aksi (`mx-auto`).
+  - Lakukan simpan keputusan via modal AJAX: setelah modal tertutup, verifikasi tombol aksi pada baris tersebut tetap dirender ulang dalam format *icon-only* yang konsisten tanpa merusak tata letak.
+- [ ] **Uji Tombol Kolom Aksi Icon-Only pada Tabel Monitoring Admin (`/admin/lembur`)**:
+  - Masuk sebagai Administrator, buka menu **Kelola Lembur** (`/admin/lembur`).
+  - Periksa kolom **Aksi**: tombol tindakan pengajuan berstatus aktif tampil berupa tombol kotak rounded (`h-7 w-7 rounded-lg`) dengan **hanya ikon pensil tindakan tanpa teks kata "Aksi"**.
+  - Arahkan kursor mouse (hover): muncul tooltip *"Kelola & Aksi Pengajuan"* dan ikon membesar halus (`group-hover:scale-110`).
+  - Klik tombol: modal aksi admin terbuka secara lancar.
+- [ ] **Uji Tombol Aksi Icon-Only pada Mode Linimasa (Timeline Card Footer)**:
+  - Pada halaman `/ketua-tim/pengajuan` dan `/admin/pengajuan`, alihkan mode tampilan ke **Timeline**.
+  - Periksa footer setiap kartu pengajuan: tombol tindakan di sisi kanan kartu tersaji berupa tombol rounded-xl (`h-8 w-8`) icon-only yang ringkas dan proporsional tanpa tulisan yang memadati kartu.
