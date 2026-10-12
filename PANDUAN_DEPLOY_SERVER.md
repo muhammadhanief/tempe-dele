@@ -289,6 +289,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 187. 📄 **`resources/views/lembur.blade.php`** *(Penyeragaman tinggi seluruh baris tabel riwayat lembur pegawai menggunakan h-16 [64px] dan align-middle, line-clamp teks 2 baris pada Uraian, Ketua, Tim, dan Catatan, serta implementasi Modal Pop-up Detail Uraian Kegiatan lengkap dengan metadata tanggal, jam pengajuan & disetujui, ketua, tim kerja, status pengajuan, serta catatan terstruktur)*.
 188. 📄 **`resources/views/lembur.blade.php`** *(Pembaruan kolom Dokumentasi lengkap tanpa singkatan, tombol + Dokumentasi oranye amber, tautan eksternal Lihat dengan hapus terproteksi, penyederhanaan tombol kolom Aksi menjadi ikon pensil mandiri 28x28px tanpa teks Ubah, serta proteksi guard anti double-encode Base64 b64: pada submit listener dokumen)*.
 189. 📄 **`resources/views/lembur.blade.php`** *(Kalibrasi persentase kolom thead anti-tabrakan [8.5%, 9.5%, 9.5%, 15.0%, 12.0%, 13.0%, 10.5%, 8.5%, 9.0%, 4.5%], pembersihan baris ketiga teks lihat detail pada uraian kegiatan menjadi ikon pop-up inline tanpa baris ganjil, dan penataan font 11px tracking-tight agar tabel 100% fit dan rapi baik saat sidebar terbuka maupun tertutup)*.
+190. 📄 **`resources/views/lembur.blade.php`** *(Penyempurnaan tampilan responsif mobile halaman lembur: reflow filter toolbar ke grid 2 kolom simetris pada layar seluler, batas lebar tabel min-width 1020px anti-tabrakan kolom jam dan teks uraian, sinkronisasi indikator geser horizontal real-time 0%-100%, serta inisialisasi default cerdas mode timeline pada layar smartphone < 640px)*.
 
 ---
 
@@ -1255,6 +1256,22 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Klik tombol tutup sidebar di tepi kanan header sidebar.
   - Verifikasi: Sidebar meluncur tertutup dan area tabel otomatis melebar penuh 100% mengisi layar secara lega.
   - Verifikasi: Seluruh kolom data tersaji dengan ruang baca yang sangat luas, proporsional, dan nyaman dilihat.
+
+### BL. Uji Tampilan Responsif Mobile Halaman Lembur Pegawai (Reflow, Grid Filter, & Smart Default Timeline)
+- [ ] **Smart Default Timeline pada Smartphone**:
+  - Akses `/lembur` melalui peramban ponsel pintar atau mode responsif peramban (viewport $\le 420\text{px}$).
+  - Verifikasi: Halaman secara otomatis membuka **Timeline View** (bukan tabel spreadsheet yang lebar) secara cerdas dan elegan.
+  - Verifikasi: Kartu pengajuan tersaji vertikal dengan badge tanggal besar, garis aksis dinamis berbulatan status, uraian pekerjaan, badge jam disetujui, dan tombol aksi yang nyaman disentuh tanpa memerlukan horizontal scrolling.
+- [ ] **Kerapian Toolbar Filter 2 Kolom pada Layar Ponsel**:
+  - Verifikasi: Kotak pencarian tim berada di bagian teratas mengisi lebar penuh (100% / `col-span-2`).
+  - Verifikasi: Tombol filter tanggal berada di baris kedua mengisi lebar penuh secara simetris.
+  - Verifikasi: Dropdown Bulan dan Tahun berada berdampingan di baris ketiga (masing-masing 50% lebar layar).
+  - Verifikasi: Dropdown jumlah per halaman dan tombol Reset berada berdampingan di baris keempat tanpa ada elemen yang menggantung sendirian.
+- [ ] **Tabel Anti-Tabrakan & Indikator Geser Interaktif saat Beralih ke Tabel**:
+  - Ketuk tombol `[ Tabel ]` pada layar ponsel: mode tabel spreadsheet terbuka dengan batas minimum aman 1020px.
+  - Verifikasi: Jam Diajukan dan Jam Disetujui terpisah rapi dengan spasi lega, tidak ada teks yang saling bertumpuk atau meluap ke kolom Uraian Kegiatan (`16:01 - 19:01` dan `rapat` terpisah bersih).
+  - Geser tabel ke kanan: bilah thumb oranye pada indikator geser di atas tabel meluncur mulus dan teks persentase bertambah real-time dari `0%` hingga `100%`.
+  - Ketuk langsung area track progress geser: tabel seketika melompat halus (*smooth scroll*) ke posisi kolom yang dipilih.
 
 
 

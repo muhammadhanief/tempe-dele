@@ -3878,6 +3878,75 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/lembur.blade.php` | Penerapan persentase thead anti-tabrakan 100%, konversi indikator detail uraian menjadi ikon inline tanpa baris ke-3, penataan font 11px tracking-tight pada seluruh sel tbody, dan penyelarasan tinggi baris h-16 di kedua mode sidebar. |
 
+---
+
+## 79. Penyempurnaan Tampilan Responsif Mobile Halaman Lembur Pegawai (Reflow, Grid Filter, Anti-Tabrakan Tabel & Smart Default Timeline)
+
+### A. Latar Belakang & Analisis Permasalahan
+1. **Keluhan Tampilan Seluler Rusak (*"saya cek tampilan mobile ancur bjir"*):**
+   - Saat halaman `http://127.0.0.1:8000/lembur` dibuka pada layar *smartphone* (viewport 360px - 412px), tampilan terlihat berantakan dan bertabrakan karena beberapa faktor:
+     1. **Tabrakan Teks pada Kolom Tabel (`table-fixed`):**
+        - Tabel memiliki lebar `min-w-[760px]`. Dengan persentase kolom `9.5%` pada Jam Diajukan dan Jam Disetujui, lebar sel hanya menghasilkan ~72px.
+        - Teks jam berformat monospace `16:01 - 19:01` membutuhkan ruang ~84px. Akibatnya teks meluap melintasi batas sel dan bertumpuk langsung di atas teks Uraian Kegiatan (`16:01 - 19:01rapat`), menimbulkan kesan tampilan rusak/glitch parah.
+     2. **Pecahnya Baris Toolbar Filter Tanpa Pola Rapi:**
+        - Filter tanggal, bulan, tahun, per halaman, dan tim menggunakan `flex flex-wrap` murni.
+        - Di layar ponsel, filter tanggal, bulan, dan tahun mengisi baris pertama, filter `10 / hal` sendirian di baris kedua, dan kotak pencarian tim mengisi baris ketiga secara tidak simetris.
+     3. **Mode Default Desktop Tabel di Layar Ponsel:**
+        - Halaman secara default selalu membuka mode Tabel terlepas dari ukuran layar perangkat. Pengguna ponsel langsung disambut oleh spreadsheet 10 kolom horizontal lebar yang tidak nyaman dibaca tanpa menggulir ke samping.
+     4. **Indikator Geser Seluler Statis:**
+        - Elemen bilah indikator geser tabel ponsel (`table-scroll-hint`) sebelumnya belum terhubung dengan event javascript `scroll`, sehingga persentase dan posisi thumb tidak bergerak saat tabel digeser.
+
+### B. Solusi & Rincian Implementasi Teknis
+
+1. **Tata Letak Grid Filter Responsif Simetris (Mobile 2 Kolom, Desktop Flex):**
+   - Mengubah kontainer toolbar menjadi:
+     ```blade
+     <div class="mb-4 grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-2.5">
+     ```
+   - Di layar *smartphone* (< 640px):
+     - **Baris 1:** Kotak Pencarian Tim (`col-span-2 w-full`) di bagian teratas untuk memudahkan pencarian instan.
+     - **Baris 2:** Pemilih Tanggal (`col-span-2 w-full`) dengan perataan ikon kalender dan chevron yang simetris.
+     - **Baris 3:** Filter Bulan (`col-span-1 w-full`, 50% kiri) dan Filter Tahun (`col-span-1 w-full`, 50% kanan).
+     - **Baris 4:** Jumlah per Halaman (`col-span-1 w-full`) dan Tombol Reset (`col-span-1 w-full`).
+   - Di layar laptop/desktop (>= 640px):
+     - Semua elemen kembali mengalir sejajar dalam satu baris horizontal yang rapi dan ringkas.
+
+2. **Isolasi Lebar Minimum Tabel Anti-Tabrakan (`min-width: 1020px;`):**
+   - Menetapkan batas lebar minimum aman `style="min-width: 1020px;"` pada elemen `<table>` di dalam kontainer `overflow-x-auto`.
+   - Dengan basis 1020px, kolom Jam Diajukan dan Jam Disetujui (`9.5%`) terjamin memiliki lebar 96.9px (lebih dari cukup untuk teks `16:01 - 19:01` dan badge status), sehingga **tidak akan pernah lagi terjadi tabrakan teks atau teks meluap ke kolom lain**.
+   - Di layar desktop lebar (1280px+), tabel tetap mengisi 100% lebar kontainer secara proporsional tanpa scrollbar horizontal.
+
+3. **Indikator Geser Interaktif Real-Time (`updateTableScrollIndicator`):**
+   - Menghubungkan pembungkus `#tableScrollWrapper` dengan event `scroll` dan `resize`.
+   - Mengkalkulasikan rasio gulir horizontal (`scrollLeft / maxScroll`) secara presisi dan menggeser posisi bilah oranye (`mobileTableScrollThumb`) serta memperbarui angka persentase (`0%` hingga `100%`) secara real-time.
+   - Pengguna ponsel juga dapat mengklik langsung area track scrollbar untuk melompat ke posisi kolom yang diinginkan secara halus (*smooth scrolling*).
+
+4. **Inisialisasi Cerdas Default Mode Timeline pada Layar Seluler:**
+   - Menambahkan deteksi resolusi pada event `DOMContentLoaded`:
+     ```javascript
+     const savedMode = localStorage.getItem('lemburViewMode');
+     if (savedMode === 'timeline') {
+         window.switchViewMode('timeline');
+     } else if (savedMode === 'table') {
+         window.switchViewMode('table');
+     } else if (window.innerWidth < 640) {
+         // Default cerdas ke mode Timeline kartu vertikal untuk layar smartphone
+         window.switchViewMode('timeline');
+     }
+     ```
+   - Pengguna yang membuka melalui ponsel kini langsung disajikan tampilan **Timeline View** yang sangat estetis, modern, dan mudah dibaca tanpa perlu horizontal scrolling.
+   - Jika pengguna ingin melihat mode tabel spreadsheet, mereka cukup mengetuk tombol `[ Tabel ]`, dan sistem akan menampilkan tabel 1020px yang mulus lengkap dengan indikator gesernya. Preferensi pengguna tetap tersimpan di `localStorage`.
+
+5. **Penyempurnaan Header Halaman & Tombol Aksi Seluler:**
+   - Mengatur flex pembungkus tombol header menjadi `flex items-center justify-between sm:justify-end gap-2 sm:gap-2.5 w-full sm:w-auto`.
+   - Memastikan tombol toggle `[ Tabel | Timeline ]` dan tombol `+ Ajukan Lembur` memiliki target sentuh nyaman (*touch target* $\ge 40\text{px}$) tanpa berhimpitan atau terpotong pada layar 360px.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Tata letak filter grid 2 kolom di ponsel, batas lebar tabel min-width 1020px anti-tabrakan, indikator geser horizontal real-time, header responsif, dan default cerdas mode timeline di viewport ponsel. |
+
+
 
 
 
