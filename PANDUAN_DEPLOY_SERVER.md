@@ -295,7 +295,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 193. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Standardisasi tombol Aksi [Proses & Koreksi] di tabel dan linimasa menjadi tombol icon-only h-7 w-7 / h-8 w-8 tanpa teks label dengan tooltip title dan sinkronisasi AJAX real-time)*.
 194. 📄 **`resources/views/admin/lembur.blade.php`** *(Standardisasi tombol Aksi di tabel monitoring lembur admin menjadi tombol icon-only h-7 w-7 terpusat tanpa teks label Aksi)*.
 195. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Standardisasi tombol aksi kartu linimasa dan script keputusan AJAX menjadi tombol icon-only h-8 w-8 dengan tooltip title dinamis)*.
-196. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Optimasi colgroup tabel persetujuan pengajuan ketua tim: Status 16.5% dan Aksi 7.5%, eliminasi overflow badge Menunggu Kabag, penciptaan jarak bebas 54px ke tombol aksi, dan perataan kolom pas 100% di desktop tanpa scroll horizontal)*.
+196. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Standarisasi lebar nyaman tabel pengajuan ketua tim min-w-[1140px] dan rebalancing colgroup: eliminasi tabrakan lencana jam disetujui hijau dan uraian di halaman 2, pelonggaran nama pegawai dan presensi, serta pemisahan bersih lencana status dari tombol aksi)*.
 
 ---
 
@@ -1337,7 +1337,13 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - Verifikasi: Badge status biru tampil utuh bertuliskan **"Menunggu Kabag"** tanpa ada huruf yang terpotong menjadi *"Menunggu Kaba"*.
     - Verifikasi: Terdapat jarak pemisah bebas yang lega (berkisar 54px) antara sisi kanan badge status dan tombol ikon pensil aksi di kolom Aksi. Tidak ada elemen yang saling bertumpuk atau menempel.
   - Periksa baris berstatus `pending`: badge lencana *"Menunggu"* berjarak lega dari tombol ikon aksi amber BPS.
-- [ ] **Uji Keterbacaan Header Tanggal & Jam Tanpa Horizontal Scroll di Desktop**:
-  - Periksa seluruh 9 kolom tabel pada layar desktop: tabel membentang pas 100% mengisi kontainer tanpa memicu bilah geser horizontal (`scrollWidth == clientWidth`).
+- [ ] **Uji Halaman 2 (?page=2) Lencana Jam Disetujui & Uraian Bebas Tabrakan**:
+  - Beralih ke halaman 2 (`/ketua-tim/pengajuan?page=2`) yang memiliki data jam persetujuan riil (misal `08:25 - 11:08`).
+  - Verifikasi: Lencana hijau jam disetujui memiliki ruang lega (bobot 12.5% / 143px) dan **tidak bertabrakan atau menimpa teks kolom Jam Diajukan di sebelah kiri maupun Uraian Kegiatan di sebelah kanan**.
+  - Verifikasi: Kolom **Nama Pegawai** terbaca utuh tanpa clipping nama agresif.
+  - Verifikasi: Kolom **Data Presensi** (`● Tersedia ↗`) memiliki padding sel serasi tanpa terhimpit.
+  - Verifikasi: Teks kolom **Uraian Kegiatan** tampil luas, rapi, dan nyaman dibaca didampingi tautan pop-up modal detail di sisi kanannya.
+- [ ] **Uji Keterbacaan Header Tanggal & Jam**:
   - Header kolom **Tanggal** beserta dropdown sort *"Terbaru/Terlama/Prioritas"* tersaji rapi dan tidak mendesak header kolom **Jam Diajukan** dan **Jam Disetujui**.
+
 
