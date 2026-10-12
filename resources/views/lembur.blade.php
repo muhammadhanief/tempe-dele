@@ -191,39 +191,49 @@
                     </svg>
                     <span>Geser tabel ke kiri / kanan</span>
                 </span>
-                <span id="mobileTableScrollPct" class="text-[10px] font-mono text-slate-400 shrink-0">0%</span>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" id="btnScrollLeft" onclick="scrollTableByStep(-260)"
+                        class="h-6 w-6 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold transition-all active:scale-90 cursor-pointer shadow-2xs" title="Geser ke kiri">
+                        ‹
+                    </button>
+                    <span id="mobileTableScrollPct" class="text-[10px] font-mono text-slate-500 shrink-0 min-w-7 text-center">0%</span>
+                    <button type="button" id="btnScrollRight" onclick="scrollTableByStep(260)"
+                        class="h-6 w-6 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold transition-all active:scale-90 cursor-pointer shadow-2xs" title="Geser ke kanan">
+                        ›
+                    </button>
+                </div>
             </div>
-            <div id="mobileTableScrollTrack" class="w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
-                <div id="mobileTableScrollThumb" class="absolute top-0 left-0 h-full bg-[#faa938] rounded-full transition-transform duration-75" style="width: 35%; transform: translateX(0px);"></div>
+            <div id="mobileTableScrollTrack" class="w-full h-2 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative py-0.5">
+                <div id="mobileTableScrollThumb" class="absolute top-0 left-0 h-full bg-[#faa938] hover:bg-[#fd9a10] rounded-full transition-transform duration-75 cursor-grab active:cursor-grabbing shadow-xs" style="width: 35%; transform: translateX(0px);"></div>
             </div>
         </div>
 
         {{-- Card Tabel --}}
         <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs">
-            <div id="tableScrollWrapper" class="overflow-x-auto w-full overscroll-x-contain">
-                <table class="w-full table-fixed divide-y divide-gray-200" style="min-width: 1020px;">
-                    <thead class="bg-gray-50/90 border-b border-gray-200">
+            <div id="tableScrollWrapper" class="overflow-x-auto w-full overscroll-x-contain cursor-grab active:cursor-grabbing select-none" style="-webkit-overflow-scrolling: touch; touch-action: pan-x pan-y;">
+                <table class="w-full table-fixed border-separate border-spacing-0" style="min-width: 1020px;">
+                    <thead class="bg-gray-50/90">
                         <tr>
-                            <th style="width: 8.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl">Tanggal</th>
-                            <th style="width: 9.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Diajukan</th>
-                            <th style="width: 9.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Disetujui</th>
-                            <th style="width: 15.0%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
-                            <th style="width: 12.0%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Ketua Tim</th>
-                            <th style="width: 13.0%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Nama Tim</th>
-                            <th style="width: 10.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Status</th>
-                            <th style="width: 8.5%;" class="px-1.5 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Catatan</th>
-                            <th style="width: 9.0%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Dokumentasi</th>
-                            <th style="width: 4.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl">Aksi</th>
+                            <th style="width: 8.5%;" class="sticky left-0 z-20 bg-gray-50 px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl border-b border-r border-gray-200 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.08)]">Tanggal</th>
+                            <th style="width: 9.5%;" class="border-b border-gray-200 px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Diajukan</th>
+                            <th style="width: 9.5%;" class="border-b border-gray-200 px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Disetujui</th>
+                            <th style="width: 15.0%;" class="border-b border-gray-200 px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
+                            <th style="width: 12.0%;" class="border-b border-gray-200 px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Ketua Tim</th>
+                            <th style="width: 13.0%;" class="border-b border-gray-200 px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Nama Tim</th>
+                            <th style="width: 10.5%;" class="border-b border-gray-200 px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Status</th>
+                            <th style="width: 8.5%;" class="border-b border-gray-200 px-1.5 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Catatan</th>
+                            <th style="width: 9.0%;" class="border-b border-gray-200 px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Dokumentasi</th>
+                            <th style="width: 4.5%;" class="border-b border-gray-200 px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl">Aksi</th>
                         </tr>
                     </thead>
 
-                    <tbody class="divide-y divide-gray-100 bg-white" id="tabelLembur">
+                    <tbody class="bg-white" id="tabelLembur">
                         @forelse($transaksi as $t)
-                                <tr class="transition-colors hover:bg-slate-50/80 h-16"
+                                <tr class="transition-colors hover:bg-slate-50/80 h-16 group"
                                     data-tanggal="{{ $t->date }}"
                                     data-tim="{{ $t->tim_kode_tim }}">
 
-                                    <td class="whitespace-nowrap px-1 py-2 text-center text-[11px] font-medium text-gray-900 align-middle">
+                                    <td class="sticky left-0 z-10 bg-white group-hover:bg-slate-50 whitespace-nowrap px-1 py-2 text-center text-[11px] font-medium text-gray-900 align-middle border-b border-r border-gray-100 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.08)]">
                                         {{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}
                                     </td>
 
@@ -2415,12 +2425,17 @@
     });
 
     // =====================
-    // SINKRONISASI INDIKATOR GESER TABEL (MOBILE SCROLLBAR)
+    // SINKRONISASI INDIKATOR GESER TABEL (MOBILE SCROLLBAR & DRAG-TO-SCROLL)
     // =====================
     const scrollWrapper = document.getElementById('tableScrollWrapper');
     const scrollThumb = document.getElementById('mobileTableScrollThumb');
     const scrollPct = document.getElementById('mobileTableScrollPct');
     const scrollTrack = document.getElementById('mobileTableScrollTrack');
+
+    window.scrollTableByStep = function(step) {
+        if (!scrollWrapper) return;
+        scrollWrapper.scrollBy({ left: step, behavior: 'smooth' });
+    };
 
     function updateTableScrollIndicator() {
         if (!scrollWrapper || !scrollThumb) return;
@@ -2450,15 +2465,87 @@
     if (scrollWrapper) {
         scrollWrapper.addEventListener('scroll', updateTableScrollIndicator, { passive: true });
         window.addEventListener('resize', updateTableScrollIndicator, { passive: true });
+
+        // MOUSE DRAG TO SCROLL (DESKTOP & DEVTOOLS)
+        let isMouseDown = false;
+        let startX = 0;
+        let scrollStartLeft = 0;
+
+        scrollWrapper.addEventListener('mousedown', (e) => {
+            if (e.target.closest('button, a, input, select, textarea')) return;
+            isMouseDown = true;
+            startX = e.pageX - scrollWrapper.offsetLeft;
+            scrollStartLeft = scrollWrapper.scrollLeft;
+            scrollWrapper.classList.add('cursor-grabbing');
+            scrollWrapper.classList.remove('cursor-grab');
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isMouseDown) return;
+            e.preventDefault();
+            const x = e.pageX - scrollWrapper.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            scrollWrapper.scrollLeft = scrollStartLeft - walk;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isMouseDown) return;
+            isMouseDown = false;
+            scrollWrapper.classList.remove('cursor-grabbing');
+            scrollWrapper.classList.add('cursor-grab');
+        });
     }
 
     if (scrollTrack && scrollWrapper) {
         scrollTrack.addEventListener('click', (e) => {
+            if (e.target === scrollThumb) return;
             const rect = scrollTrack.getBoundingClientRect();
             const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
             const maxScroll = scrollWrapper.scrollWidth - scrollWrapper.clientWidth;
             scrollWrapper.scrollTo({ left: clickRatio * maxScroll, behavior: 'smooth' });
         });
+    }
+
+    // DRAGGABLE THUMB (MOUSE & TOUCH)
+    if (scrollThumb && scrollWrapper && scrollTrack) {
+        let isThumbDragging = false;
+        let thumbStartX = 0;
+        let thumbStartScroll = 0;
+
+        const onThumbStart = (e) => {
+            e.stopPropagation();
+            isThumbDragging = true;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            thumbStartX = clientX;
+            thumbStartScroll = scrollWrapper.scrollLeft;
+            document.body.classList.add('select-none');
+        };
+
+        const onThumbMove = (e) => {
+            if (!isThumbDragging) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const deltaX = clientX - thumbStartX;
+            const trackWidth = scrollTrack.clientWidth;
+            const thumbWidth = scrollThumb.clientWidth;
+            const maxTrackTravel = trackWidth - thumbWidth;
+            if (maxTrackTravel <= 0) return;
+            const maxTableScroll = scrollWrapper.scrollWidth - scrollWrapper.clientWidth;
+            const scrollDelta = (deltaX / maxTrackTravel) * maxTableScroll;
+            scrollWrapper.scrollLeft = thumbStartScroll + scrollDelta;
+        };
+
+        const onThumbEnd = () => {
+            if (!isThumbDragging) return;
+            isThumbDragging = false;
+            document.body.classList.remove('select-none');
+        };
+
+        scrollThumb.addEventListener('mousedown', onThumbStart);
+        scrollThumb.addEventListener('touchstart', onThumbStart, { passive: false });
+        window.addEventListener('mousemove', onThumbMove);
+        window.addEventListener('touchmove', onThumbMove, { passive: false });
+        window.addEventListener('mouseup', onThumbEnd);
+        window.addEventListener('touchend', onThumbEnd);
     }
 
     // =====================
