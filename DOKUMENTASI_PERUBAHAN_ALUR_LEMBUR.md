@@ -3946,6 +3946,37 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/lembur.blade.php` | Tata letak filter grid 2 kolom di ponsel, batas lebar tabel min-width 1020px anti-tabrakan, indikator geser horizontal real-time, header responsif, dan default cerdas mode timeline di viewport ponsel. |
 
+---
+
+## 80. Optimalisasi Kenyamanan Geser Tabel Mobile: Kolom Tanggal Sticky, Tombol Navigasi Cepat, & Drag-to-Scroll
+
+### A. Latar Belakang & Keluhan Pengguna
+1. **Keluhan Pengguna (*"gesernya ga enak bjir"*):**
+   - Saat tabel digeser ke arah kanan pada layar *smartphone*, kolom pertama (**Tanggal**) langsung lenyap keluar layar.
+   - Pengguna kehilangan konteks tanggal pengajuan saat memeriksa status, catatan, tautan dokumentasi, atau tombol ubah di ujung kanan tabel, dan teks kolom di tepi kiri terpotong setengah (`8:30`, `9:01`).
+   - Tidak adanya fitur penarik geser langsung (*drag-to-scroll*) membuat penggeseran tabel dengan mouse (desktop/devtools) hanya memblokir teks dan terasa kaku.
+   - Thumb oranye pada bilah kemajuan scrollbar ponsel sebelumnya belum mendukung gestur seret (*draggable thumb*).
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penerapan Kolom Tanggal Sticky Solid (`border-separate border-spacing-0`):**
+   - Mengubah struktur tabel menjadi `border-separate border-spacing-0` agar posisi `sticky` pada sel `<th>` dan `<td>` tidak mengalami kebocoran pembatas (*border bleed*).
+   - Kolom **Tanggal** kini terkunci di posisi `sticky left-0` dengan latar belakang solid (`bg-gray-50` pada header dan `bg-white` pada data baris), pembatas vertikal `border-r border-gray-200`, serta bayangan kedalaman `shadow-[3px_0_6px_-2px_rgba(0,0,0,0.08)]`.
+   - **Hasil:** Saat pengguna menggeser tabel ke arah kanan, kolom Tanggal tetap menempel stabil di sisi kiri layar. Pengguna selalu mengetahui baris mana yang sedang diperiksa tanpa kehilangan konteks.
+2. **Tombol Navigasi Cepat Langkah Kolom (`‹` dan `›`):**
+   - Menambahkan tombol navigasi di samping persentase geser tabel (`#btnScrollLeft` & `#btnScrollRight`).
+   - Pengguna ponsel dapat cukup sekali mengetuk tombol `›` untuk meluncurkan tabel sejauh 260px ke arah kolom status/aksi, dan mengetuk `‹` untuk kembali ke kolom tanggal secara instan dan halus (*smooth scrolling*).
+3. **Fitur Drag-to-Scroll (Mouse & Touch):**
+   - Menambahkan event listener `mousedown`, `mousemove`, dan `mouseup` pada pembungkus tabel `#tableScrollWrapper`.
+   - Pengguna laptop/desktop dapat langsung menahan klik kiri mouse di sembarang area tabel lalu menyeretnya ke kiri atau kanan layaknya kanvas Figma atau Google Maps (`cursor-grab` / `cursor-grabbing`).
+4. **Draggable Progress Thumb:**
+   - Bilah oranye `#mobileTableScrollThumb` kini mendukung gestur sentuh dan klik-tahan (*draggable*), memungkinkan pengguna menyeret bilah kemajuan secara presisi.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Kolom tanggal sticky solid border-separate, tombol navigasi langkah ‹ dan ›, drag-to-scroll mouse/touch, dan draggable progress thumb. |
+
+
 
 
 

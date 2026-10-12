@@ -290,6 +290,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 188. 📄 **`resources/views/lembur.blade.php`** *(Pembaruan kolom Dokumentasi lengkap tanpa singkatan, tombol + Dokumentasi oranye amber, tautan eksternal Lihat dengan hapus terproteksi, penyederhanaan tombol kolom Aksi menjadi ikon pensil mandiri 28x28px tanpa teks Ubah, serta proteksi guard anti double-encode Base64 b64: pada submit listener dokumen)*.
 189. 📄 **`resources/views/lembur.blade.php`** *(Kalibrasi persentase kolom thead anti-tabrakan [8.5%, 9.5%, 9.5%, 15.0%, 12.0%, 13.0%, 10.5%, 8.5%, 9.0%, 4.5%], pembersihan baris ketiga teks lihat detail pada uraian kegiatan menjadi ikon pop-up inline tanpa baris ganjil, dan penataan font 11px tracking-tight agar tabel 100% fit dan rapi baik saat sidebar terbuka maupun tertutup)*.
 190. 📄 **`resources/views/lembur.blade.php`** *(Penyempurnaan tampilan responsif mobile halaman lembur: reflow filter toolbar ke grid 2 kolom simetris pada layar seluler, batas lebar tabel min-width 1020px anti-tabrakan kolom jam dan teks uraian, sinkronisasi indikator geser horizontal real-time 0%-100%, serta inisialisasi default cerdas mode timeline pada layar smartphone < 640px)*.
+191. 📄 **`resources/views/lembur.blade.php`** *(Penerapan kolom Tanggal sticky solid ber-border-separate yang terkunci di kiri layar saat tabel digeser, penambahan tombol navigasi cepat ‹ dan ›, mouse drag-to-scroll, dan draggable progress thumb)*.
 
 ---
 
@@ -1272,6 +1273,18 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Jam Diajukan dan Jam Disetujui terpisah rapi dengan spasi lega, tidak ada teks yang saling bertumpuk atau meluap ke kolom Uraian Kegiatan (`16:01 - 19:01` dan `rapat` terpisah bersih).
   - Geser tabel ke kanan: bilah thumb oranye pada indikator geser di atas tabel meluncur mulus dan teks persentase bertambah real-time dari `0%` hingga `100%`.
   - Ketuk langsung area track progress geser: tabel seketika melompat halus (*smooth scroll*) ke posisi kolom yang dipilih.
+
+### BM. Uji Kolom Tanggal Sticky, Navigasi Langkah Kolom, dan Drag-to-Scroll Tabel Mobile
+- [ ] **Uji Kolom Tanggal Sticky Solid Saat Tabel Digeser**:
+  - Pada tampilan tabel di ponsel atau viewport sempit, geser tabel ke kanan atau ketuk tombol `›`.
+  - Verifikasi: Kolom **Tanggal** tetap menempel stabil di sisi paling kiri (*sticky left-0*) dengan latar belakang putih/abu-abu solid bergaris pemisah dan bayangan elevasi.
+  - Verifikasi: Tidak ada teks atau kolom yang tembus pandang atau bocor di belakang kolom Tanggal. Pengguna selalu mengetahui tanggal dari baris yang sedang ditinjau.
+- [ ] **Uji Tombol Navigasi Langkah Kolom `‹` dan `›`**:
+  - Ketuk tombol `›`: tabel otomatis meluncur halus ke kanan sejauh 260px menuju kolom status/catatan/aksi.
+  - Ketuk tombol `‹`: tabel meluncur kembali ke posisi awal.
+- [ ] **Uji Mouse Drag-to-Scroll & Draggable Progress Thumb**:
+  - Tahan klik mouse pada sembarang area tabel dan seret ke kiri/kanan: tabel bergeser mulus tanpa memblokir teks.
+  - Tahan dan seret bilah thumb oranye pada scrollbar indikator: tabel bergeser presisi mengikuti posisi tarikan.
 
 
 
