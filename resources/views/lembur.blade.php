@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pengajuan Lembur')
+@section('title', 'Lembur')
 
 @section('content')
 
@@ -204,16 +204,16 @@
                 <table class="w-full min-w-[760px] md:min-w-full table-fixed divide-y divide-gray-200">
                     <thead class="bg-gray-50/90 border-b border-gray-200">
                         <tr>
-                            <th class="w-[98px] px-2 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl">Tanggal</th>
-                            <th class="w-[88px] px-1.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize">Jam Diajukan</th>
-                            <th class="w-[92px] px-1.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize">Jam Disetujui</th>
-                            <th class="w-auto px-2.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
-                            <th class="w-[110px] px-2 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Ketua Tim</th>
-                            <th class="w-[115px] px-2 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Nama Tim</th>
-                            <th class="w-[102px] px-1.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize">Status</th>
-                            <th class="w-[110px] px-2 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Catatan</th>
-                            <th class="w-[72px] px-1 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize">Dokumentasi</th>
-                            <th class="w-[68px] px-1 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl">Aksi</th>
+                            <th style="width: 9.4%;" class="px-1.5 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl">Tanggal</th>
+                            <th style="width: 10%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Diajukan</th>
+                            <th style="width: 10%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Disetujui</th>
+                            <th style="width: 15.6%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
+                            <th style="width: 12%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Ketua Tim</th>
+                            <th style="width: 12.5%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Nama Tim</th>
+                            <th style="width: 10.6%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Status</th>
+                            <th style="width: 9.9%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Catatan</th>
+                            <th style="width: 5.2%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize" title="Dokumentasi">Dok.</th>
+                            <th style="width: 4.8%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl">Aksi</th>
                         </tr>
                     </thead>
 
@@ -223,11 +223,11 @@
                                     data-tanggal="{{ $t->date }}"
                                     data-tim="{{ $t->tim_kode_tim }}">
 
-                                    <td class="whitespace-nowrap px-2 py-3 text-center text-xs font-medium text-gray-900">
+                                    <td class="whitespace-nowrap px-1.5 py-3 text-center text-xs font-medium text-gray-900">
                                         {{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}
                                     </td>
 
-                                    <td class="whitespace-nowrap px-1.5 py-3 text-center text-xs font-mono text-gray-700">
+                                    <td class="whitespace-nowrap px-1 py-3 text-center text-xs font-mono text-gray-700">
                                         @if($t->jam_mulai && $t->jam_selesai)
                                             {{ substr($t->jam_mulai, 0, 5) }} - {{ substr($t->jam_selesai, 0, 5) }}
                                         @elseif($t->jam_mulai)
@@ -237,7 +237,7 @@
                                         @endif
                                     </td>
 
-                                    <td class="whitespace-nowrap px-1.5 py-3 text-center text-xs">
+                                    <td class="whitespace-nowrap px-1 py-3 text-center text-xs">
                                         @php
                                             $isAdjusted = $t->status === 'approved'
                                                 && $t->jam_mulai_disetujui
@@ -252,7 +252,7 @@
                                                         {{ substr($t->jam_mulai_disetujui, 0, 5) }} - {{ substr($t->jam_selesai_disetujui, 0, 5) }}
                                                     </span>
                                                     @if($isAdjusted)
-                                                        <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Jam disetujui disesuaikan dari jam pengajuan">
+                                                        <span class="inline-flex items-center px-1 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Jam disetujui disesuaikan dari jam pengajuan">
                                                             Disesuaikan
                                                         </span>
                                                     @endif
@@ -269,7 +269,7 @@
                                         @endif
                                     </td>
 
-                                    <td class="px-2.5 py-3 text-xs text-gray-800">
+                                    <td class="px-2 py-3 text-xs text-gray-800">
                                         <div class="whitespace-normal break-words leading-relaxed">
                                             {{ $t->uraian ?? '-' }}
                                         </div>
@@ -287,26 +287,26 @@
                                         </div>
                                     </td>
 
-                                    <td class="px-1.5 py-3 text-center text-xs">
+                                    <td class="whitespace-nowrap px-1 py-3 text-center text-xs">
                                         @if($t->status === 'pending')
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
                                                 Menunggu Ketua
                                             </span>
                                         @elseif($t->status === 'menunggu_kabag')
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
                                                 Menunggu Kabag
                                             </span>
                                         @elseif($t->status === 'approved')
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
                                                 Disetujui
                                             </span>
                                         @elseif($t->status === 'rejected')
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">
                                                 Ditolak
                                             </span>
                                         @elseif($t->status === 'cancelled')
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-50 text-gray-700 border border-gray-300 whitespace-nowrap">
-                                                Dibatalkan
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-gray-50 text-gray-700 border border-gray-300 whitespace-nowrap">
+                                                Batal Admin
                                             </span>
                                         @else
                                             <span class="text-xs text-gray-400">-</span>
@@ -328,7 +328,7 @@
                                                     @if($isSystemNote)
                                                         <span class="inline-block text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Sistem:</span>
                                                     @else
-                                                        <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
+                                                        <span class="text-[10px] font-bold uppercase text-slate-400">Ketua:</span>
                                                     @endif
                                                     <div class="text-[11px] text-gray-700 italic break-words mt-0.5">{{ $t->note }}</div>
                                                 </div>
@@ -345,12 +345,12 @@
                                         </div>
                                     </td>
 
-                                    <td class="px-1 py-3 text-center text-xs">
+                                    <td class="whitespace-nowrap px-1 py-3 text-center text-xs">
                                         @if($t->status === 'approved')
                                             @if($t->file_dokumentasi)
                                                 <div class="flex items-center justify-center gap-1">
                                                     <a href="{{ $t->file_dokumentasi }}" target="_blank"
-                                                        class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 transition-colors max-w-[52px] truncate"
+                                                        class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 transition-colors max-w-[48px] truncate text-[11px]"
                                                         title="{{ $t->file_dokumentasi }}">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -367,7 +367,7 @@
                                                         <button type="submit" class="text-red-400 hover:text-red-600 transition-colors p-0.5 shrink-0" title="Hapus dokumentasi">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                            </svg>
+                              </svg>
                                                         </button>
                                                     </form>
                                                 </div>
@@ -380,7 +380,7 @@
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
                                                     </svg>
-                                                    <span>+ Dok</span>
+                                                    <span>Dok</span>
                                                 </button>
                                             @endif
                                         @else
@@ -388,7 +388,7 @@
                                         @endif
                                     </td>
 
-                                    <td class="px-1 py-3 text-center text-xs whitespace-nowrap">
+                                    <td class="whitespace-nowrap px-1 py-3 text-center text-xs">
                                         @php
                                             $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && empty($t->approved_at));
                                         @endphp
