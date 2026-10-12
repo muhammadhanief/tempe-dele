@@ -253,16 +253,27 @@
         </div>
     </div>
 
-    {{-- Tabel: mobile/tablet/desktop tetap tabel, hanya horizontal scroll --}}
-    <div class="overflow-x-auto rounded-xl bg-white">
-        <table class="w-full min-w-[1180px] table-fixed rounded-xl">
+    {{-- Tabel: mobile horizontal scroll dengan sticky header/column, desktop pas 100% --}}
+    <div class="overflow-x-auto rounded-xl bg-white shadow-2xs border border-gray-200/80">
+        <table class="w-full text-left text-xs min-w-[900px] lg:min-w-full table-fixed">
+            <colgroup>
+                <col class="w-12 lg:w-[4%]">
+                <col class="w-44 lg:w-[19%]">
+                <col class="w-32 lg:w-[13%]">
+                <col class="w-24 lg:w-[9%]">
+                <col class="w-24 lg:w-[9%]">
+                <col class="w-56 lg:w-[20%]">
+                <col class="w-24 lg:w-[9%]">
+                <col class="w-24 lg:w-[9%]">
+                <col class="w-20 lg:w-[8%]">
+            </colgroup>
             <thead>
-                <tr class="bg-gray-100">
-                    <th class="w-12 rounded-tl-xl px-3 py-3 text-center text-xs font-semibold text-gray-900">No</th>
-                    <th class="w-48 px-3 py-3 text-center text-xs font-semibold text-gray-900">Nama Pegawai</th>
-                    <th class="w-36 px-3 py-3 text-center text-xs font-semibold text-gray-900">
+                <tr class="bg-gray-100/90 text-gray-800 border-b border-gray-200">
+                    <th class="px-2 py-3 text-center text-xs font-semibold rounded-tl-xl sticky lg:static left-0 bg-gray-100 z-30">No</th>
+                    <th class="px-3 py-3 text-left text-xs font-semibold sticky lg:static left-12 lg:left-auto bg-gray-100 z-30 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none">Nama Pegawai</th>
+                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">
                         <div class="inline-flex items-center justify-center gap-1.5 w-full">
-                            <span>Tanggal Lembur</span>
+                            <span>Tanggal</span>
                             <div class="relative inline-block text-left">
                                 <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
                                     class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
@@ -278,16 +289,16 @@
                             </div>
                         </div>
                     </th>
-                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold text-gray-900">Jam Diajukan</th>
-                    <th class="w-28 px-3 py-3 text-center text-xs font-semibold text-gray-900">Jam Disetujui</th>
-                    <th class="w-72 px-3 py-3 text-center text-xs font-semibold text-gray-900">Uraian Kegiatan</th>
-                    <th class="w-40 px-3 py-3 text-center text-xs font-semibold text-gray-900">Data Presensi</th>
-                    <th class="w-32 px-3 py-3 text-center text-xs font-semibold text-gray-900">Status</th>
-                    <th class="w-24 rounded-tr-xl px-3 py-3 text-center text-xs font-semibold text-gray-900">Aksi</th>
+                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Jam Diajukan</th>
+                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Jam Disetujui</th>
+                    <th class="px-3 py-3 text-left text-xs font-semibold">Uraian Kegiatan</th>
+                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Data Presensi</th>
+                    <th class="px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Status</th>
+                    <th class="rounded-tr-xl px-2 py-3 text-center text-xs font-semibold whitespace-nowrap">Aksi</th>
                 </tr>
             </thead>
 
-            <tbody class="divide-y divide-gray-300" id="tabelPengajuan">
+            <tbody class="divide-y divide-gray-200" id="tabelPengajuan">
                 @forelse($pengajuan as $i => $p)
                     @php
                         $jamPengajuanMulai = $p->jam_mulai ? substr($p->jam_mulai, 0, 5) : '';
@@ -303,87 +314,132 @@
                             : substr($p->jam_selesai_disetujui, 0, 5);
                     @endphp
 
-                    <tr class="bg-white transition-all duration-200 hover:bg-gray-50"
+                    <tr class="group bg-white h-16 transition-all duration-150 hover:bg-amber-50/30"
                         data-nama="{{ strtolower($p->nama_pegawai) }}"
                         data-nip="{{ $p->nip_pegawai }}"
                         data-tanggal="{{ $p->date }}">
 
-                        <td class="px-3 py-3 text-center text-xs text-gray-900">
+                        {{-- 1. No (Sticky di mobile, normal di desktop) --}}
+                        <td class="px-2 py-2 text-center text-xs text-gray-600 align-middle sticky lg:static left-0 bg-white group-hover:bg-amber-50/60 z-20 transition-colors">
                             {{ $pengajuan->firstItem() + $i }}
                         </td>
 
-                        <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[180px] whitespace-normal break-words">
+                        {{-- 2. Nama Pegawai (Sticky di mobile dengan border pemisah, normal di desktop) --}}
+                        <td class="px-3 py-2 text-xs text-gray-900 align-middle sticky lg:static left-12 lg:left-auto bg-white group-hover:bg-amber-50/60 z-20 border-r border-gray-200/90 lg:border-r-0 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] lg:shadow-none transition-colors">
+                            <div class="font-semibold text-gray-900 truncate" title="{{ $p->nama_pegawai }}">
                                 {{ $p->nama_pegawai }}
                             </div>
-                            <div class="text-xs text-slate-500">
+                            <div class="text-[11px] font-mono text-slate-500 mt-0.5 truncate">
                                 {{ $p->nip_pegawai }}
                             </div>
                         </td>
 
-                        <td class="whitespace-nowrap px-3 py-3 text-left text-xs text-gray-900">
-                            {{ \Carbon\Carbon::parse($p->date)->translatedFormat('d F Y') }}
+                        {{-- 3. Tanggal Lembur --}}
+                        <td class="whitespace-nowrap px-2 py-2 text-center text-xs text-gray-800 align-middle">
+                            <span class="font-medium">{{ \Carbon\Carbon::parse($p->date)->translatedFormat('d M Y') }}</span>
                         </td>
 
-                        <td class="whitespace-nowrap px-3 py-3 text-center text-xs text-gray-900">
+                        {{-- 4. Jam Diajukan --}}
+                        <td class="whitespace-nowrap px-2 py-2 text-center font-mono text-xs text-gray-700 align-middle">
                             {{ $p->jam_mulai ? substr($p->jam_mulai, 0, 5) . ' - ' . substr($p->jam_selesai, 0, 5) : '-' }}
                         </td>
 
-                        <td class="whitespace-nowrap px-3 py-3 text-center text-xs text-gray-900" id="jam-disetujui-{{ $p->id_transaksi }}">
+                        {{-- 5. Jam Disetujui --}}
+                        <td class="whitespace-nowrap px-2 py-2 text-center text-xs align-middle" id="jam-disetujui-{{ $p->id_transaksi }}">
                             @if($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected')
-                                {{ substr($p->jam_mulai_disetujui, 0, 5) }} - {{ substr($p->jam_selesai_disetujui, 0, 5) }}
+                                <span class="font-mono font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.5 rounded">
+                                    {{ substr($p->jam_mulai_disetujui, 0, 5) }} - {{ substr($p->jam_selesai_disetujui, 0, 5) }}
+                                </span>
                             @else
-                                -
+                                <span class="text-gray-400 font-mono">-</span>
                             @endif
                         </td>
 
-                        <td class="px-3 py-3 text-xs text-gray-900">
-                            <div class="max-w-[280px] whitespace-normal break-words" id="uraian-display-{{ $p->id_transaksi }}">
-                                {{ $p->uraian ?? '-' }}
-                            </div>
+                        {{-- 6. Uraian Kegiatan (Line-clamp-2 + Modal Detail) --}}
+                        <td class="px-3 py-2 text-gray-800 align-middle">
+                            @php
+                                $uraianText = trim($p->uraian ?? '');
+                                $isLong = mb_strlen($uraianText) > 28;
+                            @endphp
+                            @if(empty($uraianText) || $uraianText === '-')
+                                <span class="text-gray-400 text-xs">-</span>
+                            @else
+                                <div id="trigger-uraian-{{ $p->id_transaksi }}" onclick="openModalUraian(this)"
+                                    data-pegawai="{{ $p->nama_pegawai }}"
+                                    data-nip="{{ $p->nip_pegawai }}"
+                                    data-tanggal="{{ \Carbon\Carbon::parse($p->date)->translatedFormat('l, d F Y') }}"
+                                    data-jam="{{ ($p->jam_mulai && $p->jam_selesai) ? substr($p->jam_mulai, 0, 5).' - '.substr($p->jam_selesai, 0, 5) : '-' }}"
+                                    data-jam-disetujui="{{ ($p->has_presensi && $p->jam_mulai_disetujui && $p->jam_selesai_disetujui && $p->status !== 'rejected') ? substr($p->jam_mulai_disetujui, 0, 5).' - '.substr($p->jam_selesai_disetujui, 0, 5) : '' }}"
+                                    data-tim="{{ $p->nama_tim ?? ($tim->nama_tim ?? '-') }}"
+                                    data-status="{{ $p->status }}"
+                                    data-uraian="{{ $uraianText }}"
+                                    data-catatan="{{ $p->note ?? '' }}"
+                                    data-catatan-kabag="{{ $p->note_kabag ?? '' }}"
+                                    class="group/item cursor-pointer rounded-lg px-1.5 py-1 -mx-1 hover:bg-amber-50/80 transition-all flex items-start justify-between gap-1"
+                                    title="Klik untuk melihat rincian lengkap uraian kegiatan">
+                                    <div class="line-clamp-2 break-words text-xs leading-snug tracking-tight text-gray-800 group-hover/item:text-amber-800 transition-colors flex-1 min-w-0" id="uraian-display-{{ $p->id_transaksi }}">
+                                        {{ $uraianText }}
+                                    </div>
+                                    @if($isLong)
+                                        <span class="text-amber-500 group-hover/item:text-amber-700 shrink-0 mt-0.5 transition-colors" title="Lihat detail lengkap">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                            </svg>
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
                         </td>
 
-                        <td class="px-3 py-3 text-center">
+                        {{-- 7. Data Presensi --}}
+                        <td class="px-2 py-2 text-center align-middle whitespace-nowrap">
                             <button type="button" onclick="openModalPresensi({{ $p->id_transaksi }})"
-                                class="inline-flex items-center justify-center gap-1 text-xs font-medium
-                                {{ $p->has_presensi ? 'text-green-600 underline' : 'text-slate-500' }}">
-                                {{ $p->has_presensi ? 'Informasi tersedia' : 'Tidak ada informasi' }}
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/>
-                                </svg>
+                                class="inline-flex items-center justify-center gap-1 text-[11px] font-medium transition-colors px-2 py-1 rounded-md
+                                {{ $p->has_presensi ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/70' : 'text-slate-400 hover:text-slate-600' }}">
+                                @if($p->has_presensi)
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <span>Tersedia</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25"/>
+                                    </svg>
+                                @else
+                                    <span>-</span>
+                                @endif
                             </button>
                         </td>
 
-                        <td class="px-3 py-3 text-center" id="status-{{ $p->id_transaksi }}">
+                        {{-- 8. Status --}}
+                        <td class="px-2 py-2 text-center align-middle whitespace-nowrap" id="status-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
-                                <span class="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">Menunggu</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">Menunggu</span>
                             @elseif($p->status === 'menunggu_kabag')
-                                <span class="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">Menunggu Kabag</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">Menunggu Kabag</span>
                             @elseif($p->status === 'approved')
-                                <span class="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Disetujui</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">Disetujui</span>
                             @elseif($p->status === 'rejected')
-                                <span class="whitespace-nowrap rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-600">Ditolak</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">Ditolak</span>
                             @elseif($p->status === 'cancelled')
-                                <span class="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 border border-gray-300">Dibatalkan</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-50 text-gray-700 border border-gray-300 whitespace-nowrap">Dibatalkan</span>
                             @endif
                         </td>
 
-                        <td class="px-3 py-3 text-center" id="aksi-{{ $p->id_transaksi }}">
+                        {{-- 9. Aksi --}}
+                        <td class="px-2 py-2 text-center align-middle whitespace-nowrap" id="aksi-{{ $p->id_transaksi }}">
                             @if($p->status === 'pending')
                                 <button type="button"
                                     onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, 'pending', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
-                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs bg-[#faa938] text-slate-950 hover:bg-[#fd9a10] hover:shadow cursor-pointer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                     <span>Proses</span>
                                 </button>
                             @elseif($p->status === 'cancelled')
-                                <span class="text-slate-500 text-xs italic">Dibatalkan</span>
+                                <span class="text-slate-400 text-xs italic">-</span>
                             @else
                                 <button type="button"
                                     onclick="openModalKeputusan({{ $p->id_transaksi }}, '{{ $jamMulaiDefault }}', '{{ $jamSelesaiDefault }}', {{ json_encode($p->note ?? '') }}, '{{ $p->status }}', {{ json_encode($p->uraian ?? '') }}, {{ $p->has_presensi ? 1 : 0 }}, '{{ $p->jam_selesai_presensi ?? '' }}', '{{ $jamPengajuanMulai }}', '{{ $jamPengajuanSelesai }}', {{ !empty($p->approved_kabag_at) ? 1 : 0 }})"
-                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
+                                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                                     </svg>
@@ -834,6 +890,114 @@
                 </button>
             </div>
 
+        </div>
+    </div>
+</div>
+
+{{-- Modal Detail Uraian Kegiatan --}}
+<div id="modalDetailUraian" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity" onclick="closeModalUraian()"></div>
+
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 sm:p-6 text-center">
+            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 w-full max-w-lg border border-slate-100">
+
+                {{-- Header Modal --}}
+                <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6 bg-slate-50/70">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700 ring-1 ring-amber-200/60">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900">Detail Uraian Kegiatan</h3>
+                            <p class="text-[11px] text-slate-500">Rincian pekerjaan & status pengajuan lembur</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeModalUraian()"
+                        class="rounded-lg p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer" title="Tutup">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Body Modal --}}
+                <div class="px-5 py-5 sm:px-6 space-y-4">
+                    {{-- Metadata Strip --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-slate-50/80 border border-slate-200/70 rounded-xl p-3 text-xs">
+                        <div class="sm:col-span-2">
+                            <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Pegawai</span>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span id="detailPegawai" class="font-bold text-slate-900">-</span>
+                                <span class="text-slate-300">•</span>
+                                <span id="detailNip" class="text-slate-500 font-mono text-[11px]">-</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Tanggal Lembur</span>
+                            <span id="detailTanggal" class="font-medium text-slate-800 mt-0.5 block">-</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Jam Lembur</span>
+                            <span id="detailJam" class="font-mono font-medium text-slate-800 mt-0.5 block">-</span>
+                        </div>
+                        <div class="sm:col-span-2 pt-1 border-t border-slate-200/50 flex items-center justify-between">
+                            <div>
+                                <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Tim Kerja</span>
+                                <span id="detailTim" class="font-medium text-slate-800 mt-0.5 block">-</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="block text-[10.5px] font-semibold text-slate-400 uppercase tracking-wider">Status Pengajuan</span>
+                                <span id="detailStatusBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 mt-0.5">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Isi Uraian Lengkap --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <svg class="h-3.5 w-3.5 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
+                            </svg>
+                            <span>Uraian Pekerjaan Lengkap</span>
+                        </label>
+                        <div class="max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+                            <p id="detailUraian" class="whitespace-pre-line text-xs sm:text-sm text-slate-800 leading-relaxed font-normal break-words selection:bg-amber-100">
+                                -
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Catatan (Ketua & Kabag) --}}
+                    <div id="detailCatatanWrapper" class="hidden space-y-2 pt-1 border-t border-slate-100">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="h-3.5 w-3.5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v4.77z" />
+                            </svg>
+                            <span>Catatan / Keterangan</span>
+                        </label>
+                        <div id="detailCatatanKetuaBox" class="hidden rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
+                            <span class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Catatan Ketua Tim:</span>
+                            <p id="detailCatatanKetua" class="text-slate-800 italic whitespace-pre-line leading-relaxed">-</p>
+                        </div>
+                        <div id="detailCatatanKabagBox" class="hidden rounded-xl border border-blue-200 bg-blue-50/60 p-3 text-xs">
+                            <span class="block text-[10px] font-bold uppercase text-blue-700 mb-1">Catatan Kepala Bagian Umum:</span>
+                            <p id="detailCatatanKabag" class="text-blue-950 italic whitespace-pre-line leading-relaxed">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Footer Modal --}}
+                <div class="border-t border-slate-100 bg-slate-50/50 px-5 py-3.5 sm:px-6 flex justify-end">
+                    <button type="button" onclick="closeModalUraian()"
+                        class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer">
+                        <span>Tutup</span>
+                    </button>
+                </div>
+
+            </div>
         </div>
     </div>
 </div>
@@ -1684,6 +1848,18 @@ window.simpanKeputusan = function() {
             }
         }
 
+        const triggerUraianEl = document.getElementById(`trigger-uraian-${currentId}`);
+        if (triggerUraianEl) {
+            if (data.uraian !== undefined) triggerUraianEl.setAttribute('data-uraian', data.uraian || '');
+            triggerUraianEl.setAttribute('data-status', finalStatus);
+            if (approvedMulai && approvedSelesai) {
+                triggerUraianEl.setAttribute('data-jam-disetujui', `${approvedMulai} - ${approvedSelesai}`);
+            }
+            if (data.note || catatan) {
+                triggerUraianEl.setAttribute('data-catatan', data.note || catatan);
+            }
+        }
+
         const safeKabagProcessed = (finalStatus === 'approved' || (data.approved_kabag_at ? 1 : 0));
 
         const aksiElement = document.getElementById(`aksi-${currentId}`);
@@ -1877,6 +2053,108 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 window.addEventListener('resize', updateTimelineStems);
+
+// ==========================================
+// MODAL DETAIL RINCIAN URAIAN KEGIATAN
+// ==========================================
+window.openModalUraian = function (el) {
+    if (!el) return;
+    const pegawai = el.getAttribute('data-pegawai') || '-';
+    const nip = el.getAttribute('data-nip') || '-';
+    const tanggal = el.getAttribute('data-tanggal') || '-';
+    const jam = el.getAttribute('data-jam') || '-';
+    const jamDisetujui = el.getAttribute('data-jam-disetujui') || '';
+    const tim = el.getAttribute('data-tim') || '-';
+    const uraian = el.getAttribute('data-uraian') || '-';
+    const status = el.getAttribute('data-status') || '';
+    const catatanKetua = el.getAttribute('data-catatan') || '';
+    const catatanKabag = el.getAttribute('data-catatan-kabag') || '';
+
+    const labelPegawai = document.getElementById('detailPegawai');
+    const labelNip = document.getElementById('detailNip');
+    const labelTanggal = document.getElementById('detailTanggal');
+    const labelJam = document.getElementById('detailJam');
+    const labelTim = document.getElementById('detailTim');
+    const textUraian = document.getElementById('detailUraian');
+    const badgeStatus = document.getElementById('detailStatusBadge');
+
+    if (labelPegawai) labelPegawai.textContent = pegawai;
+    if (labelNip) labelNip.textContent = `NIP. ${nip}`;
+    if (labelTanggal) labelTanggal.textContent = tanggal;
+    if (labelJam) {
+        labelJam.textContent = jamDisetujui ? `${jam} (Disetujui: ${jamDisetujui})` : jam;
+    }
+    if (labelTim) labelTim.textContent = tim;
+    if (textUraian) textUraian.textContent = uraian;
+
+    if (badgeStatus) {
+        if (status === 'approved') {
+            badgeStatus.textContent = 'Disetujui';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
+        } else if (status === 'rejected') {
+            badgeStatus.textContent = 'Ditolak';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200';
+        } else if (status === 'menunggu_kabag') {
+            badgeStatus.textContent = 'Menunggu Kabag';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200';
+        } else if (status === 'cancelled') {
+            badgeStatus.textContent = 'Dibatalkan';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-50 text-gray-700 border border-gray-300';
+        } else {
+            badgeStatus.textContent = 'Menunggu';
+            badgeStatus.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200';
+        }
+    }
+
+    const wrapperCatatan = document.getElementById('detailCatatanWrapper');
+    const boxKetua = document.getElementById('detailCatatanKetuaBox');
+    const textCatatanKetua = document.getElementById('detailCatatanKetua');
+    const boxKabag = document.getElementById('detailCatatanKabagBox');
+    const textCatatanKabag = document.getElementById('detailCatatanKabag');
+
+    let hasCatatan = false;
+    if (catatanKetua.trim()) {
+        if (boxKetua) boxKetua.classList.remove('hidden');
+        if (textCatatanKetua) textCatatanKetua.textContent = catatanKetua;
+        hasCatatan = true;
+    } else {
+        if (boxKetua) boxKetua.classList.add('hidden');
+    }
+
+    if (catatanKabag.trim()) {
+        if (boxKabag) boxKabag.classList.remove('hidden');
+        if (textCatatanKabag) textCatatanKabag.textContent = catatanKabag;
+        hasCatatan = true;
+    } else {
+        if (boxKabag) boxKabag.classList.add('hidden');
+    }
+
+    if (hasCatatan) {
+        wrapperCatatan?.classList.remove('hidden');
+    } else {
+        wrapperCatatan?.classList.add('hidden');
+    }
+
+    const modal = document.getElementById('modalDetailUraian');
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+};
+
+window.closeModalUraian = function () {
+    const modal = document.getElementById('modalDetailUraian');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        window.closeModalUraian?.();
+    }
+});
 </script>
 @endpush
 
