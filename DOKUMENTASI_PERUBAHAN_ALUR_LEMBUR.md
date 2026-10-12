@@ -4096,5 +4096,60 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Standarisasi tabel min-w-[1140px] dan rebalancing colgroup (Jam Disetujui 12.5%, Presensi 10%, Uraian 18%), mengeliminasi tabrakan lencana jam hijau dan uraian di halaman 2, menyajikan nama pegawai lega, serta menyelaraskan sticky column mobile left-12. |
 
+---
+
+## 84. Kalibrasi Layout Tabel Persetujuan Ketua Tim: Tampilan Fit 100% Desktop (Anti-Scrollbar Horizontal) dengan Padding Rapat & Proporsional
+
+### A. Latar Belakang & Masukan Pengguna
+1. **Keluhan Pengguna (*"bisa ga dibikin fit tapi rapih kayaknya itu masih ada jarak antar kolom"*):**
+   - Setelah diterapkannya `min-w-[1140px]`, tabel persetujuan pengajuan lembur Ketua Tim (`/ketua-tim/pengajuan`) memang tidak lagi mengalami tabrakan elemen, namun memicu bilah geser horizontal (*horizontal scrollbar*) pada viewport desktop laptop standar (lebar kontainer ~1045px dengan sidebar navigasi terbuka).
+   - Pengguna menginginkan tabel dapat tampil **FIT 100%** di dalam kontainer layar laptop/desktop (seluruh 9 kolom terlihat bersamaan tanpa perlu menggeser horizontal), namun tetap **RAPAT & RAPI** tanpa celah kosong berlebihan antar-kolom (*jarak antar kolom*), dan **tanpa ada elemen yang bertubrukan/menimpa satu sama lain**.
+2. **Karakteristik Elemen Kedinasan 9 Kolom:**
+   - Kolom `No`: nomor urut 2 digit (~3.5%).
+   - Kolom `Nama Pegawai`: nama lengkap ASN/PPPK berserta NIP/NIP Lama 18 digit (~17%).
+   - Kolom `Tanggal`: nama hari dan tanggal lembur, serta dropdown pengurutan (~10.5%).
+   - Kolom `Jam Diajukan`: format waktu `HH:MM - HH:MM` font monospace (~10.5%).
+   - Kolom `Jam Disetujui`: lencana hijau `bg-emerald-50 text-emerald-700` jam persetujuan riil (~11.5%).
+   - Kolom `Uraian Kegiatan`: teks deskripsi tugas dinas berserta tautan pop-up detail (~20%).
+   - Kolom `Data Presensi`: tombol lencana `● Tersedia ↗` status presensi BOS (~9%).
+   - Kolom `Status`: lencana status `Menunggu Kabag`, `Disetujui`, `Ditolak` (~12.5%).
+   - Kolom `Aksi`: tombol tindakan kotak icon-only `h-7 w-7` terpusat (~5.5%).
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Deklarasi Tabel Fit 100% Desktop (`lg:min-w-full table-fixed`):**
+   - Mengubah deklarasi tabel pembungkus menjadi:
+     ```blade
+     <table class="w-full text-left text-xs min-w-[760px] lg:min-w-full table-fixed">
+     ```
+   - Pada resolusi desktop (`lg:` $\ge 1024\text{px}$), tabel secara presisi mengisi 100% lebar kontainer (`lg:min-w-full`).
+   - Hasil pengujian komputasi peramban: `scrollWidth === clientWidth` (**1045px == 1045px**), menghasilkan **0px overflow horizontal** dan mengeliminasi horizontal scrollbar 100%.
+2. **Kalibrasi Presisi Distribusi `<colgroup>` 100% Proporsional:**
+   - `No`: `w-10 lg:w-[3.5%]` (Header & body sticky mobile diselaraskan `left-10`).
+   - `Nama Pegawai`: `w-44 lg:w-[17%]`.
+   - `Tanggal`: `w-28 lg:w-[10.5%]`.
+   - `Jam Diajukan`: `w-28 lg:w-[10.5%]`.
+   - `Jam Disetujui`: `w-32 lg:w-[11.5%]`.
+   - `Uraian Kegiatan`: `w-52 lg:w-[20%]`.
+   - `Data Presensi`: `w-24 lg:w-[9%]`.
+   - `Status`: `w-32 lg:w-[12.5%]`.
+   - `Aksi`: `w-14 lg:w-[5.5%]`.
+   *(Total Persentase: Tepat 100.0%)*.
+3. **Penyempitan Padding Sel Rapat & Menghilangkan Jarak Kosong Antar Kolom:**
+   - Mengubah padding sel `<th>` dan `<td>` dari sebelumnya `px-2.5` - `px-3` menjadi `px-1 py-2` (kolom Jam, Presensi, Aksi) dan `px-1.5 py-2` (kolom Tanggal, Status), serta `px-2.5 py-2` (Uraian Kegiatan).
+   - Menghilangkan celah kosong renggang yang tampak timpang di antara kolom Tanggal, Jam, dan Status.
+4. **Standardisasi Ukuran Lencana Kompak Bebas Tabrakan:**
+   - **Lencana Jam Disetujui Hijau:** distandarkan menjadi `text-[10.5px] px-1.5 py-0.5 whitespace-nowrap` (~84px). Pada kolom berbobot 11.5% (~120px pada kontainer 1045px), lencana memiliki ruang sela bernapas bebas ~36px, terisolasi sempurna tanpa bertabrakan dengan Jam Diajukan di sebelah kiri maupun Uraian Kegiatan di sebelah kanan.
+   - **Tombol Presensi (`● Tersedia ↗`):** disetel ke `text-[10.5px] px-1.5 py-0.5` (~76px), pas di dalam kolom 9% (~94px).
+   - **Lencana Status (`Menunggu Kabag`, dll):** disetel ke `text-[10.5px] px-2 py-0.5` (~100px), pas dan elegan di dalam kolom 12.5% (~130px).
+   - **Jam Diajukan:** disetel ke font mono `text-[11px] px-1 py-2`.
+5. **Penyelarasan Skrip AJAX Real-Time (`jamDisetujuiElement.innerHTML`):**
+   - Skrip pembaruan keputusan asinkron JavaScript diperbarui agar merender format badge hijau `text-[10.5px]` yang identik saat keputusan disimpan tanpa memicu pergeseran tata letak sel.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/ketua-tim/pengajuan.blade.php` | Kalibrasi layout tabel pengajuan ketua tim fit 100% desktop tanpa scroll horizontal (lg:min-w-full), distribusi colgroup presisi 100%, pengetatan padding sel rapat rapi px-1/px-1.5 py-2, standarisasi lencana jam disetujui hijau text-[10.5px] bebas tabrakan, ukuran tombol presensi & status proporsional, serta sinkronisasi AJAX real-time. |
+
+
 
 

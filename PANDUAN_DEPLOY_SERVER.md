@@ -296,6 +296,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 194. 📄 **`resources/views/admin/lembur.blade.php`** *(Standardisasi tombol Aksi di tabel monitoring lembur admin menjadi tombol icon-only h-7 w-7 terpusat tanpa teks label Aksi)*.
 195. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Standardisasi tombol aksi kartu linimasa dan script keputusan AJAX menjadi tombol icon-only h-8 w-8 dengan tooltip title dinamis)*.
 196. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Standarisasi lebar nyaman tabel pengajuan ketua tim min-w-[1140px] dan rebalancing colgroup: eliminasi tabrakan lencana jam disetujui hijau dan uraian di halaman 2, pelonggaran nama pegawai dan presensi, serta pemisahan bersih lencana status dari tombol aksi)*.
+197. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Kalibrasi layout tabel pengajuan ketua tim fit 100% desktop tanpa scroll horizontal [lg:min-w-full], distribusi colgroup presisi 100% [3.5%, 17%, 10.5%, 10.5%, 11.5%, 20%, 9%, 12.5%, 5.5%], padding sel rapat rapi px-1 / px-1.5 py-2, standarisasi lencana jam disetujui hijau text-[10.5px] px-1.5 py-0.5 bebas tabrakan, tombol presensi & badge status proporsional, serta sinkronisasi AJAX real-time)*.
 
 ---
 
@@ -1345,5 +1346,17 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Teks kolom **Uraian Kegiatan** tampil luas, rapi, dan nyaman dibaca didampingi tautan pop-up modal detail di sisi kanannya.
 - [ ] **Uji Keterbacaan Header Tanggal & Jam**:
   - Header kolom **Tanggal** beserta dropdown sort *"Terbaru/Terlama/Prioritas"* tersaji rapi dan tidak mendesak header kolom **Jam Diajukan** dan **Jam Disetujui**.
+
+### BQ. Uji Kalibrasi Tabel Persetujuan Pengajuan Ketua Tim Fit 100% Desktop (Rapat, Rapi, & Anti-Scrollbar Horizontal)
+- [ ] **Uji Tampilan Fit 100% di Layar Desktop/Laptop (Anti-Scrollbar Horizontal)**:
+  - Buka `/ketua-tim/pengajuan` atau `/ketua-tim/pengajuan?page=2` di peramban desktop (resolusi laptop standar 1280×800 atau 1366×768) dalam kondisi sidebar navigasi terbuka.
+  - Verifikasi: Tabel secara presisi mengisi 100% bidang kontainer (`lg:min-w-full`, `scrollWidth === clientWidth` ~1045px) **tanpa memicu bilah geser horizontal (*no horizontal scrollbar*)**.
+  - Verifikasi: Seluruh 9 kolom tabel (No, Nama Pegawai, Tanggal, Jam Diajukan, Jam Disetujui, Uraian Kegiatan, Data Presensi, Status, Aksi) tampil bersamaan di layar tanpa perlu digeser ke samping.
+- [ ] **Uji Kerapian & Jarak Antar Kolom Rapat Proporsional**:
+  - Verifikasi: Padding header dan body sel rapat kompak (`px-1 py-2` / `px-1.5 py-2`) menghilangkan ruang kosong/jarak renggang yang berlebihan antar-kolom.
+  - Verifikasi: Lencana hijau Jam Disetujui (`08:25 - 11:08`) tampil elegan dengan ukuran `text-[10.5px] px-1.5 py-0.5` (~84px), memiliki sela bernapas aman ~36px dalam kolom 11.5% tanpa bertabrakan dengan Jam Diajukan di sebelah kiri maupun Uraian Kegiatan di sebelah kanan.
+  - Verifikasi: Tombol presensi (`● Tersedia ↗`), badge status (`Menunggu Kabag`, dll), dan tombol aksi icon-only `h-7 w-7` terisolasi dengan rapi, proporsional, dan simetris.
+- [ ] **Uji Sinkronisasi Keputusan AJAX Real-Time**:
+  - Lakukan persetujuan pengajuan melalui modal keputusan: lencana jam disetujui yang diperbarui via JavaScript merender format badge hijau `text-[10.5px]` yang seragam tanpa merusak kerapian baris tabel.
 
 
