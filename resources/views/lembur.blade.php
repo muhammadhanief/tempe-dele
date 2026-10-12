@@ -204,16 +204,16 @@
                 <table class="w-full min-w-[760px] md:min-w-full table-fixed divide-y divide-gray-200">
                     <thead class="bg-gray-50/90 border-b border-gray-200">
                         <tr>
-                            <th style="width: 9.4%;" class="px-1.5 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl">Tanggal</th>
-                            <th style="width: 10%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Diajukan</th>
-                            <th style="width: 10%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Disetujui</th>
-                            <th style="width: 15.6%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
-                            <th style="width: 12%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Ketua Tim</th>
-                            <th style="width: 12.5%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Nama Tim</th>
-                            <th style="width: 10.6%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Status</th>
-                            <th style="width: 9.9%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Catatan</th>
-                            <th style="width: 5.2%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize" title="Dokumentasi">Dok.</th>
-                            <th style="width: 4.8%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl">Aksi</th>
+                            <th style="width: 9.0%;" class="px-1.5 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl">Tanggal</th>
+                            <th style="width: 9.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Diajukan</th>
+                            <th style="width: 9.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Jam Disetujui</th>
+                            <th style="width: 14.5%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
+                            <th style="width: 11.5%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Ketua Tim</th>
+                            <th style="width: 12.0%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Nama Tim</th>
+                            <th style="width: 10.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Status</th>
+                            <th style="width: 10.0%;" class="px-2 py-3 text-left text-xs font-semibold text-gray-700 capitalize">Catatan</th>
+                            <th style="width: 9.0%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize">Dokumentasi</th>
+                            <th style="width: 4.5%;" class="px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl">Aksi</th>
                         </tr>
                     </thead>
 
@@ -377,15 +377,15 @@
                                     <td class="whitespace-nowrap px-1 py-2.5 text-center text-xs align-middle">
                                         @if($t->status === 'approved')
                                             @if($t->file_dokumentasi)
-                                                <div class="flex items-center justify-center gap-1">
+                                                <div class="flex items-center justify-center gap-1.5">
                                                     <a href="{{ $t->file_dokumentasi }}" target="_blank"
-                                                        class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 transition-colors max-w-[48px] truncate text-[11px]"
+                                                        class="inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-800 transition-colors text-xs"
                                                         title="{{ $t->file_dokumentasi }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                                 d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                                         </svg>
-                                                        <span class="truncate">Link</span>
+                                                        <span>Lihat</span>
                                                     </a>
 
                                                     <form action="{{ route('pegawai.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
@@ -393,8 +393,8 @@
                                                         @csrf
                                                         @method('DELETE')
 
-                                                        <button type="submit" class="text-red-400 hover:text-red-600 transition-colors p-0.5 shrink-0" title="Hapus dokumentasi">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <button type="submit" class="text-red-400 hover:text-red-600 transition-colors p-0.5 shrink-0 cursor-pointer" title="Hapus dokumentasi">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                                             </svg>
                                                         </button>
@@ -404,12 +404,12 @@
                                                 <button type="button"
                                                     onclick="openModalDok(this)"
                                                     data-action="{{ route('pegawai.lembur.storeDoc', $t->id_transaksi) }}"
-                                                    class="inline-flex items-center justify-center gap-0.5 font-medium text-[#faa938] hover:text-[#fd9a10] transition-colors whitespace-nowrap text-[11px]"
+                                                    class="inline-flex items-center justify-center gap-1 font-semibold text-[#e08916] hover:text-[#c47209] transition-colors whitespace-nowrap text-[11.5px] group"
                                                     title="Tambah link dokumentasi">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                                                     </svg>
-                                                    <span>Dok</span>
+                                                    <span>Dokumentasi</span>
                                                 </button>
                                             @endif
                                         @else
@@ -433,12 +433,11 @@
                                                 data-kode-tim="{{ $t->tim_kode_tim ?? '' }}"
                                                 data-ketua="{{ $t->nama_ketua ?? '-' }}"
                                                 data-tim="{{ $t->nama_tim ?? '-' }}"
-                                                class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-all shadow-2xs cursor-pointer"
-                                                title="Ubah ketua tim, jam, atau uraian kegiatan">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
+                                                title="Ubah pengajuan lembur">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
                                                 </svg>
-                                                <span>Ubah</span>
                                             </button>
                                         @else
                                             <span class="text-gray-300 font-medium select-none" title="Sudah diproses / terkunci">-</span>
@@ -1845,6 +1844,7 @@
             if (!input) return;
             let val = input.value.trim();
             if (!val) return;
+            if (val.startsWith('b64:')) return;
             if (!/^https?:\/\//i.test(val)) {
                 val = 'https://' + val;
             }
