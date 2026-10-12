@@ -3825,6 +3825,60 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `resources/views/lembur.blade.php` | Pembaruan header dan isi kolom Dokumentasi lengkap tanpa singkatan, penyederhanaan tombol kolom Aksi menjadi ikon pensil tanpa teks "Ubah", serta penambahan proteksi guard `b64:` pada submit listener form dokumen. |
 
+---
+
+## 78. Kalibrasi Proporsi Kolom Anti-Overlap & Tata Letak Tabel Lembur Fit 100% Responsif (Sidebar Terbuka & Tertutup)
+
+### A. Latar Belakang & Gejala Masalah
+- **Keluhan Pengguna:** Pengguna mengamati bahwa ketika sidebar navigasi desktop dimunculkan/dibuka (*sidebar open*), isian tabel pengajuan lembur tampak tidak rapi karena teks pada kolom tertentu saling menabrak atau terpotong berantakan.
+- **Akar Masalah:**
+  1. Pengurangan lebar area konten saat sidebar terbuka (menyusut sebesar 256px / `w-64`) menyebabkan kolom teks yang sebelumnya sempit saling menabrak jika menggunakan nilai persentase yang tidak seimbang.
+  2. Kolom jam pengajuan dan jam disetujui terlalu mepet dengan teks status jika persentase kolom status dan jam terlalu kecil atau teks berformat `whitespace-nowrap` meluap keluar sel.
+  3. Adanya baris terpisah `"Lihat detail >"` pada uraian kegiatan yang panjang menyebabkan tinggi baris tersebut bengkak menjadi ~85px, jomplang dibandingkan baris uraian singkat yang hanya 50px.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Kalibrasi Proporsi Kolom Presisi (Total Pas 100.0%):**
+   - Mengalokasikan persentase kolom `<thead>` secara optimal agar tidak ada satu pun teks yang meluap atau menabrak kolom sebelahnya:
+     - **Tanggal**: `8.5%` (cukup untuk tanggal format `d M Y` font 11px).
+     - **Jam Diajukan**: `9.5%` (cukup untuk format jam mono `HH:MM - HH:MM`).
+     - **Jam Disetujui**: `9.5%` (cukup untuk jam mono hijau atau lencana disesuaikan).
+     - **Uraian Kegiatan**: `15.0%` (memberikan ruang baca yang lega untuk deskripsi lembur).
+     - **Ketua Tim**: `12.0%` (memberikan ruang untuk nama ketua dan gelar dinas).
+     - **Nama Tim**: `13.0%` (memberikan ruang untuk nama tim kerja).
+     - **Status**: `10.5%` (ruang aman untuk badge Menunggu Kabag, Disetujui, Ditolak).
+     - **Catatan**: `8.5%` (ruang terstruktur untuk catatan ketua maupun catatan kabag).
+     - **Dokumentasi**: `9.0%` (ruang pas untuk tombol `+ Dokumentasi` dan tautan `Lihat`).
+     - **Aksi**: `4.5%` (alokasi ramping untuk tombol ikon pensil `28x28px` di tengah).
+2. **Pembersihan Uraian Kegiatan Menjadi 2 Baris Bersih & Ikon Inline:**
+   - Menghapus baris terpisah teks kuning `"Lihat detail >"` di bawah teks uraian.
+   - Menggantinya dengan kartu flex interaktif yang menyematkan ikon pop-up eksternal `↗` di ujung kanan teks:
+     ```blade
+     <div onclick="openModalUraian(this)" ...
+         class="group cursor-pointer rounded-lg px-1.5 py-1 -mx-1 hover:bg-amber-50/80 transition-all flex items-start justify-between gap-1">
+         <div class="line-clamp-2 break-words text-[11px] leading-snug tracking-tight text-gray-800 group-hover:text-amber-800 transition-colors flex-1 min-w-0">
+             {{ $uraianText }}
+         </div>
+         @if($isLong)
+             <span class="text-amber-500 group-hover:text-amber-700 shrink-0 mt-0.5 transition-colors" title="Lihat detail lengkap">
+                 <svg ... />
+             </span>
+         @endif
+     </div>
+     ```
+   - Dengan pendekatan ini, seluruh baris tabel dijamin memiliki tinggi yang persis sama (64px / `h-16`) baik saat uraian pendek maupun panjang.
+3. **Penyempurnaan Tipografi & Padding Responsif:**
+   - Menggunakan ukuran font terkalibrasi `text-[11px]` dengan `tracking-tight leading-snug` pada kolom Uraian, Ketua Tim, dan Nama Tim.
+   - Menggunakan padding ramping `px-1 py-2` pada kolom tanggal dan jam, serta `px-2 py-2` pada kolom teks, memberikan ruang ekstra horizontal tanpa membuat tabel melar ke samping.
+4. **Hasil Pengujian Visual:**
+   - **Saat Sidebar Terbuka:** Tabel 100% pas (fit) di layar laptop/desktop tanpa horizontal scroll, tidak ada teks yang saling tabrakan, dan tinggi baris konsisten rapi.
+   - **Saat Sidebar Tertutup:** Tabel otomatis melebar penuh 100% layar dengan ruang baca yang sangat lega, nyaman, dan estetis.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Penerapan persentase thead anti-tabrakan 100%, konversi indikator detail uraian menjadi ikon inline tanpa baris ke-3, penataan font 11px tracking-tight pada seluruh sel tbody, dan penyelarasan tinggi baris h-16 di kedua mode sidebar. |
+
+
 
 
 

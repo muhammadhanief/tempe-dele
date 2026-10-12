@@ -288,6 +288,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 186. 📄 **`resources/views/lembur.blade.php`** *(Penataan ulang proporsi kolom tabel riwayat lembur pegawai dengan persentase terkalibrasi 100% [9.4%, 10%, 10%, 15.6%, 12%, 12.5%, 10.6%, 9.9%, 5.2%, 4.8%], padding sel ramping rapi, perbaikan double plus tombol dokumentasi, dan penyesuaian status badge agar pas 100% tanpa celah renggang dan tanpa overlap)*.
 187. 📄 **`resources/views/lembur.blade.php`** *(Penyeragaman tinggi seluruh baris tabel riwayat lembur pegawai menggunakan h-16 [64px] dan align-middle, line-clamp teks 2 baris pada Uraian, Ketua, Tim, dan Catatan, serta implementasi Modal Pop-up Detail Uraian Kegiatan lengkap dengan metadata tanggal, jam pengajuan & disetujui, ketua, tim kerja, status pengajuan, serta catatan terstruktur)*.
 188. 📄 **`resources/views/lembur.blade.php`** *(Pembaruan kolom Dokumentasi lengkap tanpa singkatan, tombol + Dokumentasi oranye amber, tautan eksternal Lihat dengan hapus terproteksi, penyederhanaan tombol kolom Aksi menjadi ikon pensil mandiri 28x28px tanpa teks Ubah, serta proteksi guard anti double-encode Base64 b64: pada submit listener dokumen)*.
+189. 📄 **`resources/views/lembur.blade.php`** *(Kalibrasi persentase kolom thead anti-tabrakan [8.5%, 9.5%, 9.5%, 15.0%, 12.0%, 13.0%, 10.5%, 8.5%, 9.0%, 4.5%], pembersihan baris ketiga teks lihat detail pada uraian kegiatan menjadi ikon pop-up inline tanpa baris ganjil, dan penataan font 11px tracking-tight agar tabel 100% fit dan rapi baik saat sidebar terbuka maupun tertutup)*.
 
 ---
 
@@ -1243,6 +1244,18 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Kolom Aksi menampilkan tombol kotak rounded kuning lembut (`w-7 h-7`) dengan **hanya ikon pensil saja tanpa teks kata "Ubah"**.
   - Arahkan kursor mouse (hover): muncul tooltip *"Ubah pengajuan lembur"* dan ikon sedikit membesar (scale micro-interaction).
   - Klik ikon pensil: modal Ubah Pengajuan Lembur terbuka secara lancar dengan data terisi lengkap.
+
+### BK. Uji Tabel Pengajuan Lembur Fit 100% Anti-Overlap (Sidebar Terbuka vs Tertutup)
+- [ ] **Uji Tampilan Tabel Saat Sidebar Navigasi Desktop Terbuka**:
+  - Buka halaman **Lembur** Pegawai (`/lembur`) di layar laptop/desktop dalam kondisi sidebar terbuka (lebar sidebar 256px / `w-64`).
+  - Verifikasi: Seluruh 10 kolom tabel (Tanggal, Jam Diajukan, Jam Disetujui, Uraian Kegiatan, Ketua Tim, Nama Tim, Status, Catatan, Dokumentasi, Aksi) muat pas 100% di layar monitor tanpa memunculkan bilah gulir geser horizontal.
+  - Verifikasi: Jam Diajukan dan Jam Disetujui terpisah rapi dengan jarak yang jelas, teks Status tidak menabrak kolom Catatan, serta tombol Dokumentasi dan Aksi terpusat rapi tanpa tumpang tindih.
+  - Verifikasi: Seluruh baris tabel memiliki tinggi persis sama (64px / `h-16`). Teks uraian kegiatan terbatasi maksimal 2 baris dengan ikon pop-up inline `↗` (tanpa ada baris ketiga yang membuat baris melar vertikal).
+- [ ] **Uji Tampilan Tabel Saat Sidebar Navigasi Desktop Ditutup**:
+  - Klik tombol tutup sidebar di tepi kanan header sidebar.
+  - Verifikasi: Sidebar meluncur tertutup dan area tabel otomatis melebar penuh 100% mengisi layar secara lega.
+  - Verifikasi: Seluruh kolom data tersaji dengan ruang baca yang sangat luas, proporsional, dan nyaman dilihat.
+
 
 
 
