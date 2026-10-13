@@ -299,6 +299,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 197. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Kalibrasi layout tabel pengajuan ketua tim fit 100% desktop tanpa scroll horizontal [lg:min-w-full], distribusi colgroup presisi 100% [3.5%, 17%, 10.5%, 10.5%, 11.5%, 20%, 9%, 12.5%, 5.5%], padding sel rapat rapi px-1 / px-1.5 py-2, standarisasi lencana jam disetujui hijau text-[10.5px] px-1.5 py-0.5 bebas tabrakan, tombol presensi & badge status proporsional, serta sinkronisasi AJAX real-time)*.
 198. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Penataan bertingkat vertikal flex-col header kolom Tanggal: teks Tanggal di atas dan dropdown sortir [Terbaru ▾] di bawahnya, mengeliminasi tabrakan horizontal dengan header Jam Diajukan)*.
 199. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Restrukturisasi tata letak modal #modalAjukan menjadi 2-kolom desktop md:grid-cols-2 zero-scroll: max-w-3xl lg:max-w-4xl max-h-[92vh], textarea uraian rows=3, kanvas tanda tangan h-28 touch-none, mengeliminasi scrollbar vertikal pada layar laptop/desktop dengan fallback responsif 1-kolom di mobile)*.
+200. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil `npm run build`: `manifest.json`, `assets/app-CgN_TPC-.css`, `assets/app-DfUGke97.js` memuat seluruh utility Tailwind CSS termutakhir dari 30+ commit terakhir)*.
 
 ---
 
@@ -1389,6 +1390,10 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Batas bawah kolom kiri (Jam Mulai/Selesai & Estimasi Durasi) sejajar horizontal dengan batas bawah kolom kanan (Kotak Tanda Tangan Digital).
   - Verifikasi: Jarak antar-elemen di kolom kiri lapang dan proporsional (`justify-between`, `py-2.5`), mengeliminasi ruang kosong canggung di sudut kiri bawah.
 
-
-
-
+### BT. Uji Sinkronisasi Bundel Aset Produksi Vite (`public/build`) & Tampilan Real-Time
+- [ ] **Uji Header HTML Memuat Bundel CSS Terbaru**:
+  - Buka halaman login atau dashboard di peramban, buka inspect element / *View Page Source* (Ctrl + U).
+  - Verifikasi: Tag stylesheet memuat berkas bundel CSS termutakhir `assets/app-CgN_TPC-.css` (bukan bundel lama `app-BWQ3dq7l.css` atau `app-vIdj2UmY.css`).
+- [ ] **Uji Hard Refresh Peramban (Bypass Browser Cache)**:
+  - Tekan kombinasi tombol **Ctrl + Shift + R** (atau **Ctrl + F5**) untuk memastikan cache CSS lokal peramban dibersihkan.
+  - Verifikasi: Tampilan modal ajukan lembur 2 kolom, tabel responsif sticky column, collapsible sidebar, dan seluruh tata letak antarmuka di peladen sama persis 100% dengan tampilan di lingkungan lokal.
