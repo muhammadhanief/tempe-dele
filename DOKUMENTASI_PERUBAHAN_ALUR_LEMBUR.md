@@ -4237,15 +4237,30 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
    - Pada kolom kiri: batas atas (label Ketua Tim) sejajar presisi dengan batas atas kolom kanan (label Uraian Kegiatan). Batas bawah (kotak input Jam Mulai/Selesai & banner Estimasi Durasi) sejajar presisi dengan batas bawah kolom kanan (garis bawah kotak tanda tangan digital).
    - Memperlebar ruang sela dan ketinggian input kolom kiri (`py-2.5`, `mb-1.5`) sehingga mengeliminasi ruang kosong canggung di sudut kiri bawah, menghasilkan komposisi visual yang simetris, lapang, dan seimbang.
 
+
+## 87. Pembaruan Bundel Aset Produksi Vite (`public/build`) untuk Sinkronisasi Tampilan Server Produksi & Staging
+
+### A. Latar Belakang & Identifikasi Kendala
+1. **Disparitas Tampilan Antara Lingkungan Lokal dan Server Deploy:**
+   - Pada saat pengujian di komputer lokal, pengembang menjalankan Vite Development Server (`npm run dev`) yang secara dinamis mengompilasi dan menginjeksi utilitas class Tailwind CSS terbaru langsung ke peramban secara *on-demand*.
+   - Namun, pada server deploy/produksi ([lembur-dev.jateng.pro](https://lembur-dev.jateng.pro)), sistem tidak menjalankan server Node.js dan mengandalkan file statis terkompilasi yang dimanifestasikan pada direktori `public/build/`.
+   - Karena terjadi penambahan fitur dan perubahan styling dalam rentang >30 commit terakhir (seperti modal 2-kolom zero-scroll `md:grid-cols-2`, restrukturisasi padding tabel rapat `px-1 py-2`, sticky positioning `left-12`, header bertingkat flex-col, dsb.), file build produksi sebelumnya (`app-BWQ3dq7l.css`) belum memuat definisi class-class baru tersebut.
+   - Akibatnya, tampilan antarmuka di server deploy belum sepenuhnya presisi mengikuti tampilan di komputer lokal.
+
+### B. Solusi & Hasil Kompilasi Produksi
+1. **Eksekusi Kompilasi Vite Produksi (`npm run build`):**
+   - Menjalankan proses kompilasi bundel aset produksi di komputer lokal menggunakan Vite v7.3.1.
+   - Menghasilkan bundel teroptimasi dan termodifikasi baru:
+     - **CSS Bundel Baru:** `public/build/assets/app-CgN_TPC-.css` (111.99 kB │ gzip: 17.89 kB).
+     - **JS Bundel:** `public/build/assets/app-DfUGke97.js` (43.87 kB │ gzip: 17.07 kB).
+     - **Manifest Vite:** `public/build/manifest.json` yang memetakan `resources/css/app.css` ke `assets/app-CgN_TPC-.css`.
+2. **Pembersihan Aset Usang:**
+   - Menghapus bundel lama `public/build/assets/app-BWQ3dq7l.css` agar tidak membebani repositori.
+3. **Penyelarasan Server Tanpa Perlu Node.js di Peladen:**
+   - Karena folder `public/build` di-track langsung oleh Git repositori, server produksi/staging cukup menjalankan `git pull` dan `php artisan optimize:clear` tanpa perlu menginstal Node.js ataupun menjalankan `npm run build` di peladen.
+
 ### C. Berkas yang Diperbarui
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
-| 1 | `resources/views/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` menjadi 2-kolom desktop zero-scroll (`max-w-3xl lg:max-w-4xl`, `md:grid-cols-2`), alinyemen atas-bawah presisi `justify-between h-full`, input lapang `py-2.5`, textarea uraian rows=3, kanvas tanda tangan h-28, eliminasi scrollbar vertikal pada layar desktop. |
-| 2 | `resources/views/ketua-tim/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Ketua Tim menjadi 2-kolom desktop zero-scroll dan alinyemen atas-bawah `justify-between` identik. |
-| 3 | `resources/views/admin/lembur.blade.php` | Restrukturisasi modal `#modalAjukan` lembur mandiri Administrator menjadi 2-kolom desktop zero-scroll dan alinyemen atas-bawah `justify-between` identik. |
-
-
-
-
-
-
+| 1 | `public/build/assets/app-CgN_TPC-.css` | Bundel CSS produksi Vite terbaru memuat seluruh utility class Tailwind mutakhir. |
+| 2 | `public/build/manifest.json` | Manifest Vite baru yang mengarahkan asset CSS ke `app-CgN_TPC-.css`. |
