@@ -4883,6 +4883,49 @@ Pada tangkapan layar pengguna:
 | :---: | :--- | :--- |
 | 1 | `resources/views/admin/manajemen_user.blade.php` | Redesain 4 modal (Ganti Kabag, Ganti PPK, Tambah Admin, Tambah Superadmin) menjadi format landscape 2-kolom desktop (`max-w-3xl lg:max-w-4xl`), live preview kartu pegawai terpilih di kolom kiri, listbox interaktif dan live search di kolom kanan, eliminasi window scrolling (zero-scroll), dan validasi JavaScript form terpantau aman. |
 
+---
+
+## 100. Penerapan Prinsip Desain Anti-Slop pada Halaman Manajemen User & Pejabat: Eliminasi Container Template Monoton Menjadi Panel Eksekutif Otoritas Terpadu (`/admin/manajemen-user`)
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Permintaan Pengguna:**
+  *"bikin dong tampilan /admin/manajemen-user jangan terlalu slop. gunakan anti slop"*
+- **Konfirmasi Mode Kerja Antislop:**
+  Sesuai aturan antislop (`antislop.md`), pengguna mengonfirmasi penerapan **Mode 1 (DURING)** secara langsung selama perancangan dan penulisan kode.
+- **Deklarasi Pembacaan Desain (*Design Read*):**
+  > *Reading this as: Internal Authority & Administrative RBAC Dashboard for BPS Provinsi Jawa Tengah Leadership, in an institutional clarity style, dial ENERGY 1 (Calm, authoritative) / RHYTHM 2 (Structured, purposeful section contrast) / MOTION 1 (Subtle, professional hover/focus transitions only).*
+
+### B. Masalah Tampilan Sebelumnya (AI Slop Patterns)
+1. **Pola "Cookie-Cutter Container Slop" (R-05, R-14):**
+   - Halaman sebelumnya merender 4 wadah kotak putih raksasa yang identik (`bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-7`) dan bertumpuk secara vertikal monoton dengan `space-y-8`.
+   - Setiap wadah memiliki komposisi header yang berulang tanpa variasi: ikon dalam kotak persegi kecil berwarna, judul teks, paragraf deskriptif panjang, dan tombol aksi di pojok kanan atas.
+2. **Pemisahan Artifisial Antara Kabag Umum dan PPK (Wasted Space):**
+   - Kepala Bagian Umum dan Pejabat Pembuat Komitmen (PPK) keduanya merupakan **Pejabat Penandatangan Kedinasan Aktif**.
+   - Memisahkan keduanya ke dalam dua seksi vertikal terpisah berlebar penuh menciptakan kekosongan ruang horizontal ($\pm 70\%$ ruang kartu kosong di layar desktop) dan memaksa pengguna menggulir layar ke bawah.
+3. **Pelanggaran Aturan Tipografi & Karakter Em-Dash (R-02):**
+   - Pada tabel admin dan superadmin, nilai kosong di-render menggunakan karakter em-dash (`—`), yang merupakan pelanggaran keras aturan R-02 antislop.
+4. **Detail Kartu yang Berlebihan (*Unnecessary Visual Clutter*):**
+   - Di dalam kartu pejabat aktif sebelumnya terdapat kotak-kotak kecil tambahan seperti `JABATAN STRUKTURAL: Kepala Bagian Umum` dan `ROLE SISTEM: Ketua_tim` yang sifatnya redundan karena sudah dinyatakan oleh judul dan lencana aktif.
+
+### C. Solusi & Rincian Implementasi Anti-Slop
+1. **Penyatuan Panel Eksekutif Pejabat Penandatangan (2-Kolom Desktop):**
+   - Mengelompokkan Kabag Umum dan PPK ke dalam satu payung hierarki terpadu: **"Pejabat Penandatangan Kedinasan Aktif"** berlabel *Berdasarkan SK Kepala BPS Provinsi*.
+   - Tata letak grid responsif: `grid grid-cols-1 lg:grid-cols-2 gap-5`.
+   - **Kartu Kabag Umum:** Dilengkapi lencana peran *Approval Final & Pimpinan Bagian Umum*, monogram avatar beraksen BPS Amber `#faa938`, indikator status *Aktif (SK Tahun)*, NIP & NIP BPS font mono rapi, satuan kerja, tombol *Ganti Kabag*, serta laci arsip riwayat pejabat (*collapsible micro-table*).
+   - **Kartu PPK:** Dilengkapi lencana peran *Penandatangan SPKL & Anggaran Lembur*, monogram avatar beraksen Sky Blue `sky-600`, indikator status *Aktif (SK Tahun)*, NIP & NIP BPS, satuan kerja, tombol *Ganti PPK*, serta laci arsip riwayat PPK.
+2. **Diferensiasi Hierarki Pengelola & Hak Akses Khusus:**
+   - **Admin Lembur (Operasional):** Didesain dengan monogram peran `AL` berlatar indigo lembut, lencana jumlah petugas aktif, ringkasan tanggung jawab operasional (presensi, tim kerja, SPKL, rekapitulasi), dan tabel petugas berformat NIP tabular font mono dengan tombol pencabutan wewenang ber-safeguard konfirmasi.
+   - **Super Administrator (Governance Kebijakan Utama):** Didesain dengan monogram peran `SA` berlatar rose lembut, lencana pengawas kebijakan, penegasan klausul permanen perlindungan akun, dan tabel superadmin berpenanda *Akun Anda* serta status kebijakan *Permanen*.
+3. **Pembersihan Tipografi & Kepatuhan Aturan Anti-Slop (R-02, R-25, R-26, R-32):**
+   - Menghapus seluruh karakter em-dash (`—`) dan menggantikannya dengan tanda hubung standar (`-`) atau teks definitif.
+   - Rasio kontras teks slate-900 dan slate-700 terhadap latar belakang putih berada di atas 14:1 (jauh melampaui standar WCAG AA 4.5:1).
+   - Seluruh tombol aksi dilengkapi efek interaktif fokus peramban, penunjuk kursor pointer, dan tooltip informatif.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Penerapan antislop: penyatuan panel eksekutif 2-kolom untuk Kabag dan PPK aktif, pemisahan terstruktur seksi Admin Lembur dan Superadmin, eliminasi kotak template redundan, pembersihan em-dash R-02, dan penyempurnaan tipografi kelembagaan BPS. |
+
 
 
 

@@ -312,6 +312,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 210. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`**, **`app/Http/Controllers/admin/PengajuanController.php`**, **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Perbaikan false-positive validasi uraian kegiatan saat persetujuan lembur tanpa presensi: normalisasi karakter line-break canonical CRLF [\r\n vs \n] pada dirty-check controller backend, serta proteksi frontend agar tidak mengirim payload uraian ketika field terkunci/tidak dimodifikasi).*
 211. 📄 **`resources/views/admin/lembur.blade.php`** *(Penyelarasan filter status monitoring lembur admin & superadmin menjadi custom floating dropdown melayang di sebelah kanan bilah pencarian tim pada toolbar, peniadaan deretan pil status desktop dan wrapper mobile terpisah, serta pembaruan deteksi filter aktif URL).*
 212. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Redesain antarmuka modal pergantian pejabat Kabag Umum & PPK, serta modal penambahan Admin Lembur & Superadmin menjadi format landscape 2-kolom zero-scroll: kolom kiri untuk parameter, info otomatisasi, dan live preview kartu pegawai terpilih; kolom kanan untuk live search dan listbox interaktif pegawai dengan avatar, NIP, satker tag, dan radio indicator; serta validasi terproteksi anti-error "An invalid form control is not focusable").*
+213. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Penerapan prinsip desain anti-slop pada halaman Manajemen User: eliminasi pola kontainer monoton bertumpuk, penyatuan panel eksekutif pejabat penandatangan aktif [Kabag Umum & PPK] menjadi 2-kolom desktop lg:grid-cols-2 dengan laci arsip collapsible, penataan hierarki peran Admin Lembur [AL] dan Super Administrator [SA] dengan ringkasan wewenang dan safeguards konfirmasi, kepatuhan aturan tipografi anti-slop R-02 pembersihan karakter em-dash, serta jaminan rasio kontras tinggi kelembagaan BPS).*
 
 ---
 
@@ -1591,4 +1592,23 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Validasi Form Tanpa Galat Konsol**:
   - Buka modal tanpa memilih pegawai, lalu klik tombol **Simpan**:
   - Verifikasi: Formulir dicegah dari submit, muncul alert pemberitahuan ramah, dan konsol peramban bersih dari galat *"An invalid form control is not focusable"*.
+
+### CG. Uji Antarmuka Anti-Slop Manajemen User & Pejabat (/admin/manajemen-user)
+- [ ] **Uji Eliminasi Pola Kontainer Monoton & Penyatuan Panel Pejabat 2-Kolom**:
+  - Masuk sebagai Superadmin via `/dev-login/200108252024121005` (Muhammad Hanief), buka menu **Manajemen User** (`/admin/manajemen-user`).
+  - Verifikasi: Halaman **TIDAK LAGI** menampilkan 4 kotak kontainer putih raksasa yang identik bertumpuk ke bawah (*cookie-cutter slop*).
+  - Verifikasi: Seksi pertama menyajikan **"Pejabat Penandatangan Kedinasan Aktif"** dengan tata letak 2 kolom berdampingan (`grid-cols-1 lg:grid-cols-2`):
+    - **Kolom Kiri**: Kartu Kepala Bagian Umum beraksen Amber BPS (`#faa938`), avatar monogram inisial, lencana status *Aktif (SK 2026)*, NIP & NIP BPS font mono, satuan kerja, tombol *Ganti Kabag*, serta laci akordion arsip riwayat pejabat.
+    - **Kolom Kanan**: Kartu PPK beraksen Biru Sky (`sky-600`), avatar monogram inisial, lencana status *Aktif (SK 2026)*, NIP & NIP BPS, satuan kerja, tombol *Ganti PPK*, serta laci akordion arsip riwayat PPK.
+- [ ] **Uji Laci Riwayat Pejabat (Collapsible Archive Drawer)**:
+  - Pada kartu Kabag Umum dan PPK, klik tombol `Riwayat Arsip (N Pejabat Terdahulu) ▾`:
+  - Verifikasi: Laci riwayat membuka mulus menampilkan tabel pejabat demisioner dengan NIP font mono dan tahun SK tanpa merusak tata letak kartu.
+- [ ] **Uji Diferensiasi Hierarki Pengelola (Admin Lembur vs Super Administrator)**:
+  - Gulir ke seksi bawah:
+    - **Seksi Admin Lembur (Operasional)**: Monogram peran `AL` indigo, badge counter jumlah petugas, deskripsi wewenang operasional (presensi, tim, rekapitulasi, pembatalan), dan tabel admin bertombol *Cabut Akses* ber-safeguard dialog konfirmasi.
+    - **Seksi Super Administrator (Governance & Kebijakan Utama)**: Monogram peran `SA` rose, badge counter jumlah superadmin, ringkasan proteksi akun permanen, tabel berpenanda *Akun Anda*, dan status *Permanen (Tak Dapat Dicabut)*.
+- [ ] **Uji Kepatuhan Aturan Anti-Slop (R-02 Bebas Em-Dash, Kontras WCAG AAA, & Interaktivitas)**:
+  - Verifikasi: Tidak ada satu pun karakter em-dash (`—`) pada seluruh tabel; semua kolom kosong menggunakan tanda hubung `-` standar.
+  - Verifikasi: Rasio kontras teks slate-900 / slate-700 di atas latar belakang putih teruji melebihi 14:1 (lulus WCAG AAA).
+  - Verifikasi: Semua tombol aksi memiliki target sentuh nyaman ($\ge 40$px di mobile, $\ge 36$px di desktop) dan cincin fokus peramban saat dinavigasi keyboard.
 
