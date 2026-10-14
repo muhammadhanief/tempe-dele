@@ -305,6 +305,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 203. 📄 **`resources/views/dashboard.blade.php`**, **`resources/views/admin/dashboard.blade.php`**, **`resources/views/ketua-tim/dashboard.blade.php`**, **`resources/views/pimpinan/dashboard.blade.php`** *(Standarisasi tombol "Lihat semua" pada seluruh kartu dashboard dengan penambahan `shrink-0`, `whitespace-nowrap`, `min-w-0 flex-1`, dan padding proporsional `px-4 py-2 text-sm` untuk menjamin bentuk pil konsisten dan bebas wrapping/tergencet di berbagai ukuran layar dan kondisi sidebar terbuka/tertutup).*
 204. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/lembur.blade.php`** *(Izin pengeditan mandiri pengajuan lembur anggota Tim Bagian Umum pada status `menunggu_kabag` selama belum disetujui Kabag Umum, dan sinkronisasi tampilan tombol aksi edit kuning di tabel & linimasa).*
 205. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`** *(Standarisasi ketebalan font teks uraian kegiatan pada kartu linimasa, label sub-seksi, dan judul modal detail dari `font-bold` menjadi `font-semibold` di seluruh role untuk meningkatkan kenyamanan visual dan keterbacaan antarmuka).*
+206. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Standarisasi format tampilan catatan transaksi dibatalkan oleh Admin dengan menyajikan label khusus 'Admin:' berkas warna rose lembut dan membersihkan prefix teks teknis `[Dibatalkan Admin]` pada tabel, linimasa, dan modal detail di seluruh role dengan tetap menjaga catatan historis Kabag Umum).*
 
 ---
 
@@ -1475,6 +1476,24 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Label sub-seksi *Uraian Kegiatan Lembur:* tampil rapi dan tegas dengan `font-semibold`.
   - Klik baris uraian pada tabel atau buka modal detail uraian:
   - Verifikasi: Judul modal *Detail Uraian Kegiatan* menggunakan tipografi `font-semibold text-slate-900` yang elegan dan selaras.
+
+### BZ. Uji Standarisasi Format Catatan Transaksi Dibatalkan oleh Admin (Label 'Admin:' & Pembersihan Prefix)
+- [ ] **Uji Tampilan Tabel Persetujuan Kabag Umum (`/kabag-umum/pengajuan`)**:
+  - Buka menu **Persetujuan Kabag**, klik tab filter **Dibatalkan**.
+  - Periksa kolom **Catatan** pada transaksi yang dibatalkan oleh Admin:
+    - Verifikasi: Catatan diawali dengan label/badge khusus **`ADMIN:`** berwarna merah mawar lembut (`text-rose-600 bg-rose-50`), bukan lagi label keliru `KETUA TIM:`.
+    - Verifikasi: Teks catatan bersih dari awalan sistem (string `[Dibatalkan Admin]` telah dibersihkan otomatis).
+    - Verifikasi: Jika sebelumnya transaksi memiliki catatan dari Kabag Umum, label dan catatan `KABAG UMUM:` tetap tampil rapi di bawahnya.
+- [ ] **Uji Tampilan Linimasa & Modal Detail di Seluruh Role**:
+  - Beralih ke mode **Timeline** pada halaman Kabag Umum, Ketua Tim, Pegawai, atau Admin.
+  - Periksa kartu linimasa transaksi dibatalkan:
+    - Verifikasi: Seksi catatan menampilkan label **`Catatan Admin:`** beraksen rose (`text-rose-600 font-semibold`) dengan teks alasan bersih.
+  - Klik teks uraian atau buka modal detail uraian pada transaksi dibatalkan di halaman Pegawai (`/lembur`) atau Ketua Tim (`/ketua-tim/pengajuan`):
+    - Verifikasi: Header catatan modal pop-up menampilkan **`Catatan Admin:`** berwarna merah mawar dengan isi teks bersih tanpa prefix teknis.
+- [ ] **Uji Pembatalan Transaksi Real-Time oleh Admin (`/admin/lembur`)**:
+  - Masuk sebagai Admin, lakukan pembatalan salah satu transaksi via modal konfirmasi aksi:
+  - Verifikasi: Baris tabel langsung berubah menampilkan status `Dibatalkan` dan kolom Catatan langsung menyajikan badge `Admin:` beserta teks alasan secara real-time tanpa perlu me-reload peramban.
+
 
 
 

@@ -4462,6 +4462,62 @@ Pada implementasi tampilan linimasa sebelumnya, blok teks judul/uraian kegiatan 
 | 4 | `resources/views/kabag-umum/pengajuan.blade.php` | Mengubah label sub-seksi uraian kegiatan pada linimasa verifikasi ke `font-semibold`. |
 | 5 | `resources/views/admin/pengajuan.blade.php` | Mengubah label sub-seksi uraian kegiatan pada linimasa persetujuan ke `font-semibold`. |
 
+---
+
+## 93. Standarisasi Format Catatan Transaksi Dibatalkan oleh Admin (Penyajian Label Khusus 'Admin:' dan Pembersihan Prefix Teknis)
+
+### A. Latar Belakang & Permintaan Pengguna
+Pengguna menyampaikan masukan antarmuka terkait tampilan catatan transaksi lembur yang dibatalkan oleh Administrator:
+> *"catatan yang dibatalkan bagusnya*  
+> *~~*  
+> *Admin:*  
+> *catatan*  
+> *~~"*
+
+Disertai tangkapan layar tabel verifikasi persetujuan Kabag Umum (`/kabag-umum/pengajuan`, tab filter **Dibatalkan (1)**):
+1. **Ketidaksesuaian Label Catatan (*Misleading Attribution*):**
+   - Pada kolom **Catatan**, riwayat catatan pembatalan admin sebelumnya dirender di bawah label kapital tebal: `KETUA TIM:`.
+   - Hal ini menimbulkan kerancuan informasi bagi Kepala Bagian Umum maupun pengguna lainnya, seolah-olah penolakan atau pembatalan tersebut diputuskan oleh Ketua Tim bersangkutan, padahal keputusan pembatalan dilakukan oleh Administrator Satker.
+2. **Kotornya Teks Awalan Sistem (*Technical String Leakage*):**
+   - Teks catatan menampilkan string teknis prefix bawaan controller: `[Dibatalkan Admin] testing (besok saja)`. Teks awalan mentah tersebut mengganggu kerapian antarmuka dan kurang estetis bagi pengguna akhir.
+
+### B. Solusi Desain & Rincian Implementasi Teknis
+1. **Deteksi Cerdas Pembatalan Admin (*Admin Cancellation Detection*):**
+   - Mengevaluasi apakah suatu transaksi dibatalkan oleh Admin melalui kondisi:
+     `$isAdminCancelled = ($status === 'cancelled') || str_contains($rawNote, '[Dibatalkan Admin]');`
+   - Melakukan pembersihan teks (*string sanitization*) dengan menghapus prefix teknis `[Dibatalkan Admin]` secara elegan:
+     `$cleanNote = trim(preg_replace('/^\[Dibatalkan\s+Admin\]\s*/i', '', $rawNote));`
+2. **Standardisasi Label & Tipografi Sesuai Mockup Pengguna:**
+   - **Tampilan Tabel Data:**
+     - Jika transaksi berstatus `cancelled` atau memiliki prefix pembatalan admin, label catatan ditampilkan sebagai badge khusus **`ADMIN:`** berwarna merah mawar lembut (`text-rose-600 bg-rose-50 border-rose-200/80`) diikuti dengan teks catatan bersih `$cleanNote`.
+     - Riwayat catatan verifikasi terdahulu dari Kepala Bagian Umum (`$t->note_kabag`) tetap dipertahankan dan disajikan di bawahnya jika tersedia.
+     - Untuk transaksi berstatus non-cancelled lainnya, format catatan tetap mempertahankan label bawaan (`KETUA TIM:` dan `KABAG UMUM:`).
+   - **Tampilan Linimasa (Timeline View):**
+     - Pada kartu linimasa di seluruh peran, seksi catatan pembatalan disajikan dengan label informatif **`Catatan Admin:`** beraksen rose (`text-rose-600 font-semibold`) dan teks catatan bersih.
+   - **Modal Pop-Up Detail Uraian Tugas:**
+     - Fungsi JavaScript `openModalUraian(...)` pada halaman Pegawai (`lembur.blade.php`) dan Ketua Tim (`ketua-tim/pengajuan.blade.php`) diperbarui untuk mendeteksi status `cancelled`. Label header modal otomatis berubah menjadi **`Catatan Admin:`** dengan teks mawar merah lembut tanpa teks prefix kotor.
+   - **Pembaruan Real-Time Pembatalan Admin via AJAX:**
+     - Pada skrip handler pembatalan di `resources/views/admin/lembur.blade.php`, saat admin mengonfirmasi pembatalan via modal AJAX, elemen DOM `noteCell` langsung diperbarui secara real-time dengan badge `Admin:` dan teks alasan bersih tanpa perlu me-reload peramban.
+
+3. **Penerapan Menyeluruh di Seluruh Peran (Satker-Wide):**
+   - `resources/views/kabag-umum/pengajuan.blade.php` (Tabel & Linimasa Verifikasi Kabag Umum)
+   - `resources/views/ketua-tim/pengajuan.blade.php` (Linimasa & Modal Detail Ketua Tim)
+   - `resources/views/admin/pengajuan.blade.php` (Linimasa Verifikasi Satker Admin)
+   - `resources/views/lembur.blade.php` (Tabel, Linimasa, & Modal Detail Lembur Pegawai/Umum)
+   - `resources/views/ketua-tim/lembur.blade.php` (Tabel & Linimasa Lembur Mandiri Ketua Tim)
+   - `resources/views/admin/lembur.blade.php` (Tabel Monitoring & JavaScript Handler Admin)
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/kabag-umum/pengajuan.blade.php` | Menampilkan label `ADMIN:` (rose badge) dan membersihkan prefix `[Dibatalkan Admin]` pada kolom catatan tabel serta seksi linimasa. |
+| 2 | `resources/views/ketua-tim/pengajuan.blade.php` | Menampilkan label `Catatan Admin:` pada seksi catatan linimasa dan modal pop-up detail uraian. |
+| 3 | `resources/views/admin/pengajuan.blade.php` | Menampilkan label `Catatan Admin:` dengan teks bersih pada kartu linimasa persetujuan. |
+| 4 | `resources/views/lembur.blade.php` | Menampilkan badge `Admin:` pada kolom catatan tabel, `Catatan Admin:` pada linimasa, dan penyesuaian label modal detail. |
+| 5 | `resources/views/ketua-tim/lembur.blade.php` | Menampilkan badge `Admin:` pada kolom catatan tabel dan `Catatan Admin:` pada kartu linimasa mandiri. |
+| 6 | `resources/views/admin/lembur.blade.php` | Menampilkan badge `Admin:` pada tabel dan menyelaraskan rendering real-time DOM pada JavaScript handler pembatalan. |
+
+
 
 
 
