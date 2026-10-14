@@ -308,6 +308,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 206. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Standarisasi format tampilan catatan transaksi dibatalkan oleh Admin dengan menyajikan label khusus 'Admin:' berkas warna rose lembut dan membersihkan prefix teks teknis `[Dibatalkan Admin]` pada tabel, linimasa, dan modal detail di seluruh role dengan tetap menjaga catatan historis Kabag Umum).*
 207. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/partials/sidebar.blade.php`** *(Standarisasi antarmuka pengajuan lembur pribadi Ketua Tim dan Kepala Bagian Umum menggunakan `lembur.blade.php` penuh dengan fitur multi-tahun, pencarian tim, modal ajukan 2-kolom zero-scroll, modal edit, dan timeline responsif, serta penyesuaian rute aktif bilah sisi).*
 208. 📄 **`app/Http/Controllers/admin/LemburController.php`**, **`resources/views/admin/lembur.blade.php`**, **`app/Exports/LemburExport.php`** *(Perbaikan filter tab status cancelled/dibatalkan pada controller monitoring lembur admin, dukungan badge status cancelled dan dibatalkan pada tabel, serta pemetaan warna dan label status pada ekspor spreadsheet Excel).*
+209. 📄 **`resources/views/admin/riwayat_presensi.blade.php`**, **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Penambahan page header terstruktur dengan tombol kembali [Back icon & "Kembali ke Presensi"] dan tombol tutup [Close "✕"] yang mengarah ke route('admin.presensi'), penyelarasan kontainer & kartu tabel riwayat berkas spreadsheet presensi, pembersihan dead code try-catch RiwayatPresensi::create pada method riwayat(), serta eliminasi skrip AJAX tim/pegawai tak terpakai untuk mencegah galat JavaScript di konsol peramban).*
+
 
 
 
@@ -1525,6 +1527,24 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Dalam kondisi filter tab Dibatalkan aktif, klik tombol **Unduh Excel**:
   - Buka file spreadsheet hasil unduhan:
   - Verifikasi: Kolom Status menyajikan teks **"Dibatalkan"** berlatar belakang abu-abu muda (`#F3F4F6`), bukan lagi strip `-`.
+
+### CC. Uji Tombol Kembali (Back) & Tutup (Close) pada Halaman Riwayat Presensi Admin (`/admin/riwayat_presensi`)
+- [ ] **Uji Akses Masuk ke Halaman Riwayat Presensi**:
+  - Masuk sebagai Administrator via `/dev-login/admin`, buka menu **Presensi** (`/admin/presensi`).
+  - Klik tautan **Riwayat Upload** di atas kalender presensi:
+  - Verifikasi: Halaman `/admin/riwayat_presensi` terbuka dengan page header terstruktur rapi bertuliskan **Riwayat Presensi** dan lencana *Upload Log*.
+- [ ] **Uji Fungsionalitas Tombol Kembali (Back) & Tutup (Close)**:
+  - Periksa bilah header:
+    - Tombol ikon panah kiri `[ ← ]` di samping judul.
+    - Tombol teks berikon panah kiri `[ ← Kembali ke Presensi ]` di sisi kanan.
+    - Tombol silang `[ ✕ ]` di ujung kanan.
+  - Klik tombol **Kembali ke Presensi** (atau tombol close `✕`):
+  - Verifikasi: Pengguna seketika diarahkan kembali ke halaman kalender **Presensi Pegawai** (`/admin/presensi`) secara mulus.
+- [ ] **Uji Integritas JavaScript Konsol & Filter Periode**:
+  - Buka kembali `/admin/riwayat_presensi`, buka Developer Tools (F12) tab Console:
+  - Verifikasi: Konsol peramban bersih dari pesan error `TypeError` atau kegagalan pembacaan elemen dropdown.
+  - Pilih bulan tertentu atau klik *Semua*: tabel berkas menyaring baris secara instan dan memperbarui teks total riwayat berkas.
+
 
 
 

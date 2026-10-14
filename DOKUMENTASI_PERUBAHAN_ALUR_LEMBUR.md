@@ -4642,6 +4642,51 @@ Pada tangkapan layar pengguna:
 | 2 | `resources/views/admin/lembur.blade.php` | Menyelaraskan kondisi lencana status tabel untuk `cancelled` dan `dibatalkan`. |
 | 3 | `app/Exports/LemburExport.php` | Menambahkan pemetaan teks status dan warna sel Excel untuk Dibatalkan dan Menunggu Kabag. |
 
+---
+
+## 96. Penambahan Tombol Kembali (Back) & Tutup (Close) Serta Penyelarasan Header pada Halaman Riwayat Presensi Admin (`/admin/riwayat_presensi`)
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Keluhan Pengguna:** *"pada bagian riwayat presensi tidak ada tombol close atau back"*.
+- **Akar Masalah:**
+  1. Halaman Riwayat Presensi (`resources/views/admin/riwayat_presensi.blade.php`) sebelumnya hanya menampilkan bilah navigasi atas (navbar) dan langsung melompat ke pemilih periode (`#periodPicker`) serta tabel riwayat berkas tanpa memiliki *header* halaman lokal, tanpa tombol kembali, dan tanpa tombol tutup.
+  2. Ketika pengguna (Admin) membuka halaman riwayat presensi melalui tautan *"Riwayat Upload"* pada halaman Presensi Pegawai (`/admin/presensi`), pengguna "terjebak" di halaman riwayat tanpa ada kontrol navigasi langsung untuk menutup atau kembali ke tampilan kalender presensi selain mengklik ulang menu sidebar.
+  3. Mismatch padding dan margin (`px-8` vs `px-4 sm:px-8`) antara pemilih periode dan kontainer tabel menyebabkan tata letak tampak tidak sejajar.
+  4. Terdapat sisa salinan kode JavaScript lama yang mencoba mengakses elemen DOM yang tidak ada di halaman ini (`#listTim`, `#searchTim`, `#listPegawai`, `#searchPegawai`), memicu pesan kesalahan `TypeError: Cannot set properties of null (setting 'innerHTML')` pada konsol peramban.
+  5. Pada *controller* peladen (`app/Http/Controllers/admin/PresensiUploadController.php::riwayat`), terdapat blok *dead code* `try { RiwayatPresensi::create(...) }` peninggalan fungsi unggah berkas yang merujuk variabel tidak terdefinisi (`$tahun`, `$bulan`, `$file`, `$adminNama`), memicu eksepsi log peramban pada setiap pemuatan halaman.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penyediaan Header & Kontrol Navigasi Ganda ([`resources/views/admin/riwayat_presensi.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/riwayat_presensi.blade.php)):**
+   - Menambahkan *page header* terstruktur di bagian atas kontainer dengan pembatas halus (`border-b border-gray-100 pb-4 mb-5`):
+     - **Sisi Kiri:**
+       - Tombol ikon kembali (*Back icon button*) berukuran `h-10 w-10` dengan transisi hover aksen oranye khas BPS (`hover:text-[#faa938] hover:border-[#faa938] hover:bg-amber-50/40`) yang mengarah ke `route('admin.presensi')`.
+       - Judul modul *"Riwayat Presensi"* dilengkapi lencana tag status (*Upload Log*) dan subjudul deskriptif *"Daftar riwayat berkas spreadsheet presensi pegawai yang telah diunggah ke sistem."*
+     - **Sisi Kanan:**
+       - Tombol teks berikon panah kiri berlabel `Kembali ke Presensi` (`px-3.5 py-2 text-sm font-medium border border-gray-200 rounded-xl`).
+       - Tombol tutup bersimbol silang `✕` (*Close button*) berukuran `h-10 w-10 rounded-xl border border-gray-200 text-gray-400 hover:text-gray-700 hover:bg-gray-100`).
+     - Kedua kontrol diarahkan secara aman ke rute `route('admin.presensi')`.
+2. **Penyelarasan Kontainer & Tabel Responsif:**
+   - Membungkus seluruh konten dalam satu kontainer terpusat: `max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 my-4 sm:my-6`.
+   - Mengemas tabel riwayat berkas ke dalam kartu berbingkai halus (`rounded-xl shadow-sm border border-gray-200`) dengan ikon berkas spreadsheet hijau (`M9 12h6...`) dan ikon avatar pengunggah.
+   - Menambahkan sinkronisasi *progress bar scroll* horizontal pada tampilan perangkat bergerak (*mobile*).
+3. **Pembersihan Dead Code & Penanganan Filter ([`app/Http/Controllers/admin/PresensiUploadController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/admin/PresensiUploadController.php)):**
+   - Menghapus blok sisa salinan `RiwayatPresensi::create` yang memicu eksepsi *undefined variable* pada pemuatan rute GET.
+   - Mengalirkan filter periode secara bersih ke kueri `$daftarHadirQuery`.
+   - Menghapus skrip AJAX pemilih tim/pegawai dari tampilan riwayat presensi yang sebelumnya memicu galat JavaScript pada konsol peramban.
+
+### C. Hasil Pengujian Peramban (Browser Verification)
+- Membuka `http://localhost:8000/admin/riwayat_presensi`:
+  - Tombol panah kiri, tombol *"Kembali ke Presensi"*, serta tombol silang `✕` (Close) tampil secara presisi, rapi, dan estetis di bilah header.
+  - Mengklik tombol *"Kembali ke Presensi"* berhasil mengarahkan pengguna kembali ke kalender `/admin/presensi` tanpa hambatan.
+  - Membuka kembali melalui tautan *"Riwayat Upload"* di halaman presensi memuat halaman riwayat dengan sempurna tanpa galat JavaScript di konsol.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/riwayat_presensi.blade.php` | Menambahkan header dengan tombol kembali (*Back*) dan tutup (*Close*), menyelaraskan kartu tabel berkas, serta membersihkan sisa kode JavaScript tak terpakai. |
+| 2 | `app/Http/Controllers/admin/PresensiUploadController.php` | Menghapus dead code `RiwayatPresensi::create` yang menyebabkan pengecualian log pada method `riwayat()`. |
+
+
 
 
 
