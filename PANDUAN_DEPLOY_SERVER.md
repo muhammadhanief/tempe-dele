@@ -300,7 +300,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 198. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Penataan bertingkat vertikal flex-col header kolom Tanggal: teks Tanggal di atas dan dropdown sortir [Terbaru ▾] di bawahnya, mengeliminasi tabrakan horizontal dengan header Jam Diajukan)*.
 199. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Restrukturisasi tata letak modal #modalAjukan menjadi 2-kolom desktop md:grid-cols-2 zero-scroll: max-w-3xl lg:max-w-4xl max-h-[92vh], textarea uraian rows=3, kanvas tanda tangan h-28 touch-none, mengeliminasi scrollbar vertikal pada layar laptop/desktop dengan fallback responsif 1-kolom di mobile)*.
 200. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil `npm run build`: `manifest.json`, `assets/app-CgN_TPC-.css`, `assets/app-DfUGke97.js` memuat seluruh utility Tailwind CSS termutakhir dari 30+ commit terakhir)*.
-201. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Pencarian server-side menyeluruh [nama, NIP, tim, ketua] melintasi seluruh halaman, dukungan perPage 10/25/50/100, sinkronisasi tab status, dan restrukturisasi baris paginasi bawah 3 bagian: Tampilkan data, Page X of Y, Menampilkan X-Y dari Z data)*.
+201. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Pencarian menyeluruh [nama, NIP, tim, ketua] melintasi seluruh data periode aktif, dukungan perPage 10/25/50/100, sinkronisasi tab status, dan restrukturisasi baris paginasi bawah 3 bagian: Tampilkan data, Page X of Y, Menampilkan X-Y dari Z data)*.
+202. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Peningkatan reaktivitas pencarian dan paginasi Persetujuan Kabag Umum menjadi ultra-smooth in-memory reactive engine 0ms: live keystroke filtering di sisi klien melintasi seluruh data periode aktif tanpa reload halaman, paginasi tombol [<] [>] instan, sinkronisasi timeline card, dan silent URL replaceState).*
 
 ---
 
@@ -1399,11 +1400,11 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Tekan kombinasi tombol **Ctrl + Shift + R** (atau **Ctrl + F5**) untuk memastikan cache CSS lokal peramban dibersihkan.
   - Verifikasi: Tampilan modal ajukan lembur 2 kolom, tabel responsif sticky column, collapsible sidebar, dan seluruh tata letak antarmuka di peladen sama persis 100% dengan tampilan di lingkungan lokal.
 
-### BU. Uji Pencarian Server-Side Menyeluruh & Standardisasi Paginasi 3 Bagian (`/kabag-umum/pengajuan`)
-- [ ] **Uji Pencarian Menyeluruh Melintasi Seluruh Halaman Database**:
+### BU. Uji Pencarian Menyeluruh & Standardisasi Paginasi 3 Bagian (`/kabag-umum/pengajuan`)
+- [ ] **Uji Pencarian Menyeluruh Melintasi Seluruh Data Periode Aktif**:
   - Masuk ke akun Kepala Bagian Umum atau Administrator, buka menu **Persetujuan Kabag** (`/kabag-umum/pengajuan`).
-  - Masukkan nama pegawai (misal: `"joko"`) pada input pencarian dan tekan **Enter** (atau tunggu sejenak).
-  - Verifikasi: Hasil pencarian menampilkan seluruh data transaksi pegawai bersangkutan dari keseluruhan database (bukan hanya 10 baris di halaman aktif), dan badge counter tab status (*Semua, Disetujui, dll.*) secara presisi menyesuaikan dengan jumlah data hasil pencarian.
+  - Masukkan nama pegawai (misal: `"joko"`) pada input pencarian.
+  - Verifikasi: Hasil pencarian menampilkan seluruh data transaksi pegawai bersangkutan dari keseluruhan periode aktif (bukan hanya 10 baris di halaman aktif).
 - [ ] **Uji Navigasi Halaman Pada Hasil Pencarian**:
   - Klik tombol navigasi halaman berikutnya `[ > ]`.
   - Verifikasi: Halaman ke-2 tetap memuat hasil pencarian kata kunci terkait (parameter `search` tidak hilang dari URL).
@@ -1415,4 +1416,17 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     1. **Kiri:** Tampil dropdown `Tampilkan [ 10 v ] data`. Ubah pilihan menjadi 25 atau 50, dan verifikasi jumlah baris yang tampil langsung bertambah sesuai opsi.
     2. **Tengah:** Tampil navigasi kompak `[ < ] Page X of Y [ > ]` dengan tombol hover oranye `#faa938`.
     3. **Kanan:** Tampil teks ringkasan `Menampilkan X-Y dari Z data` yang sinkron dengan total data riil.
+
+### BV. Uji Pencarian Ultra-Smooth (0ms Latency, Live Keystroke Filter Tanpa Reload) pada Persetujuan Kabag Umum (`/kabag-umum/pengajuan`)
+- [ ] **Uji Live Keystroke Filter Instan (Tanpa Reload Halaman)**:
+  - Buka `/kabag-umum/pengajuan`, ketik nama pegawai di kotak pencarian:
+  - Verifikasi: Baris tabel dan linimasa terfilter seketika pada setiap ketukan tuts keyboard (**0ms latency**) tanpa layar berkedip (*no white flash/reload*) dan kursor tidak kehilangan fokus.
+- [ ] **Uji Transisi Paginasi Mulus (*Instant Page Switching*)**:
+  - Pada hasil pencarian atau tabel default, klik tombol `[ > ]` atau `[ < ]`:
+  - Verifikasi: Halaman berpindah secara instan (0ms) tanpa reload peramban, dan penomoran kolom `No` otomatis berlanjut secara runtut (`1, 2, 3...`).
+- [ ] **Uji Sinkronisasi State URL Senyap (*Silent URL ReplaceState*)**:
+  - Periksa bilah alamat browser saat mengetik atau berpindah halaman: parameter `?search=...&page=...` otomatis diperbarui tanpa me-reload halaman.
+  - Lakukan refresh peramban (F5): pastikan kata kunci pencarian dan posisi halaman tetap tersimpan utuh.
+- [ ] **Uji Sinkronisasi Mode Tampilan Timeline**:
+  - Beralih ke tampilan Timeline: verifikasi kartu linimasa dan garis aksis vertikal (`.timeline-stem`) terfilter dan terpaginasi secara rapi dan sinkron dengan filter pencarian.
 

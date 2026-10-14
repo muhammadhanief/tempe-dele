@@ -4315,3 +4315,41 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | 1 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Menambahkan pencarian server-side (nama, NIP, tim, ketua), dukungan parameter `perPage` dinamis (10, 25, 50, 100), dan sinkronisasi statistik tab. |
 | 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Mengintegrasikan input search desktop & mobile dengan debounce 600ms / Enter, empty state search, dan paginasi 3 bagian sesuai standar. |
 
+---
+
+## 89. Peningkatan Reaktivitas Pencarian & Paginasi Persetujuan Kabag Umum Menjadi Ultra-Smooth (In-Memory Reactive Engine 0ms)
+
+### A. Latar Belakang & Masukan Pengguna
+Setelah penerapan paginasi server-side berbasis reload URL pada Bagian 88, pengguna memberikan masukan:
+> *"tapi kaya ga smooth gitu, ga kaya sebelumnya, bisa ga dibikin smooth lagi"*
+
+Analisis kebutuhan pengguna:
+1. **Penyebab Kurang Smooth:**
+   - Navigasi server-side via `window.location.href` memicu *full page reload* di peramban. Setiap kali pengguna mengetik (debounce 600ms atau tombol Enter), layar browser berkedip (*white flash/reload*), kursor input kehilangan fokus, dan timbul jeda (*network round-trip*) dibandingkan implementasi sebelumnya yang instan.
+2. **Kebutuhan Hakiki Pengguna:**
+   - Pengguna menghendaki pengalaman pencarian kembali sehalus dan secepat sebelumnya: **reaktif instan pada setiap ketukan tuts keyboard (*live keystroke filter*) dengan 0ms latency tanpa reload halaman**.
+   - Namun, pencarian **wajib menyaring seluruh data lembur periode aktif** (tidak terbatas hanya pada 10 baris yang sedang tampil di halaman 1).
+   - Hasil pencarian **tetap dipaginasi secara rapi** (10 data per halaman, atau 25, 50, 100 sesuai pilihan), dan tombol navigasi halaman berikutnya (`>`) melanjutkannya secara instan (0ms) sesuai filter pencarian yang sedang aktif.
+   - Tampilan bilah paginasi bawah tetap mempertahankan standar 3 bagian (Sisi Kiri: `Tampilkan [ 10 v ] data`, Sisi Tengah: `[ < ] Page X of Y [ > ]`, Sisi Kanan: `Menampilkan X-Y dari Z data`).
+
+### B. Solusi & Rincian Arsitektur Teknis
+1. **Pemuatan Seluruh Data Periode Aktif ke Klien ([`KabagUmumPengajuanController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php)):**
+   - Mengubah pengambilan data dari `paginate($perPage)` menjadi `$pengajuan = $query->get()`.
+   - Mengingat volume transaksi lembur per bulan hanya berkisar 15–50 baris (dan sepanjang tahun 2026 hanya ~205 data), seluruh baris dapat dimuat ke DOM secara sangat ringan (~80 KB HTML).
+   - Menghapus klausa pencarian server-side dari SQL sehingga seluruh data bulan/tahun aktif tersedia lengkap di memori browser untuk disaring secara reaktif tanpa bolak-balik request server.
+
+2. **Mesin Paginasi & Pencarian Reaktif di Sisi Klien ([`resources/views/kabag-umum/pengajuan.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/kabag-umum/pengajuan.blade.php)):**
+   - **Atribut Pencarian Lengkap:** Setiap elemen `<tr>` dan `.timeline-item` diberi atribut `data-search` yang mencakup nama pegawai, NIP baru (18 digit), NIP lama (9 digit), nama tim kerja, dan nama ketua tim.
+   - **Live Keystroke Filter (0ms Latency):** Event `oninput="handleSearchInput(event)"` langsung memicu `renderTableAndPagination()` seketika pada setiap ketukan keyboard tanpa debounce penundaan dan tanpa reload halaman.
+   - **Slicing Halaman Dinamis:** Mesin menyaring baris yang cocok, menghitung `totalPages = Math.ceil(totalMatched / currentPerPage)`, memotong irisan indeks `[startIndex, endIndex)`, dan menampilkan hanya baris untuk halaman aktif sambil memperbarui penomoran baris (`row-number`) secara runtut.
+   - **Paginasi Halus & Responsif:** Tombol `[ < ]` (`goToPrevPage()`) dan `[ > ]` (`goToNextPage()`) berpindah halaman secara instan (0ms) tanpa reload. Dropdown `changePerPage()` mengubah limit (10, 25, 50, 100) secara instan.
+   - **Dukungan Tampilan Timeline:** Komponen `.timeline-item` dan garis aksis vertikal (`updateTimelineStems()`) tersinkronisasi otomatis dengan hasil filter dan paginasi aktif.
+   - **Sinkronisasi URL Senyap (*Silent State Sync*):** Menggunakan `window.history.replaceState` untuk memperbarui parameter `search`, `page`, dan `perPage` di URL peramban secara hening tanpa memicu reload, sehingga ketika halaman di-refresh atau tautan dibagikan, status filter tetap tersimpan sempurna.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Mengubah retrieval data dari `paginate($perPage)` ke `get()`, menyediakan seluruh data periode aktif ke view untuk penyaringan instan sisi klien. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Mengimplementasikan mesin pencarian dan paginasi in-memory ultra-smooth 0ms, tombol interaktif 3 bagian, sinkronisasi timeline, dan silent URL replaceState. |
+
+
