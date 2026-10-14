@@ -307,6 +307,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 205. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`** *(Standarisasi ketebalan font teks uraian kegiatan pada kartu linimasa, label sub-seksi, dan judul modal detail dari `font-bold` menjadi `font-semibold` di seluruh role untuk meningkatkan kenyamanan visual dan keterbacaan antarmuka).*
 206. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Standarisasi format tampilan catatan transaksi dibatalkan oleh Admin dengan menyajikan label khusus 'Admin:' berkas warna rose lembut dan membersihkan prefix teks teknis `[Dibatalkan Admin]` pada tabel, linimasa, dan modal detail di seluruh role dengan tetap menjaga catatan historis Kabag Umum).*
 207. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/partials/sidebar.blade.php`** *(Standarisasi antarmuka pengajuan lembur pribadi Ketua Tim dan Kepala Bagian Umum menggunakan `lembur.blade.php` penuh dengan fitur multi-tahun, pencarian tim, modal ajukan 2-kolom zero-scroll, modal edit, dan timeline responsif, serta penyesuaian rute aktif bilah sisi).*
+208. 📄 **`app/Http/Controllers/admin/LemburController.php`**, **`resources/views/admin/lembur.blade.php`**, **`app/Exports/LemburExport.php`** *(Perbaikan filter tab status cancelled/dibatalkan pada controller monitoring lembur admin, dukungan badge status cancelled dan dibatalkan pada tabel, serta pemetaan warna dan label status pada ekspor spreadsheet Excel).*
+
 
 
 ---
@@ -1508,6 +1510,22 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Alur Pengajuan Lembur Pribadi**:
   - Buat pengajuan lembur baru pada akun Ketua Tim / Kabag Umum:
   - Verifikasi: Setelah pengiriman formulir sukses, sistem mengarahkan kembali ke `/ketua-tim/lembur` dengan notifikasi sukses *"Pengajuan lembur berhasil dikirim."* dan baris pengajuan baru langsung tampak di tabel.
+
+### CB. Uji Filter Tab Status Dibatalkan pada Halaman Monitoring Lembur Admin (`/admin/lembur`)
+- [ ] **Uji Tampilan Data Transaksi pada Tab Dibatalkan**:
+  - Masuk sebagai Administrator via `/dev-login/admin`, buka menu **Lembur** (`/admin/lembur`).
+  - Klik tab filter status **Dibatalkan (1)**:
+  - Verifikasi: Parameter URL menjadi `?status=cancelled`.
+  - Verifikasi: Tabel secara presisi memfilter dan menampilkan transaksi yang berstatus dibatalkan saja (misal: pengajuan Hendro Deasmaran S.T. tanggal 19 Sep 2026).
+  - Verifikasi: Transaksi berstatus lain (seperti *Menunggu Kabag*, *Disetujui*, dll) **tidak lagi bocor atau mendominasi tabel**.
+- [ ] **Uji Format Badge Status & Catatan Pembatalan**:
+  - Verifikasi: Kolom Status menampilkan lencana abu-abu rapi bertuliskan **`● Dibatalkan`**.
+  - Verifikasi: Kolom Catatan menampilkan label **`ADMIN:`** berwarna merah mawar lembut dengan teks alasan pembatalan bersih tanpa string teknis `[Dibatalkan Admin]`.
+- [ ] **Uji Keselarasan Ekspor Excel**:
+  - Dalam kondisi filter tab Dibatalkan aktif, klik tombol **Unduh Excel**:
+  - Buka file spreadsheet hasil unduhan:
+  - Verifikasi: Kolom Status menyajikan teks **"Dibatalkan"** berlatar belakang abu-abu muda (`#F3F4F6`), bukan lagi strip `-`.
+
 
 
 

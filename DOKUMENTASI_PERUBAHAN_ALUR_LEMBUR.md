@@ -4570,6 +4570,79 @@ Setelah dilakukan konfirmasi terarah mengenai preferensi ruang lingkup standaris
 | 2 | `resources/views/ketua-tim/lembur.blade.php` | Menyelaraskan seluruh isi berkas agar identik dengan `lembur.blade.php` sebagai pengaman fallback view. |
 | 3 | `resources/views/partials/sidebar.blade.php` | Menambahkan pengecekan rute ganda (`ketua-tim.lembur` dan `lembur`) pada item menu Lembur bilah sisi. |
 
+---
+
+## 95. Perbaikan Filter Tab Status 'Dibatalkan' pada Halaman Monitoring Lembur Admin (`/admin/lembur`) dan Pemetaan Status Ekspor Excel
+
+### A. Latar Belakang & Permintaan Pengguna
+Pengguna mengunggah tangkapan layar halaman monitoring lembur administrator (`/admin/lembur`) dan melaporkan kendala:
+> *"bagian status dibatalkan tidak muncul padahal ada yang di batalkan"*
+
+Pada tangkapan layar pengguna:
+- Tab badge filter **Dibatalkan (1)** dalam posisi aktif terpilih (`status=cancelled`).
+- Namun baris-baris data yang ditampilkan pada tabel di bawahnya justru berstatus **Menunggu Kabag** milik pegawai lain. Data transaksi yang dibatalkan sama sekali tidak muncul.
+
+### B. Akar Masalah Teknis (*Root Cause*)
+1. **Pengecualian Status pada Validasi Controller ([`app/Http/Controllers/admin/LemburController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/admin/LemburController.php)):**
+   - Pada method `index`, kueri filter status sebelumnya dikunci dengan daftar statis:
+     ```php
+     if ($status && in_array($status, ['pending', 'menunggu_kabag', 'approved', 'rejected'])) {
+         $query->where('t.status', $status);
+     }
+     ```
+   - String status `'cancelled'` **tidak terdaftar** dalam larik (*array*) tersebut.
+   - Akibatnya, saat pengguna mengklik tab **Dibatalkan** (`?status=cancelled`), kondisi tersebut menghasilkan nilai `false`, sehingga pemfilteran basis data **tidak pernah dieksekusi**.
+   - Sistem akhirnya mengambil seluruh data tanpa filter status, dan pengurutan prioritas (`CASE WHEN t.status = 'menunggu_kabag' THEN 0 ...`) menempatkan baris *Menunggu Kabag* di baris teratas halaman pertama.
+2. **Kesenjangan Pemetaan pada Ekspor Excel ([`app/Exports/LemburExport.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Exports/LemburExport.php)):**
+   - Pada berkas ekspor lembur, pemetaan teks dan pewarnaan sel kolom status belum menyertakan `cancelled` dan `menunggu_kabag`, sehingga jika admin mengunduh laporan berfilter dibatalkan, teks status muncul sebagai `-`.
+
+### C. Solusi & Rincian Implementasi
+1. **Pembaruan Logika Filter Status Peladen ([`app/Http/Controllers/admin/LemburController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/admin/LemburController.php)):**
+   - Mendaftarkan `'cancelled'` dan `'dibatalkan'` ke dalam larik status yang diizinkan:
+     ```php
+     if ($status && in_array($status, ['pending', 'menunggu_kabag', 'approved', 'rejected', 'cancelled', 'dibatalkan'])) {
+         if (in_array($status, ['cancelled', 'dibatalkan'])) {
+             $query->whereIn('t.status', ['cancelled', 'dibatalkan']);
+         } else {
+             $query->where('t.status', $status);
+         }
+     }
+     ```
+   - Menyelaraskan kueri penghitungan badge status tab agar mendukung kedua varian string:
+     ```php
+     'cancelled' => (clone $baseCountQuery)->whereIn('t.status', ['cancelled', 'dibatalkan'])->count(),
+     ```
+2. **Penyelarasan Tampilan Klien ([`resources/views/admin/lembur.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/lembur.blade.php)):**
+   - Menyelaraskan evaluasi kondisi badge status kolom tabel:
+     ```blade
+     @elseif($t->status === 'cancelled' || $t->status === 'dibatalkan')
+     ```
+   - Memastikan baris data yang dibatalkan dirender dengan badge lencana abu-abu rapi dan label catatan `ADMIN:` berwarna merah mawar.
+3. **Penyelarasan Pemetaan & Pewarnaan Ekspor Excel ([`app/Exports/LemburExport.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Exports/LemburExport.php)):**
+   - Menambahkan pemetaan teks label resmi:
+     ```php
+     'menunggu_kabag'          => 'Menunggu Kabag',
+     'cancelled', 'dibatalkan' => 'Dibatalkan',
+     ```
+   - Menambahkan pewarnaan latar belakang sel status Excel: `#F3F4F6` (abu-abu netral) untuk Dibatalkan dan `#DBEAFE` (biru pastel) untuk Menunggu Kabag.
+
+### D. Hasil Pengujian Peramban (Browser Verification)
+- Membuka rute `/admin/lembur?status=cancelled` pada akun Admin:
+  - Tabel secara tepat dan presisi memfilter **1 baris transaksi dibatalkan**:
+    - **Pegawai:** Hendro Deasmaran S.T.
+    - **Tanggal:** 19 Sep 2026
+    - **Status:** Badge abu-abu `● Dibatalkan`
+    - **Catatan:** Badge `ADMIN:` dengan teks `testing (besok saja)`
+  - Tidak ada lagi data status lain (*Menunggu Kabag / Disetujui*) yang bocor ke tab Dibatalkan.
+
+### E. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/admin/LemburController.php` | Mendaftarkan status `cancelled` dan `dibatalkan` ke dalam kueri filter status `index` dan penghitungan badge. |
+| 2 | `resources/views/admin/lembur.blade.php` | Menyelaraskan kondisi lencana status tabel untuk `cancelled` dan `dibatalkan`. |
+| 3 | `app/Exports/LemburExport.php` | Menambahkan pemetaan teks status dan warna sel Excel untuk Dibatalkan dan Menunggu Kabag. |
+
+
 
 
 
