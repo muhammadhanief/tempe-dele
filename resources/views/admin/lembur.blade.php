@@ -570,7 +570,7 @@
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                             <span>Ditolak</span>
                                         </span>
-                                    @elseif($t->status === 'cancelled')
+                                    @elseif($t->status === 'cancelled' || $t->status === 'dibatalkan')
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200">
                                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
                                             <span>Dibatalkan</span>

@@ -55,7 +55,7 @@ class LemburController extends Controller
             'menunggu_kabag' => (clone $baseCountQuery)->where('t.status', 'menunggu_kabag')->count(),
             'approved'       => (clone $baseCountQuery)->where('t.status', 'approved')->count(),
             'rejected'       => (clone $baseCountQuery)->where('t.status', 'rejected')->count(),
-            'cancelled'      => (clone $baseCountQuery)->where('t.status', 'cancelled')->count(),
+            'cancelled'      => (clone $baseCountQuery)->whereIn('t.status', ['cancelled', 'dibatalkan'])->count(),
         ];
 
         $query = DB::table('t_transaksi as t')
@@ -106,8 +106,12 @@ class LemburController extends Controller
             $query->where('t.submitted_by_NIP', $nip);
         }
 
-        if ($status && in_array($status, ['pending', 'menunggu_kabag', 'approved', 'rejected'])) {
-            $query->where('t.status', $status);
+        if ($status && in_array($status, ['pending', 'menunggu_kabag', 'approved', 'rejected', 'cancelled', 'dibatalkan'])) {
+            if (in_array($status, ['cancelled', 'dibatalkan'])) {
+                $query->whereIn('t.status', ['cancelled', 'dibatalkan']);
+            } else {
+                $query->where('t.status', $status);
+            }
         }
 
         if ($sort === 'asc') {

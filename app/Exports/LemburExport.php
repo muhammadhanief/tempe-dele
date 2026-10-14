@@ -62,10 +62,12 @@ class LemburExport implements FromCollection, WithColumnWidths, WithEvents
                 : '-';
 
             $status = match($d->status) {
-                'pending'  => 'Diproses',
-                'approved' => 'Disetujui',
-                'rejected' => 'Ditolak',
-                default    => '-',
+                'pending'                 => 'Menunggu Ketua',
+                'menunggu_kabag'          => 'Menunggu Kabag',
+                'approved'                => 'Disetujui',
+                'rejected'                => 'Ditolak',
+                'cancelled', 'dibatalkan' => 'Dibatalkan',
+                default                   => '-',
             };
 
             $rows->push([
@@ -163,10 +165,12 @@ class LemburExport implements FromCollection, WithColumnWidths, WithEvents
                 for ($row = 5; $row <= $lastRow; $row++) {
                     $status = $sheet->getCell("J{$row}")->getValue();
                     $color  = match($status) {
-                        'Disetujui' => 'D1FAE5',
-                        'Ditolak'   => 'FEE2E2',
-                        'Diproses'  => 'FEF3C7',
-                        default     => 'FFFFFF',
+                        'Disetujui'      => 'D1FAE5',
+                        'Ditolak'        => 'FEE2E2',
+                        'Menunggu Ketua' => 'FEF3C7',
+                        'Menunggu Kabag' => 'DBEAFE',
+                        'Dibatalkan'     => 'F3F4F6',
+                        default          => 'FFFFFF',
                     };
                     $sheet->getStyle("J{$row}")->getFill()
                         ->setFillType(Fill::FILL_SOLID)
