@@ -89,7 +89,7 @@
             {{-- Header --}}
             <div class="flex flex-col gap-4 border-b border-slate-100
                 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
-                <div>
+                <div class="min-w-0 flex-1">
                     <h3 class="text-base font-semibold text-slate-800 sm:text-lg">
                         Pengajuan Lembur
                     </h3>
@@ -99,9 +99,9 @@
                 </div>
 
                 <a href="{{ route('pimpinan.pengajuan') }}"
-                    class="inline-flex items-center justify-center rounded-full
-                    border border-black/15 px-3 py-2 text-xs font-semibold
-                    hover:bg-gray-50 sm:px-4 sm:text-sm">
+                    class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full
+                    border border-black/15 px-4 py-2 text-sm font-semibold
+                    hover:bg-gray-50 transition-colors">
                     Lihat Semua
                 </a>
             </div>
