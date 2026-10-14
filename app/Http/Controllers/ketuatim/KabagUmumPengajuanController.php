@@ -83,6 +83,10 @@ class KabagUmumPengajuanController extends Controller
         }
 
         $statusFilter = $request->get('status', 'all');
+        $search = trim((string) $request->get('search', $request->get('q', '')));
+        $perPage = in_array((int) $request->get('perPage', 10), [10, 25, 50, 100])
+            ? (int) $request->get('perPage', 10)
+            : 10;
 
         // Filter pengajuan: Seluruh Tim Kerja BPS (Monitoring Seluruh Satker & Approval Tim Lain)
         $query = DB::table('t_transaksi as t')
@@ -114,7 +118,18 @@ class KabagUmumPengajuanController extends Controller
             $query->whereMonth('t.date', $selectedMonth);
         }
 
-        // Hitung statistik untuk periode yang dipilih
+        // Terapkan filter pencarian nama pegawai, NIP, nama tim, atau nama ketua
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('p.nama', 'like', "%{$search}%")
+                  ->orWhere('p.nip', 'like', "%{$search}%")
+                  ->orWhere('p.nip_lama', 'like', "%{$search}%")
+                  ->orWhere('mt.nama_tim', 'like', "%{$search}%")
+                  ->orWhere('mt.nama_ketua', 'like', "%{$search}%");
+            });
+        }
+
+        // Hitung statistik untuk periode yang dipilih (dan kata kunci pencarian jika ada)
         $statsBase = clone $query;
         $allTransactions = $statsBase->get();
         $stats = [
@@ -122,12 +137,16 @@ class KabagUmumPengajuanController extends Controller
             'menunggu_kabag' => $allTransactions->where('status', 'menunggu_kabag')->count(),
             'approved'       => $allTransactions->where('status', 'approved')->count(),
             'rejected'       => $allTransactions->where('status', 'rejected')->count(),
-            'cancelled'      => $allTransactions->where('status', 'cancelled')->count(),
+            'cancelled'      => $allTransactions->whereIn('status', ['cancelled', 'dibatalkan'])->count(),
         ];
 
         // Terapkan filter status jika dipilih
         if ($statusFilter && $statusFilter !== 'all') {
-            $query->where('t.status', $statusFilter);
+            if ($statusFilter === 'cancelled') {
+                $query->whereIn('t.status', ['cancelled', 'dibatalkan']);
+            } else {
+                $query->where('t.status', $statusFilter);
+            }
         }
 
         // Opsi sorting tanggal: desc (default: terbaru), asc (terlama), priority
@@ -146,14 +165,14 @@ class KabagUmumPengajuanController extends Controller
         }
 
         $pengajuan = $query
-            ->paginate(10)
+            ->paginate($perPage)
             ->appends($request->query());
 
         $hariLibur = DB::table('m_hari_libur')
             ->orderBy('tanggal', 'asc')
             ->get();
 
-        return view('kabag-umum.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'statusFilter', 'stats', 'sort', 'selectedYear', 'selectedMonth'));
+        return view('kabag-umum.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'statusFilter', 'stats', 'sort', 'selectedYear', 'selectedMonth', 'search', 'perPage'));
     }
 
     public function approve(Request $request, $id)
