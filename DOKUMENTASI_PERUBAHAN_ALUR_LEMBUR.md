@@ -4686,6 +4686,103 @@ Pada tangkapan layar pengguna:
 | 1 | `resources/views/admin/riwayat_presensi.blade.php` | Menambahkan header dengan tombol kembali (*Back*) dan tutup (*Close*), menyelaraskan kartu tabel berkas, serta membersihkan sisa kode JavaScript tak terpakai. |
 | 2 | `app/Http/Controllers/admin/PresensiUploadController.php` | Menghapus dead code `RiwayatPresensi::create` yang menyebabkan pengecualian log pada method `riwayat()`. |
 
+---
+
+## 97. Perbaikan False-Positive Validasi Uraian Kegiatan Saat Persetujuan Lembur Tanpa Presensi (Normalisasi CRLF & Guard Dirty-Check Frontend/Backend)
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Keluhan Pengguna:**
+  Saat Ketua Tim / Kabag / Admin ingin menyetujui pengajuan yang belum memiliki data presensi, sistem memunculkan pop-up error:
+  `"Uraian kegiatan hanya dapat diubah jika data presensi pegawai sudah tersedia."`
+  Padahal penguji sama sekali tidak mengubah teks uraian dan hanya berniat mengklik tombol Setujui.
+- **Akar Masalah Teknis:**
+  1. **Mismatch Line-Break CRLF vs LF (`\r\n` vs `\n`):**
+     - Pada basis data MySQL (`t_transaksi`), uraian kegiatan multi-baris tersimpan dengan karakter pembatas baris UNIX `\n` (LF).
+     - Ketika teks dimasukkan ke dalam elemen HTML `<textarea id="kUraian">`, DOM peramban web menormalisasi *carriage return / line break* menjadi `\r\n` (CRLF standar Windows/HTML).
+     - Saat formulir persetujuan dikirim, nilai string dari textarea (`\r\n`) dikirim via JSON.
+     - Pada *controller* peladen (`approve`), perbandingan perubahan teks sebelumnya dilakukan secara langsung:
+       ```php
+       if ($request->filled('uraian') && trim($request->uraian) !== trim($transaksi->uraian ?? ''))
+       ```
+     - Karena string `\r\n` berbeda secara biner dari `\n`, evaluasi PHP menghasilkan `TRUE` (*false positive dirty-check*), sehingga peladen menyimpulkan pengguna telah mengubah teks uraian.
+     - Karena pegawai bersangkutan belum memiliki data presensi masuk/pulang pada tanggal lembur tersebut (`!$hasPresensi`), peladen seketika melempar respon HTTP 422 Unprocessable Entity dengan pesan:
+       `"Uraian kegiatan hanya dapat diubah jika data presensi pegawai sudah tersedia."`
+  2. **Pengiriman Payload Tanpa Guard pada Sisi Klien (*Frontend*):**
+     - Pada tampilan antarmuka modal keputusan persetujuan (`ketua-tim/pengajuan.blade.php`, `admin/pengajuan.blade.php`, `kabag-umum/pengajuan.blade.php`), bidang textarea uraian kegiatan sudah secara tepat dikunci (`readOnly = true`) dengan lencana amber `"Presensi Belum Ada"` dan catatan `"Uraian terkunci karena belum ada presensi."`.
+     - Namun fungsi JavaScript `simpanKeputusan()` tetap menyertakan properti `uraian: uraian` ke dalam payload JSON tanpa mengecek apakah field sedang terkunci atau apakah teksnya memang mengalami modifikasi.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Normalisasi Karakter Baris Baru & Validasi Bersyarat di Peladen (*Backend Controllers*):**
+   - Menerapkan normalisasi kanonikal pembatas baris (`preg_replace('/\r\n|\r|\n/', "\n", ...)`), pengetatan tipe data string, dan pemangkasan spasi (*trim*) sebelum mengevaluasi perubahan:
+     ```php
+     if ($request->has('uraian') && $request->filled('uraian')) {
+         $normReqUraian = trim(preg_replace('/\r\n|\r|\n/', "\n", (string) $request->uraian));
+         $normDbUraian  = trim(preg_replace('/\r\n|\r|\n/', "\n", (string) ($transaksi->uraian ?? '')));
+
+         if ($normReqUraian !== $normDbUraian) {
+             $hasPresensi = DB::table('t_presensi')
+                 ->where('niplama', $transaksi->nip_lama)
+                 ->whereDate('tanggal', $transaksi->date)
+                 ->exists();
+
+             if (!$hasPresensi) {
+                 return response()->json([
+                     'success' => false,
+                     'message' => 'Uraian kegiatan hanya dapat diubah jika data presensi pegawai sudah tersedia.'
+                 ], 422);
+             }
+
+             $updateData['uraian'] = $normReqUraian;
+             $updateData['user_edited'] = session('user')['nama'] ?? session('user')['nip'];
+             $updateData['tanggal_edited'] = now();
+         }
+     }
+     ```
+   - Diterapkan secara seragam pada ketiga controller persetujuan:
+     - [`app/Http/Controllers/ketuatim/PengajuanController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/ketuatim/PengajuanController.php) (Ketua Tim)
+     - [`app/Http/Controllers/admin/PengajuanController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/admin/PengajuanController.php) (Admin)
+     - [`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php) (Kabag Umum)
+
+2. **Penyempurnaan Payload Sisi Klien (*Frontend Views*):**
+   - Pada fungsi penyimpanan keputusan (`simpanKeputusan()` / `simpanKeputusanKabag()`), properti `uraian` kini **hanya disertakan ke dalam payload JSON** jika field dapat diedit (data presensi tersedia) DAN teks uraian benar-benar mengalami perbedaan isi:
+     ```javascript
+     const payload = {
+         status: keputusan,
+         jam_mulai_disetujui: jamMulai,
+         jam_selesai_disetujui: jamSelesai,
+         note: catatan,
+     };
+
+     const normUraian = (uraian || '').replace(/\r\n|\r/g, '\n').trim();
+     const normCurrentUraian = (currentUraian || '').replace(/\r\n|\r/g, '\n').trim();
+     if (currentHasPresensi && normUraian !== normCurrentUraian) {
+         payload.uraian = uraian;
+     }
+     ```
+   - Diterapkan secara seragam pada ketiga tampilan Blade:
+     - [`resources/views/ketua-tim/pengajuan.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/ketua-tim/pengajuan.blade.php)
+     - [`resources/views/admin/pengajuan.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/pengajuan.blade.php)
+     - [`resources/views/kabag-umum/pengajuan.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/kabag-umum/pengajuan.blade.php)
+
+### C. Hasil Pengujian Sistem (Verification Scenarios)
+1. **Skenario 1 (Payload Tanpa Uraian):**
+   - Frontend tidak menyertakan key `uraian` saat field terkunci: Peladen mengembalikan **HTTP 200** `{"success": true, "message": "Pengajuan berhasil disetujui"}`.
+2. **Skenario 2 (Uraian dengan CRLF Browser Dikirim Tanpa Modifikasi):**
+   - Request memuat string dengan karakter `\r\n`: Peladen menormalisasi kedua string ke `\n`, mendeteksi teks identik, mengabaikan validasi presensi, dan mengembalikan **HTTP 200** sukses.
+3. **Skenario 3 (Uraian Benar-benar Diubah Tanpa Presensi):**
+   - Approver secara sengaja mengubah teks uraian pada saat presensi belum ada: Peladen secara konsisten mempertahankan aturan integritas dan melempar **HTTP 422** `"Uraian kegiatan hanya dapat diubah jika data presensi pegawai sudah tersedia."`.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Normalisasi canonical CRLF/LF dan dirty check uraian sebelum penegakan validasi presensi. |
+| 2 | `app/Http/Controllers/admin/PengajuanController.php` | Normalisasi canonical CRLF/LF dan dirty check uraian sebelum penegakan validasi presensi. |
+| 3 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Normalisasi canonical CRLF/LF dan dirty check uraian sebelum penegakan validasi presensi. |
+| 4 | `resources/views/ketua-tim/pengajuan.blade.php` | Guard payload JSON agar hanya mengirimkan uraian jika dapat diedit dan diubah. |
+| 5 | `resources/views/admin/pengajuan.blade.php` | Guard payload JSON agar hanya mengirimkan uraian jika dapat diedit dan diubah. |
+| 6 | `resources/views/kabag-umum/pengajuan.blade.php` | Guard payload JSON agar hanya mengirimkan uraian jika dapat diedit dan diubah. |
+
+
 
 
 

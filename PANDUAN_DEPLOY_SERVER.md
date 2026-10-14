@@ -309,6 +309,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 207. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/partials/sidebar.blade.php`** *(Standarisasi antarmuka pengajuan lembur pribadi Ketua Tim dan Kepala Bagian Umum menggunakan `lembur.blade.php` penuh dengan fitur multi-tahun, pencarian tim, modal ajukan 2-kolom zero-scroll, modal edit, dan timeline responsif, serta penyesuaian rute aktif bilah sisi).*
 208. 📄 **`app/Http/Controllers/admin/LemburController.php`**, **`resources/views/admin/lembur.blade.php`**, **`app/Exports/LemburExport.php`** *(Perbaikan filter tab status cancelled/dibatalkan pada controller monitoring lembur admin, dukungan badge status cancelled dan dibatalkan pada tabel, serta pemetaan warna dan label status pada ekspor spreadsheet Excel).*
 209. 📄 **`resources/views/admin/riwayat_presensi.blade.php`**, **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Penambahan page header terstruktur dengan tombol kembali [Back icon & "Kembali ke Presensi"] dan tombol tutup [Close "✕"] yang mengarah ke route('admin.presensi'), penyelarasan kontainer & kartu tabel riwayat berkas spreadsheet presensi, pembersihan dead code try-catch RiwayatPresensi::create pada method riwayat(), serta eliminasi skrip AJAX tim/pegawai tak terpakai untuk mencegah galat JavaScript di konsol peramban).*
+210. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`**, **`app/Http/Controllers/admin/PengajuanController.php`**, **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Perbaikan false-positive validasi uraian kegiatan saat persetujuan lembur tanpa presensi: normalisasi karakter line-break canonical CRLF [\r\n vs \n] pada dirty-check controller backend, serta proteksi frontend agar tidak mengirim payload uraian ketika field terkunci/tidak dimodifikasi).*
 
 
 
@@ -1544,6 +1545,19 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Buka kembali `/admin/riwayat_presensi`, buka Developer Tools (F12) tab Console:
   - Verifikasi: Konsol peramban bersih dari pesan error `TypeError` atau kegagalan pembacaan elemen dropdown.
   - Pilih bulan tertentu atau klik *Semua*: tabel berkas menyaring baris secara instan dan memperbarui teks total riwayat berkas.
+
+### CD. Uji Persetujuan Pengajuan Lembur Tanpa Data Presensi (Ketua Tim, Kabag Umum, Admin)
+- [ ] **Uji Persetujuan Lembur yang Belum Memiliki Presensi (`/ketua-tim/pengajuan` & `/admin/pengajuan`)**:
+  - Masuk sebagai Ketua Tim atau Administrator via dev-login.
+  - Cari baris pengajuan lembur yang berstatus pending dan berlabel *"Presensi Belum Ada"* (misal: pengajuan dengan uraian kegiatan multi-baris yang datanya belum ada di tabel presensi).
+  - Klik tombol aksi proses/keputusan (ikon pensil atau tombol Proses).
+  - Verifikasi: Pada modal persetujuan, textarea Uraian Kegiatan menampilkan lencana amber *"Presensi Belum Ada"* dan catatan *"Uraian terkunci karena belum ada presensi."* (readonly).
+  - Klik tombol keputusan **Setujui** (hijau), lalu klik **Simpan Keputusan**:
+  - Verifikasi: Pengajuan berhasil disimpan/disetujui dengan lancar.
+  - Verifikasi: **TIDAK MUNCUL** pop-up error *"Uraian kegiatan hanya dapat diubah jika data presensi pegawai sudah tersedia."*
+- [ ] **Uji Integritas Penolakan Saat Uraian Benar-Benar Diubah Tanpa Presensi**:
+  - Jika seorang approver mencoba mengirim payload modifikasi uraian pada transaksi tanpa presensi, sistem tetap menolak dengan pesan validasi yang benar.
+
 
 
 
