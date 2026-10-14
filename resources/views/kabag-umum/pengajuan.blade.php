@@ -465,7 +465,7 @@
                         $isBagianUmum = !empty($p->nama_tim) && (str_contains(strtolower($p->nama_tim), 'bagian umum') || ($p->tim_kode_tim ?? '') === 'QrBzgE3O3lEqVPjy');
                     @endphp
                     <tr class="pengajuan-row bg-white transition-colors hover:bg-slate-50/80"
-                        data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . ($p->nip_lama ?? '') . ' ' . ($p->nama_tim ?? '') . ' ' . ($p->nama_ketua ?? '')) }}">
+                        data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . ($p->nip_lama ?? '')) }}">
 
                         <td class="row-number px-2 py-2.5 text-center text-xs text-gray-600 font-medium">
                             {{ $loop->iteration }}
@@ -713,7 +713,7 @@
                         @endphp
 
                         <div class="timeline-item flex items-start gap-3 sm:gap-5 pb-5 sm:pb-6 last:pb-2"
-                            data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . ($p->nip_lama ?? '') . ' ' . ($p->nama_tim ?? '') . ' ' . ($p->nama_ketua ?? '')) }}">
+                            data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . ($p->nip_lama ?? '')) }}">
 
                             {{-- 1. Date Box Kompak & Elegan --}}
                             <div class="w-16 sm:w-20 shrink-0 flex flex-col items-center justify-center rounded-2xl bg-white border border-slate-300 py-2.5 px-1.5 shadow-2xs group-hover:border-slate-400 transition-all duration-200">
