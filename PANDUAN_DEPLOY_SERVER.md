@@ -306,6 +306,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 204. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/lembur.blade.php`** *(Izin pengeditan mandiri pengajuan lembur anggota Tim Bagian Umum pada status `menunggu_kabag` selama belum disetujui Kabag Umum, dan sinkronisasi tampilan tombol aksi edit kuning di tabel & linimasa).*
 205. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`** *(Standarisasi ketebalan font teks uraian kegiatan pada kartu linimasa, label sub-seksi, dan judul modal detail dari `font-bold` menjadi `font-semibold` di seluruh role untuk meningkatkan kenyamanan visual dan keterbacaan antarmuka).*
 206. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Standarisasi format tampilan catatan transaksi dibatalkan oleh Admin dengan menyajikan label khusus 'Admin:' berkas warna rose lembut dan membersihkan prefix teks teknis `[Dibatalkan Admin]` pada tabel, linimasa, dan modal detail di seluruh role dengan tetap menjaga catatan historis Kabag Umum).*
+207. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/partials/sidebar.blade.php`** *(Standarisasi antarmuka pengajuan lembur pribadi Ketua Tim dan Kepala Bagian Umum menggunakan `lembur.blade.php` penuh dengan fitur multi-tahun, pencarian tim, modal ajukan 2-kolom zero-scroll, modal edit, dan timeline responsif, serta penyesuaian rute aktif bilah sisi).*
+
 
 ---
 
@@ -1493,6 +1495,20 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Pembatalan Transaksi Real-Time oleh Admin (`/admin/lembur`)**:
   - Masuk sebagai Admin, lakukan pembatalan salah satu transaksi via modal konfirmasi aksi:
   - Verifikasi: Baris tabel langsung berubah menampilkan status `Dibatalkan` dan kolom Catatan langsung menyajikan badge `Admin:` beserta teks alasan secara real-time tanpa perlu me-reload peramban.
+
+### CA. Uji Standarisasi Pengajuan Lembur Pribadi Ketua Tim & Kabag Umum (`/ketua-tim/lembur`)
+- [ ] **Uji Tampilan & Fitur Lembur Pribadi Kabag Umum**:
+  - Masuk ke akun Kepala Bagian Umum (Bpk. Joko Suwarjo) via `/dev-login/kabag`, klik menu **Lembur** di bilah sisi navigasi (`/ketua-tim/lembur`).
+  - Verifikasi: Halaman memuat antarmuka **Pengajuan Lembur Pribadi** modern (`lembur.blade.php`), bukan lagi view usang.
+  - Verifikasi: Toolbar filter lengkap: Pencarian Nama Tim, Pemilih Tanggal, Dropdown Filter Bulan & Multi-Tahun, serta tombol pengalih **Tabel / Timeline**.
+  - Verifikasi: Tombol **`+ Ajukan Lembur`** membuka modal 2-kolom zero-scroll desktop yang proporsional.
+- [ ] **Uji Tampilan & Fitur Lembur Pribadi Ketua Tim**:
+  - Masuk ke akun Ketua Tim (misal: Bpk. Hendro Deasmaran) via `/dev-login/197904262002121002`, klik menu **Lembur** (`/ketua-tim/lembur`).
+  - Verifikasi: Antarmuka identik dengan tampilan pegawai, item menu Lembur di sidebar tetap aktif (`active`), dan seluruh aksi (detail uraian, edit pending, manajemen bukti dokumentasi Drive) beroperasi sempurna.
+- [ ] **Uji Alur Pengajuan Lembur Pribadi**:
+  - Buat pengajuan lembur baru pada akun Ketua Tim / Kabag Umum:
+  - Verifikasi: Setelah pengiriman formulir sukses, sistem mengarahkan kembali ke `/ketua-tim/lembur` dengan notifikasi sukses *"Pengajuan lembur berhasil dikirim."* dan baris pengajuan baru langsung tampak di tabel.
+
 
 
 

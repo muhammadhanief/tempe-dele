@@ -4517,6 +4517,60 @@ Disertai tangkapan layar tabel verifikasi persetujuan Kabag Umum (`/kabag-umum/p
 | 5 | `resources/views/ketua-tim/lembur.blade.php` | Menampilkan badge `Admin:` pada kolom catatan tabel dan `Catatan Admin:` pada kartu linimasa mandiri. |
 | 6 | `resources/views/admin/lembur.blade.php` | Menampilkan badge `Admin:` pada tabel dan menyelaraskan rendering real-time DOM pada JavaScript handler pembatalan. |
 
+---
+
+## 94. Standarisasi Antarmuka Pengajuan Lembur Pribadi untuk Ketua Tim dan Kepala Bagian Umum Menggunakan View Modern `lembur.blade.php`
+
+### A. Latar Belakang & Permintaan Pengguna
+Pengguna menyampaikan aspirasi penyelarasan antarmuka:
+> *"Pengajuan Lembur Pribadi buat Ketua Tim, Kabag, Admin, SuperAdmin dibikin kaya pegawai ga si? diseragamin"*
+
+Setelah dilakukan konfirmasi terarah mengenai preferensi ruang lingkup standarisasi, disepakati bahwa:
+1. **Ketua Tim & Kepala Bagian Umum:** Menggunakan antarmuka lembur mandiri modern yang sama persis seperti pegawai (`resources/views/lembur.blade.php`) agar mendapatkan seluruh fitur mutakhir (pemilih multi-tahun, pencarian tim dinamis, linimasa responsif, modal edit, dan modal pengajuan 2-kolom bebas gulir).
+2. **Admin & SuperAdmin:** Tetap dipertahankan menggunakan menu Lembur Satker operasional (`resources/views/admin/lembur.blade.php`) karena Admin memiliki kebutuhan monitoring dan pengajuan kolektif satker.
+
+### B. Evaluasi Kondisi Sebelumnya
+1. **Kesenjangan Fitur (*Feature Parity Gap*):**
+   - Halaman lembur mandiri pegawai (`resources/views/lembur.blade.php`) telah melalui puluhan siklus penyempurnaan UI/UX (termasuk filter multi-tahun, modal ajukan zero-scroll 2-kolom, modal detail uraian pop-up, Google Drive link management, drag-to-scroll indicator, dan penyesuaian edit Tim Umum).
+   - Sebaliknya, view lama Ketua Tim (`resources/views/ketua-tim/lembur.blade.php`) masih menggunakan struktur versi awal (1713 baris vs 2645 baris) yang belum memiliki filter tahun, belum memiliki pencarian tim, dan menggunakan modal vertikal lama.
+2. **Pemisahan View di Controller:**
+   - Pada `app/Http/Controllers/LemburController.php`, method `index` sebelumnya memisahkan view berdasarkan role:
+     `$view = $role === 'ketua_tim' ? 'ketua-tim.lembur' : 'lembur';`
+   - Hal ini membuat pemeliharaan antarmuka menjadi ganda (*duplicate maintenance*) dan rawan inkonsistensi.
+
+### C. Solusi & Rincian Implementasi Teknis
+1. **Penyatuan Pengembalian View pada Controller ([`app/Http/Controllers/LemburController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/LemburController.php)):**
+   - Mengubah baris penentuan view menjadi pengembalian langsung ke view modern:
+     ```php
+     return view('lembur', compact('ketuaTim', 'transaksi', 'hariLibur', 'bulan', 'tahun', 'daftarTahun', 'perPage', 'existingActiveDates'));
+     ```
+   - Dengan perubahan ini, baik Pegawai, Ketua Tim teknis, maupun Kepala Bagian Umum secara otomatis disajikan antarmuka modern yang seragam dan kaya fitur.
+2. **Sinkronisasi Berkas View Cadangan ([`resources/views/ketua-tim/lembur.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/ketua-tim/lembur.blade.php)):**
+   - Melakukan sinkronisasi penuh berkas `ketua-tim/lembur.blade.php` agar identik dengan `lembur.blade.php`. Hal ini menjamin bahwa jika terdapat sub-rute atau pemanggilan langsung ke view tersebut, sistem tidak akan mengalami *fallback* ke tampilan lawas.
+3. **Penyelarasan Status Aktif Navigasi Bilah Sisi ([`resources/views/partials/sidebar.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/partials/sidebar.blade.php)):**
+   - Memperbarui kondisi aktif menu navigasi "Lembur" pada peran Ketua Tim dan Kabag Umum:
+     ```blade
+     'route' => 'ketua-tim.lembur',
+     'active' => request()->routeIs('ketua-tim.lembur') || request()->routeIs('lembur'),
+     ```
+   - Menu tetap menyala (*active highlighted*) baik saat diakses melalui rute `/ketua-tim/lembur` maupun `/lembur`.
+4. **Verifikasi Fitur Mandiri Lengkap bagi Ketua Tim & Kabag Umum:**
+   - **Filter Waktu Multi-Tahun:** Navigasi cepat antara tahun (2020 s.d. tahun berjalan) dan bulan (Januari s.d. Desember).
+   - **Pencarian Tim:** Fitur dropdown pencarian nama tim dengan autokomplit instan.
+   - **Mode Linimasa (Timeline) vs Tabel:** Tombol pengalih tampilan yang menyimpan preferensi di `localStorage` dan otomatis aktif di mobile view.
+   - **Modal Ajukan 2-Kolom Zero-Scroll:** Tata letak ergonomis tanpa perlu scroll layar pada laptop/desktop, lengkap dengan validasi deteksi tanggal kembar dan jam kerja default 16:01.
+   - **Modal Edit Dinamis:** Tombol edit kuning aktif pada pengajuan berstatus `pending`, serta pada status `menunggu_kabag` khusus Tim Bagian Umum sebelum disetujui Kabag Umum.
+   - **Pengelolaan Tautan Google Drive:** Penambahan dan penghapusan link bukti pekerjaan lembur pada status `approved`.
+   - **Format Catatan Dibatalkan Admin:** Label rapi `ADMIN:` dengan teks catatan bersih tanpa prefix teknis.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Mengarahkan return view `index` secara langsung ke `lembur` untuk semua peran pengguna lembur pribadi. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Menyelaraskan seluruh isi berkas agar identik dengan `lembur.blade.php` sebagai pengaman fallback view. |
+| 3 | `resources/views/partials/sidebar.blade.php` | Menambahkan pengecekan rute ganda (`ketua-tim.lembur` dan `lembur`) pada item menu Lembur bilah sisi. |
+
+
 
 
 
