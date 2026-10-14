@@ -1347,6 +1347,20 @@ window.simpanKeputusanKabag = function() {
     btn.disabled = true;
     btn.textContent = 'Menyimpan...';
 
+    const payload = {
+        status: selectedKeputusanKabag,
+        jam_mulai_disetujui: jamMulai,
+        jam_selesai_disetujui: jamSelesai,
+        note_kabag: noteKabag,
+    };
+
+    // Hanya sertakan uraian jika field dapat diedit (tim bagian umum & ada presensi) dan teksnya benar-benar diubah
+    const normUraian = (uraian || '').replace(/\r\n|\r/g, '\n').trim();
+    const normCurrentUraian = (currentUraianKabag || '').replace(/\r\n|\r/g, '\n').trim();
+    if (currentIsBagianUmum && currentHasPresensiKabag && normUraian !== normCurrentUraian) {
+        payload.uraian = uraian;
+    }
+
     fetch(`/kabag-umum/pengajuan/${currentKabagId}/approve`, {
         method: 'POST',
         headers: {
@@ -1354,13 +1368,7 @@ window.simpanKeputusanKabag = function() {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json',
         },
-        body: JSON.stringify({
-            status: selectedKeputusanKabag,
-            jam_mulai_disetujui: jamMulai,
-            jam_selesai_disetujui: jamSelesai,
-            note_kabag: noteKabag,
-            uraian: uraian,
-        })
+        body: JSON.stringify(payload)
     })
     .then(r => r.json())
     .then(data => {

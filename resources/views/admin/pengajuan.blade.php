@@ -1723,6 +1723,20 @@ window.simpanKeputusan = function() {
     btn.disabled = true;
     btn.textContent = 'Menyimpan...';
 
+    const payload = {
+        status: keputusan,
+        jam_mulai_disetujui: jamMulai,
+        jam_selesai_disetujui: jamSelesai,
+        note: catatan,
+    };
+
+    // Hanya sertakan uraian jika field dapat diedit (ada presensi) dan teksnya benar-benar diubah
+    const normUraian = (uraian || '').replace(/\r\n|\r/g, '\n').trim();
+    const normCurrentUraian = (currentUraian || '').replace(/\r\n|\r/g, '\n').trim();
+    if (currentHasPresensi && normUraian !== normCurrentUraian) {
+        payload.uraian = uraian;
+    }
+
     fetch(`/admin/pengajuan/${currentId}/approve`, {
         method: 'POST',
         headers: {
@@ -1730,13 +1744,7 @@ window.simpanKeputusan = function() {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json',
         },
-        body: JSON.stringify({
-            status: keputusan,
-            jam_mulai_disetujui: jamMulai,
-            jam_selesai_disetujui: jamSelesai,
-            note: catatan,
-            uraian: uraian,
-        })
+        body: JSON.stringify(payload)
     })
     .then(async response => {
         const data = await response.json();

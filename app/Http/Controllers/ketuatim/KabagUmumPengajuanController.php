@@ -283,16 +283,21 @@ class KabagUmumPengajuanController extends Controller
         }
 
         // Cek pengubahan uraian kegiatan (khusus untuk tim Bagian Umum & syarat presensi sudah ada)
-        if ($request->filled('uraian') && trim($request->uraian) !== trim($transaksi->uraian ?? '')) {
-            $hasPresensi = DB::table('t_presensi')
-                ->where('niplama', $transaksi->nip_lama)
-                ->whereDate('tanggal', $transaksi->date)
-                ->exists();
+        if ($request->has('uraian') && $request->filled('uraian')) {
+            $normReqUraian = trim(preg_replace('/\r\n|\r|\n/', "\n", (string) $request->uraian));
+            $normDbUraian  = trim(preg_replace('/\r\n|\r|\n/', "\n", (string) ($transaksi->uraian ?? '')));
 
-            if ($isTimBagianUmum && $hasPresensi) {
-                $updateData['uraian'] = trim($request->uraian);
-                $updateData['user_edited'] = session('user')['nama'] ?? session('user')['nip'];
-                $updateData['tanggal_edited'] = now();
+            if ($normReqUraian !== $normDbUraian) {
+                $hasPresensi = DB::table('t_presensi')
+                    ->where('niplama', $transaksi->nip_lama)
+                    ->whereDate('tanggal', $transaksi->date)
+                    ->exists();
+
+                if ($isTimBagianUmum && $hasPresensi) {
+                    $updateData['uraian'] = $normReqUraian;
+                    $updateData['user_edited'] = session('user')['nama'] ?? session('user')['nip'];
+                    $updateData['tanggal_edited'] = now();
+                }
             }
         }
 

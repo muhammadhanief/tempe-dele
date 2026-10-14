@@ -303,23 +303,28 @@ class PengajuanController extends Controller
             }
         }
 
-        // Cek pengubahan uraian kegiatan (syarat: presensi sudah ada)
-        if ($request->filled('uraian') && trim($request->uraian) !== trim($transaksi->uraian ?? '')) {
-            $hasPresensi = DB::table('t_presensi')
-                ->where('niplama', $transaksi->nip_lama)
-                ->whereDate('tanggal', $transaksi->date)
-                ->exists();
+        // Cek pengubahan uraian kegiatan (syarat: presensi sudah ada dan teks uraian benar-benar diubah)
+        if ($request->has('uraian') && $request->filled('uraian')) {
+            $normReqUraian = trim(preg_replace('/\r\n|\r|\n/', "\n", (string) $request->uraian));
+            $normDbUraian  = trim(preg_replace('/\r\n|\r|\n/', "\n", (string) ($transaksi->uraian ?? '')));
 
-            if (!$hasPresensi) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Uraian kegiatan hanya dapat diubah jika data presensi pegawai sudah tersedia.'
-                ], 422);
+            if ($normReqUraian !== $normDbUraian) {
+                $hasPresensi = DB::table('t_presensi')
+                    ->where('niplama', $transaksi->nip_lama)
+                    ->whereDate('tanggal', $transaksi->date)
+                    ->exists();
+
+                if (!$hasPresensi) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Uraian kegiatan hanya dapat diubah jika data presensi pegawai sudah tersedia.'
+                    ], 422);
+                }
+
+                $updateData['uraian'] = $normReqUraian;
+                $updateData['user_edited'] = session('user')['nama'] ?? session('user')['nip'];
+                $updateData['tanggal_edited'] = now();
             }
-
-            $updateData['uraian'] = trim($request->uraian);
-            $updateData['user_edited'] = session('user')['nama'] ?? session('user')['nip'];
-            $updateData['tanggal_edited'] = now();
         }
 
         DB::table('t_transaksi')->where('id_transaksi', $id)->update($updateData);
