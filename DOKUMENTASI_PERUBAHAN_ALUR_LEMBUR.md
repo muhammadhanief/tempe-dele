@@ -4782,6 +4782,50 @@ Pada tangkapan layar pengguna:
 | 5 | `resources/views/admin/pengajuan.blade.php` | Guard payload JSON agar hanya mengirimkan uraian jika dapat diedit dan diubah. |
 | 6 | `resources/views/kabag-umum/pengajuan.blade.php` | Guard payload JSON agar hanya mengirimkan uraian jika dapat diedit dan diubah. |
 
+---
+
+## 98. Penyelarasan Desain Toolbar Monitoring Lembur Admin: Penggantian Deretan Tab Status Pil Menjadi Custom Floating Dropdown di Sebelah Filter Tim (`/admin/lembur`)
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Keluhan & Permintaan Pengguna:**
+  *"status pada super admin dan admin lembur di buat drop down di sebelah cari nama tim"*
+  Disertai tangkapan layar 6 pil status: `[Semua Status (206)]` `[Menunggu Kabag (0)]` `[Menunggu Ketua (6)]` `[Disetujui (173)]` `[Ditolak (27)]` `[Dibatalkan (0)]`.
+- **Akar Masalah Tata Letak:**
+  1. Sebelumnya pada tampilan desktop (`sm:flex`), filter status di halaman Monitoring Lembur Admin (`resources/views/admin/lembur.blade.php`) dirender sebagai deretan tombol pil horizontal yang diletakkan pada baris terpisah di bawah baris pencarian pegawai & tim.
+  2. Ketika daftar status bertambah (terutama setelah penambahan status *Menunggu Kabag* dan *Dibatalkan*), deretan pil ini memakan ruang vertikal layar (*vertical screen estate*) yang cukup signifikan dan menyebabkan baris tabel riwayat lembur terdorong ke bawah.
+  3. Sementara itu, pada modul lain seperti Persetujuan Pengajuan Admin (`/admin/pengajuan`), filter status telah distandarisasikan menggunakan tombol dropdown melayang (*custom floating dropdown*) yang rapi dan ringkas. Pengguna menginginkan keselarasan desain serupa pada halaman Monitoring Lembur, di mana filter status diposisikan langsung di samping bilah input *"Cari nama tim..."*.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Penyatuan ke dalam Baris Toolbar Utama ([`resources/views/admin/lembur.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/lembur.blade.php)):**
+   - Menghapus baris terpisah pil status desktop (`<div class="hidden sm:flex flex-wrap items-center gap-2 mb-3.5 sm:mb-4">`) dan wadah status khusus mobile (`#mobileStatusWrapper`).
+   - Memasukkan komponen dropdown status kustom (`#wrapStatusFilter`) langsung ke dalam kontainer fleksibel `#mobileFilterCollapse`, tepat di sebelah kanan kontainer input tim (`#wrapSearchTim`).
+   - Pada layar desktop ($\ge 640\text{px}$), bilah toolbar kini mengalir horizontal secara proporsional dalam 1 baris terpadu:
+     `[Semua Tanggal ▾]` `[Cari nama pegawai... ▾]` `[Cari nama tim... ▾]` `[● Status Terpilih (Count) ▾]`.
+2. **Desain Komponen Floating Status Dropdown:**
+   - **Tombol Pemicu (`#btnStatusDropdown`):**
+     - Memiliki tinggi seragam `h-10` dengan sudut `rounded-xl`, border halus, dan bayangan lembut.
+     - Menampilkan indikator titik warna (*status dot*), animasi kedip (*pulse ping*) untuk *Menunggu Kabag* dan *Menunggu Ketua*, label status aktif bercetak tebal, lencana angka total data berlatar warna dinamis, serta ikon chevron halus yang berotasi 180° saat dropdown aktif.
+   - **Kartu Menu Melayang (`#menuStatusDropdown`):**
+     - Menampilkan daftar 6 opsi status secara elegan: *Semua Status*, *Menunggu Kabag*, *Menunggu Ketua*, *Disetujui*, *Ditolak*, dan *Dibatalkan*.
+     - Setiap item dilengkapi titik status, lencana hitungan data, status aktif berlatar warna kontras tinggi, dan ikon centang (*checkmark*) putih pada status yang sedang terpilih.
+3. **Penyempurnaan Logika JavaScript & UX:**
+   - Menyediakan fungsi `window.toggleStatusDropdown()` yang terintegrasi dengan penutupan dropdown lain (`tutupSemuaDropdown()`).
+   - Menambahkan event listener penutupan otomatis saat pengguna mengklik di luar area dropdown (*click outside to close*).
+   - Memasukkan parameter `status` ke dalam pendeteksian `$hasActiveSearchFilter` agar pada perangkat bergerak (mobile), kontainer filter otomatis terbuka jika URL memuat parameter status aktif.
+
+### C. Hasil Pengujian Peramban (Browser Verification)
+- Membuka halaman `/admin/lembur`:
+  - Tombol dropdown status tampil rapi dan presisi di samping kanan kolom input *"Cari nama tim..."*.
+  - Baris deretan pil status horizontal yang memakan tempat di bawah kini telah dihilangkan sehingga tabel langsung tampak di atas layar.
+  - Mengklik tombol dropdown membuka menu melayang 6 status lengkap dengan hitungan masing-masing status.
+  - Memilih status (misalnya *"Menunggu Ketua"*) memicu pemfilteran instan dan tombol dropdown memperbarui label serta lencana angka berwarna amber secara presisi.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/lembur.blade.php` | Menghilangkan deretan pil status desktop dan wrapper status mobile terpisah; mengintegrasikan custom floating dropdown status ke dalam toolbar di sebelah filter tim. |
+
+
 
 
 

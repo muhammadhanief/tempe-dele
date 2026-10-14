@@ -310,9 +310,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 208. 📄 **`app/Http/Controllers/admin/LemburController.php`**, **`resources/views/admin/lembur.blade.php`**, **`app/Exports/LemburExport.php`** *(Perbaikan filter tab status cancelled/dibatalkan pada controller monitoring lembur admin, dukungan badge status cancelled dan dibatalkan pada tabel, serta pemetaan warna dan label status pada ekspor spreadsheet Excel).*
 209. 📄 **`resources/views/admin/riwayat_presensi.blade.php`**, **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Penambahan page header terstruktur dengan tombol kembali [Back icon & "Kembali ke Presensi"] dan tombol tutup [Close "✕"] yang mengarah ke route('admin.presensi'), penyelarasan kontainer & kartu tabel riwayat berkas spreadsheet presensi, pembersihan dead code try-catch RiwayatPresensi::create pada method riwayat(), serta eliminasi skrip AJAX tim/pegawai tak terpakai untuk mencegah galat JavaScript di konsol peramban).*
 210. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`**, **`app/Http/Controllers/admin/PengajuanController.php`**, **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Perbaikan false-positive validasi uraian kegiatan saat persetujuan lembur tanpa presensi: normalisasi karakter line-break canonical CRLF [\r\n vs \n] pada dirty-check controller backend, serta proteksi frontend agar tidak mengirim payload uraian ketika field terkunci/tidak dimodifikasi).*
-
-
-
+211. 📄 **`resources/views/admin/lembur.blade.php`** *(Penyelarasan filter status monitoring lembur admin & superadmin menjadi custom floating dropdown melayang di sebelah kanan bilah pencarian tim pada toolbar, peniadaan deretan pil status desktop dan wrapper mobile terpisah, serta pembaruan deteksi filter aktif URL).*
 
 ---
 
@@ -1558,11 +1556,19 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Integritas Penolakan Saat Uraian Benar-Benar Diubah Tanpa Presensi**:
   - Jika seorang approver mencoba mengirim payload modifikasi uraian pada transaksi tanpa presensi, sistem tetap menolak dengan pesan validasi yang benar.
 
-
-
-
-
-
-
-
+### CE. Uji Dropdown Filter Status Monitoring Lembur Admin (/admin/lembur)
+- [ ] **Uji Posisi Dropdown Status Sebelah Filter Tim**:
+  - Masuk sebagai Administrator / Superadmin via `/dev-login/admin`.
+  - Akses menu **Monitoring Lembur** (`/admin/lembur`).
+  - Verifikasi: Tombol filter status terletak persis di sebelah kanan bilah input *"Cari nama tim..."* dalam 1 baris toolbar terpadu desktop.
+  - Verifikasi: Baris terpisah pil status horizontal di bawah toolbar telah dihilangkan sehingga tabel langsung tampil lega di atas.
+- [ ] **Uji Pembukaan Menu Melayang & Indikator Titik Status**:
+  - Klik tombol dropdown status:
+  - Verifikasi: Menu popup floating card terbuka mulus dengan 6 opsi status (*Semua Status*, *Menunggu Kabag*, *Menunggu Ketua*, *Disetujui*, *Ditolak*, *Dibatalkan*).
+  - Verifikasi: Tiap opsi memiliki titik status berwarna, animasi pulse ping pada status menunggu, dan lencana angka jumlah pengajuan riil.
+  - Verifikasi: Status yang sedang aktif disorot dengan latar tegas dan tanda centang putih.
+- [ ] **Uji Pemfilteran Data Tabel & Penutupan Dropdown**:
+  - Pilih salah satu status (misal: *Menunggu Ketua*):
+  - Verifikasi: Tabel seketika memfilter data pengajuan yang berstatus *Menunggu Ketua*, URL browser diperbarui (`?status=pending`), dan label tombol dropdown berubah menampilkan nama status serta lencana angka berwarna amber.
+  - Klik area luar dropdown: pastikan menu tertutup otomatis (*click outside to close*).
 
