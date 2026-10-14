@@ -592,7 +592,7 @@
 
                                     {{-- Judul Uraian Kegiatan --}}
                                     <div>
-                                        <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words">
+                                        <h3 class="text-sm sm:text-base font-semibold text-slate-900 leading-snug break-words">
                                             {{ $t->uraian ?? 'Pengajuan Kegiatan Lembur' }}
                                         </h3>
                                     </div>
@@ -780,7 +780,7 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900">Detail Uraian Kegiatan</h3>
+                            <h3 class="text-sm sm:text-base font-semibold text-slate-900">Detail Uraian Kegiatan</h3>
                             <p class="text-[11px] text-slate-500">Rincian pekerjaan & status pengajuan lembur</p>
                         </div>
                     </div>

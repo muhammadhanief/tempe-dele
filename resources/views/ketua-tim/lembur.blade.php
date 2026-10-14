@@ -476,7 +476,7 @@
 
                                     {{-- Judul Uraian Kegiatan --}}
                                     <div>
-                                        <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words">
+                                        <h3 class="text-sm sm:text-base font-semibold text-slate-900 leading-snug break-words">
                                             {{ $t->uraian ?? 'Pengajuan Kegiatan Lembur' }}
                                         </h3>
                                     </div>

@@ -805,7 +805,7 @@
 
                                     {{-- Uraian Tugas Kegiatan Lembur --}}
                                     <div class="bg-slate-50/50 rounded-xl p-3 border border-slate-100/80">
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Uraian Kegiatan Lembur:</span>
+                                        <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">Uraian Kegiatan Lembur:</span>
                                         <p class="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed break-words" id="uraian-timeline-{{ $p->id_transaksi }}">
                                             {{ $p->uraian ?? 'Pengajuan Tugas Lembur' }}
                                         </p>
