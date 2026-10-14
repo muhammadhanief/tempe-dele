@@ -4825,6 +4825,64 @@ Pada tangkapan layar pengguna:
 | :---: | :--- | :--- |
 | 1 | `resources/views/admin/lembur.blade.php` | Menghilangkan deretan pil status desktop dan wrapper status mobile terpisah; mengintegrasikan custom floating dropdown status ke dalam toolbar di sebelah filter tim. |
 
+---
+
+## 99. Redesain Antarmuka Modal Pemilihan Pegawai Manajemen User: Transformasi dari Dropdown Native / List Vertikal Menjadi Layout Landscape 2-Kolom Interaktif Zero-Scroll (`/admin/manajemen-user`)
+
+### A. Latar Belakang & Permintaan Pengguna
+- **Permintaan Awal Pengguna:**
+  Saat membuka modal Pergantian Kepala Bagian Umum pada halaman Manajemen User (`/admin/manajemen-user`), pengguna mengamati elemen daftar pemilihan pegawai yang sebelumnya berupa elemen HTML native `<select size="5">` dan menanyakan:
+  *"bikin lebih bagus lagi ga si dropdown nya"*
+- **Eksplorasi & Konfirmasi Pengguna:**
+  Setelah diberikan opsi desain (antara *Custom Floating Dropdown dengan Pencarian* vs *Listbox Interaktif Modern dengan Kartu Pegawai*), pengguna memilih pendekatan **Listbox Interaktif Modern** dan meminta agar diterapkan secara seragam pada seluruh modal di halaman Manajemen User (Pergantian Kabag Umum, Pergantian PPK, Tambah Admin Lembur, dan Tambah Superadmin).
+- **Tantangan Tata Letak Vertikal & Permintaan Modal Landscape:**
+  Setelah implementasi awal vertikal 1-kolom, pengguna meninjau tampilan dan menyampaikan:
+  *"bikin landscape aja apayak bisa ga scroll gitu atau bagusnya gimana?"*
+  Pada layar laptop standar (resolusi $1280 \times 665$ px), modal 1-kolom vertikal yang menumpuk kotak info otomatisasi, input Tahun SK, label, bilah pencarian, dan daftar kartu pegawai menghasilkan tinggi total melebihi 600px. Hal ini memicu munculnya bilah gulir vertikal (*window scrollbar*) pada peramban utama, menyebabkan tombol aksi *Simpan* dan *Batal* di footer terdorong ke bawah dan terpotong sebelum pengguna menggulir layar.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Arsitektur Layout Landscape 2-Kolom Desktop (`resources/views/admin/manajemen_user.blade.php`):**
+   - Memperlebar wadah modal dari `max-w-xl` menjadi format lanskap `max-w-3xl lg:max-w-4xl w-full`.
+   - Menggunakan CSS Grid responsif: `grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6` yang mengalirkan konten secara horizontal seimbang:
+     - **Kolom Kiri (`md:col-span-5`):** Area Konteks, Parameter Formulir, dan Pratinjau Pegawai Terpilih:
+       - **Alert Box Info Otomatisasi Terintegrasi:** Berlatar belakang warna tematik lembut dengan ringkasan poin-poin dampak suksesi pejabat.
+       - **Input Parameter Operasional:** Kotak input Tahun Periode/SK (pada Kabag & PPK) atau checkbox konfirmasi hak akses khusus (pada Tambah Admin & Tambah Superadmin).
+       - **Kartu Pratinjau Pegawai Terpilih (*Selected Employee Card*):**
+         - Saat belum ada pilihan: menampilkan placeholder bergaris putus-putus (*dashed border*) berbunyi *"Belum ada pegawai dipilih. Klik salah satu pegawai di sebelah kanan."*
+         - Saat pegawai dipilih: seketika bertransformasi menjadi kartu profil pegawai berlatar tematik dengan avatar inisial 2-huruf, lencana *"TERPILIH"*, tag satuan kerja, nama lengkap bercetak tebal, NIP font mono, dan tombol batalkan pilihan `(✕)`.
+     - **Kolom Kanan (`md:col-span-7`):** Area Interaksi Pencarian & Pemilihan Pegawai:
+       - **Bilah Pencarian Cepat (*Instant Live Search*):** Input teks berikon kaca pembesar dengan tombol pembersih cepat `(✕)` dan counter hasil pencarian dinamis (misal: *"1 ditemukan"*).
+       - **Listbox Kartu Pegawai (*Interactive Scrollable Listbox*):** Kontainer scroll internal mandiri dengan tinggi terkontrol (`h-64 sm:h-72`) dan scrollbar ramping.
+       - **Kartu Pegawai Modern:** Setiap pegawai dirender sebagai kartu interaktif dengan avatar inisial berwarna, nama lengkap ber-overflow truncate, NIP, tag satuan kerja (e.g. *Bagian Umum* / *BPS Provinsi*), serta indikator lingkaran radio yang otomatis berubah warna tegas dan memunculkan ikon centang (*checkmark*) putih saat dipilih.
+       - **Empty State:** Wadah informatif jika kata kunci pencarian tidak cocok dengan nama atau NIP mana pun.
+     - **Footer Pinned Sejajar:** Tombol *Batal* dan tombol submit aksi berlatar warna tematik berada di footer bawah yang selalu tampak di layar tanpa terpotong.
+
+2. **Dukungan 4 Skema Tema Visual Modal:**
+   - **Modal Pergantian Kabag Umum:** Tema Oranye-Amber BPS (`#faa938`, `bg-amber-50`, `border-amber-300`, `ring-amber-300`).
+   - **Modal Penetapan PPK:** Tema Biru Sky (`sky-600`, `bg-sky-50`, `border-sky-300`, `ring-sky-300`).
+   - **Modal Tambah Admin Lembur:** Tema Indigo Ungu (`indigo-600`, `bg-indigo-50`, `border-indigo-300`, `ring-indigo-300`).
+   - **Modal Tambah Superadmin:** Tema Rose Merah (`rose-600`, `bg-rose-50`, `border-rose-300`, `ring-rose-300`).
+
+3. **Pencegahan Galat Validasi Peramban (*Zero-Error Form Validation*):**
+   - Nilai ID pegawai terpilih disimpan ke dalam elemen `<input type="hidden" name="id_pegawai">`.
+   - Mengeliminasi atribut HTML5 `required` pada elemen hidden input untuk mencegah galat konsol Chromium *"An invalid form control with name='id_pegawai' is not focusable"*.
+   - Menggantikannya dengan fungsi validasi JavaScript terproteksi `validateFormPegawai(type, event)` pada saat form disubmit: jika belum ada pegawai yang dipilih, fungsi membatalkan submit, memberikan efek sorotan merah pada listbox, dan memunculkan notifikasi peringatan yang ramah.
+
+### C. Hasil Pengujian Peramban (Browser Verification)
+1. **Zero-Scroll & Kesempurnaan Vertikal Layar:**
+   - Pada viewport laptop $1280 \times 665$ px, seluruh modal terbuka di tengah layar secara simetris dengan margin atas dan bawah yang lega.
+   - Tidak ada bilah gulir (*scrollbar*) pada jendela peramban utama; seluruh elemen (header, info, input, kartu pratinjau, pencarian, daftar pegawai, dan tombol simpan) 100% tampak di layar.
+2. **Pengujian Fungsional Pencarian & Pemilihan:**
+   - Mengetik nama *"Abdul"* pada kotak pencarian di kolom kanan: daftar pegawai seketika menyaring hanya menampilkan pegawai terkait, counter menampilkan *"1 ditemukan"*, dan tombol silang `(✕)` muncul.
+   - Mengklik kartu pegawai: kartu di kolom kanan langsung tersorot dengan latar amber, lingkaran radio terisi centang oranye, dan kartu pratinjau di kolom kiri langsung berganti dari placeholder menjadi kartu *Abdul Ghofur* ber-NIP dan ber-badge *Bagian Umum*.
+   - Mengklik tombol silang `(✕)` pada kartu pratinjau membatalkan pilihan secara bersih.
+   - Menekan tombol `Escape` menutup modal secara instan.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Redesain 4 modal (Ganti Kabag, Ganti PPK, Tambah Admin, Tambah Superadmin) menjadi format landscape 2-kolom desktop (`max-w-3xl lg:max-w-4xl`), live preview kartu pegawai terpilih di kolom kiri, listbox interaktif dan live search di kolom kanan, eliminasi window scrolling (zero-scroll), dan validasi JavaScript form terpantau aman. |
+
 
 
 

@@ -311,6 +311,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 209. 📄 **`resources/views/admin/riwayat_presensi.blade.php`**, **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Penambahan page header terstruktur dengan tombol kembali [Back icon & "Kembali ke Presensi"] dan tombol tutup [Close "✕"] yang mengarah ke route('admin.presensi'), penyelarasan kontainer & kartu tabel riwayat berkas spreadsheet presensi, pembersihan dead code try-catch RiwayatPresensi::create pada method riwayat(), serta eliminasi skrip AJAX tim/pegawai tak terpakai untuk mencegah galat JavaScript di konsol peramban).*
 210. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`**, **`app/Http/Controllers/admin/PengajuanController.php`**, **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Perbaikan false-positive validasi uraian kegiatan saat persetujuan lembur tanpa presensi: normalisasi karakter line-break canonical CRLF [\r\n vs \n] pada dirty-check controller backend, serta proteksi frontend agar tidak mengirim payload uraian ketika field terkunci/tidak dimodifikasi).*
 211. 📄 **`resources/views/admin/lembur.blade.php`** *(Penyelarasan filter status monitoring lembur admin & superadmin menjadi custom floating dropdown melayang di sebelah kanan bilah pencarian tim pada toolbar, peniadaan deretan pil status desktop dan wrapper mobile terpisah, serta pembaruan deteksi filter aktif URL).*
+212. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Redesain antarmuka modal pergantian pejabat Kabag Umum & PPK, serta modal penambahan Admin Lembur & Superadmin menjadi format landscape 2-kolom zero-scroll: kolom kiri untuk parameter, info otomatisasi, dan live preview kartu pegawai terpilih; kolom kanan untuk live search dan listbox interaktif pegawai dengan avatar, NIP, satker tag, dan radio indicator; serta validasi terproteksi anti-error "An invalid form control is not focusable").*
 
 ---
 
@@ -1571,4 +1572,23 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Pilih salah satu status (misal: *Menunggu Ketua*):
   - Verifikasi: Tabel seketika memfilter data pengajuan yang berstatus *Menunggu Ketua*, URL browser diperbarui (`?status=pending`), dan label tombol dropdown berubah menampilkan nama status serta lencana angka berwarna amber.
   - Klik area luar dropdown: pastikan menu tertutup otomatis (*click outside to close*).
+
+### CF. Uji Redesain Modal Landscape 2-Kolom Zero-Scroll Manajemen User (/admin/manajemen-user)
+- [ ] **Uji Tata Letak Landscape & Eliminasi Scroll Layar (Zero-Scroll)**:
+  - Masuk sebagai Superadmin via `/dev-login/200108252024121005` (Muhammad Hanief).
+  - Buka menu **Manajemen User** (`/admin/manajemen-user`).
+  - Klik tombol **Ganti Kepala Bagian Umum** (atau Ganti PPK / Tambah Admin / Tambah Superadmin).
+  - Verifikasi: Dialog modal terbuka dalam format landscape 2-kolom (`max-w-3xl lg:max-w-4xl`) yang pas di tengah layar.
+  - Verifikasi: Pada resolusi laptop ($1280 \times 665$ px), modal **TIDAK** memicu bilah gulir vertikal (*window scrollbar*) pada peramban utama; tombol Batal dan Simpan di footer tampak jelas tanpa perlu scroll.
+- [ ] **Uji Kolom Kiri (Info, Parameter, & Pratinjau Pegawai Terpilih)**:
+  - Verifikasi: Kolom kiri memuat kartu alert informasi otomatisasi suksesi dan input parameter (Tahun SK / checkbox).
+  - Verifikasi: Sebelum pegawai dipilih, kotak pratinjau menampilkan placeholder *"Belum ada pegawai dipilih. Klik salah satu pegawai di sebelah kanan."*
+- [ ] **Uji Kolom Kanan (Pencarian Cepat & Pemilihan Kartu Pegawai)**:
+  - Ketik nama atau NIP (misal: *"Abdul"*) pada bilah pencarian kolom kanan.
+  - Verifikasi: Daftar pegawai seketika menyaring data secara instan, counter menunjukkan jumlah data ditemukan, dan tombol silang `(✕)` muncul.
+  - Klik pada kartu pegawai: kartu di kolom kanan langsung tersorot dengan latar warna tematik, lingkaran radio terisi centang, dan kotak pratinjau di kolom kiri seketika menampilkan kartu pegawai terpilih (avatar inisial, badge Terpilih, satker, nama, NIP, dan tombol silang batal).
+  - Klik tombol silang `(✕)` pada kartu pratinjau: pilihan pegawai dibatalkan secara bersih.
+- [ ] **Uji Validasi Form Tanpa Galat Konsol**:
+  - Buka modal tanpa memilih pegawai, lalu klik tombol **Simpan**:
+  - Verifikasi: Formulir dicegah dari submit, muncul alert pemberitahuan ramah, dan konsol peramban bersih dari galat *"An invalid form control is not focusable"*.
 
