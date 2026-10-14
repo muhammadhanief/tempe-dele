@@ -132,8 +132,7 @@ class LemburController extends Controller
             rsort($daftarTahun);
         }
 
-        $view = $role === 'ketua_tim' ? 'ketua-tim.lembur' : 'lembur';
-        return view($view, compact('ketuaTim', 'transaksi', 'hariLibur', 'bulan', 'tahun', 'daftarTahun', 'perPage', 'existingActiveDates'));
+        return view('lembur', compact('ketuaTim', 'transaksi', 'hariLibur', 'bulan', 'tahun', 'daftarTahun', 'perPage', 'existingActiveDates'));
     }
 
     private function koreksiDariPresensi(string $nipUser): void
