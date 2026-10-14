@@ -302,6 +302,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 200. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil `npm run build`: `manifest.json`, `assets/app-CgN_TPC-.css`, `assets/app-DfUGke97.js` memuat seluruh utility Tailwind CSS termutakhir dari 30+ commit terakhir)*.
 201. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Pencarian menyeluruh [nama, NIP, tim, ketua] melintasi seluruh data periode aktif, dukungan perPage 10/25/50/100, sinkronisasi tab status, dan restrukturisasi baris paginasi bawah 3 bagian: Tampilkan data, Page X of Y, Menampilkan X-Y dari Z data)*.
 202. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Peningkatan reaktivitas pencarian dan paginasi Persetujuan Kabag Umum menjadi ultra-smooth in-memory reactive engine 0ms: live keystroke filtering di sisi klien khusus Nama & NIP Pegawai [tanpa nama ketua/tim], paginasi tombol [<] [>] instan, sinkronisasi timeline card, dan silent URL replaceState).*
+203. 📄 **`resources/views/dashboard.blade.php`**, **`resources/views/admin/dashboard.blade.php`**, **`resources/views/ketua-tim/dashboard.blade.php`**, **`resources/views/pimpinan/dashboard.blade.php`** *(Standarisasi tombol "Lihat semua" pada seluruh kartu dashboard dengan penambahan `shrink-0`, `whitespace-nowrap`, `min-w-0 flex-1`, dan padding proporsional `px-4 py-2 text-sm` untuk menjamin bentuk pil konsisten dan bebas wrapping/tergencet di berbagai ukuran layar dan kondisi sidebar terbuka/tertutup).*
 
 ---
 
@@ -1432,4 +1433,20 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Lakukan refresh peramban (F5): pastikan kata kunci pencarian dan posisi halaman tetap tersimpan utuh.
 - [ ] **Uji Sinkronisasi Mode Tampilan Timeline**:
   - Beralih ke tampilan Timeline: verifikasi kartu linimasa dan garis aksis vertikal (`.timeline-stem`) terfilter dan terpaginasi secara rapi dan sinkron dengan filter pencarian.
+
+### BW. Uji Standarisasi Dimensi & Responsivitas Tombol "Lihat Semua" pada Dashboard Cards
+- [ ] **Uji Tombol "Lihat Semua" pada Dashboard Pegawai (`/dashboard`)**:
+  - Masuk ke akun pegawai, buka menu **Dashboard** (`/dashboard`).
+  - Periksa kartu *"Pengajuan terbaru"* dan *"Jadwal lembur mendatang"*.
+  - Verifikasi: Tombol *"Lihat semua"* berada dalam 1 baris teks yang utuh (*no text-wrap*), berbentuk pil `rounded-full` simetris dan proporsional.
+- [ ] **Uji Responsivitas Sidebar Desktop Buka / Tutup**:
+  - Klik tombol tab tepi/toggle sidebar desktop untuk menutup sidebar (`w-0`), lalu buka kembali (`w-64`):
+  - Verifikasi: Dimensi, tinggi, padding (`px-4 py-2`), dan ukuran font tombol *"Lihat semua"* tetap 100% konsisten, tidak gepeng/kempis, dan tidak terlipat menjadi 2 baris (bukan oval tinggi/telur).
+- [ ] **Uji Responsivitas Layar Laptop Kecil (13"/14", Resolusi 1024px–1366px)**:
+  - Uji halaman dashboard pada viewport 1024px atau 1280px dengan sidebar terbuka:
+  - Verifikasi: Container teks judul (`min-w-0 flex-1`) menyesuaikan ruang secara dinamis tanpa menekan tombol *"Lihat semua"* (`shrink-0 whitespace-nowrap`).
+- [ ] **Uji Konsistensi Lintas Dashboard Peran (Admin, Ketua Tim, Pimpinan)**:
+  - Buka `/admin/dashboard`, `/ketua-tim/dashboard`, dan `/pimpinan/dashboard`:
+  - Verifikasi: Seluruh tombol *"Lihat semua"* / *"Lihat Semua"* memiliki ukuran, padding, tinggi, dan perilaku anti-wrap yang seragam di semua peran pengguna.
+
 

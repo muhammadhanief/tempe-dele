@@ -4352,4 +4352,41 @@ Analisis kebutuhan pengguna:
 | 1 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Mengubah retrieval data dari `paginate($perPage)` ke `get()`, menyediakan seluruh data periode aktif ke view untuk penyaringan instan sisi klien. |
 | 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Mengimplementasikan mesin pencarian dan paginasi in-memory ultra-smooth 0ms, mengkhususkan cakupan `data-search` hanya pada Nama & NIP Pegawai (tanpa nama ketua/tim), tombol interaktif 3 bagian, sinkronisasi timeline, dan silent URL replaceState. |
 
+---
+
+## 90. Standarisasi Dimensi & Responsivitas Tombol "Lihat Semua" pada Dashboard Cards (Multi-Screen & Responsive Sidebar)
+
+### A. Latar Belakang & Masukan Pengguna
+Pengguna menyampaikan masukan terkait tampilan kartu dashboard:
+> *"tulisan 'lihat semuanya' dibikin sama dong ukurannya walau beda ukuran layar (inch nya) pas sidebar kebuka maupun tertutup"*
+
+Disertai perbandingan visual antara:
+1. **Kondisi Tertekan / Terdistorsi:** Pada layar laptop berukuran 13" atau 14" (resolusi lebar 1024px–1366px) saat sidebar navigasi desktop terbuka (`w-64` / 256px), ruang horizontal yang tersisa untuk kolom grid kartu tereduksi secara signifikan. Teks tombol "Lihat semua" terlipat menjadi 2 baris (`Lihat` dan `semua`), menyebabkan bentuk pil rounded-full berubah menjadi oval meninggi seperti telur.
+2. **Kondisi Normal:** Saat sidebar ditutup (memberikan tambahan lebar horizontal ~256px), teks berada dalam 1 baris normal dengan tinggi dan lebar proporsional.
+
+### B. Analisis Akar Masalah (Root Cause)
+1. **Ketiadaan Pembatas Fleksibel (`min-w-0 flex-1`):** Pembungkus teks judul di sebelah kiri (`<div><h2>...</h2><p>...</p></div>`) tidak memiliki pembatas `min-w-0 flex-1`. Ketika teks deskripsi panjang ("Lembur disetujui yang belum terlaksana.") membutuhkan ruang, elemen tersebut mendorong elemen saudara di sebelah kanannya.
+2. **Ketiadaan Penegasan Lebar Tak-Boleh-Kempis (`shrink-0 whitespace-nowrap`):** Elemen tautan tombol `<a>` memiliki perilaku bawaan `flex-shrink: 1` tanpa utilitas `whitespace-nowrap`. Saat ruang flexbox baris header card menyempit di bawah ambang batas, browser secara otomatis mengorbankan lebar tombol dan melipat kata "semua" ke baris berikutnya.
+
+### C. Solusi Teknis & Standarisasi UI
+1. **Penguncian Dimensi Tombol (`shrink-0 whitespace-nowrap`):**
+   - Menambahkan utilitas Tailwind `shrink-0` dan `whitespace-nowrap` pada tombol *"Lihat semua"*. Hal ini menjamin peramban web **tidak akan pernah** mengecilkan tombol atau melipat teks menjadi dua baris dalam kondisi resolusi layar atau status sidebar apa pun.
+2. **Penetapan Ruang Fleksibel pada Header Teks (`min-w-0 flex-1`):**
+   - Menambahkan utilitas `min-w-0 flex-1` pada kontainer teks judul di sisi kiri header kartu, sehingga teks judul/deskripsi dapat menyesuaikan diri secara elegan tanpa menekan elemen tombol aksi.
+3. **Standarisasi Menyeluruh Lintas Peran Pengguna:**
+   - Standarisasi ukuran tombol pil (`px-4 py-2 text-sm font-semibold rounded-full border border-black/15 hover:bg-gray-50 transition-colors`) diterapkan secara konsisten pada:
+     - Dashboard Pegawai: Card *Pengajuan terbaru* dan *Jadwal lembur mendatang* ([`resources/views/dashboard.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/dashboard.blade.php)).
+     - Dashboard Admin: Card *Lembur hari ini* ([`resources/views/admin/dashboard.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/dashboard.blade.php)).
+     - Dashboard Ketua Tim: Card *Pengajuan Lembur* ([`resources/views/ketua-tim/dashboard.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/ketua-tim/dashboard.blade.php)).
+     - Dashboard Pimpinan: Card *Pengajuan Lembur* ([`resources/views/pimpinan/dashboard.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/pimpinan/dashboard.blade.php)).
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/dashboard.blade.php` | Menambahkan `min-w-0 flex-1` pada header dan `shrink-0 whitespace-nowrap transition-colors` pada tombol *Lihat semua* di Card Pengajuan terbaru & Jadwal lembur mendatang. |
+| 2 | `resources/views/admin/dashboard.blade.php` | Menerapkan `min-w-0 flex-1` dan `shrink-0 whitespace-nowrap transition-colors` pada tombol *Lihat semua* di Card Lembur hari ini. |
+| 3 | `resources/views/ketua-tim/dashboard.blade.php` | Menstandarkan tombol *Lihat Semua* dengan `shrink-0 whitespace-nowrap px-4 py-2 text-sm` dan `min-w-0 flex-1` pada header. |
+| 4 | `resources/views/pimpinan/dashboard.blade.php` | Menstandarkan tombol *Lihat Semua* dengan `shrink-0 whitespace-nowrap px-4 py-2 text-sm` dan `min-w-0 flex-1` pada header. |
+
+
 
