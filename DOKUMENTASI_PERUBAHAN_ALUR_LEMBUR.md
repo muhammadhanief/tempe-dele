@@ -4264,3 +4264,54 @@ Menerapkan 4 lapis interaksi navigasi cerdas pada seluruh tabel aplikasi di `res
 | :---: | :--- | :--- |
 | 1 | `public/build/assets/app-CgN_TPC-.css` | Bundel CSS produksi Vite terbaru memuat seluruh utility class Tailwind mutakhir. |
 | 2 | `public/build/manifest.json` | Manifest Vite baru yang mengarahkan asset CSS ke `app-CgN_TPC-.css`. |
+
+---
+
+## 88. Optimalisasi Pencarian Server-Side Menyeluruh & Standardisasi Paginasi 3 Bagian pada Persetujuan Kabag Umum (`/kabag-umum/pengajuan`)
+
+### A. Latar Belakang & Analisis Permasalahan
+1. **Pencarian Sebelumnya Terbatas pada DOM Halaman Aktif (*Client-Side Filtering Leak*):**
+   - Sebelumnya, input pencarian pada halaman **Persetujuan Kabag** (`resources/views/kabag-umum/pengajuan.blade.php`) menggunakan skrip `filterTableRows()` yang hanya menyembunyikan/menampilkan elemen `<tr>` yang sudah ter-*render* di DOM halaman saat itu.
+   - Karena tabel menggunakan paginasi server-side (10 baris per halaman), saat pengguna mengetikkan kata kunci nama (misal: `"joko"`), sistem hanya memfilter 10 baris di halaman aktif (misalnya hanya muncul 4 baris yang kebetulan ada di halaman 1).
+   - Baris pengajuan lain milik pegawai yang berada di halaman 2 s.d. 21 sama sekali tidak muncul.
+   - Komponen paginasi di bawah tabel tetap menampilkan *Showing 1 to 10 of 205 results* dengan 21 halaman angka yang tidak sinkron dengan kata kunci pencarian.
+2. **Kebutuhan Standarisasi Baris Paginasi Bawah (3 Bagian):**
+   - Pengguna menghendaki baris bagian bawah tabel diseragamkan dengan format standar aplikasi:
+     - **Sisi Kiri:** Dropdown pemilih jumlah data per halaman: `Tampilkan [ 10 v ] data` (pilihan: 10, 25, 50, 100).
+     - **Sisi Tengah:** Tombol navigasi prev-next kompak: `[ < ] Page X of Y [ > ]`.
+     - **Sisi Kanan:** Ringkasan jumlah data: `Menampilkan X-Y dari Z data`.
+
+### B. Solusi & Rincian Implementasi Teknis
+1. **Backend Server-Side Search & Parameter `perPage` ([`KabagUmumPengajuanController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php)):**
+   - Menangkap parameter pencarian `$search = trim((string) $request->get('search', $request->get('q', '')))` dan `$perPage = in_array((int) $request->get('perPage', 10), [10, 25, 50, 100]) ? (int) $request->get('perPage', 10) : 10;`.
+   - Mengaplikasikan filter `where(function($q))` ke database query mencakup:
+     - `p.nama` (Nama Pegawai)
+     - `p.nip` (NIP Baru 18 digit)
+     - `p.nip_lama` (NIP Lama BPS)
+     - `mt.nama_tim` (Nama Tim Kerja)
+     - `mt.nama_ketua` (Nama Ketua Tim)
+   - Sinkronisasi statistik tab status (*Semua, Menunggu Kabag, Disetujui, Ditolak, Dibatalkan*) agar langsung menghitung total riil dari hasil pencarian terkait.
+   - Menggunakan `$query->paginate($perPage)->appends($request->query())` sehingga seluruh parameter URL (`bulan`, `status`, `sort`, `search`, `perPage`) dipertahankan secara utuh saat berpindah halaman (*next/previous page*).
+
+2. **Frontend UI Search Input & Debounce Navigation ([`resources/views/kabag-umum/pengajuan.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/kabag-umum/pengajuan.blade.php)):**
+   - Nilai input desktop (`#searchPegawai`) dan mobile (`#searchPegawaiMobile`) langsung mengikat parameter `$search` (`value="{{ $search ?? '' }}"`).
+   - Menyediakan tombol pembersih pencarian (`#clearSearchBtn`) yang otomatis tampil jika terdapat kata kunci aktif.
+   - **Mekanisme Pemicu Pencarian Cerdas:**
+     - Menekan tombol **Enter**: Pencarian langsung dieksekusi seketika (`page=1`).
+     - Mengetik teks (*live typing*): Diterapkan debounce 600ms, mencegah request berlebihan saat pengguna masih mengetik.
+     - Mengklik tombol silang (`x`): Input dikosongkan dan pencarian langsung di-reset kembali ke seluruh data.
+   - Sinkronisasi instan nilai antara input desktop dan drawer mobile.
+
+3. **Restrukturisasi Baris Paginasi Bawah (3 Bagian Presisi):**
+   - Menggantikan kode `{{ $pengajuan->links() }}` dengan komponen 3 bagian responsif:
+     - **Kiri:** Dropdown `changePerPage(this.value)` dengan opsi 10, 25, 50, 100 data.
+     - **Tengah:** Navigasi `[ < ] Page {{ $pengajuan->currentPage() }} of {{ $pengajuan->lastPage() }} [ > ]` dengan tombol hover oranye `#faa938` dan status disable yang rapi saat berada di halaman awal/akhir.
+     - **Kanan:** Teks informatif `Menampilkan {{ $pengajuan->firstItem() ?? 0 }}-{{ $pengajuan->lastItem() ?? 0 }} dari {{ $pengajuan->total() }} data`.
+   - Menambahkan pesan empty state ramah pencarian di tabel: *"Tidak ada pengajuan yang cocok dengan pencarian '[kata kunci]'."* beserta tombol reset cepat.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Menambahkan pencarian server-side (nama, NIP, tim, ketua), dukungan parameter `perPage` dinamis (10, 25, 50, 100), dan sinkronisasi statistik tab. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Mengintegrasikan input search desktop & mobile dengan debounce 600ms / Enter, empty state search, dan paginasi 3 bagian sesuai standar. |
+

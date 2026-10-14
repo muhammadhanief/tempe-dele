@@ -300,6 +300,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 198. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Penataan bertingkat vertikal flex-col header kolom Tanggal: teks Tanggal di atas dan dropdown sortir [Terbaru ▾] di bawahnya, mengeliminasi tabrakan horizontal dengan header Jam Diajukan)*.
 199. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Restrukturisasi tata letak modal #modalAjukan menjadi 2-kolom desktop md:grid-cols-2 zero-scroll: max-w-3xl lg:max-w-4xl max-h-[92vh], textarea uraian rows=3, kanvas tanda tangan h-28 touch-none, mengeliminasi scrollbar vertikal pada layar laptop/desktop dengan fallback responsif 1-kolom di mobile)*.
 200. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil `npm run build`: `manifest.json`, `assets/app-CgN_TPC-.css`, `assets/app-DfUGke97.js` memuat seluruh utility Tailwind CSS termutakhir dari 30+ commit terakhir)*.
+201. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Pencarian server-side menyeluruh [nama, NIP, tim, ketua] melintasi seluruh halaman, dukungan perPage 10/25/50/100, sinkronisasi tab status, dan restrukturisasi baris paginasi bawah 3 bagian: Tampilkan data, Page X of Y, Menampilkan X-Y dari Z data)*.
 
 ---
 
@@ -1397,3 +1398,21 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Hard Refresh Peramban (Bypass Browser Cache)**:
   - Tekan kombinasi tombol **Ctrl + Shift + R** (atau **Ctrl + F5**) untuk memastikan cache CSS lokal peramban dibersihkan.
   - Verifikasi: Tampilan modal ajukan lembur 2 kolom, tabel responsif sticky column, collapsible sidebar, dan seluruh tata letak antarmuka di peladen sama persis 100% dengan tampilan di lingkungan lokal.
+
+### BU. Uji Pencarian Server-Side Menyeluruh & Standardisasi Paginasi 3 Bagian (`/kabag-umum/pengajuan`)
+- [ ] **Uji Pencarian Menyeluruh Melintasi Seluruh Halaman Database**:
+  - Masuk ke akun Kepala Bagian Umum atau Administrator, buka menu **Persetujuan Kabag** (`/kabag-umum/pengajuan`).
+  - Masukkan nama pegawai (misal: `"joko"`) pada input pencarian dan tekan **Enter** (atau tunggu sejenak).
+  - Verifikasi: Hasil pencarian menampilkan seluruh data transaksi pegawai bersangkutan dari keseluruhan database (bukan hanya 10 baris di halaman aktif), dan badge counter tab status (*Semua, Disetujui, dll.*) secara presisi menyesuaikan dengan jumlah data hasil pencarian.
+- [ ] **Uji Navigasi Halaman Pada Hasil Pencarian**:
+  - Klik tombol navigasi halaman berikutnya `[ > ]`.
+  - Verifikasi: Halaman ke-2 tetap memuat hasil pencarian kata kunci terkait (parameter `search` tidak hilang dari URL).
+- [ ] **Uji Tombol Pembersih Pencarian `(×)`**:
+  - Klik tombol silang `(×)` pada sisi kanan input pencarian.
+  - Verifikasi: Input dikosongkan dan tabel langsung memuat kembali seluruh transaksi pengajuan lembur tanpa filter pencarian.
+- [ ] **Uji Baris Paginasi Bawah 3 Bagian**:
+  - Periksa bagian bawah tabel:
+    1. **Kiri:** Tampil dropdown `Tampilkan [ 10 v ] data`. Ubah pilihan menjadi 25 atau 50, dan verifikasi jumlah baris yang tampil langsung bertambah sesuai opsi.
+    2. **Tengah:** Tampil navigasi kompak `[ < ] Page X of Y [ > ]` dengan tombol hover oranye `#faa938`.
+    3. **Kanan:** Tampil teks ringkasan `Menampilkan X-Y dari Z data` yang sinkron dengan total data riil.
+
