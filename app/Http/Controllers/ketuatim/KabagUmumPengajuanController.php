@@ -118,18 +118,7 @@ class KabagUmumPengajuanController extends Controller
             $query->whereMonth('t.date', $selectedMonth);
         }
 
-        // Terapkan filter pencarian nama pegawai, NIP, nama tim, atau nama ketua
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('p.nama', 'like', "%{$search}%")
-                  ->orWhere('p.nip', 'like', "%{$search}%")
-                  ->orWhere('p.nip_lama', 'like', "%{$search}%")
-                  ->orWhere('mt.nama_tim', 'like', "%{$search}%")
-                  ->orWhere('mt.nama_ketua', 'like', "%{$search}%");
-            });
-        }
-
-        // Hitung statistik untuk periode yang dipilih (dan kata kunci pencarian jika ada)
+        // Hitung statistik untuk periode yang dipilih
         $statsBase = clone $query;
         $allTransactions = $statsBase->get();
         $stats = [
@@ -164,9 +153,7 @@ class KabagUmumPengajuanController extends Controller
             $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
         }
 
-        $pengajuan = $query
-            ->paginate($perPage)
-            ->appends($request->query());
+        $pengajuan = $query->get();
 
         $hariLibur = DB::table('m_hari_libur')
             ->orderBy('tanggal', 'asc')

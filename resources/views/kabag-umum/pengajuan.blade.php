@@ -194,7 +194,6 @@
             </div>
             <input type="text" id="searchPegawai" placeholder="Cari nama pegawai / NIP..."
                 value="{{ $search ?? '' }}"
-                onkeydown="if(event.key==='Enter'){event.preventDefault(); applySearch(this.value);}"
                 oninput="handleSearchInput(event)" autocomplete="off"
                 class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-8 text-xs text-gray-700 shadow-xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all placeholder:text-gray-400">
             <button type="button" id="clearSearchBtn" onclick="clearSearchInput()"
@@ -380,7 +379,6 @@
             </div>
             <input type="text" id="searchPegawaiMobile" placeholder="Cari nama pegawai / NIP..."
                 value="{{ $search ?? '' }}"
-                onkeydown="if(event.key==='Enter'){event.preventDefault(); applySearch(this.value);}"
                 oninput="handleSearchInput(event)" autocomplete="off"
                 class="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-8 text-xs text-gray-700 shadow-xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all placeholder:text-gray-400">
             <button type="button" id="clearSearchBtnMobile" onclick="clearSearchInput()"
@@ -466,11 +464,11 @@
 
                         $isBagianUmum = !empty($p->nama_tim) && (str_contains(strtolower($p->nama_tim), 'bagian umum') || ($p->tim_kode_tim ?? '') === 'QrBzgE3O3lEqVPjy');
                     @endphp
-                    <tr class="bg-white transition-colors hover:bg-slate-50/80"
-                        data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . $p->nama_tim) }}">
+                    <tr class="pengajuan-row bg-white transition-colors hover:bg-slate-50/80"
+                        data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . ($p->nip_lama ?? '') . ' ' . ($p->nama_tim ?? '') . ' ' . ($p->nama_ketua ?? '')) }}">
 
-                        <td class="px-2 py-2.5 text-center text-xs text-gray-600 font-medium">
-                            {{ $pengajuan->firstItem() + $i }}
+                        <td class="row-number px-2 py-2.5 text-center text-xs text-gray-600 font-medium">
+                            {{ $loop->iteration }}
                         </td>
 
                         <td class="px-2.5 py-2.5 text-xs">
@@ -609,6 +607,19 @@
                         </td>
                     </tr>
                 @endforelse
+                <tr id="emptySearchRow" class="hidden">
+                    <td colspan="10" class="px-4 py-12 text-center text-sm text-gray-400">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <p class="font-medium text-gray-600" id="emptySearchText">Tidak ada pengajuan yang cocok dengan pencarian.</p>
+                            <button type="button" onclick="clearSearchInput()" class="mt-2 text-xs font-semibold text-[#faa938] hover:underline cursor-pointer">
+                                Hapus filter pencarian
+                            </button>
+                        </div>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -630,6 +641,21 @@
             </div>
         @else
             <div class="relative py-2">
+                <div id="emptySearchTimeline" class="hidden rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs mb-4">
+                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 mb-3.5">
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800">Tidak ada pengajuan ditemukan</h3>
+                    <p class="mt-1 text-xs text-slate-500 max-w-sm mx-auto" id="emptySearchTimelineText">
+                        Tidak ada pengajuan yang cocok dengan pencarian Anda.
+                    </p>
+                    <button type="button" onclick="clearSearchInput()" class="mt-3 text-xs font-semibold text-[#faa938] hover:underline cursor-pointer">
+                        Hapus filter pencarian
+                    </button>
+                </div>
+
                 <div class="space-y-4" id="timelineListKabag">
                     @foreach($pengajuan as $idx => $p)
                         @php
@@ -687,7 +713,7 @@
                         @endphp
 
                         <div class="timeline-item flex items-start gap-3 sm:gap-5 pb-5 sm:pb-6 last:pb-2"
-                            data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . $p->nama_tim) }}">
+                            data-search="{{ strtolower($p->nama_pegawai . ' ' . $p->nip_pegawai . ' ' . ($p->nip_lama ?? '') . ' ' . ($p->nama_tim ?? '') . ' ' . ($p->nama_ketua ?? '')) }}">
 
                             {{-- 1. Date Box Kompak & Elegan --}}
                             <div class="w-16 sm:w-20 shrink-0 flex flex-col items-center justify-center rounded-2xl bg-white border border-slate-300 py-2.5 px-1.5 shadow-2xs group-hover:border-slate-400 transition-all duration-200">
@@ -878,7 +904,7 @@
         {{-- Kiri: Dropdown perPage --}}
         <div class="flex items-center justify-center md:justify-start gap-2 text-sm text-gray-500">
             <span>Tampilkan</span>
-            <select onchange="changePerPage(this.value)"
+            <select id="perPageSelect" onchange="changePerPage(this.value)"
                 class="h-8 rounded-lg border border-gray-200 px-2 text-sm text-gray-700 focus:border-[#faa938] focus:outline-none cursor-pointer">
                 @foreach([10, 25, 50, 100] as $opt)
                     <option value="{{ $opt }}" {{ ($perPage ?? 10) == $opt ? 'selected' : '' }}>
@@ -891,45 +917,30 @@
 
         {{-- Tengah: Pagination --}}
         <nav class="inline-flex items-center justify-center space-x-2">
-            @if($pengajuan->onFirstPage())
-                <span class="p-1 rounded border text-gray-300 cursor-not-allowed">
-                    <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-                    </svg>
-                </span>
-            @else
-                <a class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938] transition-colors"
-                    href="{{ $pengajuan->previousPageUrl() }}" title="Halaman Sebelumnya">
-                    <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-                    </svg>
-                </a>
-            @endif
+            <button type="button" id="btnPrevPage" onclick="goToPrevPage()"
+                class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938] transition-colors cursor-pointer disabled:text-gray-300 disabled:border-gray-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                title="Halaman Sebelumnya">
+                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                </svg>
+            </button>
 
-            <p class="text-gray-500 text-xs sm:text-sm whitespace-nowrap">
-                Page {{ $pengajuan->currentPage() }} of {{ $pengajuan->lastPage() }}
+            <p id="pageIndicator" class="text-gray-500 text-xs sm:text-sm whitespace-nowrap">
+                Page 1 of 1
             </p>
 
-            @if($pengajuan->hasMorePages())
-                <a class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938] transition-colors"
-                    href="{{ $pengajuan->nextPageUrl() }}" title="Halaman Berikutnya">
-                    <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-                    </svg>
-                </a>
-            @else
-                <span class="p-1 rounded border text-gray-300 cursor-not-allowed">
-                    <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-                    </svg>
-                </span>
-            @endif
+            <button type="button" id="btnNextPage" onclick="goToNextPage()"
+                class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938] transition-colors cursor-pointer disabled:text-gray-300 disabled:border-gray-200 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                title="Halaman Berikutnya">
+                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                </svg>
+            </button>
         </nav>
 
         {{-- Kanan: Info jumlah data --}}
-        <p class="text-center md:text-right text-xs sm:text-sm text-gray-500">
-            Menampilkan {{ $pengajuan->firstItem() ?? 0 }}-{{ $pengajuan->lastItem() ?? 0 }}
-            dari {{ $pengajuan->total() }} data
+        <p id="dataCountIndicator" class="text-center md:text-right text-xs sm:text-sm text-gray-500">
+            Menampilkan 0 dari 0 data
         </p>
 
     </div>
@@ -1550,22 +1561,180 @@ window.onHeaderSortChange = function(val) {
     window.location.href = url.toString();
 };
 
-// =====================
-// FILTER SEARCH PEGAWAI (SERVER-SIDE SEARCH & PAGINASI)
-// =====================
-let searchDebounceTimer = null;
+// ========================================================
+// INSTANT IN-MEMORY SEARCH & CLIENT PAGINATION ENGINE (SMOOTH 0MS)
+// ========================================================
+let currentPage = 1;
+let currentPerPage = {{ $perPage ?? 10 }};
+let currentSearchQuery = '{{ addslashes($search ?? '') }}'.toLowerCase().trim();
 
-window.applySearch = function(val) {
-    const url = new URL(window.location.href);
-    const q = (val !== undefined && val !== null) ? val.trim() : '';
-    if (q) {
-        url.searchParams.set('search', q);
-    } else {
-        url.searchParams.delete('search');
-        url.searchParams.delete('q');
+window.renderTableAndPagination = function() {
+    const tableRows = Array.from(document.querySelectorAll('#tabelPengajuan tr.pengajuan-row'));
+    const timelineItems = Array.from(document.querySelectorAll('#timelineListKabag .timeline-item'));
+
+    // Filter baris yang cocok berdasarkan data-search
+    const matchedTableRows = tableRows.filter(row => {
+        if (!currentSearchQuery) return true;
+        const searchData = row.getAttribute('data-search') || '';
+        return searchData.includes(currentSearchQuery);
+    });
+
+    const matchedTimelineItems = timelineItems.filter(item => {
+        if (!currentSearchQuery) return true;
+        const searchData = item.getAttribute('data-search') || '';
+        return searchData.includes(currentSearchQuery);
+    });
+
+    const totalMatched = matchedTableRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalMatched / currentPerPage));
+
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * currentPerPage;
+    const endIndex = startIndex + currentPerPage;
+
+    // 1. Tampilkan baris tabel yang sesuai halaman aktif, sembunyikan sisanya
+    tableRows.forEach(row => row.classList.add('hidden'));
+    matchedTableRows.forEach((row, idx) => {
+        if (idx >= startIndex && idx < endIndex) {
+            row.classList.remove('hidden');
+            const noCell = row.querySelector('.row-number');
+            if (noCell) {
+                noCell.textContent = idx + 1;
+            }
+        } else {
+            row.classList.add('hidden');
+        }
+    });
+
+    // 2. Tampilkan item timeline yang sesuai halaman aktif
+    timelineItems.forEach(item => item.classList.add('hidden'));
+    matchedTimelineItems.forEach((item, idx) => {
+        if (idx >= startIndex && idx < endIndex) {
+            item.classList.remove('hidden');
+        } else {
+            item.classList.add('hidden');
+        }
+    });
+
+    if (typeof updateTimelineStems === 'function') {
+        updateTimelineStems();
     }
-    url.searchParams.set('page', '1');
-    window.location.href = url.toString();
+
+    // 3. Status pesan kosong pencarian di tabel
+    const emptyTableSearch = document.getElementById('emptySearchRow');
+    if (emptyTableSearch) {
+        if (totalMatched === 0 && tableRows.length > 0) {
+            emptyTableSearch.classList.remove('hidden');
+            const emptyText = document.getElementById('emptySearchText');
+            if (emptyText) {
+                emptyText.textContent = currentSearchQuery 
+                    ? `Tidak ada pengajuan yang cocok dengan pencarian "${currentSearchQuery}".`
+                    : 'Tidak ada data pengajuan lembur.';
+            }
+        } else {
+            emptyTableSearch.classList.add('hidden');
+        }
+    }
+
+    // Status pesan kosong pencarian di timeline
+    const emptyTimelineSearch = document.getElementById('emptySearchTimeline');
+    if (emptyTimelineSearch) {
+        if (totalMatched === 0 && timelineItems.length > 0) {
+            emptyTimelineSearch.classList.remove('hidden');
+            const emptyText = document.getElementById('emptySearchTimelineText');
+            if (emptyText) {
+                emptyText.textContent = currentSearchQuery 
+                    ? `Tidak ada pengajuan yang cocok dengan pencarian "${currentSearchQuery}".`
+                    : 'Tidak ada data pengajuan lembur.';
+            }
+        } else {
+            emptyTimelineSearch.classList.add('hidden');
+        }
+    }
+
+    // 4. Update Indikator Halaman & Data Bawah (Sesuai Gambar 2)
+    const pageIndicator = document.getElementById('pageIndicator');
+    if (pageIndicator) {
+        pageIndicator.textContent = `Page ${totalMatched === 0 ? 0 : currentPage} of ${totalPages}`;
+    }
+
+    const dataCountIndicator = document.getElementById('dataCountIndicator');
+    if (dataCountIndicator) {
+        if (totalMatched === 0) {
+            dataCountIndicator.textContent = 'Menampilkan 0 dari 0 data';
+        } else {
+            const startDisplay = startIndex + 1;
+            const endDisplay = Math.min(endIndex, totalMatched);
+            dataCountIndicator.textContent = `Menampilkan ${startDisplay}-${endDisplay} dari ${totalMatched} data`;
+        }
+    }
+
+    // 5. Update Status Tombol Prev & Next
+    const btnPrev = document.getElementById('btnPrevPage');
+    if (btnPrev) {
+        const canPrev = currentPage > 1 && totalMatched > 0;
+        btnPrev.disabled = !canPrev;
+        if (canPrev) {
+            btnPrev.className = 'p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938] transition-colors cursor-pointer';
+        } else {
+            btnPrev.className = 'p-1 rounded border text-gray-300 border-gray-200 bg-gray-50 cursor-not-allowed';
+        }
+    }
+
+    const btnNext = document.getElementById('btnNextPage');
+    if (btnNext) {
+        const canNext = currentPage < totalPages && totalMatched > 0;
+        btnNext.disabled = !canNext;
+        if (canNext) {
+            btnNext.className = 'p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938] transition-colors cursor-pointer';
+        } else {
+            btnNext.className = 'p-1 rounded border text-gray-300 border-gray-200 bg-gray-50 cursor-not-allowed';
+        }
+    }
+
+    // 6. Sinkronisasi parameter URL secara senyap tanpa reload
+    try {
+        const url = new URL(window.location.href);
+        if (currentSearchQuery) {
+            url.searchParams.set('search', currentSearchQuery);
+        } else {
+            url.searchParams.delete('search');
+            url.searchParams.delete('q');
+        }
+        if (currentPage > 1) {
+            url.searchParams.set('page', currentPage);
+        } else {
+            url.searchParams.delete('page');
+        }
+        if (currentPerPage !== 10) {
+            url.searchParams.set('perPage', currentPerPage);
+        } else {
+            url.searchParams.delete('perPage');
+        }
+        window.history.replaceState({}, '', url.toString());
+    } catch (e) {
+        console.warn('URL state sync failed', e);
+    }
+};
+
+window.goToPrevPage = function() {
+    if (currentPage > 1) {
+        currentPage--;
+        renderTableAndPagination();
+    }
+};
+
+window.goToNextPage = function() {
+    currentPage++;
+    renderTableAndPagination();
+};
+
+window.changePerPage = function(val) {
+    currentPerPage = parseInt(val) || 10;
+    currentPage = 1;
+    renderTableAndPagination();
 };
 
 window.handleSearchInput = function(e) {
@@ -1590,16 +1759,9 @@ window.handleSearchInput = function(e) {
         inputDesktop.value = val;
     }
 
-    if (e.key === 'Enter') {
-        clearTimeout(searchDebounceTimer);
-        applySearch(val);
-        return;
-    }
-
-    clearTimeout(searchDebounceTimer);
-    searchDebounceTimer = setTimeout(() => {
-        applySearch(val);
-    }, 600);
+    currentSearchQuery = val.trim().toLowerCase();
+    currentPage = 1; // Kembali ke halaman 1 saat filter pencarian berubah
+    renderTableAndPagination(); // Eksekusi instan 0ms tanpa reload!
 };
 
 window.clearSearchInput = function() {
@@ -1607,14 +1769,21 @@ window.clearSearchInput = function() {
     const inputMobile  = document.getElementById('searchPegawaiMobile');
     if (inputDesktop) inputDesktop.value = '';
     if (inputMobile)  inputMobile.value = '';
-    applySearch('');
-};
 
-window.changePerPage = function(val) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('perPage', val);
-    url.searchParams.set('page', '1');
-    window.location.href = url.toString();
+    const clearDesktop = document.getElementById('clearSearchBtn');
+    const clearMobile  = document.getElementById('clearSearchBtnMobile');
+    if (clearDesktop) clearDesktop.classList.add('hidden');
+    if (clearMobile)  clearMobile.classList.add('hidden');
+
+    currentSearchQuery = '';
+    currentPage = 1;
+    renderTableAndPagination();
+
+    if (window.innerWidth >= 640 && inputDesktop) {
+        inputDesktop.focus();
+    } else if (inputMobile) {
+        inputMobile.focus();
+    }
 };
 
 // =====================
@@ -1824,6 +1993,37 @@ document.addEventListener('DOMContentLoaded', function () {
     if (savedMode === 'timeline') {
         window.switchViewMode('timeline');
     }
+
+    // Inisialisasi awal pagination & filter pencarian dari query string URL jika ada
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pParam = parseInt(urlParams.get('page'));
+        if (!isNaN(pParam) && pParam > 0) currentPage = pParam;
+
+        const perPageParam = parseInt(urlParams.get('perPage'));
+        if ([10, 25, 50, 100].includes(perPageParam)) {
+            currentPerPage = perPageParam;
+            const selectEl = document.getElementById('perPageSelect');
+            if (selectEl) selectEl.value = currentPerPage;
+        }
+
+        const searchParam = urlParams.get('search') || urlParams.get('q') || '';
+        if (searchParam) {
+            currentSearchQuery = searchParam.toLowerCase().trim();
+            const inputDesktop = document.getElementById('searchPegawai');
+            const inputMobile  = document.getElementById('searchPegawaiMobile');
+            if (inputDesktop) inputDesktop.value = searchParam;
+            if (inputMobile)  inputMobile.value = searchParam;
+            const clearDesktop = document.getElementById('clearSearchBtn');
+            const clearMobile  = document.getElementById('clearSearchBtnMobile');
+            if (clearDesktop) clearDesktop.classList.remove('hidden');
+            if (clearMobile)  clearMobile.classList.remove('hidden');
+        }
+    } catch (e) {
+        console.warn('URL params parsing error', e);
+    }
+
+    window.renderTableAndPagination();
 });
 
 window.addEventListener('resize', updateTimelineStems);
