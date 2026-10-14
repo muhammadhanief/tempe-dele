@@ -304,6 +304,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 202. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Peningkatan reaktivitas pencarian dan paginasi Persetujuan Kabag Umum menjadi ultra-smooth in-memory reactive engine 0ms: live keystroke filtering di sisi klien khusus Nama & NIP Pegawai [tanpa nama ketua/tim], paginasi tombol [<] [>] instan, sinkronisasi timeline card, dan silent URL replaceState).*
 203. 📄 **`resources/views/dashboard.blade.php`**, **`resources/views/admin/dashboard.blade.php`**, **`resources/views/ketua-tim/dashboard.blade.php`**, **`resources/views/pimpinan/dashboard.blade.php`** *(Standarisasi tombol "Lihat semua" pada seluruh kartu dashboard dengan penambahan `shrink-0`, `whitespace-nowrap`, `min-w-0 flex-1`, dan padding proporsional `px-4 py-2 text-sm` untuk menjamin bentuk pil konsisten dan bebas wrapping/tergencet di berbagai ukuran layar dan kondisi sidebar terbuka/tertutup).*
 204. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/lembur.blade.php`** *(Izin pengeditan mandiri pengajuan lembur anggota Tim Bagian Umum pada status `menunggu_kabag` selama belum disetujui Kabag Umum, dan sinkronisasi tampilan tombol aksi edit kuning di tabel & linimasa).*
+205. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`** *(Standarisasi ketebalan font teks uraian kegiatan pada kartu linimasa, label sub-seksi, dan judul modal detail dari `font-bold` menjadi `font-semibold` di seluruh role untuk meningkatkan kenyamanan visual dan keterbacaan antarmuka).*
 
 ---
 
@@ -1463,6 +1464,18 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Masuk sebagai anggota tim non-Bagian Umum (misal: Tim Sosial atau Nerwilis).
   - Saat pengajuan telah disetujui Ketua Tim (berstatus `Menunggu Kabag`):
   - Verifikasi: Tombol aksi edit kuning tidak muncul (terkunci rapat) sehingga integritas keputusan Ketua Tim tetap terlindungi.
+
+### BY. Uji Standarisasi Ketebalan Font Teks Uraian Kegiatan (Semi-Bold) di Seluruh Role
+- [ ] **Uji Tampilan Linimasa Pengajuan Lembur Pribadi (`/lembur` & `/ketua-tim/lembur`)**:
+  - Akses menu **Lembur** pada role Pegawai, Kabag Umum, Admin, atau Pimpinan (`/lembur`), dan alihkan ke mode **Timeline**.
+  - Akses menu **Lembur** pada role Ketua Tim (`/ketua-tim/lembur`), dan alihkan ke mode **Timeline**.
+  - Verifikasi: Teks judul/uraian kegiatan lembur kini menggunakan ketebalan **semi-bold** (`font-semibold` / weight 600), proporsional dan nyaman dibaca untuk uraian paragraf panjang, tidak lagi terlalu pekat/tebal (*no bold weight 700*).
+- [ ] **Uji Harmonisasi Linimasa Verifikasi & Modal Detail Uraian**:
+  - Buka linimasa verifikasi pada role Ketua Tim (`/ketua-tim/pengajuan`), Kabag Umum (`/kabag-umum/pengajuan`), dan Admin (`/admin/pengajuan`):
+  - Verifikasi: Label sub-seksi *Uraian Kegiatan Lembur:* tampil rapi dan tegas dengan `font-semibold`.
+  - Klik baris uraian pada tabel atau buka modal detail uraian:
+  - Verifikasi: Judul modal *Detail Uraian Kegiatan* menggunakan tipografi `font-semibold text-slate-900` yang elegan dan selaras.
+
 
 
 

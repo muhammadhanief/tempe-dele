@@ -4429,6 +4429,40 @@ Disertai tangkapan layar saat pegawai Tim Kerja Bagian Umum (misal: Aning Widiya
 | 1 | `app/Http/Controllers/LemburController.php` | Menambahkan pengecekan `$isBolehEditTimUmum` pada method `update` agar anggota Tim Bagian Umum berstatus `menunggu_kabag` dapat mengedit pengajuannya sebelum disetujui Kabag Umum. |
 | 2 | `resources/views/lembur.blade.php` | Menyelaraskan logika `$canEdit` di Tabel dan Linimasa berbasis `$isTimUmum && empty($t->approved_kabag_at)`. |
 
+---
+
+## 92. Penyesuaian Ketebalan Teks Uraian Kegiatan dari Bold Menjadi Semi-Bold di Seluruh Role
+
+### A. Latar Belakang & Permintaan Pengguna
+Pengguna menyampaikan masukan tampilan UI dengan menyertakan tangkapan layar tampilan Linimasa (Timeline) Lembur:
+> *"bagian uraian yang tadinyaa bold ubah menjadi semi bold dong benarkan semuaa di seluruh role nya"*
+
+Pada implementasi tampilan linimasa sebelumnya, blok teks judul/uraian kegiatan menggunakan kelas Tailwind `font-bold` (`font-weight: 700`). Ketika uraian kegiatan berisi paragraf penjelasan yang panjang dan rinci, gaya cetak tebal penuh (*bold*) terasa terlalu mendominasi (*visually heavy/overpowering*) dan melelahkan mata saat dibaca.
+
+### B. Solusi & Penyesuaian Desain Antarmuka (UI/UX)
+1. **Penyesuaian Tipografi Linimasa (Timeline View):**
+   - Mengubah elemen judul teks uraian kegiatan dari `font-bold` (`font-weight: 700`) menjadi `font-semibold` (`font-weight: 600`) pada kartu linimasa:
+     - `resources/views/lembur.blade.php` (Linimasa Pengajuan Lembur Pribadi untuk Pegawai, Tim Bagian Umum, Admin, Kabag Umum, dan Pimpinan).
+     - `resources/views/ketua-tim/lembur.blade.php` (Linimasa Pengajuan Lembur Pribadi untuk Ketua Tim).
+2. **Harmonisasi Label & Modal Detail Uraian di Seluruh Role:**
+   - Menstandarkan label sub-seksi *Uraian Kegiatan Lembur:* dari `font-bold` menjadi `font-semibold` pada kartu persetujuan linimasa:
+     - `resources/views/kabag-umum/pengajuan.blade.php` (Linimasa Verifikasi Kabag Umum).
+     - `resources/views/ketua-tim/pengajuan.blade.php` (Linimasa Verifikasi Ketua Tim).
+     - `resources/views/admin/pengajuan.blade.php` (Linimasa Verifikasi Admin).
+   - Menstandarkan judul modal *Detail Uraian Kegiatan* (`resources/views/lembur.blade.php` & `resources/views/ketua-tim/pengajuan.blade.php`) menggunakan `font-semibold text-slate-900` agar selaras dengan pedoman desain modern dan estetika antislop.
+3. **Hasil Visual:**
+   - Paragraf uraian kegiatan kini tampil proporsional, elegan, dan jauh lebih mudah dibaca (*enhanced legibility*) dengan ketebalan medium semi-bold yang tetap tegas tanpa membuat antarmuka terasa sesak.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Mengubah kelas teks uraian kegiatan pada kartu linimasa dan judul modal detail dari `font-bold` ke `font-semibold`. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Mengubah kelas teks uraian kegiatan pada kartu linimasa dari `font-bold` ke `font-semibold`. |
+| 3 | `resources/views/ketua-tim/pengajuan.blade.php` | Mengubah label sub-seksi uraian pada linimasa persetujuan dan judul modal detail ke `font-semibold`. |
+| 4 | `resources/views/kabag-umum/pengajuan.blade.php` | Mengubah label sub-seksi uraian kegiatan pada linimasa verifikasi ke `font-semibold`. |
+| 5 | `resources/views/admin/pengajuan.blade.php` | Mengubah label sub-seksi uraian kegiatan pada linimasa persetujuan ke `font-semibold`. |
+
+
 
 
 
