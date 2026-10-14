@@ -592,21 +592,31 @@
                                     <div id="catatan-timeline-{{ $p->id_transaksi }}">
                                         @if(!empty($p->note))
                                             @php
-                                                $isSystemNote = str_contains(strtolower($p->note), 'durasi lembur') ||
-                                                    str_contains(strtolower($p->note), 'proses bisnis') ||
-                                                    str_contains(strtolower($p->note), 'kebijakan') ||
-                                                    str_contains(strtolower($p->note), 'sistem');
+                                                $rawNoteTimeline = $p->note;
+                                                $isAdminCancelledTimeline = ($p->status === 'cancelled') || str_contains($rawNoteTimeline, '[Dibatalkan Admin]');
+                                                $cleanNoteTimeline = str_contains($rawNoteTimeline, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNoteTimeline)) : $rawNoteTimeline;
+                                                $isSystemNote = !$isAdminCancelledTimeline && (
+                                                    str_contains(strtolower($rawNoteTimeline), 'durasi lembur') ||
+                                                    str_contains(strtolower($rawNoteTimeline), 'proses bisnis') ||
+                                                    str_contains(strtolower($rawNoteTimeline), 'kebijakan') ||
+                                                    str_contains(strtolower($rawNoteTimeline), 'sistem')
+                                                );
                                             @endphp
                                             <div class="space-y-1.5 pt-1">
-                                                @if($isSystemNote)
+                                                @if($isAdminCancelledTimeline)
+                                                    <div class="border-l-2 border-rose-400 pl-3 py-0.5 text-xs text-slate-600 bg-rose-50/40 rounded-r-lg">
+                                                        <span class="font-semibold text-rose-800">Catatan Admin:</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $cleanNoteTimeline }}"</span>
+                                                    </div>
+                                                @elseif($isSystemNote)
                                                     <div class="border-l-2 border-slate-400 pl-3 py-0.5 text-xs text-slate-600 bg-slate-50 rounded-r-lg">
                                                         <span class="font-semibold text-slate-700">Catatan Sistem:</span>
-                                                        <span class="italic text-slate-700 ml-1">"{{ $p->note }}"</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $cleanNoteTimeline }}"</span>
                                                     </div>
                                                 @else
                                                     <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
                                                         <span class="font-semibold text-amber-800">Catatan:</span>
-                                                        <span class="italic text-slate-700 ml-1">"{{ $p->note }}"</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $cleanNoteTimeline }}"</span>
                                                     </div>
                                                 @endif
                                             </div>

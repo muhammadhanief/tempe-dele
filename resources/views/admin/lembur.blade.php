@@ -581,8 +581,20 @@
                                 </td>
 
                                 <td class="px-3.5 py-3.5 text-xs text-gray-600 text-left max-w-[140px] break-words align-middle" id="note-cell-{{ $t->id_transaksi }}">
-                                    @if(!empty($t->note))
-                                        <span class="italic text-gray-600 leading-relaxed">{{ $t->note }}</span>
+                                    @php
+                                        $rawNote = $t->note ?? '';
+                                        $isAdminCancelled = ($t->status === 'cancelled') || str_contains($rawNote, '[Dibatalkan Admin]');
+                                        $cleanNote = str_contains($rawNote, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNote)) : $rawNote;
+                                    @endphp
+                                    @if(!empty($rawNote))
+                                        @if($isAdminCancelled)
+                                            <div>
+                                                <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Admin:</span>
+                                                <div class="italic text-gray-700 leading-relaxed mt-0.5">{{ $cleanNote }}</div>
+                                            </div>
+                                        @else
+                                            <span class="italic text-gray-600 leading-relaxed">{{ $rawNote }}</span>
+                                        @endif
                                     @else
                                         <span class="text-gray-300">-</span>
                                     @endif
@@ -2198,7 +2210,7 @@
 
             const noteCell = document.getElementById(`note-cell-${id}`);
             if (noteCell) {
-                noteCell.innerHTML = `<span class="italic text-gray-600 leading-relaxed">${data.note || `[Dibatalkan Admin] ${alasan}`}</span>`;
+                noteCell.innerHTML = `<div><span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Admin:</span><div class="italic text-gray-700 leading-relaxed mt-0.5">${alasan}</div></div>`;
             }
 
             const aksiCell = document.getElementById(`aksi-cell-${id}`);

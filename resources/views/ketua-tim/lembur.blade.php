@@ -268,21 +268,26 @@
                                 <td class="px-4 py-3.5 text-xs text-gray-600">
                                     <div class="max-w-[160px] space-y-1 text-left">
                                         @php
-                                            $isSystemNote = !empty($t->note) && (
-                                                str_contains(strtolower($t->note), 'durasi lembur') ||
-                                                str_contains(strtolower($t->note), 'proses bisnis') ||
-                                                str_contains(strtolower($t->note), 'kebijakan') ||
-                                                str_contains(strtolower($t->note), 'sistem')
+                                            $rawNote = $t->note ?? '';
+                                            $isAdminCancelled = ($t->status === 'cancelled') || str_contains($rawNote, '[Dibatalkan Admin]');
+                                            $cleanNote = str_contains($rawNote, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNote)) : $rawNote;
+                                            $isSystemNote = !$isAdminCancelled && !empty($rawNote) && (
+                                                str_contains(strtolower($rawNote), 'durasi lembur') ||
+                                                str_contains(strtolower($rawNote), 'proses bisnis') ||
+                                                str_contains(strtolower($rawNote), 'kebijakan') ||
+                                                str_contains(strtolower($rawNote), 'sistem')
                                             );
                                         @endphp
-                                        @if(!empty($t->note))
+                                        @if(!empty($rawNote))
                                             <div>
-                                                @if($isSystemNote)
+                                                @if($isAdminCancelled)
+                                                    <span class="inline-block text-[10px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Admin:</span>
+                                                @elseif($isSystemNote)
                                                     <span class="inline-block text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Sistem:</span>
                                                 @else
                                                     <span class="text-[10px] font-bold uppercase text-slate-400">Ketua Tim:</span>
                                                 @endif
-                                                <div class="text-[11px] text-gray-700 italic break-words mt-0.5">{{ $t->note }}</div>
+                                                <div class="text-[11px] text-gray-700 italic break-words mt-0.5">{{ $cleanNote }}</div>
                                             </div>
                                         @endif
                                         @if(!empty($t->note_kabag))
@@ -512,23 +517,31 @@
                                     @if(!empty($t->note) || !empty($t->note_kabag))
                                         <div class="space-y-1.5 pt-1">
                                             @php
-                                                $isSystemNote = !empty($t->note) && (
-                                                    str_contains(strtolower($t->note), 'durasi lembur') ||
-                                                    str_contains(strtolower($t->note), 'proses bisnis') ||
-                                                    str_contains(strtolower($t->note), 'kebijakan') ||
-                                                    str_contains(strtolower($t->note), 'sistem')
+                                                $rawNoteTimeline = $t->note ?? '';
+                                                $isAdminCancelledTimeline = ($t->status === 'cancelled') || str_contains($rawNoteTimeline, '[Dibatalkan Admin]');
+                                                $cleanNoteTimeline = str_contains($rawNoteTimeline, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNoteTimeline)) : $rawNoteTimeline;
+                                                $isSystemNote = !$isAdminCancelledTimeline && !empty($rawNoteTimeline) && (
+                                                    str_contains(strtolower($rawNoteTimeline), 'durasi lembur') ||
+                                                    str_contains(strtolower($rawNoteTimeline), 'proses bisnis') ||
+                                                    str_contains(strtolower($rawNoteTimeline), 'kebijakan') ||
+                                                    str_contains(strtolower($rawNoteTimeline), 'sistem')
                                                 );
                                             @endphp
-                                            @if(!empty($t->note))
-                                                @if($isSystemNote)
+                                            @if(!empty($rawNoteTimeline))
+                                                @if($isAdminCancelledTimeline)
+                                                    <div class="border-l-2 border-rose-400 pl-3 py-0.5 text-xs text-slate-600 bg-rose-50/40 rounded-r-lg">
+                                                        <span class="font-semibold text-rose-800">Catatan Admin:</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $cleanNoteTimeline }}"</span>
+                                                    </div>
+                                                @elseif($isSystemNote)
                                                     <div class="border-l-2 border-slate-400 pl-3 py-0.5 text-xs text-slate-600 bg-slate-50 rounded-r-lg">
                                                         <span class="font-semibold text-slate-700">Catatan Sistem:</span>
-                                                        <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $cleanNoteTimeline }}"</span>
                                                     </div>
                                                 @else
                                                     <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
                                                         <span class="font-semibold text-amber-800">Catatan Ketua:</span>
-                                                        <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $cleanNoteTimeline }}"</span>
                                                     </div>
                                                 @endif
                                             @endif

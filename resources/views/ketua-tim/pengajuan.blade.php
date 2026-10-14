@@ -612,23 +612,31 @@
                                         @if(!empty($p->note) || !empty($p->note_kabag))
                                             <div class="space-y-1.5 pt-1">
                                                 @php
-                                                    $isSystemNote = !empty($p->note) && (
-                                                        str_contains(strtolower($p->note), 'durasi lembur') ||
-                                                        str_contains(strtolower($p->note), 'proses bisnis') ||
-                                                        str_contains(strtolower($p->note), 'kebijakan') ||
-                                                        str_contains(strtolower($p->note), 'sistem')
+                                                    $rawNote = $p->note ?? '';
+                                                    $isAdminCancelled = ($p->status === 'cancelled') || str_contains($rawNote, '[Dibatalkan Admin]');
+                                                    $cleanNote = str_contains($rawNote, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNote)) : $rawNote;
+                                                    $isSystemNote = !$isAdminCancelled && !empty($rawNote) && (
+                                                        str_contains(strtolower($rawNote), 'durasi lembur') ||
+                                                        str_contains(strtolower($rawNote), 'proses bisnis') ||
+                                                        str_contains(strtolower($rawNote), 'kebijakan') ||
+                                                        str_contains(strtolower($rawNote), 'sistem')
                                                     );
                                                 @endphp
-                                                @if(!empty($p->note))
-                                                    @if($isSystemNote)
+                                                @if(!empty($rawNote))
+                                                    @if($isAdminCancelled)
+                                                        <div class="border-l-2 border-rose-400 pl-3 py-0.5 text-xs text-slate-600 bg-rose-50/40 rounded-r-lg">
+                                                            <span class="font-semibold text-rose-800">Catatan Admin:</span>
+                                                            <span class="italic text-slate-700 ml-1">"{{ $cleanNote }}"</span>
+                                                        </div>
+                                                    @elseif($isSystemNote)
                                                         <div class="border-l-2 border-slate-400 pl-3 py-0.5 text-xs text-slate-600 bg-slate-50 rounded-r-lg">
                                                             <span class="font-semibold text-slate-700">Catatan Sistem:</span>
-                                                            <span class="italic text-slate-700 ml-1">"{{ $p->note }}"</span>
+                                                            <span class="italic text-slate-700 ml-1">"{{ $cleanNote }}"</span>
                                                         </div>
                                                     @else
                                                         <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
                                                             <span class="font-semibold text-amber-800">Catatan Ketua:</span>
-                                                            <span class="italic text-slate-700 ml-1">"{{ $p->note }}"</span>
+                                                            <span class="italic text-slate-700 ml-1">"{{ $cleanNote }}"</span>
                                                         </div>
                                                     @endif
                                                 @endif
@@ -2120,8 +2128,17 @@ window.openModalUraian = function (el) {
 
     let hasCatatan = false;
     if (catatanKetua.trim()) {
-        if (boxKetua) boxKetua.classList.remove('hidden');
-        if (textCatatanKetua) textCatatanKetua.textContent = catatanKetua;
+        if (boxKetua) {
+            boxKetua.classList.remove('hidden');
+            const isAdminCancel = (status === 'cancelled') || catatanKetua.includes('[Dibatalkan Admin]');
+            const labelKetua = boxKetua.querySelector('span');
+            if (labelKetua) {
+                labelKetua.textContent = isAdminCancel ? 'Catatan Admin:' : 'Catatan Ketua Tim:';
+                labelKetua.className = isAdminCancel ? 'block text-[10px] font-bold uppercase text-rose-600 mb-1' : 'block text-[10px] font-bold uppercase text-slate-500 mb-1';
+            }
+            const cleanCatatanKetua = catatanKetua.replace('[Dibatalkan Admin]', '').trim();
+            if (textCatatanKetua) textCatatanKetua.textContent = isAdminCancel ? cleanCatatanKetua : catatanKetua;
+        }
         hasCatatan = true;
     } else {
         if (boxKetua) boxKetua.classList.add('hidden');
