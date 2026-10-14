@@ -512,8 +512,34 @@ class LemburController extends Controller
             return back()->with('error', 'Data pengajuan lembur tidak ditemukan.');
         }
 
-        // Kunci edit ketat: hanya boleh diubah jika status masih 'pending' (belum pernah diproses atasan)
-        if ($transaksi->status !== 'pending') {
+        // Kunci edit: boleh diubah jika:
+        // 1. Status masih 'pending' (belum pernah diproses Ketua Tim)
+        // 2. Status 'menunggu_kabag' KHUSUS untuk Tim Bagian Umum / Approver Kabag yang belum diproses Kabag Umum
+        // (karena pengajuan Tim Bagian Umum otomatis langsung 'menunggu_kabag' tanpa melalui Ketua Tim terpisah)
+        $isTimBagianUmum = false;
+        if (!empty($transaksi->tim_kode_tim)) {
+            $tim = DB::table('m_tim')->where('kode_tim', $transaksi->tim_kode_tim)->first();
+            if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
+                $isTimBagianUmum = true;
+            }
+        }
+
+        $isApproverKabag = false;
+        if (!empty($transaksi->approver_employee_id)) {
+            $isApproverKabag = DB::table('m_pejabat')
+                ->where('jabatan', 'Kepala Bagian Umum')
+                ->where('status', 'aktif')
+                ->where(function ($q) use ($transaksi) {
+                    $q->where('nip', $transaksi->approver_employee_id)
+                      ->orWhere('nip_lama', $transaksi->approver_employee_id);
+                })->exists();
+        }
+
+        $isBolehEditTimUmum = ($transaksi->status === 'menunggu_kabag')
+            && ($isTimBagianUmum || $isApproverKabag)
+            && empty($transaksi->approved_kabag_at);
+
+        if ($transaksi->status !== 'pending' && !$isBolehEditTimUmum) {
             $statusLabel = match($transaksi->status) {
                 'menunggu_kabag' => 'Menunggu Kabag Umum (sudah disetujui Ketua Tim)',
                 'approved'       => 'Sudah Disetujui Final',
@@ -569,13 +595,13 @@ class LemburController extends Controller
             $updateData['tim_kode_tim']         = $validated['kode_tim'];
 
             // Evaluasi status jika tujuan merupakan Tim Bagian Umum / approver adalah Kabag Umum
-            $isTimBagianUmum = false;
-            $tim = DB::table('m_tim')->where('kode_tim', $validated['kode_tim'])->first();
-            if ($tim && (str_contains(strtolower($tim->nama_tim), 'bagian umum') || $tim->kode_tim === 'QrBzgE3O3lEqVPjy')) {
-                $isTimBagianUmum = true;
+            $isTargetTimBagianUmum = false;
+            $timTarget = DB::table('m_tim')->where('kode_tim', $validated['kode_tim'])->first();
+            if ($timTarget && (str_contains(strtolower($timTarget->nama_tim), 'bagian umum') || $timTarget->kode_tim === 'QrBzgE3O3lEqVPjy')) {
+                $isTargetTimBagianUmum = true;
             }
 
-            $isApproverKabag = DB::table('m_pejabat')
+            $isTargetApproverKabag = DB::table('m_pejabat')
                 ->where('jabatan', 'Kepala Bagian Umum')
                 ->where('status', 'aktif')
                 ->where(function ($q) use ($validated) {
@@ -583,7 +609,7 @@ class LemburController extends Controller
                       ->orWhere('nip_lama', $validated['approver_id']);
                 })->exists();
 
-            if ($isTimBagianUmum || $isApproverKabag) {
+            if ($isTargetTimBagianUmum || $isTargetApproverKabag) {
                 $updateData['status'] = 'menunggu_kabag';
             } else {
                 $updateData['status'] = 'pending';

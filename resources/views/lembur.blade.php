@@ -428,7 +428,8 @@
 
                                     <td class="whitespace-nowrap px-1 py-2 text-center align-middle">
                                         @php
-                                            $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && empty($t->approved_at));
+                                            $isTimUmum = str_contains(strtolower($t->nama_tim ?? ''), 'bagian umum') || ($t->tim_kode_tim ?? '') === 'QrBzgE3O3lEqVPjy';
+                                            $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && $isTimUmum && empty($t->approved_kabag_at));
                                         @endphp
                                         @if($canEdit)
                                             <button type="button"
@@ -676,7 +677,8 @@
 
                                         <div>
                                             @php
-                                                $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && empty($t->approved_at));
+                                                $isTimUmum = str_contains(strtolower($t->nama_tim ?? ''), 'bagian umum') || ($t->tim_kode_tim ?? '') === 'QrBzgE3O3lEqVPjy';
+                                                $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && $isTimUmum && empty($t->approved_kabag_at));
                                             @endphp
                                             @if($canEdit)
                                                 <button type="button"
