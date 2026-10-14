@@ -4388,5 +4388,47 @@ Disertai perbandingan visual antara:
 | 3 | `resources/views/ketua-tim/dashboard.blade.php` | Menstandarkan tombol *Lihat Semua* dengan `shrink-0 whitespace-nowrap px-4 py-2 text-sm` dan `min-w-0 flex-1` pada header. |
 | 4 | `resources/views/pimpinan/dashboard.blade.php` | Menstandarkan tombol *Lihat Semua* dengan `shrink-0 whitespace-nowrap px-4 py-2 text-sm` dan `min-w-0 flex-1` pada header. |
 
+---
+
+## 91. Izin Pengeditan Mandiri Pengajuan Lembur Tim Bagian Umum pada Status 'Menunggu Kabag' Sebelum Diproses
+
+### A. Latar Belakang & Masukan Pengguna
+Pengguna menyampaikan kendala pada antarmuka pegawai:
+> *"untuk tim umum gabisa edit aksi dikarenakan dia kan otomatis done tahap ketua tim dan langsung status nya menunggu kabag"*
+
+Disertai tangkapan layar saat pegawai Tim Kerja Bagian Umum (misal: Aning Widiyati) melihat tombol aksi edit kuning (ikon pensil) pada pengajuan tanggal 01 Okt 2026 yang berstatus `Menunggu Kabag`, namun ketika mencoba menyimpan perubahan muncul pesan kesalahan (*flash session error*):
+> *"Pengajuan lembur tidak dapat diubah karena sudah diproses atau disetujui (Status: Menunggu Kabag Umum (sudah disetujui Ketua Tim))."*
+
+### B. Analisis Alur Bisnis & Akar Masalah
+1. **Sifat Khusus Tim Bagian Umum:**
+   - Berbeda dari tim kerja teknis lainnya (Sosial, Nerwilis, Distribusi, Humas, dll.), Tim Bagian Umum tidak memiliki Ketua Tim terpisah karena jabatan Ketua Tim Bagian Umum dirangkap langsung oleh Kepala Bagian Umum.
+   - Oleh karena itu, pengajuan lembur anggota Tim Bagian Umum otomatis langsung berstatus `menunggu_kabag` saat dibuat (tanpa melalui status `pending` dan tanpa melalui persetujuan Ketua Tim).
+2. **Konflik Validasi Controller:**
+   - Pada method `update` di [`LemburController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/LemburController.php), terdapat proteksi penguncian ketat:
+     `if ($transaksi->status !== 'pending') { ... return error ... }`
+   - Proteksi ini dirancang untuk tim teknis lain agar pegawai tidak dapat mengubah jam/uraian setelah disetujui Ketua Tim.
+   - Namun bagi anggota Tim Bagian Umum, aturan ini membuat mereka **sama sekali tidak pernah bisa mengedit pengajuannya sejak detik pertama diajukan**, meskipun pengajuan tersebut baru dibuat dan belum pernah diverifikasi atau disetujui oleh Kabag Umum.
+3. **Inkonsistensi Tampilan UI:**
+   - Di tampilan tabel ([`resources/views/lembur.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/lembur.blade.php)), tombol edit kuning (ikon pensil) ditampilkan untuk pengajuan Tim Bagian Umum karena atribut `approved_at` masih kosong. Pengguna mengklik tombol tersebut dan mengisi formulir modal edit, namun ditolak oleh controller peladen.
+
+### C. Solusi Teknis & Implementasi
+1. **Pembaruan Validasi Peladen ([`LemburController.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/app/Http/Controllers/LemburController.php)):**
+   - Menambahkan evaluasi kelayakan edit cerdas `$isBolehEditTimUmum`:
+     - Pengajuan berstatus `menunggu_kabag`.
+     - Berasal dari Tim Bagian Umum (`$isTimBagianUmum`) atau approver-nya adalah Kepala Bagian Umum (`$isApproverKabag`).
+     - Belum pernah disetujui/diproses oleh Kabag Umum (`empty($transaksi->approved_kabag_at)`).
+   - Pengajuan yang memenuhi kriteria di atas diberikan izin penuh untuk memperbarui jam mulai, jam selesai, uraian kegiatan, maupun pilihan tim/approver, dengan pencatatan audit trail `user_edited` dan `tanggal_edited`.
+2. **Penyelarasan Tampilan Klien ([`resources/views/lembur.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/lembur.blade.php)):**
+   - Menyelaraskan variabel `$canEdit` di Tabel dan Linimasa (Timeline):
+     `$canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && $isTimUmum && empty($t->approved_kabag_at));`
+   - Tombol edit tetap tampil dan dapat digunakan secara mulus oleh anggota Tim Bagian Umum sebelum Kabag Umum memberikan keputusan final, sementara untuk tim lain pengajuan tetap terkunci begitu disetujui Ketua Tim.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/LemburController.php` | Menambahkan pengecekan `$isBolehEditTimUmum` pada method `update` agar anggota Tim Bagian Umum berstatus `menunggu_kabag` dapat mengedit pengajuannya sebelum disetujui Kabag Umum. |
+| 2 | `resources/views/lembur.blade.php` | Menyelaraskan logika `$canEdit` di Tabel dan Linimasa berbasis `$isTimUmum && empty($t->approved_kabag_at)`. |
+
+
 
 

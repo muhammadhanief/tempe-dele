@@ -303,6 +303,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 201. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Pencarian menyeluruh [nama, NIP, tim, ketua] melintasi seluruh data periode aktif, dukungan perPage 10/25/50/100, sinkronisasi tab status, dan restrukturisasi baris paginasi bawah 3 bagian: Tampilkan data, Page X of Y, Menampilkan X-Y dari Z data)*.
 202. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Peningkatan reaktivitas pencarian dan paginasi Persetujuan Kabag Umum menjadi ultra-smooth in-memory reactive engine 0ms: live keystroke filtering di sisi klien khusus Nama & NIP Pegawai [tanpa nama ketua/tim], paginasi tombol [<] [>] instan, sinkronisasi timeline card, dan silent URL replaceState).*
 203. 📄 **`resources/views/dashboard.blade.php`**, **`resources/views/admin/dashboard.blade.php`**, **`resources/views/ketua-tim/dashboard.blade.php`**, **`resources/views/pimpinan/dashboard.blade.php`** *(Standarisasi tombol "Lihat semua" pada seluruh kartu dashboard dengan penambahan `shrink-0`, `whitespace-nowrap`, `min-w-0 flex-1`, dan padding proporsional `px-4 py-2 text-sm` untuk menjamin bentuk pil konsisten dan bebas wrapping/tergencet di berbagai ukuran layar dan kondisi sidebar terbuka/tertutup).*
+204. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/lembur.blade.php`** *(Izin pengeditan mandiri pengajuan lembur anggota Tim Bagian Umum pada status `menunggu_kabag` selama belum disetujui Kabag Umum, dan sinkronisasi tampilan tombol aksi edit kuning di tabel & linimasa).*
 
 ---
 
@@ -1448,5 +1449,20 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Konsistensi Lintas Dashboard Peran (Admin, Ketua Tim, Pimpinan)**:
   - Buka `/admin/dashboard`, `/ketua-tim/dashboard`, dan `/pimpinan/dashboard`:
   - Verifikasi: Seluruh tombol *"Lihat semua"* / *"Lihat Semua"* memiliki ukuran, padding, tinggi, dan perilaku anti-wrap yang seragam di semua peran pengguna.
+
+### BX. Uji Izin Pengeditan Mandiri Pengajuan Lembur Tim Bagian Umum (`/lembur`)
+- [ ] **Uji Munculnya Tombol Edit pada Pengajuan Tim Bagian Umum**:
+  - Masuk sebagai anggota Tim Bagian Umum (misal: Aning Widiyati), buka menu **Lembur** (`/lembur`).
+  - Periksa baris pengajuan lembur yang berstatus `Menunggu Kabag`.
+  - Verifikasi: Tombol aksi edit kuning (ikon pensil) tampil di tabel maupun tampilan linimasa.
+- [ ] **Uji Keberhasilan Penyimpanan Perubahan Data**:
+  - Klik tombol edit kuning, ubah rincian uraian kegiatan atau jam pengajuan.
+  - Klik tombol *"Simpan Perubahan"*:
+  - Verifikasi: Perubahan berhasil disimpan dengan notifikasi sukses *"Pengajuan lembur berhasil diperbarui."*, tidak ditolak oleh peladen, dan pesan error *"tidak dapat diubah karena sudah diproses"* tidak muncul lagi.
+- [ ] **Uji Penguncian Ketat untuk Tim Lain Setelah Disetujui Ketua Tim**:
+  - Masuk sebagai anggota tim non-Bagian Umum (misal: Tim Sosial atau Nerwilis).
+  - Saat pengajuan telah disetujui Ketua Tim (berstatus `Menunggu Kabag`):
+  - Verifikasi: Tombol aksi edit kuning tidak muncul (terkunci rapat) sehingga integritas keputusan Ketua Tim tetap terlindungi.
+
 
 
