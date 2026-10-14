@@ -4339,7 +4339,7 @@ Analisis kebutuhan pengguna:
    - Menghapus klausa pencarian server-side dari SQL sehingga seluruh data bulan/tahun aktif tersedia lengkap di memori browser untuk disaring secara reaktif tanpa bolak-balik request server.
 
 2. **Mesin Paginasi & Pencarian Reaktif di Sisi Klien ([`resources/views/kabag-umum/pengajuan.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/kabag-umum/pengajuan.blade.php)):**
-   - **Atribut Pencarian Lengkap:** Setiap elemen `<tr>` dan `.timeline-item` diberi atribut `data-search` yang mencakup nama pegawai, NIP baru (18 digit), NIP lama (9 digit), nama tim kerja, dan nama ketua tim.
+   - **Atribut Pencarian Khusus Pegawai (Nama & NIP):** Atribut `data-search` pada setiap elemen `<tr>` dan `.timeline-item` difokuskan **hanya pada identitas pegawai yang mengajukan lembur** (`nama_pegawai`, `nip_pegawai`, dan `nip_lama`), tanpa menyertakan `nama_ketua` maupun `nama_tim`. Hal ini mencegah anomali di mana pencarian nama seorang Ketua Tim (misal: `"hendro"`) ikut menampilkan seluruh anggota tim yang diketuai oleh beliau, sehingga hasil pencarian 100% presisi hanya menampilkan pengajuan lembur milik pegawai bersangkutan sesuai label *"Cari nama pegawai / NIP..."*.
    - **Live Keystroke Filter (0ms Latency):** Event `oninput="handleSearchInput(event)"` langsung memicu `renderTableAndPagination()` seketika pada setiap ketukan keyboard tanpa debounce penundaan dan tanpa reload halaman.
    - **Slicing Halaman Dinamis:** Mesin menyaring baris yang cocok, menghitung `totalPages = Math.ceil(totalMatched / currentPerPage)`, memotong irisan indeks `[startIndex, endIndex)`, dan menampilkan hanya baris untuk halaman aktif sambil memperbarui penomoran baris (`row-number`) secara runtut.
    - **Paginasi Halus & Responsif:** Tombol `[ < ]` (`goToPrevPage()`) dan `[ > ]` (`goToNextPage()`) berpindah halaman secara instan (0ms) tanpa reload. Dropdown `changePerPage()` mengubah limit (10, 25, 50, 100) secara instan.
@@ -4350,6 +4350,6 @@ Analisis kebutuhan pengguna:
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
 | 1 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Mengubah retrieval data dari `paginate($perPage)` ke `get()`, menyediakan seluruh data periode aktif ke view untuk penyaringan instan sisi klien. |
-| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Mengimplementasikan mesin pencarian dan paginasi in-memory ultra-smooth 0ms, tombol interaktif 3 bagian, sinkronisasi timeline, dan silent URL replaceState. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Mengimplementasikan mesin pencarian dan paginasi in-memory ultra-smooth 0ms, mengkhususkan cakupan `data-search` hanya pada Nama & NIP Pegawai (tanpa nama ketua/tim), tombol interaktif 3 bagian, sinkronisasi timeline, dan silent URL replaceState. |
 
 

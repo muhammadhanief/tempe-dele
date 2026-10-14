@@ -301,7 +301,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 199. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Restrukturisasi tata letak modal #modalAjukan menjadi 2-kolom desktop md:grid-cols-2 zero-scroll: max-w-3xl lg:max-w-4xl max-h-[92vh], textarea uraian rows=3, kanvas tanda tangan h-28 touch-none, mengeliminasi scrollbar vertikal pada layar laptop/desktop dengan fallback responsif 1-kolom di mobile)*.
 200. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil `npm run build`: `manifest.json`, `assets/app-CgN_TPC-.css`, `assets/app-DfUGke97.js` memuat seluruh utility Tailwind CSS termutakhir dari 30+ commit terakhir)*.
 201. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Pencarian menyeluruh [nama, NIP, tim, ketua] melintasi seluruh data periode aktif, dukungan perPage 10/25/50/100, sinkronisasi tab status, dan restrukturisasi baris paginasi bawah 3 bagian: Tampilkan data, Page X of Y, Menampilkan X-Y dari Z data)*.
-202. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Peningkatan reaktivitas pencarian dan paginasi Persetujuan Kabag Umum menjadi ultra-smooth in-memory reactive engine 0ms: live keystroke filtering di sisi klien melintasi seluruh data periode aktif tanpa reload halaman, paginasi tombol [<] [>] instan, sinkronisasi timeline card, dan silent URL replaceState).*
+202. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Peningkatan reaktivitas pencarian dan paginasi Persetujuan Kabag Umum menjadi ultra-smooth in-memory reactive engine 0ms: live keystroke filtering di sisi klien khusus Nama & NIP Pegawai [tanpa nama ketua/tim], paginasi tombol [<] [>] instan, sinkronisasi timeline card, dan silent URL replaceState).*
 
 ---
 
@@ -1421,6 +1421,9 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Live Keystroke Filter Instan (Tanpa Reload Halaman)**:
   - Buka `/kabag-umum/pengajuan`, ketik nama pegawai di kotak pencarian:
   - Verifikasi: Baris tabel dan linimasa terfilter seketika pada setiap ketukan tuts keyboard (**0ms latency**) tanpa layar berkedip (*no white flash/reload*) dan kursor tidak kehilangan fokus.
+- [ ] **Uji Spesialisasi Pencarian Nama & NIP Pegawai (Bebas False-Positive Ketua Tim)**:
+  - Ketik nama pegawai yang juga menjabat sebagai Ketua Tim (misal: `"hendro"`):
+  - Verifikasi: Hasil pencarian **hanya menampilkan baris pengajuan lembur milik Hendro Deasmaran S.T.** (tidak mencantumkan baris milik anggota/bawahan tim seperti Muhammad Sodri atau Joko Suwarjo yang diketuai oleh beliau).
 - [ ] **Uji Transisi Paginasi Mulus (*Instant Page Switching*)**:
   - Pada hasil pencarian atau tabel default, klik tombol `[ > ]` atau `[ < ]`:
   - Verifikasi: Halaman berpindah secara instan (0ms) tanpa reload peramban, dan penomoran kolom `No` otomatis berlanjut secara runtut (`1, 2, 3...`).
