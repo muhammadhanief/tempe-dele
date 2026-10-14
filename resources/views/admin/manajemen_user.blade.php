@@ -8,20 +8,29 @@
     {{-- ==================== HEADER HALAMAN ==================== --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-5 border-b border-slate-200">
         <div class="space-y-1">
-            <div class="flex items-center gap-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200/80">
-                    Otoritas Sistem
-                </span>
-                <span class="text-xs text-slate-400">•</span>
-                <span class="text-xs font-medium text-slate-500">Khusus Superadmin</span>
-            </div>
             <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Manajemen Pejabat & Hak Akses</h1>
             <p class="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
                 Penetapan pejabat penandatangan aktif (Kepala Bagian Umum & PPK), pembagian wewenang Admin Lembur operasional, dan pengelolaan akun Super Administrator.
             </p>
         </div>
 
-        <div class="flex items-center gap-2.5 shrink-0">
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button type="button" onclick="openModalTambahAdmin()"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all shadow-2xs shrink-0 cursor-pointer"
+                title="Tambah wewenang Admin Lembur untuk pegawai">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Tambah Admin
+            </button>
+            <button type="button" onclick="openModalTambahSuperadmin()"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-700/30 transition-all shadow-2xs shrink-0 cursor-pointer"
+                title="Promosikan pegawai menjadi Super Administrator">
+                <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Tambah Superadmin
+            </button>
             <a href="{{ route('admin.pengguna') }}"
                 class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400/20 transition-all shadow-2xs cursor-pointer">
                 <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,7 +86,6 @@
                 </span>
                 <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Pejabat Penandatangan Kedinasan Aktif</h2>
             </div>
-            <span class="text-[11px] text-slate-500 font-medium">Berdasarkan SK Kepala BPS Provinsi</span>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -86,10 +94,7 @@
                 <div class="p-5 sm:p-6 border-b border-slate-100 space-y-4">
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
-                                Approval Final &amp; Pimpinan Bagian Umum
-                            </span>
-                            <h3 class="text-base font-bold text-slate-900 mt-1">Kepala Bagian Umum</h3>
+                            <h3 class="text-base font-bold text-slate-900">Kepala Bagian Umum</h3>
                         </div>
                         <button type="button" onclick="openModalGantiKabag()"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#faa938] text-white text-xs font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-[#faa938]/30 transition-all shadow-2xs shrink-0 cursor-pointer">
@@ -108,10 +113,6 @@
                             <div class="min-w-0 flex-1 space-y-1">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="font-bold text-slate-900 text-sm truncate">{{ $kabagAktif->nama }}</span>
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                        Aktif (SK {{ $kabagAktif->tahun ?? date('Y') }})
-                                    </span>
                                 </div>
                                 <div class="text-[11.5px] text-slate-600 font-mono space-y-0.5">
                                     <div><span class="text-slate-400 font-sans">NIP:</span> {{ $kabagAktif->nip ?? '-' }}</div>
@@ -187,10 +188,7 @@
                 <div class="p-5 sm:p-6 border-b border-slate-100 space-y-4">
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-sky-50 text-sky-800 border border-sky-200/80">
-                                Penandatangan SPKL &amp; Anggaran Lembur
-                            </span>
-                            <h3 class="text-base font-bold text-slate-900 mt-1">Pejabat Pembuat Komitmen (PPK)</h3>
+                            <h3 class="text-base font-bold text-slate-900">Pejabat Pembuat Komitmen (PPK)</h3>
                         </div>
                         <button type="button" onclick="openModalGantiPpk()"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 text-white text-xs font-semibold hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500/30 transition-all shadow-2xs shrink-0 cursor-pointer">
@@ -209,10 +207,6 @@
                             <div class="min-w-0 flex-1 space-y-1">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="font-bold text-slate-900 text-sm truncate">{{ $ppkAktif->nama }}</span>
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                        Aktif (SK {{ $ppkAktif->tahun ?? date('Y') }})
-                                    </span>
                                 </div>
                                 <div class="text-[11.5px] text-slate-600 font-mono space-y-0.5">
                                     <div><span class="text-slate-400 font-sans">NIP:</span> {{ $ppkAktif->nip ?? '-' }}</div>
