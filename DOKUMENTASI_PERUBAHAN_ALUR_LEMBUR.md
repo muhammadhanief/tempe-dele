@@ -5212,4 +5212,94 @@ Menerapkan formula isolasi responsif tabel pada seluruh modul aplikasi:
 
 ---
 
+## 49. Penyempurnaan Tampilan Persetujuan Lembur Kabag Umum (`/kabag-umum/pengajuan`), Modal Detail Uraian Tugas, Aksi Icon-Only, Penghapusan Backdrop Blur Mobile Sidebar, dan Dataset Pengajuan Herry Kusmaiwanto S.Si (Tim SID)
+
+### A. Latar Belakang Masalah & Kebutuhan Pengguna
+1. **Dataset Pengajuan Lembur Herry Kusmaiwanto S.Si (Tim SID):**
+   * Pengguna membutuhkan data pengajuan realistis untuk pegawai **Herry Kusmaiwanto S.Si** (`NIP: 197205242006041002`) pada rentang tanggal **1 s.d. 14 Oktober 2026**.
+   * Karena Herry bernaung di bawah **Tim Kerja Sistem Informasi dan Diseminasi (SID)** dengan Ketua Tim **Sumbodo Aji Cahyono S.Si., M.A** (`NIP: 197703081999011001`), pengajuan lembur ini harus mendemonstrasikan skenario persetujuan berjenjang riil:
+     - Tahap 1: Persetujuan oleh Ketua Tim SID (`status: 'pending'`).
+     - Tahap 2: Persetujuan oleh Kepala Bagian Umum (`status: 'menunggu_kabag'`).
+     - Tahap Selesai: Persetujuan final oleh kedua pejabat (`status: 'approved'`).
+2. **Kolom Uraian Tugas pada Modul Kabag Umum (`/kabag-umum/pengajuan`):**
+   * Pada antarmuka Pegawai dan Ketua Tim, kolom uraian tugas dilengkapi tombol interaktif yang memunculkan dialog pop-up modal (*Detail Uraian Tugas*) ketika diklik, sehingga uraian panjang dapat dibaca dengan nyaman tanpa merusak kerapian tata letak tabel.
+   * Pada halaman Kabag Umum, kolom uraian sebelumnya berupa teks polos berpemotong dua baris (*line clamp*) tanpa interaktivitas pop-up modal, menyulitkan Kabag Umum menelaah uraian tugas yang komprehensif.
+3. **Kolom Aksi pada Modul Kabag Umum:**
+   * Tombol aksi sebelumnya memuat label teks seperti `"Setujui"`, `"Proses"`, dan `"Koreksi"` di samping ikon. Hal ini memakan lebar ruang kolom horizontal yang cukup besar dan tidak seragam dengan estetika ringkas modern.
+   * Pengguna meminta agar teks label dihapus dan isi kolom aksi disajikan murni berupa tombol ikon (*icon-only*).
+4. **Efek Blur pada Menu/Sidebar Layar Kecil (Mobile):**
+   * Saat sidebar dibuka pada perangkat ponsel/tablet (`< 1024px`), latar belakang diberi lapisan penutup (*backdrop overlay*) yang memuat kelas Tailwind `backdrop-blur-sm`.
+   * Efek blur ini mengaburkan halaman di belakang menu secara berlebihan. Pengguna menghendaki latar belakang hanya digelapkan (*dimmed*) tanpa efek blur (*no blur*).
+
+---
+
+### B. Solusi Teknis & Rincian Implementasi
+
+#### 1. Pembuatan Skenario & Dataset Pengajuan Herry Kusmaiwanto S.Si (`t_transaksi`)
+Disuntikkan 7 record transaksi realistis periode 1–14 Oktober 2026 di bawah `tim_kode_tim = 'AGeoDMOm0Z7ZXbz4'` (Tim SID):
+| Tanggal | Jam Pengajuan | Jam Disetujui | Status | Catatan Approval |
+| :--- | :---: | :---: | :---: | :--- |
+| **01 Okt 2026** | 16:31 - 19:30 | 16:31 - 19:30 | `approved` | Disetujui penuh oleh Ketua Tim SID & Kabag Umum (Pemeliharaan server diseminasi). |
+| **03 Okt 2026** | 08:30 - 15:30 | 08:30 - 15:30 | `approved` | Disetujui penuh (Lembur akhir pekan rilis database survei SDI). |
+| **06 Okt 2026** | 16:31 - 20:00 | 16:31 - 20:00 | `menunggu_kabag` | ACC Ketua Tim SID, menunggu telaah & persetujuan Kabag Umum. |
+| **08 Okt 2026** | 16:31 - 19:30 | - | `pending` | Menunggu persetujuan Tahap 1 oleh Ketua Tim SID (Sumbodo Aji). |
+| **10 Okt 2026** | 09:00 - 14:00 | 09:00 - 14:00 | `approved` | Disetujui penuh (Disaster recovery data warehouse statistik). |
+| **12 Okt 2026** | 16:31 - 20:30 | 16:31 - 20:30 | `menunggu_kabag` | ACC Ketua Tim SID, menunggu keputusan Kabag Umum. |
+| **14 Okt 2026** | 16:31 - 19:00 | - | `pending` | Menunggu persetujuan Tahap 1 oleh Ketua Tim SID (Evaluasi jaringan). |
+
+#### 2. Interaktivitas Uraian Tugas & Modal Pop-Up (`modalDetailUraian`) pada Kabag Umum
+* Memperbarui sel tabel `Uraian Tugas` di [`resources/views/kabag-umum/pengajuan.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/kabag-umum/pengajuan.blade.php) menjadi tombol interaktif:
+  ```html
+  <button type="button" onclick="openModalUraian(this)"
+      data-pegawai="{{ $t->pegawai_nama }}"
+      data-nip="{{ $t->submitted_by_NIP }}"
+      data-tanggal="{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d F Y') }}"
+      data-jam="{{ substr($t->start_time, 0, 5) }} - {{ substr($t->end_time, 0, 5) }}"
+      data-jam-disetujui="{{ $t->approved_start && $t->approved_end ? substr($t->approved_start, 0, 5) . ' - ' . substr($t->approved_end, 0, 5) : '' }}"
+      data-tim="{{ $t->tim_nama ?? '-' }}"
+      data-ketua="{{ $t->ketua_nama ?? '-' }}"
+      data-status="{{ $t->status }}"
+      data-uraian="{{ $t->uraian ?? '-' }}"
+      data-catatan="{{ $t->note ?? '' }}"
+      data-catatan-kabag="{{ $t->note_kabag ?? '' }}"
+      class="text-left group flex items-start gap-1.5 w-full hover:bg-amber-50/60 p-1.5 rounded-lg transition-colors cursor-pointer"
+      title="Klik untuk melihat detail uraian tugas">
+      <span class="line-clamp-2 text-xs text-gray-700 group-hover:text-amber-800 leading-relaxed font-normal">
+          {{ $t->uraian ?? '-' }}
+      </span>
+      <svg class="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all" ...>
+          ...
+      </svg>
+  </button>
+  ```
+* Menambahkan struktur modal `#modalDetailUraian` lengkap dengan identitas pegawai, tim kerja, tanggal & jam dinas, lencana status, teks uraian utuh, serta kotak catatan persetujuan Ketua Tim dan Kabag Umum.
+* Menambahkan pengendali JavaScript global `window.openModalUraian(el)`, `window.closeModalUraian()`, dan *listener* tombol keyboard `Escape`.
+
+#### 3. Standardisasi Kolom Aksi Menjadi Icon-Only
+* Menghilangkan seluruh elemen teks label (`<span>Setujui</span>`, `<span>Proses</span>`, `<span>Koreksi</span>`) pada tombol aksi tabel desktop maupun generator respon AJAX dinamis.
+* Tombol dikalibrasi menjadi kotak ikon rapi berukuran `h-7 w-7 rounded-lg`, dilengkapi penengah `mx-auto`, tooltip deskriptif (`title="..."`), efek hover lembut, serta transisi mikro-skala (`group-hover:scale-110`) pada ikon SVG.
+
+#### 4. Penghapusan Efek Backdrop Blur pada Sidebar Mobile
+* Pada file [`resources/views/partials/sidebar.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/partials/sidebar.blade.php), kelas `backdrop-blur-sm` dihapus dari elemen overlay:
+  ```html
+  {{-- Sebelum: --}}
+  <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden" onclick="closeSidebar()"></div>
+
+  {{-- Sesudah: --}}
+  <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden" onclick="closeSidebar()"></div>
+  ```
+* Hasil: Tampilan halaman di balik menu sidebar pada layar ponsel tetap bersih, terbaca secara jelas, dan hanya teredupkan dengan elegan tanpa distorsi blur.
+
+---
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/partials/sidebar.blade.php` | Menghapus kelas `backdrop-blur-sm` pada `#sidebar-overlay` untuk tampilan mobile. |
+| 2 | `resources/views/kabag-umum/pengajuan.blade.php` | Mengubah kolom Uraian Tugas menjadi tombol interaktif, menambahkan komponen `#modalDetailUraian` beserta logika JS, serta menyederhanakan tombol kolom Aksi menjadi icon-only. |
+| 3 | `public/build/` | Kompilasi ulang bundel aset produksi Vite (`app-VbejFmaD.css` & `app-Bx5v8Y8U.js`). |
+| 4 | Basis Data `t_transaksi` | Penyuntikan 7 data pengajuan lembur Herry Kusmaiwanto S.Si (Tim SID) periode 1–14 Oktober 2026. |
+
+---
+
 

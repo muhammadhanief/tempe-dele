@@ -1670,3 +1670,30 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Seluruh tabel membentang secara elegan 100% selebar kontainer kartu (*fit 100%*) berkat kelas `lg:min-w-full`.
   - **Verifikasi**: **TIDAK ADA** bilah penggulir (*scroll bar*) horizontal desktop yang muncul. Tampilan desktop terjamin 100% identik dengan kondisi awal sebelum penyesuaian mobile.
 
+### CL. Uji Interaktivitas Uraian Tugas & Aksi Icon-Only Kabag Umum (/kabag-umum/pengajuan), Sidebar Mobile Tanpa Blur, dan Alur Tim SID Herry Kusmaiwanto
+- [ ] **Uji Tombol Interaktif Uraian Tugas & Dialog Modal Detail (`#modalDetailUraian`)**:
+  - Masuk sebagai Kabag Umum (Ir. Joko Suwarjo) via `/dev-login/197106131993121001`, lalu buka menu **Persetujuan Kabag** (`/kabag-umum/pengajuan`).
+  - Pada kolom **Uraian Tugas**, arahkan kursor ke salah satu baris:
+    - **Verifikasi**: Teks uraian terpotong 2 baris (*line clamp*) dengan highlight hover amber lembut dan ikon popup expand oranye.
+    - Klik tombol uraian tugas tersebut ➔ dialog modal **Detail Uraian Tugas** langsung terbuka di tengah layar.
+    - **Verifikasi**: Modal menyajikan nama pegawai, NIP, tanggal pelaksanaan lembur, jam diajukan vs disetujui, nama tim kerja, nama ketua tim, lencana status permohonan, teks uraian utuh tanpa terpotong, serta kotak catatan persetujuan Ketua Tim dan Kabag Umum (jika ada).
+    - **Verifikasi**: Menekan tombol `(X)` di kanan atas modal, mengklik area luar modal, atau menekan tombol `Escape` pada keyboard menutup dialog modal secara instan.
+- [ ] **Uji Kolom Aksi Icon-Only (Tanpa Teks Label)**:
+  - Periksa kolom **Aksi** pada tabel desktop:
+    - **Verifikasi**: Tombol aksi berdimensi ringkas `h-7 w-7 rounded-lg` dengan penataan tengah (*centered*).
+    - **Verifikasi**: Tidak ada label teks *"Setujui"*, *"Proses"*, atau *"Koreksi"*; isi tombol murni berupa ikon SVG yang informatif dan memiliki atribut tooltip `title="..."`.
+    - Lakukan persetujuan pengajuan via modal keputusan ➔ setelah tersimpan, tombol aksi ter-render ulang secara dinamis via AJAX sebagai tombol icon-only *Koreksi* tanpa memuat teks.
+- [ ] **Uji Penutupan Latar Belakang (Backdrop Overlay) Sidebar Mobile Tanpa Blur**:
+  - Ubah rasio peramban ke ukuran layar kecil / mobile (lebar `< 1024px`).
+  - Buka menu navigasi sidebar dengan menekan tombol hamburger di navbar:
+    - **Verifikasi**: Area latar belakang halaman di samping/belakang sidebar teredupkan secara elegan oleh lapisan gelap (`bg-black/50`).
+    - **Verifikasi**: Halaman di balik overlay **TIDAK LAGI** mengalami efek blur/kabur (`backdrop-blur-sm` telah dihilangkan), teks dan elemen halaman di belakangnya tetap tajam dan terlihat jelas di balik bayangan redup.
+- [ ] **Uji Alur Pengajuan Lembur Herry Kusmaiwanto S.Si (Tim Kerja SID)**:
+  - Masuk sebagai Ketua Tim SID (Sumbodo Aji Cahyono) via `/dev-login/197703081999011001`, buka `/ketua-tim/pengajuan`:
+    - **Verifikasi**: Tampil pengajuan lembur Herry Kusmaiwanto S.Si periode 1–14 Oktober 2026.
+    - Pengajuan berstatus `pending` dapat diproses atau disetujui oleh Ketua Tim SID.
+  - Masuk sebagai Kabag Umum via `/dev-login/197106131993121001`, buka `/kabag-umum/pengajuan`:
+    - **Verifikasi**: Pengajuan Herry Kusmaiwanto S.Si berstatus `menunggu_kabag` muncul di tab *Menunggu Kabag* dan siap disetujui final oleh Kabag Umum.
+    - Pengajuan yang telah disetujui final berstatus `approved` tercatat rapi di tab *Disetujui* dan otomatis eligible.
+
+
