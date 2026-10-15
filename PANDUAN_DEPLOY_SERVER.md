@@ -1696,4 +1696,16 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - **Verifikasi**: Pengajuan Herry Kusmaiwanto S.Si berstatus `menunggu_kabag` muncul di tab *Menunggu Kabag* dan siap disetujui final oleh Kabag Umum.
     - Pengajuan yang telah disetujui final berstatus `approved` tercatat rapi di tab *Disetujui* dan otomatis eligible.
 
+### CM. Uji Eliminasi Strip Putih Footer Saat Modal Terbuka (Full Viewport Backdrop Overlay)
+- [ ] **Uji Backdrop Gelap Menyentuh Tepi Paling Dasar Layar (Tanpa Bocor Footer / Strip Putih)**:
+  - Buka menu **Manajemen User** (`/admin/manajemen-user`).
+  - Klik tombol `+ Tambah Superadmin` (atau `+ Tambah Admin`, `Ganti Kabag`, `Ganti PPK`).
+  - Periksa bagian paling dasar peramban (bottom edge):
+    - **Verifikasi**: Lapisan penutup gelap (*dark backdrop overlay* `bg-slate-900/60`) menutupi 100% tinggi viewport layar, dari ujung atas hingga ujung bawah monitor secara merata.
+    - **Verifikasi**: **TIDAK ADA** garis/pita putih horizontal atau teks footer yang menembus di atas backdrop modal.
+    - **Verifikasi**: Halaman di balik modal terkunci dan tidak dapat digulir (*overflow-hidden* aktif pada body).
+  - Tutup modal (klik tombol Batal, ikon silang `X`, atau tekan tombol `Escape`):
+    - **Verifikasi**: Dialog modal tertutup mulus, penguncian scroll dilepas, dan footer `&copy; 2026 BPS Provinsi Jawa Tengah - Tim SID` kembali tampil normal dan simetris di bagian bawah halaman.
+
+
 

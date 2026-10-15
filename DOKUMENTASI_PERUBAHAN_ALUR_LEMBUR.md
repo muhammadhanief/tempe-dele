@@ -5302,4 +5302,67 @@ Disuntikkan 7 record transaksi realistis periode 1–14 Oktober 2026 di bawah `t
 
 ---
 
+## 50. Eliminasi Kebocoran Strip Putih Footer di Bawah Layar Saat Modal Terbuka Melalui Penataan Ulang Konteks Penumpukan Flexbox Layout (`layouts/app.blade.php`)
+
+### A. Latar Belakang Masalah
+1. Saat pengguna membuka dialog modal di aplikasi (seperti modal **Penetapan Super Administrator** atau modal pemilihan lainnya di `/admin/manajemen-user`), pada bagian paling dasar layar monitor laptop/PC terlihat sebuah garis/pita horizontal berwarna putih (*white strip*) setinggi ~24-40px yang memuat teks hak cipta footer:  
+   `© 2026 BPS Provinsi Jawa Tengah - Tim SID`.
+2. Lapisan penutup gelap (*dark backdrop overlay* `bg-slate-900/60`) modal menutupi seluruh halaman di atasnya, namun berhenti tepat di atas footer dan tidak menyelimuti bagian dasar layar secara merata.
+3. Hal ini mengurangi keindahan visual antarmuka kedinasan dan memberi kesan bahwa dialog modal tidak menyelimuti seluruh layar secara sempurna.
+
+### B. Analisis Akar Masalah Teknis (*Root Cause*)
+1. Pada berkas [`resources/views/layouts/app.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/layouts/app.blade.php), struktur tata letak kolom konten utama didefinisikan sebagai:
+   ```html
+   <div class="flex-1 min-w-0 flex flex-col">
+       @include('partials.navbar')
+       <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">
+           @yield('content')
+       </main>
+       <footer class="py-4 px-4 text-center text-xs text-slate-500">
+           &copy; {{ date('Y') }} BPS Provinsi Jawa Tengah - Tim SID
+       </footer>
+   </div>
+   ```
+2. Berdasarkan **CSS Flexible Box Layout Module Level 1 (Section 4.3 - Paint Order)**:  
+   Setiap *flex item* (dalam hal ini elemen `<nav>`, `<main>`, dan `<footer>`) diperlakukan seperti membentuk konteks penumpukan (*stacking context*) tersendiri yang diurutkan menurut urutan pohon dokumen (*DOM tree order*).
+3. Karena elemen `<footer>` dideklarasikan **setelah** `<main>`, peramban merender lapisan `<footer>` di atas (*on top of*) `<main>` beserta seluruh elemen anak di dalamnya.
+4. Karena dialog modal didefinisikan di dalam `@section('content')` (anak dari `<main>`), backdrop overlay modal dengan kelas `fixed inset-0` secara visual tertimpa (*painted over*) oleh elemen `<footer>` yang berada di luar `<main>`. Karena latar belakang elemen `<body>` adalah putih (`bg-white`), footer yang tembus pandang memancarkan warna putih dasar halaman sehingga memunculkan strip putih di dasar viewport.
+
+### C. Solusi Teknis & Rincian Implementasi
+1. **Penataan Ulang Struktur Kontainer Footer ke dalam `<main>` (`layouts/app.blade.php`):**
+   * Memindahkan elemen `<footer>` ke dalam kontainer `<main>` dengan struktur *column flexbox*:
+     ```html
+     {{-- PAGE CONTENT & FOOTER --}}
+     <main class="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-6">
+         <div class="flex-1">
+             @yield('content')
+         </div>
+
+         {{-- FOOTER --}}
+         <footer class="pt-6 text-center text-xs text-slate-500 shrink-0">
+             &copy; {{ date('Y') }} BPS Provinsi Jawa Tengah - Tim SID
+         </footer>
+     </main>
+     ```
+   * Dengan struktur ini, `<footer>` menjadi *in-flow element* biasa di dalam `<main>`. Sesuai aturan penumpukan CSS (*CSS Stacking Order*), elemen dengan posisi tetap `fixed inset-0` dan z-index tinggi (`z-[60]`) akan selalu digambar di atas seluruh *in-flow elements* di dalam kontainer yang sama.
+2. **Elevasi Z-Index Modal ke `z-[60]` (`manajemen_user.blade.php`):**
+   * Mengalibrasi seluruh dialog modal (`#modalGantiKabag`, `#modalGantiPpk`, `#modalTambahAdmin`, `#modalGantiAdmin`, `#modalTambahSuperadmin`) dari `z-50` menjadi `z-[60]` guna memastikan backdrop overlay modal berada di atas bilah sisi navigasi desktop (`#main-sidebar`, `z-50`).
+3. **Pencegahan Scroll Latar Belakang (`document.body.classList.toggle('overflow-hidden')`):**
+   * Menambahkan penguncian gulir layar pada fungsi JavaScript pembuka modal (`openModal...`) dan pembebasan gulir pada fungsi penutup modal (`closeModal...`) agar halaman di belakang modal tidak dapat digulir dan tidak memicu celah pergeseran *viewport*.
+
+### D. Hasil & Verifikasi
+* Saat dialog modal mana pun dibuka, backdrop overlay gelap (`bg-slate-900/60`) kini menutupi **100% penuh viewport peramban** dari koordinat `(0,0)` hingga tepi paling dasar `(100%, 100%)`.
+* Garis/strip putih dan teks footer telah 100% tereliminasi di balik backdrop gelap.
+* Saat modal ditutup, tata letak halaman dan posisi footer tetap 100% normal, rapi, dan simetris di bagian bawah halaman.
+
+### E. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/layouts/app.blade.php` | Memindahkan elemen `<footer>` ke dalam `<main class="flex-1 flex flex-col ...">` di bawah pembungkus `<div class="flex-1">@yield('content')</div>`. |
+| 2 | `resources/views/admin/manajemen_user.blade.php` | Elevasi kelas modal ke `z-[60]` dan penambahan `document.body.classList.toggle('overflow-hidden')` pada fungsi buka/tutup modal. |
+| 3 | `resources/views/kabag-umum/pengajuan.blade.php` | Perapihan penutupan tag pembungkus `#modalPresensi` dan isolasi bersih sebelum `#modalDetailUraian`. |
+| 4 | `public/build/` | Kompilasi ulang bundel aset produksi Vite (`app-BJPMB6UC.css`). |
+
+---
+
 
