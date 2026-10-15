@@ -503,7 +503,7 @@
 {{-- ========================================================== --}}
 {{-- MODAL 1: GANTI KEPALA BAGIAN UMUM                          --}}
 {{-- ========================================================== --}}
-<div id="modalGantiKabag" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+<div id="modalGantiKabag" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
     <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
         <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
@@ -699,7 +699,7 @@
 {{-- ========================================================== --}}
 {{-- MODAL 1.5: GANTI PEJABAT PEMBUAT KOMITMEN (PPK)            --}}
 {{-- ========================================================== --}}
-<div id="modalGantiPpk" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+<div id="modalGantiPpk" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
     <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
         <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
@@ -894,7 +894,7 @@
 {{-- ========================================================== --}}
 {{-- MODAL 2: TAMBAH ADMIN LEMBUR                               --}}
 {{-- ========================================================== --}}
-<div id="modalTambahAdmin" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+<div id="modalTambahAdmin" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
     <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
         <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
@@ -1073,7 +1073,7 @@
 {{-- ========================================================== --}}
 {{-- MODAL 2B: GANTI ADMIN LEMBUR                               --}}
 {{-- ========================================================== --}}
-<div id="modalGantiAdmin" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+<div id="modalGantiAdmin" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
     <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
         <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
@@ -1240,7 +1240,7 @@
 {{-- ========================================================== --}}
 {{-- MODAL 3: TAMBAH SUPERADMIN (DENGAN PERINGATAN WAJIB)       --}}
 {{-- ========================================================== --}}
-<div id="modalTambahSuperadmin" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+<div id="modalTambahSuperadmin" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
     <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
         <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
@@ -1428,31 +1428,37 @@
     // Modal Ganti Kabag
     function openModalGantiKabag() {
         document.getElementById('modalGantiKabag').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         clearSearchPegawai('Kabag');
         setTimeout(() => document.getElementById('searchPegawaiKabag')?.focus(), 50);
     }
     function closeModalGantiKabag() {
         document.getElementById('modalGantiKabag').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
     }
 
     // Modal Ganti PPK
     function openModalGantiPpk() {
         document.getElementById('modalGantiPpk').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         clearSearchPegawai('Ppk');
         setTimeout(() => document.getElementById('searchPegawaiPpk')?.focus(), 50);
     }
     function closeModalGantiPpk() {
         document.getElementById('modalGantiPpk').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
     }
 
     // Modal Tambah Admin
     function openModalTambahAdmin() {
         document.getElementById('modalTambahAdmin').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         clearSearchPegawai('Admin');
         setTimeout(() => document.getElementById('searchPegawaiAdmin')?.focus(), 50);
     }
     function closeModalTambahAdmin() {
         document.getElementById('modalTambahAdmin').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
     }
 
     // Modal Ganti Admin
@@ -1461,12 +1467,14 @@
         document.getElementById('labelGantiAdminLamaNama').textContent = namaLama;
         document.getElementById('labelGantiAdminLamaNip').textContent = 'NIP: ' + nipLama;
         document.getElementById('modalGantiAdmin').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         clearSelection('GantiAdmin');
         clearSearchPegawai('GantiAdmin');
         setTimeout(() => document.getElementById('searchPegawaiGantiAdmin')?.focus(), 50);
     }
     function closeModalGantiAdmin() {
         document.getElementById('modalGantiAdmin').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
     }
     function validateFormGantiAdmin(event) {
         const inputBaru = document.getElementById('inputPegawaiGantiAdmin');
@@ -1486,11 +1494,13 @@
     // Modal Tambah Superadmin
     function openModalTambahSuperadmin() {
         document.getElementById('modalTambahSuperadmin').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
         clearSearchPegawai('Superadmin');
         setTimeout(() => document.getElementById('searchPegawaiSuperadmin')?.focus(), 50);
     }
     function closeModalTambahSuperadmin() {
         document.getElementById('modalTambahSuperadmin').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
     }
 
     // Toggle button submit superadmin based on checkbox

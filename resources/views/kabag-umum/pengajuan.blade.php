@@ -1136,6 +1136,9 @@
                 <p class="py-4 text-center text-sm text-gray-400">Memuat data presensi...</p>
             </div>
         </div>
+    </div>
+</div>
+
 {{-- Modal Detail Uraian Kegiatan --}}
 <div id="modalDetailUraian" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity" onclick="closeModalUraian()"></div>

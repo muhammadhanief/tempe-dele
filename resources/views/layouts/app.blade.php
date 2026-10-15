@@ -43,15 +43,17 @@
             {{-- NAVBAR --}}
             @include('partials.navbar')
 
-            {{-- PAGE CONTENT --}}
-            <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">
-                @yield('content')
-            </main>
+            {{-- PAGE CONTENT & FOOTER --}}
+            <main class="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex-1">
+                    @yield('content')
+                </div>
 
-            {{-- FOOTER --}}
-            <footer class="py-4 px-4 text-center text-xs text-slate-500">
-                &copy; {{ date('Y') }} BPS Provinsi Jawa Tengah - Tim SID
-            </footer>
+                {{-- FOOTER --}}
+                <footer class="pt-6 text-center text-xs text-slate-500 shrink-0">
+                    &copy; {{ date('Y') }} BPS Provinsi Jawa Tengah - Tim SID
+                </footer>
+            </main>
 
         </div>
         {{-- end MAIN AREA --}}
