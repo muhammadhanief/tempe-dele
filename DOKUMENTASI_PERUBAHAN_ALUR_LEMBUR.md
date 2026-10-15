@@ -5118,16 +5118,31 @@ Pada tangkapan layar pengguna:
 | 10 | `resources/views/ketua-tim/dashboard.blade.php` | Standarisasi pesan formal kegagalan quick-approve persetujuan pengajuan lembur. |
 | 11 | `resources/views/ketua-tim/pengajuan.blade.php` | Standarisasi validasi alasan penolakan pada kolom catatan dan pesan error penanganan simpan keputusan. |
 
+---
 
+## 46. Perbaikan Bug Responsif Sidebar dan Penataan Z-Index Backdrop Overlay (Mobile & Tablet Ratio)
 
+### A. Latar Belakang Masalah
+1. Saat resolusi layar tidak penuh (*non-fullscreen*, tablet, atau *mobile device* dengan lebar layar `< 1024px`), membuka menu navigasi melalui tombol *hamburger toggle* di navbar menyebabkan tampilan menu buram (*blurred*) dan gelap.
+2. Seluruh tautan menu di dalam sidebar (Dashboard, Lembur, Rekapitulasi, dsb.) tidak dapat diklik sama sekali, dan setiap klik pada area sidebar justru langsung menutup sidebar.
+3. **Akar Masalah (*Root Cause*):**
+   * Kelas CSS pada elemen backdrop `#sidebar-overlay` di [`resources/views/partials/sidebar.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/partials/sidebar.blade.php) menggunakan `z-55` (z-index: 55).
+   * Elemen bilah sisi `#main-sidebar` menggunakan `z-40` (z-index: 40).
+   * Karena z-index backdrop overlay (55) lebih tinggi daripada sidebar (40), backdrop overlay yang memiliki properti `fixed inset-0 bg-black/50 backdrop-blur-sm` menimpa tepat di atas seluruh kontainer sidebar. Akibatnya, sidebar terlapisi efek buram dan setiap klik pada menu mengenai elemen overlay yang memicu fungsi `closeSidebar()`.
 
+### B. Solusi & Perbaikan
+1. **Penataan Ulang Z-Index pada [`resources/views/partials/sidebar.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/partials/sidebar.blade.php):**
+   * Mengubah z-index `#sidebar-overlay` dari `z-55` menjadi **`z-40`** (berada tepat di atas konten halaman).
+   * Mengubah z-index `#main-sidebar` dari `z-40` menjadi **`z-50`** (berada di atas backdrop overlay).
+   * Dengan konfigurasi ini, backdrop overlay menggelapkan dan memburamkan konten halaman di belakang sidebar, sementara kontainer sidebar tampil tajam (*crisp*), tidak terlapisi efek blur, dan seluruh menu navigasi serta tombol tutup `(X)` dapat diklik dengan sempurna.
+2. **Penyesuaian Loading Overlay pada [`resources/views/layouts/app.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/layouts/app.blade.php):**
+   * Mengubah z-index `#loadingOverlay` dari `z-50` menjadi **`z-[100]`** agar saat proses pemuatan data global sedang berjalan, indikator pemuatan selalu tampil di lapisan paling depan (*top-most layer*).
 
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/partials/sidebar.blade.php` | Penataan z-index overlay (`z-40`) dan sidebar (`z-50`) untuk kompatibilitas layar responsif. |
+| 2 | `resources/views/layouts/app.blade.php` | Peningkatan z-index loading overlay ke `z-[100]`. |
 
-
-
-
-
-
-
-
+---
 

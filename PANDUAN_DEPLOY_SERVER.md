@@ -314,6 +314,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 212. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Redesain antarmuka modal pergantian pejabat Kabag Umum & PPK, serta modal penambahan Admin Lembur & Superadmin menjadi format landscape 2-kolom zero-scroll: kolom kiri untuk parameter, info otomatisasi, dan live preview kartu pegawai terpilih; kolom kanan untuk live search dan listbox interaktif pegawai dengan avatar, NIP, satker tag, dan radio indicator; serta validasi terproteksi anti-error "An invalid form control is not focusable").*
 213. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Penerapan prinsip desain anti-slop pada halaman Manajemen User: eliminasi pola kontainer monoton bertumpuk, penyatuan panel eksekutif pejabat penandatangan aktif [Kabag Umum & PPK] menjadi 2-kolom desktop lg:grid-cols-2 dengan laci arsip collapsible, penataan hierarki peran Admin Lembur [AL] dan Super Administrator [SA] dengan ringkasan wewenang dan safeguards konfirmasi, kepatuhan aturan tipografi anti-slop R-02 pembersihan karakter em-dash, serta jaminan rasio kontras tinggi kelembagaan BPS).*
 214. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Penataan ulang tombol aksi wewenang: penempatan bilah header dan tombol `+ Tambah Admin` [berwarna oranye amber BPS `#faa938` teks `text-slate-950 font-semibold`] dan `+ Tambah Superadmin` [berwarna merah tegas `bg-red-600` teks `text-white font-semibold`] tepat di luar/atas kartu tabel masing-masing [external header bar], menjaga sudut kartu tabel murni `rounded-2xl`, pembersihan blok monogram avatar AL/SA yang memakan tempat vertikal, serta penyelarasan header utama halaman).*
+215. 📄 **`resources/views/partials/sidebar.blade.php`** & **`resources/views/layouts/app.blade.php`** *(Penataan ulang z-index backdrop overlay menjadi `z-40`, kontainer sidebar mobile menjadi `z-50`, dan loading overlay menjadi `z-[100]` untuk memperbaiki bug tampilan buram dan menu tidak dapat diklik saat rasio layar diperkecil `< 1024px`).*
 
 ---
 
@@ -1634,3 +1635,10 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Klik tombol submit pengajuan lembur tanpa mencoret tanda tangan: kanvas langsung tersorot merah dengan teks *"⚠️ Tanda tangan digital wajib dibubuhkan sebelum mengirimkan pengajuan lembur."* dan alert *"Tanda tangan digital belum dibubuhkan. Silakan bubuhkan tanda tangan Anda pada area kanvas yang tersedia."*.
   - Klik tombol hapus dokumentasi pada baris tabel lembur: dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menghapus tautan dokumentasi kegiatan ini?"*.
 
+### CI. Uji Responsif Bilah Sisi (Sidebar) dan Penataan Z-Index Backdrop Overlay (Mobile & Tablet Ratio)
+- [ ] **Uji Tampilan & Interaktivitas Sidebar Mobile (`< 1024px`)**:
+  - Buka aplikasi pada peramban dan perkecil ukuran jendela layar (lebar layar `< 1024px` atau gunakan *responsive device mode* tablet/smartphone).
+  - Klik tombol *hamburger toggle* di pojok kiri atas bilah navigasi (*navbar*).
+  - **Verifikasi**: Bilah sisi (*sidebar*) navigasi gelap bergeser keluar dari sisi kiri dengan tajam (*crisp*), tidak terlapisi efek buram (*blur*), dan seluruh teks/menu navigasi terbaca sangat jelas.
+  - **Verifikasi**: Seluruh tautan menu navigasi di dalam sidebar (Dashboard, Lembur, Rekapitulasi, dsb.) dapat diklik secara responsif tanpa terhalang lapisan backdrop.
+  - **Verifikasi**: Menekan tombol silang `(X)` pada sudut kanan atas header sidebar atau mengeklik area backdrop overlay gelap di sebelah kanan sidebar akan menutup sidebar kembali dengan transisi animasi yang mulus.
