@@ -1,7 +1,7 @@
 {{-- Overlay backdrop (mobile only) --}}
 <div
     id="sidebar-overlay"
-    class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden"
+    class="fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden"
     onclick="closeSidebar()"
 ></div>
 
