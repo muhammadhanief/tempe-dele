@@ -472,8 +472,8 @@
 {{-- MODAL 1: GANTI KEPALA BAGIAN UMUM                          --}}
 {{-- ========================================================== --}}
 <div id="modalGantiKabag" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-100 text-orange-600 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -490,12 +490,12 @@
             </button>
         </div>
 
-        <form action="{{ route('admin.manajemen-user.ganti-kabag') }}" method="POST" onsubmit="return validateFormPegawai('Kabag', event)">
+        <form action="{{ route('admin.manajemen-user.ganti-kabag') }}" method="POST" onsubmit="return validateFormPegawai('Kabag', event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
             @csrf
             <input type="hidden" name="id_pegawai" id="inputPegawaiKabag" value="">
 
             {{-- 2-Column Grid Layout (Landscape) --}}
-            <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6">
+            <div class="p-4 sm:p-5 lg:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 flex-1 overflow-y-auto min-h-0">
                 {{-- Kolom Kiri (md:col-span-5): Info & Parameter & Preview --}}
                 <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                     <div class="space-y-3.5">
@@ -578,7 +578,7 @@
                     </div>
 
                     {{-- Listbox Kartu Interaktif --}}
-                    <div id="listPegawaiKabag" class="h-64 sm:h-72 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
+                    <div id="listPegawaiKabag" class="h-52 sm:h-60 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
                         @foreach($semuaPegawai as $p)
                             @php
                                 $isAktif = $kabagAktif && ($kabagAktif->nip === $p->nip || $kabagAktif->nip_lama === $p->nip_lama);
@@ -650,7 +650,7 @@
             </div>
 
             {{-- Footer Buttons --}}
-            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100">
+            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 shrink-0">
                 <button type="button" onclick="closeModalGantiKabag()"
                     class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer">
                     Batal
@@ -668,8 +668,8 @@
 {{-- MODAL 1.5: GANTI PEJABAT PEMBUAT KOMITMEN (PPK)            --}}
 {{-- ========================================================== --}}
 <div id="modalGantiPpk" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 text-sky-600 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -686,12 +686,12 @@
             </button>
         </div>
 
-        <form action="{{ route('admin.manajemen-user.ganti-ppk') }}" method="POST" onsubmit="return validateFormPegawai('Ppk', event)">
+        <form action="{{ route('admin.manajemen-user.ganti-ppk') }}" method="POST" onsubmit="return validateFormPegawai('Ppk', event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
             @csrf
             <input type="hidden" name="id_pegawai" id="inputPegawaiPpk" value="">
 
             {{-- 2-Column Grid Layout (Landscape) --}}
-            <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6">
+            <div class="p-4 sm:p-5 lg:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 flex-1 overflow-y-auto min-h-0">
                 {{-- Kolom Kiri (md:col-span-5): Info & Parameter & Preview --}}
                 <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                     <div class="space-y-3.5">
@@ -773,7 +773,7 @@
                     </div>
 
                     {{-- Listbox Kartu Interaktif --}}
-                    <div id="listPegawaiPpk" class="h-64 sm:h-72 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
+                    <div id="listPegawaiPpk" class="h-52 sm:h-60 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
                         @foreach($semuaPegawai as $p)
                             @php
                                 $isAktif = $ppkAktif && ($ppkAktif->nip === $p->nip || $ppkAktif->nip_lama === $p->nip_lama);
@@ -845,7 +845,7 @@
             </div>
 
             {{-- Footer Buttons --}}
-            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100">
+            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 shrink-0">
                 <button type="button" onclick="closeModalGantiPpk()"
                     class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer">
                     Batal
@@ -863,8 +863,8 @@
 {{-- MODAL 2: TAMBAH ADMIN LEMBUR                               --}}
 {{-- ========================================================== --}}
 <div id="modalTambahAdmin" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -881,12 +881,12 @@
             </button>
         </div>
 
-        <form action="{{ route('admin.manajemen-user.tambah-admin') }}" method="POST" onsubmit="return validateFormPegawai('Admin', event)">
+        <form action="{{ route('admin.manajemen-user.tambah-admin') }}" method="POST" onsubmit="return validateFormPegawai('Admin', event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
             @csrf
             <input type="hidden" name="id_pegawai" id="inputPegawaiAdmin" value="">
 
             {{-- 2-Column Grid Layout (Landscape) --}}
-            <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6">
+            <div class="p-4 sm:p-5 lg:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 flex-1 overflow-y-auto min-h-0">
                 {{-- Kolom Kiri (md:col-span-5): Info & Preview --}}
                 <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                     <div class="space-y-3.5">
@@ -976,7 +976,7 @@
                     </div>
 
                     {{-- Listbox Kartu Interaktif --}}
-                    <div id="listPegawaiAdmin" class="h-64 sm:h-72 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
+                    <div id="listPegawaiAdmin" class="h-52 sm:h-60 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
                         @foreach($semuaPegawai->whereNotIn('role', ['admin', 'superadmin']) as $p)
                             @php
                                 $initials = strtoupper(substr($p->nama, 0, 2));
@@ -1024,7 +1024,7 @@
             </div>
 
             {{-- Footer Buttons --}}
-            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100">
+            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 shrink-0">
                 <button type="button" onclick="closeModalTambahAdmin()"
                     class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer">
                     Batal
@@ -1042,8 +1042,8 @@
 {{-- MODAL 2B: GANTI ADMIN LEMBUR                               --}}
 {{-- ========================================================== --}}
 <div id="modalGantiAdmin" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1060,13 +1060,13 @@
             </button>
         </div>
 
-        <form action="{{ route('admin.manajemen-user.ganti-admin') }}" method="POST" onsubmit="return validateFormGantiAdmin(event)">
+        <form action="{{ route('admin.manajemen-user.ganti-admin') }}" method="POST" onsubmit="return validateFormGantiAdmin(event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
             @csrf
             <input type="hidden" name="id_pegawai_lama" id="inputGantiAdminLama" value="">
             <input type="hidden" name="id_pegawai_baru" id="inputPegawaiGantiAdmin" value="">
 
             {{-- 2-Column Grid Layout (Landscape) --}}
-            <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6">
+            <div class="p-4 sm:p-5 lg:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 flex-1 overflow-y-auto min-h-0">
                 {{-- Kolom Kiri (md:col-span-5): Info Petugas Lama & Preview Petugas Baru --}}
                 <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                     <div class="space-y-3.5">
@@ -1143,7 +1143,7 @@
                     </div>
 
                     {{-- Listbox Kartu Interaktif --}}
-                    <div id="listPegawaiGantiAdmin" class="h-64 sm:h-72 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
+                    <div id="listPegawaiGantiAdmin" class="h-52 sm:h-60 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
                         @foreach($semuaPegawai->where('role', '!=', 'superadmin') as $p)
                             @php
                                 $initials = strtoupper(substr($p->nama, 0, 2));
@@ -1191,7 +1191,7 @@
             </div>
 
             {{-- Footer Buttons --}}
-            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100">
+            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 shrink-0">
                 <button type="button" onclick="closeModalGantiAdmin()"
                     class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer">
                     Batal
@@ -1209,8 +1209,8 @@
 {{-- MODAL 3: TAMBAH SUPERADMIN (DENGAN PERINGATAN WAJIB)       --}}
 {{-- ========================================================== --}}
 <div id="modalTambahSuperadmin" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1227,17 +1227,17 @@
             </button>
         </div>
 
-        <form action="{{ route('admin.manajemen-user.tambah-superadmin') }}" method="POST" onsubmit="return validateFormPegawai('Superadmin', event)">
+        <form action="{{ route('admin.manajemen-user.tambah-superadmin') }}" method="POST" onsubmit="return validateFormPegawai('Superadmin', event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
             @csrf
             <input type="hidden" name="id_pegawai" id="inputPegawaiSuperadmin" value="">
 
             {{-- 2-Column Grid Layout (Landscape) --}}
-            <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6">
+            <div class="p-4 sm:p-5 lg:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 flex-1 overflow-y-auto min-h-0">
                 {{-- Kolom Kiri (md:col-span-5): Peringatan & Konfirmasi & Preview --}}
-                <div class="md:col-span-5 flex flex-col justify-between space-y-4">
+                <div class="md:col-span-5 flex flex-col justify-between space-y-3.5">
                     <div class="space-y-3">
                         {{-- KOTAK PERINGATAN KEAMANAN BERSIH & FORMAL --}}
-                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 text-slate-800 space-y-2.5">
+                        <div class="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200/90 text-slate-800 space-y-2">
                             <div class="flex items-center gap-2">
                                 <span class="flex h-5 w-5 items-center justify-center rounded-md bg-rose-100 text-rose-700 shrink-0">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1247,11 +1247,11 @@
                                 <span class="text-xs font-bold text-slate-900 tracking-wide uppercase">Peringatan Keamanan Hak Akses</span>
                             </div>
                             
-                            <div class="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-900 text-xs font-medium leading-relaxed">
+                            <div class="p-2 sm:p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-900 text-xs font-medium leading-relaxed">
                                 Penetapan wewenang <strong class="font-bold text-rose-950">Super Administrator bersifat permanen</strong> dan tidak dapat dibatalkan atau dicabut kembali.
                             </div>
 
-                            <div class="text-[11.5px] text-slate-600 leading-relaxed space-y-1.5">
+                            <div class="text-[11.5px] text-slate-600 leading-relaxed space-y-1">
                                 <p>
                                     Pejabat atau pegawai terpilih akan memperoleh kewenangan penuh atas konfigurasi sistem, data kepegawaian, audit log, serta penetapan pejabat kedinasan.
                                 </p>
@@ -1262,7 +1262,7 @@
                         </div>
 
                         {{-- Checkbox Konfirmasi Ganda --}}
-                        <label class="flex items-start gap-2.5 cursor-pointer p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all shadow-2xs">
+                        <label class="flex items-start gap-2.5 cursor-pointer p-2.5 sm:p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all shadow-2xs">
                             <input type="checkbox" name="konfirmasi" value="1" id="chkKonfirmasiSuperadmin" required
                                 onchange="toggleBtnSubmitSuperadmin(this)"
                                 class="mt-0.5 rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4 cursor-pointer">
@@ -1276,7 +1276,7 @@
                     <div>
                         <span class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Pegawai Terpilih</span>
                         
-                        <div id="placeholderPreviewSuperadmin" class="p-3.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center">
+                        <div id="placeholderPreviewSuperadmin" class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center">
                             <p class="text-xs text-slate-500 font-medium">Belum ada pegawai dipilih</p>
                             <p class="text-[11px] text-slate-400 mt-0.5">Pilih salah satu pegawai pada daftar di sebelah kanan</p>
                         </div>
@@ -1327,7 +1327,7 @@
                     </div>
 
                     {{-- Listbox Kartu Interaktif --}}
-                    <div id="listPegawaiSuperadmin" class="h-64 sm:h-72 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
+                    <div id="listPegawaiSuperadmin" class="h-52 sm:h-60 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
                         @foreach($semuaPegawai->where('role', '!=', 'superadmin') as $p)
                             @php
                                 $initials = strtoupper(substr($p->nama, 0, 2));
@@ -1375,7 +1375,7 @@
             </div>
 
             {{-- Footer Buttons --}}
-            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100">
+            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 shrink-0">
                 <button type="button" onclick="closeModalTambahSuperadmin()"
                     class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer">
                     Batal
