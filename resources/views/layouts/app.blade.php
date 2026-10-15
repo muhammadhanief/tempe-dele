@@ -62,7 +62,7 @@
     {{-- LOADING OVERLAY --}}
     @if(!$__env->hasSection('hideLoading'))
         <div id="loadingOverlay"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm
                     opacity-0 pointer-events-none transition-opacity duration-300">
             <div class="flex flex-col items-center gap-4 rounded-2xl bg-white border border-slate-200 shadow-xl px-10 py-8">
                 <svg class="h-8 w-8 animate-spin text-[#fd9a10]" xmlns="http://www.w3.org/2000/svg"

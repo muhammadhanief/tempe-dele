@@ -1,7 +1,7 @@
 {{-- Overlay backdrop (mobile only) --}}
 <div
     id="sidebar-overlay"
-    class="fixed inset-0 z-55 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden"
+    class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden"
     onclick="closeSidebar()"
 ></div>
 
@@ -39,7 +39,7 @@
 {{-- Sidebar --}}
 <aside
     id="main-sidebar"
-    class="fixed lg:sticky top-0 left-0 z-40
+    class="fixed lg:sticky top-0 left-0 z-50
            flex flex-col h-screen h-[100dvh] max-h-screen max-h-[100dvh] bg-slate-900 shrink-0
            -translate-x-full lg:translate-x-0"
 >
