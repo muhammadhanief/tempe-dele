@@ -872,8 +872,8 @@
                     </svg>
                 </span>
                 <div>
-                    <h3 class="text-base font-bold text-slate-900 leading-tight">Tambah Admin Lembur</h3>
-                    <p class="text-[11px] text-slate-500">Pilih pegawai untuk diberikan wewenang pengelolaan modul lembur</p>
+                    <h3 class="text-base font-bold text-slate-900 leading-tight">Penugasan Admin Lembur</h3>
+                    <p class="text-[11px] text-slate-500">Pemberian wewenang operasional verifikasi presensi dan tata kelola lembur pegawai</p>
                 </div>
             </div>
             <button type="button" onclick="closeModalTambahAdmin()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1.5 hover:bg-slate-100 transition-colors cursor-pointer">
@@ -890,18 +890,33 @@
                 {{-- Kolom Kiri (md:col-span-5): Info & Preview --}}
                 <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                     <div class="space-y-3.5">
-                        <div class="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 leading-relaxed space-y-1.5">
-                            <p class="font-bold flex items-center gap-1.5 text-amber-800 text-xs">
-                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                Wewenang Akses Admin:
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 text-slate-800 space-y-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="flex h-5 w-5 items-center justify-center rounded-md bg-amber-100 text-amber-800 shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                    </svg>
+                                </span>
+                                <span class="text-xs font-bold text-slate-900 tracking-wide uppercase">Ruang Lingkup Tugas Admin Lembur</span>
+                            </div>
+                            
+                            <p class="text-[11.5px] text-slate-600 leading-relaxed">
+                                Pegawai yang ditugaskan akan memperoleh wewenang operasional pada modul lembur:
                             </p>
-                            <p class="text-[11px] text-amber-900/90 leading-relaxed">
-                                Pegawai yang diangkat sebagai Admin Lembur memiliki wewenang untuk:
-                            </p>
-                            <ul class="text-[11px] space-y-0.5 text-amber-900/90 pl-1 list-disc list-inside">
-                                <li>Unggah & kelola data presensi harian.</li>
-                                <li>Monitoring & koreksi transaksi lembur.</li>
-                                <li>Penyusunan tim & generate dokumen SPKL.</li>
+                            
+                            <ul class="space-y-2 text-[11.5px] text-slate-700">
+                                <li class="flex items-start gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5"></span>
+                                    <span>Rekonsiliasi dan verifikasi data presensi biometrik harian pegawai.</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5"></span>
+                                    <span>Pemantauan transaksi pengajuan lembur dan alur persetujuan pejabat.</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5"></span>
+                                    <span>Penerbitan serta penatausahaan dokumen kedinasan (SPKL & Daftar Hadir).</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -910,9 +925,9 @@
                     <div>
                         <span class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Pegawai Terpilih</span>
                         
-                        <div id="placeholderPreviewAdmin" class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center">
-                            <p class="text-xs text-slate-400 italic">Belum ada pegawai dipilih</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Klik salah satu pegawai di sebelah kanan</p>
+                        <div id="placeholderPreviewAdmin" class="p-3.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center">
+                            <p class="text-xs text-slate-500 font-medium">Belum ada pegawai dipilih</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Pilih salah satu pegawai pada daftar di sebelah kanan</p>
                         </div>
 
                         <div id="previewContainerAdmin" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
@@ -1016,7 +1031,7 @@
                 </button>
                 <button type="submit"
                     class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] rounded-xl transition-all shadow-xs cursor-pointer">
-                    Angkat Sebagai Admin
+                    Tetapkan Sebagai Admin Lembur
                 </button>
             </div>
         </form>
@@ -1036,8 +1051,8 @@
                     </svg>
                 </span>
                 <div>
-                    <h3 class="text-base font-bold text-slate-900 leading-tight">Ganti Admin Lembur</h3>
-                    <p class="text-[11px] text-slate-500">Alihkan wewenang pengelolaan lembur dari petugas saat ini ke pegawai lain</p>
+                    <h3 class="text-base font-bold text-slate-900 leading-tight">Pengalihan Admin Lembur</h3>
+                    <p class="text-[11px] text-slate-500">Pengalihan wewenang operasional modul lembur ke pegawai pengganti terpilih</p>
                 </div>
             </div>
             <button type="button" onclick="closeModalGantiAdmin()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1.5 hover:bg-slate-100 transition-colors cursor-pointer">
@@ -1056,10 +1071,10 @@
                 <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                     <div class="space-y-3.5">
                         {{-- Kartu Info Admin Lama yang Diganti --}}
-                        <div class="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 space-y-2">
-                            <span class="block text-[11px] font-bold uppercase tracking-wider text-amber-800">Admin yang Digantikan</span>
-                            <div class="flex items-center gap-2.5 bg-white p-2.5 rounded-lg border border-amber-200/80">
-                                <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0">
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 text-slate-800 space-y-2.5">
+                            <span class="block text-xs font-bold uppercase tracking-wider text-slate-900">Admin yang Digantikan</span>
+                            <div class="flex items-center gap-2.5 bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs">
+                                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200">
                                     AL
                                 </div>
                                 <div class="min-w-0 flex-1">
@@ -1067,8 +1082,8 @@
                                     <div id="labelGantiAdminLamaNip" class="text-[11px] text-slate-500 font-mono">-</div>
                                 </div>
                             </div>
-                            <p class="text-[11px] text-amber-900/90 leading-relaxed">
-                                Petugas di atas akan dikembalikan menjadi peran Pengguna biasa, dan pegawai pengganti terpilih akan menjadi Admin Lembur.
+                            <p class="text-[11.5px] text-slate-600 leading-relaxed">
+                                Hak akses petugas di atas akan dikembalikan menjadi peran Pengguna biasa, dan pegawai pengganti terpilih akan ditetapkan sebagai Admin Lembur.
                             </p>
                         </div>
                     </div>
@@ -1077,9 +1092,9 @@
                     <div>
                         <span class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Pegawai Pengganti Terpilih</span>
                         
-                        <div id="placeholderPreviewGantiAdmin" class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center">
-                            <p class="text-xs text-slate-400 italic">Belum ada pegawai pengganti dipilih</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Klik salah satu pegawai di sebelah kanan</p>
+                        <div id="placeholderPreviewGantiAdmin" class="p-3.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center">
+                            <p class="text-xs text-slate-500 font-medium">Belum ada pegawai pengganti dipilih</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Pilih salah satu pegawai pengganti pada daftar di sebelah kanan</p>
                         </div>
 
                         <div id="previewContainerGantiAdmin" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
@@ -1203,8 +1218,8 @@
                     </svg>
                 </span>
                 <div>
-                    <h3 class="text-base font-bold text-slate-900 leading-tight">Penambahan Super Administrator</h3>
-                    <p class="text-[11px] text-slate-500">Promosi permanen hak akses tertinggi kendali sistem</p>
+                    <h3 class="text-base font-bold text-slate-900 leading-tight">Penetapan Super Administrator</h3>
+                    <p class="text-[11px] text-slate-500">Pemberian hak akses tertinggi kendali konfigurasi dan tata kelola sistem</p>
                 </div>
             </div>
             <button type="button" onclick="closeModalTambahSuperadmin()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1.5 hover:bg-slate-100 transition-colors cursor-pointer">
@@ -1221,29 +1236,38 @@
                 {{-- Kolom Kiri (md:col-span-5): Peringatan & Konfirmasi & Preview --}}
                 <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                     <div class="space-y-3">
-                        {{-- KOTAK PERINGATAN WAJIB SESUAI INSTRUKSI --}}
-                        <div class="p-3.5 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-950 space-y-1.5">
-                            <div class="flex items-center gap-1.5 font-bold text-xs text-amber-900">
-                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                                PERINGATAN KEAMANAN:
+                        {{-- KOTAK PERINGATAN KEAMANAN BERSIH & FORMAL --}}
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 text-slate-800 space-y-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="flex h-5 w-5 items-center justify-center rounded-md bg-rose-100 text-rose-700 shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                </span>
+                                <span class="text-xs font-bold text-slate-900 tracking-wide uppercase">Peringatan Keamanan Hak Akses</span>
                             </div>
-                            <p class="text-xs font-semibold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200">
-                                "beneran mau ngasih superadmin, nanti gabisa dicabut lagi"
-                            </p>
-                            <p class="text-[11px] text-amber-800 leading-relaxed">
-                                Super Administrator memiliki kendali penuh atas sistem dan basis data. Sesuai aturan keamanan sistem, <span class="font-bold underline">superadmin tidak dapat mencabut hak akses superadmin lain</span>.
-                            </p>
+                            
+                            <div class="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-900 text-xs font-medium leading-relaxed">
+                                Penetapan wewenang <strong class="font-bold text-rose-950">Super Administrator bersifat permanen</strong> dan tidak dapat dibatalkan atau dicabut kembali.
+                            </div>
+
+                            <div class="text-[11.5px] text-slate-600 leading-relaxed space-y-1.5">
+                                <p>
+                                    Pejabat atau pegawai terpilih akan memperoleh kewenangan penuh atas konfigurasi sistem, data kepegawaian, audit log, serta penetapan pejabat kedinasan.
+                                </p>
+                                <p class="text-[11px] text-slate-500 italic">
+                                    * Sesuai ketentuan tata kelola keamanan sistem, hak akses ini tidak dapat dicabut oleh Super Administrator lainnya.
+                                </p>
+                            </div>
                         </div>
 
                         {{-- Checkbox Konfirmasi Ganda --}}
-                        <label class="flex items-start gap-2.5 cursor-pointer p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <label class="flex items-start gap-2.5 cursor-pointer p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all shadow-2xs">
                             <input type="checkbox" name="konfirmasi" value="1" id="chkKonfirmasiSuperadmin" required
                                 onchange="toggleBtnSubmitSuperadmin(this)"
-                                class="mt-0.5 rounded border-slate-300 text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer">
-                            <span class="text-[11.5px] text-slate-700 leading-snug font-medium">
-                                Saya memahami wewenang ini dan menyetujui promosi Super Administrator secara <span class="text-rose-600 font-bold">permanen</span>.
+                                class="mt-0.5 rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4 cursor-pointer">
+                            <span class="text-xs text-slate-700 leading-relaxed font-medium">
+                                Saya memahami wewenang ini dan menyetujui penetapan hak akses <span class="text-rose-700 font-bold">Super Administrator secara permanen</span>.
                             </span>
                         </label>
                     </div>
@@ -1252,9 +1276,9 @@
                     <div>
                         <span class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Pegawai Terpilih</span>
                         
-                        <div id="placeholderPreviewSuperadmin" class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center">
-                            <p class="text-xs text-slate-400 italic">Belum ada pegawai dipilih</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Klik salah satu pegawai di sebelah kanan</p>
+                        <div id="placeholderPreviewSuperadmin" class="p-3.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center">
+                            <p class="text-xs text-slate-500 font-medium">Belum ada pegawai dipilih</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Pilih salah satu pegawai pada daftar di sebelah kanan</p>
                         </div>
 
                         <div id="previewContainerSuperadmin" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
@@ -1358,7 +1382,7 @@
                 </button>
                 <button type="submit" id="btnSubmitSuperadmin" disabled
                     class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-300 disabled:cursor-not-allowed rounded-xl transition-all shadow-xs cursor-pointer">
-                    Ya, Angkat Jadi Superadmin
+                    Tetapkan Super Administrator
                 </button>
             </div>
         </form>
