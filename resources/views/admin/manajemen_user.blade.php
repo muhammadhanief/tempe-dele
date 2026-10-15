@@ -499,13 +499,20 @@
     </div>
 
 </div>
+</div>
 
+@push('modals')
 {{-- ========================================================== --}}
 {{-- MODAL 1: GANTI KEPALA BAGIAN UMUM                          --}}
 {{-- ========================================================== --}}
-<div id="modalGantiKabag" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
+<div id="modalGantiKabag" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
+    {{-- Dedicated Full-Screen Backdrop Overlay --}}
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalGantiKabag()"></div>
+
+    {{-- Modal Content Container --}}
+    <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-3 sm:p-4 pointer-events-none">
+        <div class="pointer-events-auto relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+            <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-100 text-orange-600 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -693,15 +700,21 @@
                 </button>
             </div>
         </form>
+        </div>
     </div>
 </div>
 
 {{-- ========================================================== --}}
 {{-- MODAL 1.5: GANTI PEJABAT PEMBUAT KOMITMEN (PPK)            --}}
 {{-- ========================================================== --}}
-<div id="modalGantiPpk" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
+<div id="modalGantiPpk" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
+    {{-- Dedicated Full-Screen Backdrop Overlay --}}
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalGantiPpk()"></div>
+
+    {{-- Modal Content Container --}}
+    <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-3 sm:p-4 pointer-events-none">
+        <div class="pointer-events-auto relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+            <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 text-sky-600 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -888,15 +901,21 @@
                 </button>
             </div>
         </form>
+        </div>
     </div>
 </div>
 
 {{-- ========================================================== --}}
 {{-- MODAL 2: TAMBAH ADMIN LEMBUR                               --}}
 {{-- ========================================================== --}}
-<div id="modalTambahAdmin" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
+<div id="modalTambahAdmin" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
+    {{-- Dedicated Full-Screen Backdrop Overlay --}}
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalTambahAdmin()"></div>
+
+    {{-- Modal Content Container --}}
+    <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-3 sm:p-4 pointer-events-none">
+        <div class="pointer-events-auto relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+            <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1067,15 +1086,21 @@
                 </button>
             </div>
         </form>
+        </div>
     </div>
 </div>
 
 {{-- ========================================================== --}}
 {{-- MODAL 2B: GANTI ADMIN LEMBUR                               --}}
 {{-- ========================================================== --}}
-<div id="modalGantiAdmin" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
+<div id="modalGantiAdmin" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
+    {{-- Dedicated Full-Screen Backdrop Overlay --}}
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalGantiAdmin()"></div>
+
+    {{-- Modal Content Container --}}
+    <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-3 sm:p-4 pointer-events-none">
+        <div class="pointer-events-auto relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+            <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1234,15 +1259,21 @@
                 </button>
             </div>
         </form>
+        </div>
     </div>
 </div>
 
 {{-- ========================================================== --}}
 {{-- MODAL 3: TAMBAH SUPERADMIN (DENGAN PERINGATAN WAJIB)       --}}
 {{-- ========================================================== --}}
-<div id="modalTambahSuperadmin" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
+<div id="modalTambahSuperadmin" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
+    {{-- Dedicated Full-Screen Backdrop Overlay --}}
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalTambahSuperadmin()"></div>
+
+    {{-- Modal Content Container --}}
+    <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-3 sm:p-4 pointer-events-none">
+        <div class="pointer-events-auto relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+            <div class="flex items-center justify-between px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2.5">
                 <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1418,8 +1449,10 @@
                 </button>
             </div>
         </form>
+        </div>
     </div>
 </div>
+@endpush
 
 {{-- ========================================================== --}}
 {{-- JAVASCRIPT HELPER FOR MODALS & SEARCH FILTER               --}}

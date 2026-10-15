@@ -61,6 +61,9 @@
     </div>
     {{-- end flex min-h-screen --}}
 
+    {{-- MODALS STACK (ROOT LEVEL FOR 100% VIEWPORT BACKDROP) --}}
+    @stack('modals')
+
     {{-- LOADING OVERLAY --}}
     @if(!$__env->hasSection('hideLoading'))
         <div id="loadingOverlay"
