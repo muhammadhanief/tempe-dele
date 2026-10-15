@@ -14,23 +14,7 @@
             </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button type="button" onclick="openModalTambahAdmin()"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all shadow-2xs shrink-0 cursor-pointer"
-                title="Tambah wewenang Admin Lembur untuk pegawai">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                </svg>
-                Tambah Admin
-            </button>
-            <button type="button" onclick="openModalTambahSuperadmin()"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-700/30 transition-all shadow-2xs shrink-0 cursor-pointer"
-                title="Promosikan pegawai menjadi Super Administrator">
-                <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                </svg>
-                Tambah Superadmin
-            </button>
+        <div class="flex items-center gap-2.5 shrink-0">
             <a href="{{ route('admin.pengguna') }}"
                 class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400/20 transition-all shadow-2xs cursor-pointer">
                 <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -97,8 +81,8 @@
                             <h3 class="text-base font-bold text-slate-900">Kepala Bagian Umum</h3>
                         </div>
                         <button type="button" onclick="openModalGantiKabag()"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#faa938] text-white text-xs font-semibold hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-[#faa938]/30 transition-all shadow-2xs shrink-0 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] text-slate-950 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#faa938]/30 transition-all shadow-2xs shrink-0 cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                             </svg>
                             Ganti Kabag
@@ -191,8 +175,8 @@
                             <h3 class="text-base font-bold text-slate-900">Pejabat Pembuat Komitmen (PPK)</h3>
                         </div>
                         <button type="button" onclick="openModalGantiPpk()"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 text-white text-xs font-semibold hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500/30 transition-all shadow-2xs shrink-0 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] text-slate-950 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#faa938]/30 transition-all shadow-2xs shrink-0 cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                             </svg>
                             Ganti PPK
@@ -201,7 +185,7 @@
 
                     @if($ppkAktif)
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3.5">
-                            <div class="w-12 h-12 rounded-xl bg-sky-100 text-sky-800 border border-sky-200 font-bold text-base flex items-center justify-center shrink-0">
+                            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 font-bold text-base flex items-center justify-center shrink-0">
                                 {{ strtoupper(substr($ppkAktif->nama ?? 'P', 0, 2)) }}
                             </div>
                             <div class="min-w-0 flex-1 space-y-1">
@@ -285,26 +269,19 @@
     <div class="space-y-6 pt-2">
         {{-- SEKSI A: ADMIN LEMBUR (OPERASIONAL) --}}
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-50 text-indigo-700 font-bold text-xs">
-                            AL
-                        </span>
-                        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Admin Lembur</h2>
-                        <span class="inline-flex items-center px-2 py-0.2 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                            {{ $admins->count() }} Petugas
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-1 max-w-2xl">
-                        Petugas pengelola presensi pegawai, sinkronisasi tim kerja, generator dokumen kedinasan, dan rekapitulasi lembur.
-                    </p>
+            <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Admin Lembur</h2>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ $admins->count() }} Petugas
+                    </span>
                 </div>
 
                 <button type="button" onclick="openModalTambahAdmin()"
-                    class="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all shadow-2xs shrink-0 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] text-slate-950 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#faa938]/30 transition-all shadow-2xs shrink-0 cursor-pointer"
+                    title="Tambah wewenang Admin Lembur untuk pegawai">
+                    <svg class="w-3.5 h-3.5 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                     Tambah Admin
                 </button>
@@ -331,7 +308,7 @@
                             <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200/80 text-indigo-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
+                                        <div class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
                                             {{ strtoupper(substr($adm->nama, 0, 2)) }}
                                         </div>
                                         <div class="min-w-0">
@@ -356,21 +333,32 @@
                                 </td>
                                 <td class="px-4 py-3 text-center whitespace-nowrap">
                                     @if($isMe)
-                                        <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 italic">Terkunci</span>
+                                        <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 italic">Terkunci (Akun Anda)</span>
                                     @else
-                                        <form action="{{ route('admin.manajemen-user.hapus-admin', $adm->id_pegawai) }}" method="POST"
-                                            onsubmit="return confirm('Apakah Anda yakin ingin mencabut wewenang Admin untuk {{ addslashes($adm->nama) }}? Pegawai akan dikembalikan ke peran biasa.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer"
-                                                title="Cabut Akses Admin">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        <div class="inline-flex items-center justify-center gap-1.5">
+                                            <button type="button"
+                                                onclick="openModalGantiAdmin('{{ $adm->id_pegawai }}', '{{ addslashes($adm->nama) }}', '{{ $adm->nip ?? ($adm->nip_lama ?? '-') }}')"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-900 bg-amber-100/90 hover:bg-amber-200 border border-amber-300 transition-colors cursor-pointer"
+                                                title="Ganti Admin: serahkan wewenang admin ini kepada pegawai lain">
+                                                <svg class="w-3.5 h-3.5 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                                                 </svg>
-                                                Cabut
+                                                Ganti
                                             </button>
-                                        </form>
+                                            <form action="{{ route('admin.manajemen-user.hapus-admin', $adm->id_pegawai) }}" method="POST"
+                                                onsubmit="return confirm('Apakah Anda yakin ingin mencabut wewenang Admin untuk {{ addslashes($adm->nama) }}? Pegawai akan dikembalikan ke peran biasa.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer"
+                                                    title="Cabut Akses Admin">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
+                                                    Cabut
+                                                </button>
+                                            </form>
+                                        </div>
                                     @endif
                                 </td>
                             </tr>
@@ -388,27 +376,19 @@
 
         {{-- SEKSI B: SUPER ADMINISTRATOR (GOVERNANCE UTAMA) --}}
         <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="flex h-6 w-6 items-center justify-center rounded-md bg-rose-50 text-rose-700 font-bold text-xs">
-                            SA
-                        </span>
-                        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Super Administrator</h2>
-                        <span class="inline-flex items-center px-2 py-0.2 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                            {{ $superadmins->count() }} Pengendali
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-1 max-w-2xl">
-                        Tingkat wewenang tertinggi dengan akses ke seluruh basis data dan konfigurasi sistem.
-                        <span class="font-semibold text-rose-700">Wewenang ini bersifat permanen dan tidak dapat dicabut antar sesama superadmin.</span>
-                    </p>
+            <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Super Administrator</h2>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ $superadmins->count() }} Pengendali
+                    </span>
                 </div>
 
                 <button type="button" onclick="openModalTambahSuperadmin()"
-                    class="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-700/30 transition-all shadow-2xs shrink-0 cursor-pointer">
-                    <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] text-slate-950 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#faa938]/30 transition-all shadow-2xs shrink-0 cursor-pointer"
+                    title="Promosikan pegawai menjadi Super Administrator">
+                    <svg class="w-3.5 h-3.5 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                     Tambah Superadmin
                 </button>
@@ -435,7 +415,7 @@
                             <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg bg-rose-50 border border-rose-200/80 text-rose-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
+                                        <div class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
                                             {{ strtoupper(substr($sa->nama, 0, 2)) }}
                                         </div>
                                         <div class="min-w-0">
@@ -456,8 +436,8 @@
                                     {{ $sa->email ?? '-' }}
                                 </td>
                                 <td class="px-4 py-3">
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200/80">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200/80">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                         Super Administrator
                                     </span>
                                 </td>
@@ -713,12 +693,12 @@
                 <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                     <div class="space-y-3.5">
                         {{-- Info Otomatisasi --}}
-                        <div class="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-900 leading-relaxed space-y-1">
-                            <p class="font-bold flex items-center gap-1.5 text-sky-800 text-xs">
-                                <svg class="w-4 h-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 leading-relaxed space-y-1">
+                            <p class="font-bold flex items-center gap-1.5 text-amber-800 text-xs">
+                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Sistem Otomatisasi Terintegrasi:
                             </p>
-                            <ul class="text-[11px] space-y-0.5 text-sky-900/90 pl-1 list-disc list-inside">
+                            <ul class="text-[11px] space-y-0.5 text-amber-900/90 pl-1 list-disc list-inside">
                                 <li>Pejabat PPK lama di database dinonaktifkan.</li>
                                 <li>Pejabat baru didaftarkan sebagai PPK aktif.</li>
                                 <li>Dokumen SPKL & anggaran otomatis pakai PPK baru.</li>
@@ -731,7 +711,7 @@
                                 Tahun Periode / SK <span class="text-rose-500">*</span>
                             </label>
                             <input type="number" name="tahun" id="tahunPpk" value="{{ date('Y') }}" min="2020" max="2099" required
-                                class="w-full h-9.5 px-3 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 transition-all shadow-2xs">
+                                class="w-full h-9.5 px-3 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all shadow-2xs">
                         </div>
                     </div>
 
@@ -744,16 +724,16 @@
                             <p class="text-[10px] text-slate-400 mt-0.5">Klik salah satu pegawai di sebelah kanan</p>
                         </div>
 
-                        <div id="previewContainerPpk" class="hidden p-3 rounded-xl border border-sky-300 bg-sky-50/90 shadow-2xs">
+                        <div id="previewContainerPpk" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div id="previewAvatarPpk" class="w-9 h-9 rounded-full bg-sky-200 text-sky-900 font-bold text-xs flex items-center justify-center shrink-0 border border-sky-300 shadow-2xs">
+                                    <div id="previewAvatarPpk" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
                                         PK
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center gap-1.5">
-                                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-600 text-white">TERPILIH</span>
-                                            <span id="previewSatkerPpk" class="text-[10px] px-1.5 py-0.2 rounded bg-sky-100 text-sky-800 font-medium">BPS</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#faa938] text-slate-950">TERPILIH</span>
+                                            <span id="previewSatkerPpk" class="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-medium">BPS</span>
                                         </div>
                                         <div id="previewNamePpk" class="text-xs font-bold text-slate-900 truncate mt-0.5"></div>
                                         <div id="previewNipPpk" class="text-[10.5px] text-slate-600 font-mono"></div>
@@ -783,7 +763,7 @@
                         </div>
                         <input type="text" id="searchPegawaiPpk" placeholder="Cari nama atau NIP pegawai..."
                             oninput="filterPegawaiModern('Ppk')"
-                            class="w-full text-xs h-9 pl-9 pr-8 rounded-xl border border-slate-200 bg-white placeholder-slate-400 text-slate-800 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 transition-all shadow-2xs">
+                            class="w-full text-xs h-9 pl-9 pr-8 rounded-xl border border-slate-200 bg-white placeholder-slate-400 text-slate-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all shadow-2xs">
                         <button type="button" id="clearSearchPpk" onclick="clearSearchPegawai('Ppk')" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -827,7 +807,7 @@
                                     data-display-satker="{{ $p->satker ?? 'BPS' }}"
                                     onclick="selectPegawaiModern('Ppk', '{{ $p->id_pegawai }}', this)">
                                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                        <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-800 font-bold text-xs flex items-center justify-center shrink-0 border border-sky-200 group-hover:scale-105 transition-transform">
+                                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
                                             {{ $initials }}
                                         </div>
                                         <div class="min-w-0 flex-1">
@@ -839,8 +819,8 @@
                                         </div>
                                     </div>
                                     <div class="status-indicator shrink-0 ml-2">
-                                        <div class="radio-circle w-4.5 h-4.5 rounded-full border border-slate-300 flex items-center justify-center group-hover:border-sky-400 transition-all">
-                                            <svg class="check-icon hidden w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <div class="radio-circle w-4.5 h-4.5 rounded-full border border-slate-300 flex items-center justify-center group-hover:border-[#faa938] transition-all">
+                                            <svg class="check-icon hidden w-3 h-3 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                             </svg>
                                         </div>
@@ -868,7 +848,7 @@
                     Batal
                 </button>
                 <button type="submit"
-                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-all shadow-xs cursor-pointer">
+                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] rounded-xl transition-all shadow-xs cursor-pointer">
                     Simpan Penetapan PPK
                 </button>
             </div>
@@ -883,7 +863,7 @@
     <div class="relative bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
             <div class="flex items-center gap-2.5">
-                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 shadow-2xs">
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                     </svg>
@@ -907,15 +887,15 @@
                 {{-- Kolom Kiri (md:col-span-5): Info & Preview --}}
                 <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                     <div class="space-y-3.5">
-                        <div class="p-3.5 rounded-xl bg-indigo-50/80 border border-indigo-100 text-xs text-indigo-900 leading-relaxed space-y-1.5">
-                            <p class="font-bold flex items-center gap-1.5 text-indigo-800 text-xs">
-                                <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 leading-relaxed space-y-1.5">
+                            <p class="font-bold flex items-center gap-1.5 text-amber-800 text-xs">
+                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Wewenang Akses Admin:
                             </p>
-                            <p class="text-[11px] text-indigo-900/90 leading-relaxed">
+                            <p class="text-[11px] text-amber-900/90 leading-relaxed">
                                 Pegawai yang diangkat sebagai Admin Lembur memiliki wewenang untuk:
                             </p>
-                            <ul class="text-[11px] space-y-0.5 text-indigo-900/90 pl-1 list-disc list-inside">
+                            <ul class="text-[11px] space-y-0.5 text-amber-900/90 pl-1 list-disc list-inside">
                                 <li>Unggah & kelola data presensi harian.</li>
                                 <li>Monitoring & koreksi transaksi lembur.</li>
                                 <li>Penyusunan tim & generate dokumen SPKL.</li>
@@ -932,16 +912,16 @@
                             <p class="text-[10px] text-slate-400 mt-0.5">Klik salah satu pegawai di sebelah kanan</p>
                         </div>
 
-                        <div id="previewContainerAdmin" class="hidden p-3 rounded-xl border border-indigo-300 bg-indigo-50/90 shadow-2xs">
+                        <div id="previewContainerAdmin" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div id="previewAvatarAdmin" class="w-9 h-9 rounded-full bg-indigo-200 text-indigo-900 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-300 shadow-2xs">
+                                    <div id="previewAvatarAdmin" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
                                         AD
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center gap-1.5">
-                                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-600 text-white">TERPILIH</span>
-                                            <span id="previewSatkerAdmin" class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800 font-medium">BPS</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#faa938] text-slate-950">TERPILIH</span>
+                                            <span id="previewSatkerAdmin" class="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-medium">BPS</span>
                                         </div>
                                         <div id="previewNameAdmin" class="text-xs font-bold text-slate-900 truncate mt-0.5"></div>
                                         <div id="previewNipAdmin" class="text-[10.5px] text-slate-600 font-mono"></div>
@@ -971,7 +951,7 @@
                         </div>
                         <input type="text" id="searchPegawaiAdmin" placeholder="Ketik nama atau NIP pegawai..."
                             oninput="filterPegawaiModern('Admin')"
-                            class="w-full text-xs h-9 pl-9 pr-8 rounded-xl border border-slate-200 bg-white placeholder-slate-400 text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-2xs">
+                            class="w-full text-xs h-9 pl-9 pr-8 rounded-xl border border-slate-200 bg-white placeholder-slate-400 text-slate-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all shadow-2xs">
                         <button type="button" id="clearSearchAdmin" onclick="clearSearchPegawai('Admin')" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -992,7 +972,7 @@
                                 data-display-satker="{{ $p->satker ?? 'BPS' }}"
                                 onclick="selectPegawaiModern('Admin', '{{ $p->id_pegawai }}', this)">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-200 group-hover:scale-105 transition-transform">
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
                                         {{ $initials }}
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -1004,8 +984,8 @@
                                     </div>
                                 </div>
                                 <div class="status-indicator shrink-0 ml-2">
-                                    <div class="radio-circle w-4.5 h-4.5 rounded-full border border-slate-300 flex items-center justify-center group-hover:border-indigo-400 transition-all">
-                                        <svg class="check-icon hidden w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div class="radio-circle w-4.5 h-4.5 rounded-full border border-slate-300 flex items-center justify-center group-hover:border-[#faa938] transition-all">
+                                        <svg class="check-icon hidden w-3 h-3 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                         </svg>
                                     </div>
@@ -1032,8 +1012,175 @@
                     Batal
                 </button>
                 <button type="submit"
-                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xs cursor-pointer">
+                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] rounded-xl transition-all shadow-xs cursor-pointer">
                     Angkat Sebagai Admin
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- ========================================================== --}}
+{{-- MODAL 2B: GANTI ADMIN LEMBUR                               --}}
+{{-- ========================================================== --}}
+<div id="modalGantiAdmin" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="relative bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+            <div class="flex items-center gap-2.5">
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-2xs">
+                    <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                </span>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 leading-tight">Ganti Admin Lembur</h3>
+                    <p class="text-[11px] text-slate-500">Alihkan wewenang pengelolaan lembur dari petugas saat ini ke pegawai lain</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeModalGantiAdmin()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1.5 hover:bg-slate-100 transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <form action="{{ route('admin.manajemen-user.ganti-admin') }}" method="POST" onsubmit="return validateFormGantiAdmin(event)">
+            @csrf
+            <input type="hidden" name="id_pegawai_lama" id="inputGantiAdminLama" value="">
+            <input type="hidden" name="id_pegawai_baru" id="inputPegawaiGantiAdmin" value="">
+
+            {{-- 2-Column Grid Layout (Landscape) --}}
+            <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6">
+                {{-- Kolom Kiri (md:col-span-5): Info Petugas Lama & Preview Petugas Baru --}}
+                <div class="md:col-span-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-3.5">
+                        {{-- Kartu Info Admin Lama yang Diganti --}}
+                        <div class="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 space-y-2">
+                            <span class="block text-[11px] font-bold uppercase tracking-wider text-amber-800">Admin yang Digantikan</span>
+                            <div class="flex items-center gap-2.5 bg-white p-2.5 rounded-lg border border-amber-200/80">
+                                <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0">
+                                    AL
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div id="labelGantiAdminLamaNama" class="font-bold text-slate-900 truncate text-xs">-</div>
+                                    <div id="labelGantiAdminLamaNip" class="text-[11px] text-slate-500 font-mono">-</div>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-amber-900/90 leading-relaxed">
+                                Petugas di atas akan dikembalikan menjadi peran Pengguna biasa, dan pegawai pengganti terpilih akan menjadi Admin Lembur.
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Kotak Preview Pegawai Pengganti Terpilih --}}
+                    <div>
+                        <span class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Pegawai Pengganti Terpilih</span>
+                        
+                        <div id="placeholderPreviewGantiAdmin" class="p-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 text-center">
+                            <p class="text-xs text-slate-400 italic">Belum ada pegawai pengganti dipilih</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Klik salah satu pegawai di sebelah kanan</p>
+                        </div>
+
+                        <div id="previewContainerGantiAdmin" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div id="previewAvatarGantiAdmin" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
+                                        PG
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#faa938] text-slate-950">PENGGANTI</span>
+                                            <span id="previewSatkerGantiAdmin" class="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-medium">BPS</span>
+                                        </div>
+                                        <div id="previewNameGantiAdmin" class="text-xs font-bold text-slate-900 truncate mt-0.5"></div>
+                                        <div id="previewNipGantiAdmin" class="text-[10.5px] text-slate-600 font-mono"></div>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="clearSelection('GantiAdmin')" class="text-slate-400 hover:text-rose-600 p-1 shrink-0 transition-colors cursor-pointer" title="Batalkan pilihan">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Kolom Kanan (md:col-span-7): Pencarian & Listbox Pegawai --}}
+                <div class="md:col-span-7 flex flex-col min-w-0">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                        <span>Pilih Pegawai Pengganti <span class="text-rose-500">*</span></span>
+                        <span id="counterPegawaiGantiAdmin" class="text-[11px] font-normal text-slate-400"></span>
+                    </label>
+
+                    {{-- Search Input --}}
+                    <div class="relative mb-2">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text" id="searchPegawaiGantiAdmin" placeholder="Cari nama atau NIP pegawai..."
+                            oninput="filterPegawaiModern('GantiAdmin')"
+                            class="w-full text-xs h-9 pl-9 pr-8 rounded-xl border border-slate-200 bg-white placeholder-slate-400 text-slate-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all shadow-2xs">
+                        <button type="button" id="clearSearchGantiAdmin" onclick="clearSearchPegawai('GantiAdmin')" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    {{-- Listbox Kartu Interaktif --}}
+                    <div id="listPegawaiGantiAdmin" class="h-64 sm:h-72 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-1.5 space-y-1 shadow-inner divide-y divide-slate-100/60">
+                        @foreach($semuaPegawai->where('role', '!=', 'superadmin') as $p)
+                            @php
+                                $initials = strtoupper(substr($p->nama, 0, 2));
+                            @endphp
+                            <div class="pegawai-item group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-2xs select-none"
+                                data-id="{{ $p->id_pegawai }}"
+                                data-name="{{ strtolower($p->nama) }}"
+                                data-nip="{{ $p->nip ?? ($p->nip_lama ?? '') }}"
+                                data-display-name="{{ $p->nama }}"
+                                data-display-nip="{{ $p->nip ?? ($p->nip_lama ?? '-') }}"
+                                data-display-satker="{{ $p->satker ?? 'BPS' }}"
+                                onclick="selectPegawaiModern('GantiAdmin', '{{ $p->id_pegawai }}', this)">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+                                        {{ $initials }}
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-xs font-semibold text-slate-800 group-hover:text-slate-900 truncate">{{ $p->nama }}</div>
+                                        <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                                            <span class="font-mono text-[10.5px]">NIP: {{ $p->nip ?? ($p->nip_lama ?? '-') }}</span>
+                                            <span class="px-1.5 py-0.2 rounded text-[10px] bg-slate-200/70 text-slate-600 font-medium shrink-0">{{ $p->satker ?? 'BPS' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="status-indicator shrink-0 ml-2">
+                                    <div class="radio-circle w-4.5 h-4.5 rounded-full border border-slate-300 flex items-center justify-center group-hover:border-[#faa938] transition-all">
+                                        <svg class="check-icon hidden w-3 h-3 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+
+                        {{-- Empty state pencarian --}}
+                        <div id="emptyPegawaiGantiAdmin" class="hidden py-8 text-center text-slate-400">
+                            <svg class="w-7 h-7 mx-auto mb-1 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+                            </svg>
+                            <p class="text-xs font-medium text-slate-600">Pegawai tidak ditemukan</p>
+                            <p class="text-[11px] text-slate-400">Coba kata kunci nama atau NIP lain</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Footer Buttons --}}
+            <div class="flex items-center justify-end gap-2.5 px-6 py-3.5 bg-slate-50/80 border-t border-slate-100">
+                <button type="button" onclick="closeModalGantiAdmin()"
+                    class="px-4 py-2 text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] rounded-xl transition-all shadow-xs cursor-pointer">
+                    Simpan Pergantian Admin
                 </button>
             </div>
         </form>
@@ -1044,17 +1191,17 @@
 {{-- MODAL 3: TAMBAH SUPERADMIN (DENGAN PERINGATAN WAJIB)       --}}
 {{-- ========================================================== --}}
 <div id="modalTambahSuperadmin" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="relative bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl border border-rose-200 overflow-hidden transform transition-all my-auto">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-rose-100 bg-rose-50/70">
+    <div class="relative bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
             <div class="flex items-center gap-2.5">
-                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-100 text-rose-600 shadow-2xs">
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-2xs">
                     <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                     </svg>
                 </span>
                 <div>
-                    <h3 class="text-base font-bold text-rose-900 leading-tight">Penambahan Super Administrator</h3>
-                    <p class="text-[11px] text-rose-600/80">Promosi permanen hak akses tertinggi kendali sistem</p>
+                    <h3 class="text-base font-bold text-slate-900 leading-tight">Penambahan Super Administrator</h3>
+                    <p class="text-[11px] text-slate-500">Promosi permanen hak akses tertinggi kendali sistem</p>
                 </div>
             </div>
             <button type="button" onclick="closeModalTambahSuperadmin()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1.5 hover:bg-slate-100 transition-colors cursor-pointer">
@@ -1077,7 +1224,7 @@
                                 <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
-                                PERINGATAN KONFIRMASI:
+                                PERINGATAN KEAMANAN:
                             </div>
                             <p class="text-xs font-semibold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200">
                                 "beneran mau ngasih superadmin, nanti gabisa dicabut lagi"
@@ -1091,9 +1238,9 @@
                         <label class="flex items-start gap-2.5 cursor-pointer p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors">
                             <input type="checkbox" name="konfirmasi" value="1" id="chkKonfirmasiSuperadmin" required
                                 onchange="toggleBtnSubmitSuperadmin(this)"
-                                class="mt-0.5 rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4 cursor-pointer">
+                                class="mt-0.5 rounded border-slate-300 text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer">
                             <span class="text-[11.5px] text-slate-700 leading-snug font-medium">
-                                Saya memahami wewenang ini dan menyetujui hak Super Administrator secara <span class="text-rose-600 font-bold">permanen</span>.
+                                Saya memahami wewenang ini dan menyetujui promosi Super Administrator secara <span class="text-rose-600 font-bold">permanen</span>.
                             </span>
                         </label>
                     </div>
@@ -1107,16 +1254,16 @@
                             <p class="text-[10px] text-slate-400 mt-0.5">Klik salah satu pegawai di sebelah kanan</p>
                         </div>
 
-                        <div id="previewContainerSuperadmin" class="hidden p-3 rounded-xl border border-rose-300 bg-rose-50/90 shadow-2xs">
+                        <div id="previewContainerSuperadmin" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div id="previewAvatarSuperadmin" class="w-9 h-9 rounded-full bg-rose-200 text-rose-900 font-bold text-xs flex items-center justify-center shrink-0 border border-rose-300 shadow-2xs">
+                                    <div id="previewAvatarSuperadmin" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
                                         SA
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center gap-1.5">
-                                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-600 text-white">TERPILIH</span>
-                                            <span id="previewSatkerSuperadmin" class="text-[10px] px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 font-medium">Role: User</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#faa938] text-slate-950">TERPILIH</span>
+                                            <span id="previewSatkerSuperadmin" class="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-medium">Role: User</span>
                                         </div>
                                         <div id="previewNameSuperadmin" class="text-xs font-bold text-slate-900 truncate mt-0.5"></div>
                                         <div id="previewNipSuperadmin" class="text-[10.5px] text-slate-600 font-mono"></div>
@@ -1146,7 +1293,7 @@
                         </div>
                         <input type="text" id="searchPegawaiSuperadmin" placeholder="Ketik nama atau NIP..."
                             oninput="filterPegawaiModern('Superadmin')"
-                            class="w-full text-xs h-9 pl-9 pr-8 rounded-xl border border-slate-200 bg-white placeholder-slate-400 text-slate-800 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all shadow-2xs">
+                            class="w-full text-xs h-9 pl-9 pr-8 rounded-xl border border-slate-200 bg-white placeholder-slate-400 text-slate-800 focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all shadow-2xs">
                         <button type="button" id="clearSearchSuperadmin" onclick="clearSearchPegawai('Superadmin')" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -1167,20 +1314,20 @@
                                 data-display-satker="Role: {{ ucfirst($p->role) }}"
                                 onclick="selectPegawaiModern('Superadmin', '{{ $p->id_pegawai }}', this)">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center shrink-0 border border-rose-200 group-hover:scale-105 transition-transform">
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
                                         {{ $initials }}
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="text-xs font-semibold text-slate-800 group-hover:text-slate-900 truncate">{{ $p->nama }}</div>
                                         <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
                                             <span class="font-mono text-[10.5px]">NIP: {{ $p->nip ?? ($p->nip_lama ?? '-') }}</span>
-                                            <span class="px-1.5 py-0.2 rounded text-[10px] bg-rose-100 text-rose-700 font-medium shrink-0">Role: {{ ucfirst($p->role) }}</span>
+                                            <span class="px-1.5 py-0.2 rounded text-[10px] bg-slate-100 text-slate-600 font-medium shrink-0">Role: {{ ucfirst($p->role) }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="status-indicator shrink-0 ml-2">
-                                    <div class="radio-circle w-4.5 h-4.5 rounded-full border border-slate-300 flex items-center justify-center group-hover:border-rose-400 transition-all">
-                                        <svg class="check-icon hidden w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div class="radio-circle w-4.5 h-4.5 rounded-full border border-slate-300 flex items-center justify-center group-hover:border-[#faa938] transition-all">
+                                        <svg class="check-icon hidden w-3 h-3 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                                         </svg>
                                     </div>
@@ -1207,7 +1354,7 @@
                     Batal
                 </button>
                 <button type="submit" id="btnSubmitSuperadmin" disabled
-                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 disabled:cursor-not-allowed rounded-xl transition-all shadow-xs cursor-pointer">
+                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-300 disabled:cursor-not-allowed rounded-xl transition-all shadow-xs cursor-pointer">
                     Ya, Angkat Jadi Superadmin
                 </button>
             </div>
@@ -1249,6 +1396,34 @@
         document.getElementById('modalTambahAdmin').classList.add('hidden');
     }
 
+    // Modal Ganti Admin
+    function openModalGantiAdmin(idLama, namaLama, nipLama) {
+        document.getElementById('inputGantiAdminLama').value = idLama;
+        document.getElementById('labelGantiAdminLamaNama').textContent = namaLama;
+        document.getElementById('labelGantiAdminLamaNip').textContent = 'NIP: ' + nipLama;
+        document.getElementById('modalGantiAdmin').classList.remove('hidden');
+        clearSelection('GantiAdmin');
+        clearSearchPegawai('GantiAdmin');
+        setTimeout(() => document.getElementById('searchPegawaiGantiAdmin')?.focus(), 50);
+    }
+    function closeModalGantiAdmin() {
+        document.getElementById('modalGantiAdmin').classList.add('hidden');
+    }
+    function validateFormGantiAdmin(event) {
+        const inputBaru = document.getElementById('inputPegawaiGantiAdmin');
+        if (!inputBaru || !inputBaru.value) {
+            if (event) event.preventDefault();
+            const list = document.getElementById('listPegawaiGantiAdmin');
+            if (list) {
+                list.classList.add('ring-2', 'ring-rose-500', 'border-rose-400');
+                setTimeout(() => list.classList.remove('ring-2', 'ring-rose-500', 'border-rose-400'), 1500);
+            }
+            alert('Silakan pilih salah satu pegawai pengganti terlebih dahulu.');
+            return false;
+        }
+        return true;
+    }
+
     // Modal Tambah Superadmin
     function openModalTambahSuperadmin() {
         document.getElementById('modalTambahSuperadmin').classList.remove('hidden');
@@ -1269,6 +1444,15 @@
         }
     }
 
+    // Konfigurasi seragam aksen tema BPS Amber & Slate Netral
+    const themeBPS = {
+        selectedBg: 'bg-amber-50/90',
+        selectedBorder: 'border-amber-300',
+        ringClass: 'ring-amber-300/60',
+        radioBg: 'bg-[#faa938]',
+        radioBorder: 'border-[#faa938]'
+    };
+
     // Pilih item pegawai pada listbox interaktif modern
     function selectPegawaiModern(type, id, element) {
         const input = document.getElementById('inputPegawai' + type);
@@ -1285,59 +1469,17 @@
         // Set value input tersembunyi
         input.value = id;
 
-        // Konfigurasi style aksen tema
-        const themeConfig = {
-            'Kabag': {
-                selectedBg: 'bg-amber-50/90',
-                selectedBorder: 'border-amber-300',
-                ringClass: 'ring-amber-300/60',
-                radioBg: 'bg-[#faa938]',
-                radioBorder: 'border-[#faa938]'
-            },
-            'Ppk': {
-                selectedBg: 'bg-sky-50/90',
-                selectedBorder: 'border-sky-300',
-                ringClass: 'ring-sky-300/60',
-                radioBg: 'bg-sky-600',
-                radioBorder: 'border-sky-600'
-            },
-            'Admin': {
-                selectedBg: 'bg-indigo-50/90',
-                selectedBorder: 'border-indigo-300',
-                ringClass: 'ring-indigo-300/60',
-                radioBg: 'bg-indigo-600',
-                radioBorder: 'border-indigo-600'
-            },
-            'Superadmin': {
-                selectedBg: 'bg-rose-50/90',
-                selectedBorder: 'border-rose-300',
-                ringClass: 'ring-rose-300/60',
-                radioBg: 'bg-rose-600',
-                radioBorder: 'border-rose-600'
-            }
-        };
-
-        const theme = themeConfig[type] || themeConfig['Kabag'];
-
         // Bersihkan seleksi aktif pada semua baris di list ini
         const items = list.querySelectorAll('.pegawai-item');
         items.forEach(item => {
             item.classList.remove(
                 'bg-amber-50/90', 'border-amber-300', 'ring-amber-300/60',
-                'bg-sky-50/90', 'border-sky-300', 'ring-sky-300/60',
-                'bg-indigo-50/90', 'border-indigo-300', 'ring-indigo-300/60',
-                'bg-rose-50/90', 'border-rose-300', 'ring-rose-300/60',
                 'ring-1', 'shadow-xs'
             );
             item.classList.add('border-transparent');
             const radio = item.querySelector('.radio-circle');
             if (radio) {
-                radio.classList.remove(
-                    'bg-[#faa938]', 'border-[#faa938]',
-                    'bg-sky-600', 'border-sky-600',
-                    'bg-indigo-600', 'border-indigo-600',
-                    'bg-rose-600', 'border-rose-600'
-                );
+                radio.classList.remove('bg-[#faa938]', 'border-[#faa938]');
                 radio.classList.add('border-slate-300');
             }
             const check = item.querySelector('.check-icon');
@@ -1346,12 +1488,12 @@
 
         // Terapkan seleksi aktif pada elemen yang diklik
         element.classList.remove('border-transparent');
-        element.classList.add(theme.selectedBg, theme.selectedBorder, 'ring-1', theme.ringClass, 'shadow-xs');
+        element.classList.add(themeBPS.selectedBg, themeBPS.selectedBorder, 'ring-1', themeBPS.ringClass, 'shadow-xs');
 
         const activeRadio = element.querySelector('.radio-circle');
         if (activeRadio) {
             activeRadio.classList.remove('border-slate-300');
-            activeRadio.classList.add(theme.radioBg, theme.radioBorder);
+            activeRadio.classList.add(themeBPS.radioBg, themeBPS.radioBorder);
         }
         const activeCheck = element.querySelector('.check-icon');
         if (activeCheck) activeCheck.classList.remove('hidden');
@@ -1443,20 +1585,12 @@
             items.forEach(item => {
                 item.classList.remove(
                     'bg-amber-50/90', 'border-amber-300', 'ring-amber-300/60',
-                    'bg-sky-50/90', 'border-sky-300', 'ring-sky-300/60',
-                    'bg-indigo-50/90', 'border-indigo-300', 'ring-indigo-300/60',
-                    'bg-rose-50/90', 'border-rose-300', 'ring-rose-300/60',
                     'ring-1', 'shadow-xs'
                 );
                 item.classList.add('border-transparent');
                 const radio = item.querySelector('.radio-circle');
                 if (radio) {
-                    radio.classList.remove(
-                        'bg-[#faa938]', 'border-[#faa938]',
-                        'bg-sky-600', 'border-sky-600',
-                        'bg-indigo-600', 'border-indigo-600',
-                        'bg-rose-600', 'border-rose-600'
-                    );
+                    radio.classList.remove('bg-[#faa938]', 'border-[#faa938]');
                     radio.classList.add('border-slate-300');
                 }
                 const check = item.querySelector('.check-icon');
@@ -1490,6 +1624,7 @@
             closeModalGantiKabag();
             closeModalGantiPpk();
             closeModalTambahAdmin();
+            closeModalGantiAdmin();
             closeModalTambahSuperadmin();
         }
     });

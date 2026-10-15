@@ -284,6 +284,7 @@ Route::middleware('checksession')->group(function () {
             Route::post('/manajemen-user/ganti-kabag',         [ManajemenUserController::class, 'gantiKabag'])->name('manajemen-user.ganti-kabag');
             Route::post('/manajemen-user/ganti-ppk',           [ManajemenUserController::class, 'gantiPpk'])->name('manajemen-user.ganti-ppk');
             Route::post('/manajemen-user/tambah-admin',        [ManajemenUserController::class, 'tambahAdmin'])->name('manajemen-user.tambah-admin');
+            Route::post('/manajemen-user/ganti-admin',         [ManajemenUserController::class, 'gantiAdmin'])->name('manajemen-user.ganti-admin');
             Route::delete('/manajemen-user/hapus-admin/{id}',  [ManajemenUserController::class, 'hapusAdmin'])->name('manajemen-user.hapus-admin');
             Route::post('/manajemen-user/tambah-superadmin',   [ManajemenUserController::class, 'tambahSuperadmin'])->name('manajemen-user.tambah-superadmin');
         });
