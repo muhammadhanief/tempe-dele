@@ -526,7 +526,7 @@
                                                 </a>
                                                 @if($t->submitted_by_NIP === session('user')['nip'])
                                                     <form action="{{ route('admin.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
-                                                        onsubmit="return confirm('Hapus dokumentasi ini?')" class="inline">
+                                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus tautan dokumentasi kegiatan ini?')" class="inline">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="p-1 text-gray-400 hover:text-red-600 rounded transition-colors" title="Hapus dokumentasi">
@@ -1167,11 +1167,11 @@
             }
             const sigErr = document.getElementById('signatureError');
             if (sigErr) {
-                sigErr.textContent = '⚠️ Tanda tangan digital wajib digoreskan sebelum mengirim pengajuan.';
+                sigErr.textContent = '⚠️ Tanda tangan digital wajib dibubuhkan sebelum mengirimkan pengajuan lembur.';
                 sigErr.classList.remove('hidden');
             }
             canvas?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            alert('Tanda tangan digital belum diisi! Silakan goreskan tanda tangan Anda pada kotak tanda tangan.');
+            alert('Tanda tangan digital belum dibubuhkan. Silakan bubuhkan tanda tangan Anda pada area kanvas yang tersedia.');
             return;
         }
         document.getElementById('signatureError').classList.add('hidden');

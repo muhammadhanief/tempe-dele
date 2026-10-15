@@ -1793,7 +1793,7 @@ window.simpanKeputusan = function() {
     }
 
     if (keputusan === 'rejected' && !catatan.trim()) {
-        alert('Catatan/alasan penolakan wajib diisi jika menolak.');
+        alert('Kolom catatan wajib diisi untuk memberikan alasan penolakan.');
         document.getElementById('kCatatan').focus();
         return;
     }
@@ -1995,7 +1995,7 @@ window.simpanKeputusan = function() {
         closeModalKeputusan();
     })
     .catch(error => {
-        alert(error.message || 'Gagal menyimpan, coba lagi.');
+        alert(error.message || 'Gagal memproses dan menyimpan keputusan. Silakan coba beberapa saat lagi.');
     })
     .finally(() => {
         btn.disabled = false;

@@ -378,7 +378,7 @@
         } catch (e) {
             btn.disabled    = false;
             btn.textContent = '✓ Setujui';
-            alert('Gagal menyetujui. Coba lagi.');
+            alert('Gagal memproses persetujuan pengajuan. Silakan coba beberapa saat lagi.');
         }
     }
 
