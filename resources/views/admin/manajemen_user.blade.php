@@ -268,8 +268,8 @@
     {{-- ========================================================== --}}
     <div class="space-y-6 pt-2">
         {{-- SEKSI A: ADMIN LEMBUR (OPERASIONAL) --}}
-        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+        <div class="space-y-2.5">
+            <div class="flex items-center justify-between gap-3 px-1">
                 <div class="flex items-center gap-2">
                     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Admin Lembur</h2>
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
@@ -287,96 +287,98 @@
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left">
-                    <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
-                        <tr>
-                            <th class="px-4 py-3 font-semibold">Nama Petugas</th>
-                            <th class="px-4 py-3 font-semibold">NIP / Identitas</th>
-                            <th class="px-4 py-3 font-semibold">Email Dinas</th>
-                            <th class="px-4 py-3 font-semibold">Satuan Kerja</th>
-                            <th class="px-4 py-3 font-semibold text-center w-28">Wewenang</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-800">
-                        @forelse($admins as $adm)
-                            @php
-                                $sessUser = session('user');
-                                $sessNip = is_array($sessUser) ? ($sessUser['nip'] ?? null) : ($sessUser->nip ?? null);
-                                $isMe = $sessNip === $adm->nip;
-                            @endphp
-                            <tr class="hover:bg-slate-50/80 transition-colors">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
-                                            {{ strtoupper(substr($adm->nama, 0, 2)) }}
-                                        </div>
-                                        <div class="min-w-0">
-                                            <span class="font-semibold text-slate-900 block truncate">{{ $adm->nama }}</span>
-                                            @if($isMe)
-                                                <span class="inline-flex items-center text-[10px] text-amber-700 font-bold">Akun Anda</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 font-mono text-slate-600 whitespace-nowrap text-[11px]">
-                                    <div>{{ $adm->nip ?? '-' }}</div>
-                                    @if($adm->nip_lama)
-                                        <div class="text-[10px] text-slate-400">BPS: {{ $adm->nip_lama }}</div>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-slate-600 text-[11.5px]">
-                                    {{ $adm->email ?? '-' }}
-                                </td>
-                                <td class="px-4 py-3 text-slate-600 text-[11.5px]">
-                                    {{ $adm->satker ?? 'BPS Provinsi Jawa Tengah' }}
-                                </td>
-                                <td class="px-4 py-3 text-center whitespace-nowrap">
-                                    @if($isMe)
-                                        <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 italic">Terkunci (Akun Anda)</span>
-                                    @else
-                                        <div class="inline-flex items-center justify-center gap-1.5">
-                                            <button type="button"
-                                                onclick="openModalGantiAdmin('{{ $adm->id_pegawai }}', '{{ addslashes($adm->nama) }}', '{{ $adm->nip ?? ($adm->nip_lama ?? '-') }}')"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-900 bg-amber-100/90 hover:bg-amber-200 border border-amber-300 transition-colors cursor-pointer"
-                                                title="Ganti Admin: serahkan wewenang admin ini kepada pegawai lain">
-                                                <svg class="w-3.5 h-3.5 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                                                </svg>
-                                                Ganti
-                                            </button>
-                                            <form action="{{ route('admin.manajemen-user.hapus-admin', $adm->id_pegawai) }}" method="POST"
-                                                onsubmit="return confirm('Apakah Anda yakin ingin mencabut wewenang Admin untuk {{ addslashes($adm->nama) }}? Pegawai akan dikembalikan ke peran biasa.');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer"
-                                                    title="Cabut Akses Admin">
-                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                    </svg>
-                                                    Cabut
-                                                </button>
-                                            </form>
-                                        </div>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
                             <tr>
-                                <td colspan="5" class="px-4 py-7 text-center text-xs text-slate-400 italic">
-                                    Belum ada pegawai yang ditunjuk sebagai Admin Lembur.
-                                </td>
+                                <th class="px-4 py-3 font-semibold">Nama Petugas</th>
+                                <th class="px-4 py-3 font-semibold">NIP / Identitas</th>
+                                <th class="px-4 py-3 font-semibold">Email Dinas</th>
+                                <th class="px-4 py-3 font-semibold">Satuan Kerja</th>
+                                <th class="px-4 py-3 font-semibold text-center w-28">Wewenang</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-800">
+                            @forelse($admins as $adm)
+                                @php
+                                    $sessUser = session('user');
+                                    $sessNip = is_array($sessUser) ? ($sessUser['nip'] ?? null) : ($sessUser->nip ?? null);
+                                    $isMe = $sessNip === $adm->nip;
+                                @endphp
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
+                                                {{ strtoupper(substr($adm->nama, 0, 2)) }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <span class="font-semibold text-slate-900 block truncate">{{ $adm->nama }}</span>
+                                                @if($isMe)
+                                                    <span class="inline-flex items-center text-[10px] text-amber-700 font-bold">Akun Anda</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 font-mono text-slate-600 whitespace-nowrap text-[11px]">
+                                        <div>{{ $adm->nip ?? '-' }}</div>
+                                        @if($adm->nip_lama)
+                                            <div class="text-[10px] text-slate-400">BPS: {{ $adm->nip_lama }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-600 text-[11.5px]">
+                                        {{ $adm->email ?? '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-600 text-[11.5px]">
+                                        {{ $adm->satker ?? 'BPS Provinsi Jawa Tengah' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-center whitespace-nowrap">
+                                        @if($isMe)
+                                            <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 italic">Terkunci (Akun Anda)</span>
+                                        @else
+                                            <div class="inline-flex items-center justify-center gap-1.5">
+                                                <button type="button"
+                                                    onclick="openModalGantiAdmin('{{ $adm->id_pegawai }}', '{{ addslashes($adm->nama) }}', '{{ $adm->nip ?? ($adm->nip_lama ?? '-') }}')"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-900 bg-amber-100/90 hover:bg-amber-200 border border-amber-300 transition-colors cursor-pointer"
+                                                    title="Ganti Admin: serahkan wewenang admin ini kepada pegawai lain">
+                                                    <svg class="w-3.5 h-3.5 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                                    </svg>
+                                                    Ganti
+                                                </button>
+                                                <form action="{{ route('admin.manajemen-user.hapus-admin', $adm->id_pegawai) }}" method="POST"
+                                                    onsubmit="return confirm('Apakah Anda yakin ingin mencabut wewenang Admin untuk {{ addslashes($adm->nama) }}? Pegawai akan dikembalikan ke peran biasa.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer"
+                                                        title="Cabut Akses Admin">
+                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                        </svg>
+                                                        Cabut
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-4 py-7 text-center text-xs text-slate-400 italic">
+                                        Belum ada pegawai yang ditunjuk sebagai Admin Lembur.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         {{-- SEKSI B: SUPER ADMINISTRATOR (GOVERNANCE UTAMA) --}}
-        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+        <div class="space-y-2.5">
+            <div class="flex items-center justify-between gap-3 px-1">
                 <div class="flex items-center gap-2">
                     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Super Administrator</h2>
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
@@ -385,24 +387,25 @@
                 </div>
 
                 <button type="button" onclick="openModalTambahSuperadmin()"
-                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] text-slate-950 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#faa938]/30 transition-all shadow-2xs shrink-0 cursor-pointer"
+                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-red-600 hover:bg-red-700 border border-red-700 text-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-all shadow-2xs shrink-0 cursor-pointer"
                     title="Promosikan pegawai menjadi Super Administrator">
-                    <svg class="w-3.5 h-3.5 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                     Tambah Superadmin
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left">
-                    <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
-                        <tr>
-                            <th class="px-4 py-3 font-semibold">Nama Superadmin</th>
-                            <th class="px-4 py-3 font-semibold">NIP / Identitas</th>
-                            <th class="px-4 py-3 font-semibold">Email Dinas</th>
-                            <th class="px-4 py-3 font-semibold">Tingkat Hak Akses</th>
-                            <th class="px-4 py-3 font-semibold text-center w-36">Kebijakan</th>
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold">Nama Superadmin</th>
+                                <th class="px-4 py-3 font-semibold">NIP / Identitas</th>
+                                <th class="px-4 py-3 font-semibold">Email Dinas</th>
+                                <th class="px-4 py-3 font-semibold">Tingkat Hak Akses</th>
+                                <th class="px-4 py-3 font-semibold text-center w-36">Kebijakan</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-800">
