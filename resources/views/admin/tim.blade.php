@@ -737,7 +737,7 @@ function initInlineActions() {
                 });
 
                 exitEdit(row, btnDetail, btnEdit, btnSave, btnCancel, btnDelete);
-                showAlert(data.message ?? 'Tim berhasil diupdate');
+                showAlert(data.message ?? 'Data tim kerja berhasil diperbarui.');
             } catch {
                 showAlert('Gagal menghubungi server.', 'error');
             }
@@ -746,7 +746,7 @@ function initInlineActions() {
         btnDelete?.addEventListener('click', async () => {
             const nama = row.querySelector('.cell-display')?.textContent.trim() || 'tim ini';
 
-            if (!confirm(`Hapus tim "${nama}"?`)) return;
+            if (!confirm(`Apakah Anda yakin ingin menghapus tim kerja "${nama}"?`)) return;
 
             try {
                 const res = await fetch(`/admin/master/tim/${kode}`, {
@@ -761,7 +761,7 @@ function initInlineActions() {
 
                 if (res.ok) {
                     row.remove();
-                    showAlert(data.message ?? 'Tim berhasil dihapus');
+                    showAlert(data.message ?? 'Tim kerja berhasil dihapus.');
                     return;
                 }
 
@@ -895,7 +895,7 @@ window.filterAnggota = function () {
 };
 
 async function hapusAnggota(pegawaiId, nama) {
-    if (!confirm(`Hapus "${nama}" dari tim ini?`)) return;
+    if (!confirm(`Apakah Anda yakin ingin mengeluarkan pegawai "${nama}" dari tim kerja ini?`)) return;
 
     try {
         const res = await fetch(`/admin/tim/${currentKodeTim}/anggota`, {
@@ -911,7 +911,7 @@ async function hapusAnggota(pegawaiId, nama) {
         const data = await res.json();
 
         if (res.ok) {
-            showAlert(data.message ?? 'Anggota dihapus');
+            showAlert(data.message ?? 'Pegawai berhasil dikeluarkan dari tim kerja.');
             loadAnggota(anggotaPage);
             return;
         }
@@ -991,7 +991,7 @@ async function tambahAnggota(pegawaiId, nama) {
         const data = await res.json();
 
         if (res.ok) {
-            showAlert(data.message ?? 'Anggota ditambahkan');
+            showAlert(data.message ?? 'Pegawai berhasil ditambahkan ke dalam tim kerja.');
             loadPegawaiTersedia(pegawaiPage);
             return;
         }
@@ -1067,8 +1067,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 window.syncTim = async function () {
-    if (!confirm('Tarik data tim & anggota dari API? Proses ini bisa beberapa saat.')) return;
-    showAlert('Memproses sinkronisasi...', 'success');
+    if (!confirm('Apakah Anda yakin ingin menyinkronkan data tim dan anggota dari API pusat BPS? Proses ini mungkin memerlukan waktu beberapa saat.')) return;
+    showAlert('Sedang memproses sinkronisasi data tim...', 'success');
     try {
         const res = await fetch('{{ route("admin.tim.sync") }}', {
             method: 'POST',

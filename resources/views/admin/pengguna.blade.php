@@ -361,7 +361,7 @@
                         </div>
 
                         <p id="createPasswordError" class="hidden mt-1 text-xs text-red-500">
-                            Password tidak cocok
+                            Konfirmasi kata sandi tidak sesuai
                         </p>
                     </div>
 
@@ -444,7 +444,7 @@
                     </div>
 
                     <p id="passwordError" class="hidden mt-1 text-xs text-red-500">
-                        Password tidak cocok
+                        Konfirmasi kata sandi tidak sesuai
                     </p>
                 </div>
 
@@ -674,7 +674,7 @@ window.submitCreatePegawai = async function () {
     };
 
     if (!payload.nama || !payload.email || !payload.role || !payload.password) {
-        showAlert('Field wajib belum diisi.', 'error');
+        showAlert('Kolom formulir wajib belum dilengkapi.', 'error');
         return;
     }
 
@@ -692,7 +692,7 @@ window.submitCreatePegawai = async function () {
         const data = await res.json();
 
         if (res.ok) {
-            showAlert(data.message ?? 'Pegawai berhasil ditambahkan');
+            showAlert(data.message ?? 'Data pegawai baru berhasil ditambahkan.');
             closeCreateModal();
             setTimeout(() => location.reload(), 800);
         } else {
@@ -747,7 +747,7 @@ window.submitPassword = async function () {
     }
 
     if (!baru) {
-        showAlert('Password tidak boleh kosong.', 'error');
+        showAlert('Kata sandi baru tidak boleh kosong.', 'error');
         return;
     }
 
@@ -769,10 +769,10 @@ window.submitPassword = async function () {
         const data = await res.json();
 
         if (res.ok) {
-            showAlert(data.message ?? 'Password berhasil diubah');
+            showAlert(data.message ?? 'Kata sandi pegawai berhasil diperbarui.');
             closePasswordModal();
         } else {
-            showAlert(data.message ?? 'Gagal mengubah password.', 'error');
+            showAlert(data.message ?? 'Gagal memperbarui kata sandi.', 'error');
         }
     } catch {
         showAlert('Gagal menghubungi server.', 'error');
@@ -840,7 +840,7 @@ document.querySelectorAll('tbody tr[data-id]').forEach(row => {
                 });
 
                 exitEdit(row, btnEdit, btnSave, btnCancel, btnDelete);
-                showAlert(data.message ?? 'Pegawai berhasil diupdate');
+                showAlert(data.message ?? 'Data pegawai berhasil diperbarui.');
             } else {
                 showAlert(data.message ?? 'Gagal menyimpan.', 'error');
             }
@@ -862,7 +862,7 @@ document.querySelectorAll('tbody tr[data-id]').forEach(row => {
     btnDelete?.addEventListener('click', async () => {
         const nama = row.querySelector('.cell-display')?.textContent.trim();
 
-        if (!confirm(`Hapus pegawai "${nama}"?`)) return;
+        if (!confirm(`Apakah Anda yakin ingin menghapus data pegawai "${nama}"?`)) return;
 
         try {
             const res = await fetch(`/admin/pengguna/${id}`, {
@@ -877,7 +877,7 @@ document.querySelectorAll('tbody tr[data-id]').forEach(row => {
 
             if (res.ok) {
                 row.remove();
-                showAlert(data.message ?? 'Pegawai berhasil dihapus');
+                showAlert(data.message ?? 'Data pegawai berhasil dihapus.');
             } else {
                 showAlert(data.message ?? 'Gagal menghapus.', 'error');
             }
@@ -906,7 +906,7 @@ function exitEdit(row, btnEdit, btnSave, btnCancel, btnDelete) {
 // SINKRON PEGAWAI
 // =====================
 function sinkronPegawai() {
-    if (!confirm('Sinkronisasi akan update data semua pegawai. Lanjutkan?')) return;
+    if (!confirm('Proses sinkronisasi akan memperbarui data seluruh pegawai dari basis data pusat BPS. Apakah Anda yakin ingin melanjutkan?')) return;
 
     fetch('{{ route("admin.pengguna.sinkron") }}', {
         method: 'POST',

@@ -572,7 +572,7 @@ function showUploadAlert(message, type = 'success') {
 }
 
 window.submitUpload = async function () {
-    if (!selectedFile) { showUploadAlert('Pilih file xlsx terlebih dahulu.', 'error'); return; }
+    if (!selectedFile) { showUploadAlert('Silakan pilih berkas spreadsheet (.xlsx) terlebih dahulu.', 'error'); return; }
 
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -583,14 +583,14 @@ window.submitUpload = async function () {
     }
 
     try {
-        showUploadAlert('Sedang memproses...');
+        showUploadAlert('Sedang memproses unggahan data presensi...');
         const res  = await fetch('/admin/presensi/upload', { method: 'POST', body: formData });
         const data = await res.json();
         if (res.ok) {
-            showUploadAlert(data.message ?? 'Upload berhasil!');
+            showUploadAlert(data.message ?? 'Data presensi berhasil diunggah.');
             setTimeout(() => closeUploadModal(), 1500);
         } else {
-            showUploadAlert(data.message ?? 'Gagal upload.', 'error');
+            showUploadAlert(data.message ?? 'Gagal mengunggah data presensi.', 'error');
         }
     } catch {
         showUploadAlert('Gagal menghubungi server.', 'error');
@@ -932,7 +932,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     window.submitHariLibur = function () {
-        if (!state.start || !state.end) { alert('Pilih tanggal terlebih dahulu.'); return; }
+        if (!state.start || !state.end) { alert('Silakan tentukan rentang tanggal terlebih dahulu.'); return; }
         document.getElementById('formHariLibur').submit();
     };
 

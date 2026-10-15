@@ -159,7 +159,7 @@
                                             </a>
 
                                             <form method="POST" action="{{ route('admin.dokumen.hapus-satu', $spklPdf->id_dokumen) }}"
-                                                onsubmit="return confirm('Hapus file ini?')" class="ml-auto shrink-0">
+                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus berkas dokumen ini?')" class="ml-auto shrink-0">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-gray-300 hover:text-gray-500 text-base leading-none">
@@ -188,7 +188,7 @@
                                             </a>
 
                                             <form method="POST" action="{{ route('admin.dokumen.hapus-satu', $spklXlsx->id_dokumen) }}"
-                                                onsubmit="return confirm('Hapus file ini?')" class="ml-auto shrink-0">
+                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus berkas dokumen ini?')" class="ml-auto shrink-0">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-gray-300 hover:text-gray-500 text-base leading-none">
@@ -224,7 +224,7 @@
                                             </a>
 
                                             <form method="POST" action="{{ route('admin.dokumen.hapus-satu', $lapPdf->id_dokumen) }}"
-                                                onsubmit="return confirm('Hapus file ini?')" class="ml-auto shrink-0">
+                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus berkas dokumen ini?')" class="ml-auto shrink-0">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-gray-300 hover:text-gray-500 text-base leading-none">
@@ -253,7 +253,7 @@
                                             </a>
 
                                             <form method="POST" action="{{ route('admin.dokumen.hapus-satu', $lapXlsx->id_dokumen) }}"
-                                                onsubmit="return confirm('Hapus file ini?')" class="ml-auto shrink-0">
+                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus berkas dokumen ini?')" class="ml-auto shrink-0">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-gray-300 hover:text-gray-500 text-base leading-none">
@@ -811,12 +811,12 @@
         const ppk = document.getElementById('selectPpkGenerate') ? document.getElementById('selectPpkGenerate').value : '';
 
         if (!bulan || !tahun) {
-            alert('Pilih bulan dan isi tahun dulu!');
+            alert('Silakan pilih bulan dan masukkan tahun terlebih dahulu.');
             return;
         }
 
         if (!dok) {
-            alert('Pilih jenis dokumen!');
+            alert('Silakan pilih jenis dokumen kedinasan terlebih dahulu.');
             return;
         }
 

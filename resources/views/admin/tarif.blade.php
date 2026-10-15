@@ -234,7 +234,7 @@ document.querySelectorAll('tbody tr[data-kerja-id]').forEach(row => {
                     .textContent = formatPajak(pajak);
 
                 exitEdit(row, btnEdit, btnSave, btnCancel);
-                showAlert('Tarif berhasil diupdate');
+                showAlert('Tarif uang lembur dan makan berhasil diperbarui.');
             } else {
                 showAlert('Gagal menyimpan.', 'error');
             }
