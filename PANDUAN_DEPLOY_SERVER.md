@@ -316,7 +316,9 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 214. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Penataan ulang tombol aksi wewenang: penempatan bilah header dan tombol `+ Tambah Admin` [berwarna oranye amber BPS `#faa938` teks `text-slate-950 font-semibold`] dan `+ Tambah Superadmin` [berwarna merah tegas `bg-red-600` teks `text-white font-semibold`] tepat di luar/atas kartu tabel masing-masing [external header bar], menjaga sudut kartu tabel murni `rounded-2xl`, pembersihan blok monogram avatar AL/SA yang memakan tempat vertikal, serta penyelarasan header utama halaman).*
 215. 📄 **`resources/views/partials/sidebar.blade.php`** & **`resources/views/layouts/app.blade.php`** *(Penataan ulang z-index backdrop overlay menjadi `z-40`, kontainer sidebar mobile menjadi `z-50`, dan loading overlay menjadi `z-[100]` untuk memperbaiki bug tampilan buram dan menu tidak dapat diklik saat rasio layar diperkecil `< 1024px`).*
 216. 📄 **Seluruh View Tabel Modul Utama (10 file Blade) & `resources/js/app.js`**: `resources/views/admin/manajemen_user.blade.php`, `resources/views/admin/pengguna.blade.php`, `resources/views/admin/tim.blade.php`, `resources/views/admin/pejabat.blade.php`, `resources/views/admin/tarif.blade.php`, `resources/views/admin/dokumen.blade.php`, `resources/views/admin/laporan.blade.php`, `resources/views/admin/spkl.blade.php`, `resources/views/ketua-tim/dashboard.blade.php`, `resources/views/pimpinan/dashboard.blade.php` *(Standarisasi tabel geser sentuh [horizontal swipeable table] pada tampilan seluler berbatas lebar `min-w-[XXXpx]` dengan proteksi desktop `lg:min-w-full` agar 100% pas selebar layar monitor tanpa scrollbar horizontal desktop dan tanpa mengubah tampilan desktop sama sekali, dilengkapi bilah panduan geser sentuh interaktif `.table-scroll-hint` khusus mobile `sm:hidden`).*
-217. 📁 **`public/build/`** *(Bundel aset produksi Vite terbaru: `manifest.json`, `assets/app-C6Psp9j9.css`, `assets/app-Bx5v8Y8U.js` memuat utility class responsif tabel terbaru).*
+217. 📄 **`resources/views/layouts/app.blade.php`** *(Penambahan titik injeksi `@stack('modals')` langsung pada tingkat root `<body>` di luar pembungkus layout flexbox utama untuk memastikan koordinat fixed modal murni relatif terhadap viewport peramban)*.
+218. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Refactoring 5 dialog modal suksesi pejabat dan admin ke arsitektur 2-layer terpisah [dedicated backdrop fixed inset-0 murni + dedicated scroll/flex container pointer-events-none], pembungkusan ke `@push('modals')`, dan penutupan tag div kontainer halaman untuk eliminasi total celah blur di bagian bawah viewport)*.
+219. 📁 **`public/build/`** *(Bundel aset produksi Vite terbaru: `manifest.json`, `assets/app-C1QRGj3k.css`, `assets/app-Bx5v8Y8U.js`)*.
 
 ---
 
@@ -1706,6 +1708,19 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - **Verifikasi**: Halaman di balik modal terkunci dan tidak dapat digulir (*overflow-hidden* aktif pada body).
   - Tutup modal (klik tombol Batal, ikon silang `X`, atau tekan tombol `Escape`):
     - **Verifikasi**: Dialog modal tertutup mulus, penguncian scroll dilepas, dan footer `&copy; 2026 BPS Provinsi Jawa Tengah - Tim SID` kembali tampil normal dan simetris di bagian bawah halaman.
+
+### CN. Uji Eliminasi Celah Blur Modal (2-Layer Backdrop Architecture & Root Portaling @stack('modals'))
+- [ ] **Uji Backdrop Gelap & Blur Seragam Menyeluruh Tanpa Celah di Bagian Bawah Layar**:
+  - Masuk sebagai Superadmin via `/dev-login/198701052010121003` atau Admin via `/dev-login/199307042015021001`, lalu buka menu **Manajemen User** (`/admin/manajemen-user`).
+  - Klik tombol `+ Tambah Superadmin` (atau `+ Tambah Admin`, `Ganti Kabag`, `Ganti PPK`).
+  - Periksa area vertikal di bagian dasar peramban tepat di bawah kartu modal hingga batas taskbar sistem operasi:
+    - **Verifikasi**: Latar belakang halaman di bawah kartu modal tertutup sempurna oleh efek gelap `bg-slate-900/60` dan buram `backdrop-blur-xs` yang rata dan homogen dari sudut kiri-atas hingga sudut kanan-bawah viewport monitor.
+    - **Verifikasi**: **TIDAK ADA** strip putih, teks tabel yang bocor tanpa blur, maupun batas garis horizontal yang terputus di area bawah layar.
+    - **Verifikasi**: Klik pada area luar modal (backdrop) langsung menutup dialog modal secara instan.
+    - **Verifikasi**: Tombol Batal, ikon silang `X`, dan tombol keyboard `Escape` tetap berfungsi menutup modal dengan mulus.
+- [ ] **Uji Jaminan Nol Regresi Tampilan Desktop**:
+  - Saat modal ditutup, pastikan tabel pejabat aktif, tabel admin lembur, dan tabel super administrator tetap berpenampilan 100% pas selebar layar tanpa perubahan tata letak sedikit pun.
+
 
 
 

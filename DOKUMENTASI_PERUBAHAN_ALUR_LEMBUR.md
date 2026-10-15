@@ -5365,4 +5365,85 @@ Disuntikkan 7 record transaksi realistis periode 1–14 Oktober 2026 di bawah `t
 
 ---
 
+## 51. Rekayasa Arsitektur 2-Layer Backdrop Modal dan Portaling Root `@stack('modals')` untuk Eliminasi Total Celah Blur Viewport Bawah Layar (`layouts/app.blade.php` & `admin/manajemen_user.blade.php`)
+
+### A. Latar Belakang Masalah
+1. Setelah perbaikan tata letak footer di Seksi 50, saat dialog modal suksesi pejabat dan hak akses dibuka pada halaman **Manajemen User** (`/admin/manajemen-user`), pengguna masih mendapati anomali visual pada bagian paling bawah layar monitor (area vertikal ~72.5px di bawah kartu modal).
+2. Pada area bawah tersebut, efek buram latar belakang (*backdrop blur*) tidak teraplikasikan secara merata, sehingga teks baris tabel di belakang modal masih terlihat tajam dengan latar putih kontras, memunculkan kesan batas garis horizontal terpotong (*unblurred bottom strip*) di atas bilah tugas (*taskbar*) sistem operasi.
+3. Pengguna secara eksplisit meminta penyempurnaan area bawah tersebut agar seluruh latar belakang halaman tertutup rata oleh efek gelap dan buram (*blur*) tanpa kebocoran elemen tabel sama sekali.
+
+### B. Analisis Akar Masalah Teknis (*Root Cause*)
+1. **Chromium Backdrop-Filter Compositing Limitation pada Single-Div Container:**
+   * Sebelumnya, kelima dialog modal diimplementasikan dengan menggabungkan seluruh kelas utilitas tata letak ke dalam satu elemen `div` pembungkus terluar:
+     ```html
+     <div id="modalTambahSuperadmin" class="fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+         <div class="relative flex flex-col bg-white ...">...</div>
+     </div>
+     ```
+   * Ketika peramban berbasis Chromium (Google Chrome, Microsoft Edge, Brave) memproses `backdrop-filter: blur(...)` pada elemen kontainer yang sekaligus memiliki `overflow-y: auto`, `display: flex`, dan `align-items: center`, mesin perender membatasi batas lapisan komposisi (*compositing bounding box*) backdrop filter hanya sejauh dimensi vertikal anak elemen yang sedang di-center (`height: ~520px` dengan batas bawah di $y \approx 592.5\text{px}$).
+   * Akibatnya, ruang sisa di bawah kartu konten dari $y \approx 592.5\text{px}$ hingga dasar viewport ($y = 665\text{px}$) terabaikan dari perhitungan perenderan efek buram, sehingga teks tabel yang berada di lapisan belakangnya tembus pandang tanpa blur.
+2. **Keterjebakan Hirarki DOM (*Unclosed Container Trap*):**
+   * Pada baris ke-6 berkas `manajemen_user.blade.php`, elemen pembungkus `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">` sebelumnya kekurangan satu tag penutup `</div>` yang valid.
+   * Hal ini menyebabkan seluruh elemen modal bersarang (*nested*) di dalam kontainer konten halaman yang memiliki batasan padding dan tata letak internal, sehingga koordinat `fixed inset-0` dapat terpengaruh oleh konteks penumpukan (*stacking context*) lokal leluhurnya.
+
+### C. Solusi Teknis & Rincian Implementasi
+1. **Penyediaan Titik Pasak Root Modal `@stack('modals')` (`layouts/app.blade.php`):**
+   * Menambahkan arahan Blade `@stack('modals')` langsung pada tingkat teratas elemen `<body>`, tepat di luar pembungkus layout flexbox utama (`min-h-screen`):
+     ```html
+         </div>
+         {{-- end flex min-h-screen --}}
+
+         {{-- MODALS STACK (ROOT LEVEL FOR 100% VIEWPORT BACKDROP) --}}
+         @stack('modals')
+
+         {{-- LOADING OVERLAY --}}
+         ...
+     ```
+   * Dengan pendekatan *portaling* ini, seluruh dialog modal yang didefinisikan di view anak akan diekstrusi langsung ke bawah `<body>`, bebas dari batasan padding `<main>`, margin kontainer, maupun stacking context lokal halaman.
+
+2. **Perbaikan Penutupan Tag Kontainer Halaman (`manajemen_user.blade.php`):**
+   * Menambahkan tag penutup `</div>` pada baris 502 untuk menutup secara sempurna `<div class="max-w-7xl mx-auto...">` sebelum blok modal didefinisikan.
+   * Memverifikasi keseimbangan seluruh tag HTML dengan hasil validasi mutlak: `Final depth: 0, Errors: 0` pada 1.735 baris kode.
+
+3. **Restrukturisasi Arsitektur Modal Menjadi 2-Layer Terpisah (`manajemen_user.blade.php`):**
+   * Memisahkan tanggung jawab visual lapisan latar belakang (*backdrop*) dan lapisan tata letak gulir (*scrolling/flex container*) pada seluruh 5 modal (`#modalGantiKabag`, `#modalGantiPpk`, `#modalTambahAdmin`, `#modalGantiAdmin`, `#modalTambahSuperadmin`):
+     ```html
+     @push('modals')
+     <div id="modalTambahSuperadmin" class="fixed inset-0 z-[60] hidden" role="dialog" aria-modal="true">
+         {{-- Layer 1: Dedicated Full-Screen Backdrop Overlay --}}
+         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeModalTambahSuperadmin()"></div>
+
+         {{-- Layer 2: Dedicated Scroll & Flex Container --}}
+         <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-3 sm:p-4 pointer-events-none">
+             {{-- Dialog Card --}}
+             <div class="pointer-events-auto relative flex flex-col bg-white rounded-2xl max-w-3xl lg:max-w-4xl w-full max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-auto">
+                 ...
+             </div>
+         </div>
+     </div>
+     @endpush
+     ```
+   * **Keunggulan Arsitektur 2-Layer:**
+     * **Layer 1 (Backdrop Murni):** Berupa elemen persegi panjang statis `fixed inset-0` tanpa properti `overflow` maupun `flex`. Chromium merender `backdrop-filter: blur-xs` dan `bg-slate-900/60` secara merata mencakup 100% luas viewport layar tanpa batasan bounding box anak.
+     * **Layer 2 (Scroll/Flex Pembungkus):** Memiliki `pointer-events-none` agar klik di luar kartu menembus langsung ke backdrop Layer 1 untuk memicu penutupan modal (`onclick="closeModal..."`), sementara kartu dialog di dalamnya menggunakan `pointer-events-auto` agar seluruh form, input pencarian, tombol radio, dan tombol aksi tetap interaktif.
+
+### D. Hasil & Verifikasi
+* **Verifikasi Visual:** Tangkapan layar resolusi penuh membuktikan bahwa seluruh area dasar viewport peramban (yang sebelumnya berada di dalam kotak biru pengguna) kini terlapisi secara mulus oleh rona gelap `slate-900/60` dan efek buram `backdrop-blur-xs` yang seragam dari tepi kiri-kanan hingga dasar batas peramban tanpa celah strip putih atau teks tabel yang tembus.
+* **Verifikasi Interaktivitas:**
+  * Seluruh aksi buka/tutup modal via tombol `+ Tambah Superadmin`, `+ Tambah Admin`, `Ganti Kabag`, dan `Ganti PPK` berfungsi dengan sangat responsif.
+  * Fitur klik backdrop overlay untuk menutup modal berfungsi instan.
+  * Navigasi keyboard tombol `Escape` dan tombol Batal/Silang berjalan mulus.
+  * Penguncian gulir latar belakang (`overflow-hidden`) bekerja presisi saat modal terbuka dan otomatis dilepaskan saat modal ditutup.
+* **Jaminan Nol Regresi:** Tata letak desktop, tabel pejabat aktif, tabel admin, dan fungsionalitas aplikasi lainnya tetap 100% utuh tanpa perubahan tampilan sedikit pun.
+
+### E. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/layouts/app.blade.php` | Penambahan titik injeksi `@stack('modals')` pada tingkat root `<body>` di luar pembungkus flexbox layout. |
+| 2 | `resources/views/admin/manajemen_user.blade.php` | Penutupan tag `div` kontainer halaman, pembungkusan seluruh modal ke `@push('modals')`, dan refactoring 5 modal ke arsitektur 2-layer terpisah (backdrop murni + scroll flex container). |
+| 3 | `public/build/` | Kompilasi ulang bundel aset produksi Vite (`app-C1QRGj3k.css` & `app-Bx5v8Y8U.js`). |
+
+---
+
+
 
