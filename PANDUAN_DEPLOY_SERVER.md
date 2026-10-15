@@ -318,7 +318,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 216. 📄 **Seluruh View Tabel Modul Utama (10 file Blade) & `resources/js/app.js`**: `resources/views/admin/manajemen_user.blade.php`, `resources/views/admin/pengguna.blade.php`, `resources/views/admin/tim.blade.php`, `resources/views/admin/pejabat.blade.php`, `resources/views/admin/tarif.blade.php`, `resources/views/admin/dokumen.blade.php`, `resources/views/admin/laporan.blade.php`, `resources/views/admin/spkl.blade.php`, `resources/views/ketua-tim/dashboard.blade.php`, `resources/views/pimpinan/dashboard.blade.php` *(Standarisasi tabel geser sentuh [horizontal swipeable table] pada tampilan seluler berbatas lebar `min-w-[XXXpx]` dengan proteksi desktop `lg:min-w-full` agar 100% pas selebar layar monitor tanpa scrollbar horizontal desktop dan tanpa mengubah tampilan desktop sama sekali, dilengkapi bilah panduan geser sentuh interaktif `.table-scroll-hint` khusus mobile `sm:hidden`).*
 217. 📄 **`resources/views/layouts/app.blade.php`** *(Penambahan titik injeksi `@stack('modals')` langsung pada tingkat root `<body>` di luar pembungkus layout flexbox utama untuk memastikan koordinat fixed modal murni relatif terhadap viewport peramban)*.
 218. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Refactoring 5 dialog modal suksesi pejabat dan admin ke arsitektur 2-layer terpisah [dedicated backdrop fixed inset-0 murni + dedicated scroll/flex container pointer-events-none], pembungkusan ke `@push('modals')`, dan penutupan tag div kontainer halaman untuk eliminasi total celah blur di bagian bawah viewport)*.
-219. 📁 **`public/build/`** *(Bundel aset produksi Vite terbaru: `manifest.json`, `assets/app-C1QRGj3k.css`, `assets/app-Bx5v8Y8U.js`)*.
+219. 📄 **`resources/css/app.css`** & **`resources/js/app.js`** *(Peningkatan pengalaman pergeseran tabel mobile: metric caching anti forced reflow, penyeretan rel 1:1 instant zero-lag, penambahan tombol navigasi panah cepat sentuh `[ ‹ ]` dan `[ › ]`, serta kinetic momentum touch gliding)*.
+220. 📁 **`public/build/`** *(Bundel aset produksi Vite terbaru: `manifest.json`, `assets/app-C-W_ERKf.css`, `assets/app-i3CBr4cx.js`)*.
 
 ---
 
@@ -1720,6 +1721,24 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
     - **Verifikasi**: Tombol Batal, ikon silang `X`, dan tombol keyboard `Escape` tetap berfungsi menutup modal dengan mulus.
 - [ ] **Uji Jaminan Nol Regresi Tampilan Desktop**:
   - Saat modal ditutup, pastikan tabel pejabat aktif, tabel admin lembur, dan tabel super administrator tetap berpenampilan 100% pas selebar layar tanpa perubahan tata letak sedikit pun.
+
+### CO. Uji Kehalusan Pergeseran Tabel Mobile (Quick-Nav Pills, Kinetic Momentum Glide & Desktop Zero-Regression)
+- [ ] **Uji Pergeseran Tabel Halus pada Tampilan Smartphone (< 640px / 390x844 px)**:
+  - Buka halaman tabel mana pun (contoh: `/admin/manajemen-user` atau `/admin/lembur` atau `/kabag-umum/pengajuan`).
+  - Periksa bilah indikator geser `.table-scroll-hint` di atas tabel:
+    - **Verifikasi**: Muncul tombol panah sentuh cepat `[ ‹ ]` dan `[ › ]` yang mengapit indikator persentase di sisi kanan bilah.
+    - **Verifikasi**: Ketuk tombol `[ › ]` ➔ tabel meluncur (*smooth glide*) ke kanan dengan sangat mulus dan angka persentase bertambah proporsional.
+    - **Verifikasi**: Ketuk tombol `[ ‹ ]` ➔ tabel meluncur kembali ke kiri dengan mulus.
+    - **Verifikasi**: Ketuk label persentase (misal: "Geser kanan »" atau "« Geser kiri") ➔ tabel berganti posisi secara otomatis.
+    - **Verifikasi**: Seret bilah jempol oranye (*thumb track*) ➔ tabel bergeser secara instan 1:1 mengikuti ujung jari tanpa patah-patah (*zero lag / no stutter*).
+    - **Verifikasi**: Lakukan usapan jari (*swipe / flick*) langsung di atas tabel ➔ tabel bergerak dengan inersia kinetik alami dan berhenti secara mulus (*kinetic momentum glide*).
+    - **Verifikasi**: Tidak ada bilah scrollbar bawah kaku yang menghalangi jari, dan bayangan tepi (*edge gradient cue*) muncul secara elegan di kiri/kanan.
+- [ ] **Uji Jaminan Mutlak Nol Regresi Tampilan Desktop ($\ge 1024$px / 1280x800 px)**:
+  - Kembalikan viewport ke layar desktop/laptop.
+  - **Verifikasi**: Bilah panduan mobile `.table-scroll-hint` beserta tombol `[ ‹ ]` dan `[ › ]` **100% tersembunyi**.
+  - **Verifikasi**: Seluruh tabel membentang 100% selebar kontainer kartu tanpa horizontal scrollbar desktop.
+  - **Verifikasi**: Seleksi teks dengan kursor kiri mouse tetap berfungsi normal tanpa hambatan.
+
 
 
 

@@ -5445,5 +5445,61 @@ Disuntikkan 7 record transaksi realistis periode 1–14 Oktober 2026 di bawah `t
 
 ---
 
+## 52. Peningkatan Pengalaman Pergeseran Tabel Mobile Menjadi Sangat Halus (*Ultra-Smooth & Frictionless*) dengan *Kinetic Momentum Swiping*, Tombol *Quick-Nav*, dan Eliminasi *Layout Thrashing* (`resources/css/app.css` & `resources/js/app.js`)
+
+### A. Latar Belakang Masalah
+1. Pada tampilan peramban ponsel pintar (*mobile* / smartphone), pengguna membutuhkan kenyamanan maksimal saat menelusuri data tabel kedinasan yang lebar (seperti tabel Manajemen User, Monitoring Lembur, Persetujuan Pengajuan, Rekapitulasi, dsb.).
+2. Sebelumnya, pergeseran tabel pada layar sentuh ponsel terasa kurang mulus (*choppy* / kaku) karena beberapa faktor:
+   * **Stuttering pada Penyeretan Slider:** Menyeret bilah geser sentuh (*table-scroll-track*) memicu eksekusi `scrollTo({ behavior: 'smooth' })` pada setiap event `touchmove`, menyebabkan puluhan animasi CSS saling bertubrukan dan menimbulkan *lag* pergerakan.
+   * **Forced Reflow / Layout Thrashing:** Pembacaan properti geometri DOM (`clientWidth`, `scrollWidth`, `getBoundingClientRect()`) secara berulang-ulang di dalam *scroll handler* memaksa peramban melakukan kalkulasi ulang tata letak halaman pada setiap frame render (FPS turun drastis).
+   * **Gangguan Bilah Penggulir Bawah:** Adanya bilah penggulir horizontal bawaan berketebalan 8px di bagian dasar tabel sering kali tersentuh jari secara tidak sengaja dan bertabrakan dengan gestur geser tabel alami.
+3. Pengguna meminta agar pengalaman pergeseran tabel pada perangkat mobile ditingkatkan menjadi sangat nyaman, responsif, dan halus (*smooth*), dengan syarat mutlak: **TANPA MENGUBAH TAMPILAN DESKTOP SAMA SEKALI**.
+
+### B. Analisis Akar Masalah & Solusi Teknis
+1. **Eliminasi Total Forced Reflow via Metric Caching (`app.js`):**
+   * Mengimplementasikan variabel *metric caching* (`cachedClientW`, `cachedScrollW`, `cachedMaxScroll`, `cachedTrackW`, `cachedThumbW`) yang hanya diperbarui saat terjadi perubahan ukuran kontainer (*ResizeObserver*) atau inisialisasi awal.
+   * Fungsi sinkronisasi `updateScrollIndicator()` kini murni hanya membaca `wrapper.scrollLeft` dan menggerakkan indikator via akselerasi perangkat keras GPU (`transform: translateX(...)`). Tidak ada lagi operasi yang memicu *Forced Synchronous Layout*, sehingga pergeseran mencapai 60fps / 120fps mulus bebas *jank*.
+2. **Penyeretan Rel Geser 1:1 Tanpa Hambatan (*Zero-Lag Track Seeking*):**
+   * Membedakan perilaku penelusuran rel (*track seeking*):
+     * Saat pengguna **menyeret** jarinya pada rel indikator (`touchmove` aktif): posisi pengguliran tabel diperbarui secara langsung (*instant 1:1 tracking* via `wrapper.scrollLeft = targetScroll`), menghilangkan seluruh *lag* dan animasi bertumpuk.
+     * Saat pengguna **mengetuk sekali** (*tap / click*) pada rel: peramban mengeksekusi pergeseran meluncur halus (*smooth gliding*) ke titik yang dipilih.
+3. **Penyediaan Tombol Cepat Navigasi Seluler (*Quick-Nav Arrow Pills*):**
+   * Memperkaya bilah panduan visual mobile (`.table-scroll-hint`) dengan sepasang tombol panah sentuh kompak:
+     * Tombol `[ ‹ ]` (*table-nav-pill-prev*): Menggeser tabel ke arah kiri secara halus.
+     * Tombol `[ › ]` (*table-nav-pill-next*): Menggeser tabel ke arah kanan secara halus.
+     * Label persentase/arah (*hintLabel*): Dapat diketuk langsung (*clickable*) untuk meluncurkan tabel secara instan antara posisi awal dan akhir.
+   * Dilengkapi penyesuaian visual status tombol: tombol meredup (*opacity: 0.35*) dan terkunci (*pointer-events: none*) secara otomatis saat tabel telah mencapai batas kiri atau batas kanan maksimal.
+4. **Penerapan *Kinetic Momentum Touch Swiping*:**
+   * Menambahkan pendeteksi gestur sentuhan langsung pada area tabel:
+     * Membedakan arah usapan secara cerdas: jika pergerakan horizontal dominan (`|dx| > |dy|`), event dicatat untuk pergeseran tabel tanpa mengganggu gulir halaman vertikal.
+     * Saat jari dilepaskan dengan kecepatan ayunan (*flick velocity*), peramban menerapkan deselerasi inersia kinetik alami (*momentum friction decay*) menggunakan `requestAnimationFrame`, memberikan sensasi meluncur ringan layaknya aplikasi native iOS/Android.
+5. **Pembersihan Scrollbar Bawah & Bayangan Tepi (*Edge Gradient Cue*) (`app.css`):**
+   * Khusus pada viewport seluler (`@media (max-width: 640px)`):
+     * Bilah scrollbar bawah bawaan disembunyikan secara bersih (`scrollbar-width: none; ::-webkit-scrollbar { display: none; }`) karena fungsi penunjuk posisi telah digantikan sepenuhnya oleh bilah rel atas (`.table-scroll-track`).
+     * Menambahkan efek bayangan gradien halus pada tepi kiri (`.has-scroll-left::before`) dan tepi kanan (`.has-scroll-right::after`) kontainer sebagai petunjuk visual intuitif bahwa masih ada konten kolom yang dapat digeser.
+6. **Jaminan Mutlak Nol Regresi Desktop:**
+   * Seluruh modifikasi visual diisolasi ke dalam `@media (max-width: 640px)` dan kelas `.table-scroll-hint` yang memiliki utilitas `sm:hidden`.
+   * Pada layar laptop/desktop ($\ge 1024$px), tabel tetap membentang 100% selebar kartu (`lg:min-w-full`), bilah panduan mobile tetap 100% tersembunyi, fitur seleksi teks kursor desktop tetap berjalan normal, dan bilah penggulir desktop 8px tetap beroperasi sesuai standar awal.
+
+### C. Hasil & Verifikasi
+* **Pengujian Layar Mobile (390 x 844 px):**
+  * Tombol navigasi cepat `[ ‹ ]` dan `[ › ]` tampil proporsional di sisi kanan atas tabel mendampingi indikator persentase scroll.
+  * Mengetuk tombol `[ › ]` menggeser tabel ke kanan dengan sangat mulus (*buttery smooth glide*) dan indikator persentase langsung bergerak sinkron (misal: 0% ➔ 36% ➔ 72% ➔ 100%).
+  * Mengetuk tombol `[ ‹ ]` mengembalikan posisi tabel ke kiri dengan kehalusan serupa.
+  * Menyeret bilah jempol oranye (*thumb track*) bergerak responsif mengikuti ujung jari tanpa keterlambatan (*zero latency*).
+  * Area tabel bebas dari bilah scrollbar bawah yang mengganjal sentuhan jari.
+* **Pengujian Layar Desktop (1280 x 800 px):**
+  * Tampilan desktop 100% identik dan bersih tanpa adanya kemunculan tombol mobile atau perubahan proporsi tabel.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/css/app.css` | Penambahan aturan isolasi mobile `< 640px`: pembersihan scrollbar bawah, penambahan edge gradient indicator, dan styling hover/active track & thumb. |
+| 2 | `resources/js/app.js` | Implementasi metric caching (anti layout thrashing), penyeretan rel 1:1 instant, injeksi tombol navigasi panah cepat `[ ‹ ]` dan `[ › ]`, serta kinetic momentum gliding pada sentuhan tabel. |
+| 3 | `public/build/` | Kompilasi ulang bundel aset produksi Vite (`app-C-W_ERKf.css` & `app-i3CBr4cx.js`). |
+
+---
+
+
 
 
