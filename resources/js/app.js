@@ -98,6 +98,12 @@ function initTableScrollbars() {
 
     // 1. Locate or enhance preceding mobile hint block
     let hintBlock = wrapper.previousElementSibling;
+    if (!hintBlock && wrapper.parentElement) {
+      hintBlock = wrapper.parentElement.previousElementSibling;
+      if (!hintBlock || !hintBlock.classList.contains('table-scroll-hint')) {
+        hintBlock = wrapper.parentElement.querySelector(':scope > .table-scroll-hint') || hintBlock;
+      }
+    }
     let track = null;
     let thumb = null;
     let hintLabel = null;

@@ -11,9 +11,24 @@
         <div id="alertInner" class="rounded-xl px-4 py-3 text-sm font-medium"></div>
     </div>
 
-    {{-- Tabel --}}
+    {{-- Petunjuk Geser Horizontal Khusus Mobile --}}
+    <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
+        <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                <span>Geser tabel ke kiri / kanan</span>
+            </span>
+            <span class="table-scroll-pct text-[10px] font-mono text-slate-400 shrink-0">Geser »</span>
+        </div>
+        <div class="table-scroll-track w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
+            <div class="table-scroll-thumb absolute top-0 left-0 h-full bg-[#faa938] rounded-full" style="width: 30%; transform: translateX(0px);"></div>
+        </div>
+    </div>
+
     <div class="overflow-x-auto rounded-xl border border-gray-100 bg-white">
-        <table class="w-full min-w-[900px]">
+        <table class="w-full min-w-[900px] lg:min-w-full">
             <thead>
                 <tr class="bg-gray-100">
                     <th class="px-4 py-4 lg:p-5 text-center text-sm font-semibold text-gray-900">Golongan</th>
