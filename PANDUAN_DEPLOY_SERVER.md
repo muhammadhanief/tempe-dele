@@ -315,6 +315,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 213. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Penerapan prinsip desain anti-slop pada halaman Manajemen User: eliminasi pola kontainer monoton bertumpuk, penyatuan panel eksekutif pejabat penandatangan aktif [Kabag Umum & PPK] menjadi 2-kolom desktop lg:grid-cols-2 dengan laci arsip collapsible, penataan hierarki peran Admin Lembur [AL] dan Super Administrator [SA] dengan ringkasan wewenang dan safeguards konfirmasi, kepatuhan aturan tipografi anti-slop R-02 pembersihan karakter em-dash, serta jaminan rasio kontras tinggi kelembagaan BPS).*
 214. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Penataan ulang tombol aksi wewenang: penempatan bilah header dan tombol `+ Tambah Admin` [berwarna oranye amber BPS `#faa938` teks `text-slate-950 font-semibold`] dan `+ Tambah Superadmin` [berwarna merah tegas `bg-red-600` teks `text-white font-semibold`] tepat di luar/atas kartu tabel masing-masing [external header bar], menjaga sudut kartu tabel murni `rounded-2xl`, pembersihan blok monogram avatar AL/SA yang memakan tempat vertikal, serta penyelarasan header utama halaman).*
 215. 📄 **`resources/views/partials/sidebar.blade.php`** & **`resources/views/layouts/app.blade.php`** *(Penataan ulang z-index backdrop overlay menjadi `z-40`, kontainer sidebar mobile menjadi `z-50`, dan loading overlay menjadi `z-[100]` untuk memperbaiki bug tampilan buram dan menu tidak dapat diklik saat rasio layar diperkecil `< 1024px`).*
+216. 📄 **Seluruh View Tabel Modul Utama (10 file Blade) & `resources/js/app.js`**: `resources/views/admin/manajemen_user.blade.php`, `resources/views/admin/pengguna.blade.php`, `resources/views/admin/tim.blade.php`, `resources/views/admin/pejabat.blade.php`, `resources/views/admin/tarif.blade.php`, `resources/views/admin/dokumen.blade.php`, `resources/views/admin/laporan.blade.php`, `resources/views/admin/spkl.blade.php`, `resources/views/ketua-tim/dashboard.blade.php`, `resources/views/pimpinan/dashboard.blade.php` *(Standarisasi tabel geser sentuh [horizontal swipeable table] pada tampilan seluler berbatas lebar `min-w-[XXXpx]` dengan proteksi desktop `lg:min-w-full` agar 100% pas selebar layar monitor tanpa scrollbar horizontal desktop dan tanpa mengubah tampilan desktop sama sekali, dilengkapi bilah panduan geser sentuh interaktif `.table-scroll-hint` khusus mobile `sm:hidden`).*
+217. 📁 **`public/build/`** *(Bundel aset produksi Vite terbaru: `manifest.json`, `assets/app-C6Psp9j9.css`, `assets/app-Bx5v8Y8U.js` memuat utility class responsif tabel terbaru).*
 
 ---
 
@@ -1652,4 +1654,19 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Header judul modal dan footer tombol aksi (**"Batal"** dan **"Tetapkan Super Administrator"**) tersemat statis (*shrink-0*) dan **100% terlihat jelas di dalam layar**, tanpa pernah terpotong ke bawah garis lipatan layar.
   - **Verifikasi**: Grid formulir dan kotak daftar pegawai di dalamnya memiliki scroll internal mandiri (`overflow-y-auto`) yang mulus, dan tombol submit dapat diklik langsung dengan nyaman.
   - Lakukan hal yang sama pada modal **Ganti Kabag Umum**, **Ganti PPK**, **Tambah Admin Lembur**, dan **Alihkan Wewenang Admin Lembur**.
+
+### CK. Uji Standarisasi Pengguliran Horizontal Tabel (Horizontal Swipeable Tables) pada Tampilan Mobile Seluruh Modul
+- [ ] **Uji Geser Sentuh Tabel pada Tampilan Mobile (Viewport Smartphone $\le 430$px)**:
+  - Buka aplikasi di peramban menggunakan mode responsif smartphone (misal: iPhone 14 Pro / 390x844 px).
+  - Buka halaman **Manajemen User** (`/admin/manajemen-user`):
+    - **Verifikasi**: Pada tabel Admin Lembur dan Super Administrator, muncul bilah panduan visual interaktif di atas tabel (`.table-scroll-hint`) dengan teks *"Geser tabel ke samping untuk melihat data lengkap"* dan rel indikator scroll thumb.
+    - **Verifikasi**: Lakukan gestur geser (*swipe / drag*) pada tabel ke arah kanan ➔ tabel bergeser dengan sangat mulus (*fluid*), kolom NIP, Tanggal Ditugaskan, dan tombol Aksi terlihat jelas tanpa ada teks yang terhimpit.
+    - **Verifikasi**: Indikator thumb pada rel bergerak secara proporsional dari 0% ke 100% mengikuti posisi pengguliran jari.
+  - Buka halaman lain: **Kelola Pengguna** (`/admin/pengguna`), **Tim Kerja** (`/admin/master/tim`), **Kelola Pejabat** (`/admin/master/pejabat`), **Tarif Lembur** (`/admin/tarif`), **Dokumen Kedinasan** (`/admin/dokumen`), **Laporan Lembur** (`/admin/laporan`), **Monitoring SPKL** (`/admin/spkl`), dan **Dashboard** (`/ketua-tim/dashboard`, `/pimpinan/dashboard`):
+    - **Verifikasi**: Seluruh tabel di modul tersebut memunculkan panduan geser dan dapat digeser secara leluasa ke kanan dan kiri tanpa mengalami freeze.
+- [ ] **Uji Jaminan Nol Regresi Tampilan Desktop ($\ge 1024$px / 1280x800 px)**:
+  - Kembalikan viewport peramban ke resolusi desktop (misal: 1280x800 px atau perbesar jendela browser).
+  - **Verifikasi**: Seluruh bilah panduan geser mobile (`.table-scroll-hint`) **100% tersembunyi (*hidden*)** karena memiliki utilitas `sm:hidden`.
+  - **Verifikasi**: Seluruh tabel membentang secara elegan 100% selebar kontainer kartu (*fit 100%*) berkat kelas `lg:min-w-full`.
+  - **Verifikasi**: **TIDAK ADA** bilah penggulir (*scroll bar*) horizontal desktop yang muncul. Tampilan desktop terjamin 100% identik dengan kondisi awal sebelum penyesuaian mobile.
 

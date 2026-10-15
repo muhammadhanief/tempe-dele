@@ -5173,4 +5173,43 @@ Menerapkan arsitektur **Bounded Modal Container** dengan pemisahan zona fleksibe
 
 ---
 
+## 48. Standarisasi Pengguliran Horizontal Tabel (Horizontal Swipeable Tables) pada Tampilan Mobile Seluruh Modul tanpa Mengubah Tata Letak Desktop
+
+### A. Latar Belakang Masalah
+1. Pada perangkat seluler (*mobile smartphone* dengan lebar viewport $\le 430$px), beberapa tabel di aplikasi (seperti tabel Admin Lembur dan Super Administrator pada modul **Manajemen User**, tabel **Kelola Pejabat**, **Tarif Lembur**, **Dokumen Kedinasan**, **Laporan**, **SPKL**, serta tabel ringkasan antrean di **Dashboard**) sebelumnya tidak dapat digeser (*swipeable*) secara horizontal ke kanan atau kiri.
+2. **Akar Masalah (*Root Cause*):**
+   * Sebagian elemen `<table>` tidak memiliki deklarasi batas lebar minimum (`min-w-[...]`). Akibatnya, browser seluler memaksa lebar tabel mengecil hingga 100% dari lebar layar ponsel yang sempit (`scrollWidth === clientWidth`). Karena tidak terjadi *overflow* horizontal, tabel tidak dapat digeser dengan jari (*cannot be swiped*), dan isi teks di dalam sel menjadi terhimpit rapat (*crushed/squished*).
+   * Pada tabel lain yang sudah memiliki `min-w-[...]`, beberapa tidak dilengkapi kelas proteksi desktop `lg:min-w-full`.
+   * Pada modul **Manajemen User**, tabel belum memiliki komponen indikator interaktif visual (*mobile scroll hint track & thumb*) sehingga pengguna awam di ponsel tidak menyadari bahwa tabel memuat kolom aksi lebih lanjut di sebelah kanan.
+
+### B. Solusi Teknis & Pola Desain (Zero Desktop Regression Guarantee)
+Menerapkan formula isolasi responsif tabel pada seluruh modul aplikasi:
+1. **Lebar Minimum Mobile & Proteksi Desktop Penuh (`min-w-[XXXpx] lg:min-w-full`):**
+   - Pada layar seluler (`< 1024px`), tabel dikunci dengan batas lebar nyaman (`min-w-[650px]` hingga `min-w-[1200px]` sesuai kepadatan kolom), sehingga kolom-kolom tabel tetap proporsional dan memicu *overflow* horizontal yang dapat digeser secara mulus menggunakan sentuhan jari (*swipe gesture*).
+   - Pada layar desktop/laptop (`lg:` $\ge 1024$px), kelas `lg:min-w-full` memastikan tabel membentang alami 100% selebar kartu kontainernya tanpa memunculkan bilah gulir (*zero desktop horizontal scrollbar*), **menjamin tampilan desktop tetap 100% utuh tanpa perubahan apa pun**.
+2. **Komponen Panduan Geser Mobile Interaktif (`.table-scroll-hint` dengan `sm:hidden`):**
+   - Di atas tabel disematkan bilah panduan geser horizontal elegan yang **hanya tampil pada layar ponsel pintar** (`sm:hidden`).
+   - Panduan memuat ikon gestur geser tangan, teks bantuan (*"Geser tabel ke samping untuk melihat data lengkap"*), serta rel indikator visual (`.table-scroll-track` dan `.table-scroll-thumb`).
+3. **Peningkatan Skrip Sinkronisasi Real-Time (`resources/js/app.js`):**
+   - Memperluas deteksi fungsi `initTableScrollbars()` agar secara cerdas mengenali elemen petunjuk `.table-scroll-hint` baik yang berada sebagai *sibling* langsung maupun di dalam pembungkus kartu tabel terdekat.
+   - Posisi `.table-scroll-thumb` bergeser secara proporsional (0% - 100%) mengikuti posisi gesekan jari pengguna saat menggulir tabel.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Penambahan indikator geser mobile (`sm:hidden`), `min-w-[700px] lg:min-w-full` pada tabel Admin Lembur dan Superadmin, `min-w-[380px]` pada laci riwayat Kabag & PPK, serta `whitespace-nowrap` pada header. |
+| 2 | `resources/views/admin/pengguna.blade.php` | Penambahan indikator geser mobile (`sm:hidden`) di atas kontainer tabel pengguna (`min-w-[1180px] lg:min-w-full`). |
+| 3 | `resources/views/admin/tim.blade.php` | Penambahan indikator geser mobile (`sm:hidden`) dan kalibrasi `min-w-[980px] lg:min-w-full` pada tabel tim kerja. |
+| 4 | `resources/views/admin/pejabat.blade.php` | Penambahan indikator geser mobile (`sm:hidden`) dan kalibrasi `min-w-[1180px] lg:min-w-full` pada tabel pejabat kedinasan. |
+| 5 | `resources/views/admin/tarif.blade.php` | Penambahan indikator geser mobile (`sm:hidden`) dan kalibrasi `min-w-[900px] lg:min-w-full` pada tabel tarif uang lembur & makan. |
+| 6 | `resources/views/admin/dokumen.blade.php` | Penambahan indikator geser mobile (`sm:hidden`) dan kalibrasi `min-w-[780px] lg:min-w-full` pada tabel riwayat berkas SPKL & Laporan. |
+| 7 | `resources/views/admin/laporan.blade.php` | Penambahan indikator geser mobile (`sm:hidden`) dan kalibrasi `min-w-[820px] lg:min-w-full` pada tabel rekap laporan lembur. |
+| 8 | `resources/views/admin/spkl.blade.php` | Penambahan indikator geser mobile (`sm:hidden`) di atas tabel monitoring SPKL (`min-w-[1200px]`). |
+| 9 | `resources/views/ketua-tim/dashboard.blade.php` | Penambahan indikator geser mobile (`sm:hidden`) dan kalibrasi `min-w-[650px] lg:min-w-full` pada tabel ringkasan pengajuan tim. |
+| 10 | `resources/views/pimpinan/dashboard.blade.php` | Penambahan indikator geser mobile (`sm:hidden`) dan kalibrasi `min-w-[650px] lg:min-w-full` pada tabel ringkasan pengajuan satker. |
+| 11 | `resources/js/app.js` | Peningkatan logika pencarian rel `.table-scroll-hint` untuk mendukung navigasi swipeable table di berbagai struktur markup Blade. |
+| 12 | `public/build/` | Kompilasi bundel aset produksi Vite terbaru (`app-C6Psp9j9.css` & `app-Bx5v8Y8U.js`). |
+
+---
+
 
