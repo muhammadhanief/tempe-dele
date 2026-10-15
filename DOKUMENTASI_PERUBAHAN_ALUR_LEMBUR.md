@@ -5146,3 +5146,31 @@ Pada tangkapan layar pengguna:
 
 ---
 
+## 47. Perbaikan Tata Letak Responsif Modal Pemilihan Pejabat & Hak Akses (Bounded Modal Container & Pinned Action Footer)
+
+### A. Latar Belakang Masalah
+1. Pada perangkat laptop beresolusi sedang atau saat jendela peramban tidak dimaksimalkan (*viewport height* berkisar 600px - 665px), dialog modal pemilihan pada modul **Manajemen User** (`/admin/manajemen-user`), khususnya modal **Penetapan Super Administrator** (`#modalTambahSuperadmin`), **Pengalihan Admin Lembur** (`#modalGantiAdmin`), **Penugasan Admin Lembur** (`#modalTambahAdmin`), **Ganti PPK** (`#modalGantiPpk`), dan **Ganti Kabag Umum** (`#modalGantiKabag`) memanjang melebihi batas bawah layar (*overflow vertikal*).
+2. Bagian bawah dialog modal (*modal footer*) yang memuat tombol aksi utama (**"Batal"** dan **"Tetapkan Super Administrator"** / **"Alihkan Wewenang Admin"**) terdorong ke bawah garis lipatan layar (*pushed below the fold*) dan terpotong secara total.
+3. Pengguna tidak dapat mengeklik tombol submit maupun tombol batal tanpa melakukan zoom out tampilan peramban.
+
+### B. Solusi Desain & Implementasi (Pola Bounded Modal Container)
+Menerapkan arsitektur **Bounded Modal Container** dengan pemisahan zona fleksibel pada seluruh modal pemilihan di [`resources/views/admin/manajemen_user.blade.php`](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/views/admin/manajemen_user.blade.php):
+1. **Pembatas Ketinggian Kartu Modal (`max-h-[90vh]` & `flex flex-col`):**
+   - Menetapkan batas ketinggian absolut kartu modal maksimal 90% dari tinggi viewport peramban (`max-h-[90vh]`) dengan struktur flexbox vertikal `flex flex-col overflow-hidden my-auto`.
+2. **Header & Footer Tersemat Statis (`shrink-0`):**
+   - Elemen header judul modal dan bilah tombol aksi (*footer*) dikunci dengan properti `shrink-0`.
+   - Footer tombol aksi diberi latar belakang kontras lembut `bg-slate-50/80` dan garis pembatas atas `border-t border-slate-100`, sehingga **selalu tampil 100% utuh, terlihat, dan dapat diklik langsung** di bagian dasar dialog modal pada resolusi layar apa pun.
+3. **Form & Grid Konten Dapat Digulir Mandiri (*Scrollable Content Grid*):**
+   - Elemen formulir `<form>` dibekali kelas `flex flex-col flex-1 min-h-0 overflow-hidden`.
+   - Grid 2-kolom lanskap di dalamnya diberi kelas `flex-1 overflow-y-auto min-h-0`. Jika konten teks peringatan atau daftar pegawai panjang, hanya bagian dalam grid yang bergulir dengan mulus, tanpa mengorbankan keterlihatan header maupun tombol aksi.
+4. **Kompaktifikasi Kotak Daftar Pegawai (*Listbox Compaction*):**
+   - Mengalibrasi tinggi kontainer daftar pegawai interaktif dari semula `h-64 sm:h-72` (256px - 288px) menjadi `h-52 sm:h-60` (208px - 240px). Pengurangan tinggi ~48px ini menjaga dialog modal tetap proporsional dan tidak memakan ruang vertikal secara berlebihan.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Penerapan arsitektur Bounded Modal Container (`max-h-[90vh]`), pinned action footer (`shrink-0`), dan scrollable inner grid pada modal suksesi Kabag, PPK, Admin, dan Superadmin. |
+
+---
+
+

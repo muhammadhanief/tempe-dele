@@ -1642,3 +1642,14 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Bilah sisi (*sidebar*) navigasi gelap bergeser keluar dari sisi kiri dengan tajam (*crisp*), tidak terlapisi efek buram (*blur*), dan seluruh teks/menu navigasi terbaca sangat jelas.
   - **Verifikasi**: Seluruh tautan menu navigasi di dalam sidebar (Dashboard, Lembur, Rekapitulasi, dsb.) dapat diklik secara responsif tanpa terhalang lapisan backdrop.
   - **Verifikasi**: Menekan tombol silang `(X)` pada sudut kanan atas header sidebar atau mengeklik area backdrop overlay gelap di sebelah kanan sidebar akan menutup sidebar kembali dengan transisi animasi yang mulus.
+
+### CJ. Uji Bounded Modal Container & Pinned Action Footer (/admin/manajemen-user)
+- [ ] **Uji Keterlihatan Tombol Aksi Modal pada Layar Pendek / Resolusi Laptop (< 650px Viewport Height)**:
+  - Buka menu **Manajemen User** (`/admin/manajemen-user`) pada peramban.
+  - Ubah ketinggian layar peramban menjadi pendek (misal: 1280x600 px atau buka DevTools di bagian bawah layar).
+  - Buka modal **Penetapan Super Administrator** (klik tombol `+ Tambah Superadmin` di atas tabel Super Administrator).
+  - **Verifikasi**: Dialog modal dibatasi maksimal 90% dari tinggi viewport (`max-h-[90vh]`).
+  - **Verifikasi**: Header judul modal dan footer tombol aksi (**"Batal"** dan **"Tetapkan Super Administrator"**) tersemat statis (*shrink-0*) dan **100% terlihat jelas di dalam layar**, tanpa pernah terpotong ke bawah garis lipatan layar.
+  - **Verifikasi**: Grid formulir dan kotak daftar pegawai di dalamnya memiliki scroll internal mandiri (`overflow-y-auto`) yang mulus, dan tombol submit dapat diklik langsung dengan nyaman.
+  - Lakukan hal yang sama pada modal **Ganti Kabag Umum**, **Ganti PPK**, **Tambah Admin Lembur**, dan **Alihkan Wewenang Admin Lembur**.
+
