@@ -271,7 +271,7 @@ class ManajemenUserController extends Controller
 
             Log::info("Pergantian PPK berhasil oleh Superadmin: {$pegawaiBaru->nama} ({$pegawaiBaru->nip})");
 
-            return back()->with('success', "Pejabat Pembuat Komitmen (PPK) berhasil diperbarui menjadi {$pegawaiBaru->nama}. Seluruh dokumen kedinasan (SPKL dll) akan otomatis menggunakan data pejabat ini.");
+            return back()->with('success', "Pejabat Pembuat Komitmen (PPK) berhasil diperbarui menjadi {$pegawaiBaru->nama}. Seluruh dokumen kedinasan (SPKL dan lampiran terkait) otomatis menggunakan data pejabat aktif ini.");
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal memperbarui PPK', ['error' => $e->getMessage()]);
@@ -308,7 +308,7 @@ class ManajemenUserController extends Controller
 
         Log::info("Penambahan Admin oleh Superadmin: {$pegawai->nama} ({$pegawai->nip})");
 
-        return back()->with('success', "Pegawai {$pegawai->nama} berhasil diangkat sebagai Admin Lembur.");
+        return back()->with('success', "Pegawai {$pegawai->nama} berhasil ditugaskan sebagai Admin Lembur.");
     }
 
     /**
@@ -392,7 +392,7 @@ class ManajemenUserController extends Controller
 
         Log::info("Pencabutan Admin oleh Superadmin: {$pegawai->nama} ({$pegawai->nip})");
 
-        return back()->with('success', "Akses Admin untuk {$pegawai->nama} berhasil dicabut dan dikembalikan ke peran Pengguna biasa.");
+        return back()->with('success', "Wewenang Admin Lembur untuk {$pegawai->nama} berhasil dicabut. Akun telah dikembalikan ke peran Pengguna biasa.");
     }
 
     /**
@@ -422,6 +422,6 @@ class ManajemenUserController extends Controller
 
         Log::warning("PROMOSI SUPERADMIN: {$pegawai->nama} ({$pegawai->nip}) telah diangkat menjadi Superadmin oleh " . ($this->getSessionNip() ?? 'unknown'));
 
-        return back()->with('success', "Pegawai {$pegawai->nama} berhasil diangkat menjadi Super Administrator.");
+        return back()->with('success', "Pegawai {$pegawai->nama} berhasil ditetapkan sebagai Super Administrator secara permanen.");
     }
 }

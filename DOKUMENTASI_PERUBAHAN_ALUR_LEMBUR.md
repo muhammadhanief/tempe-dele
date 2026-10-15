@@ -5033,10 +5033,28 @@ Pada tangkapan layar pengguna:
    - **Kartu Preview Pegawai:**
      - State kosong (*placeholder*) menggunakan tipografi netral yang tenang (`Belum ada pegawai dipilih / Pilih salah satu pegawai pada daftar di sebelah kanan`).
 
+   - **Modal Pergantian Kepala Bagian Umum (`#modalGantiKabag`):**
+     - Subjudul: *"Penetapan pejabat baru dan penyesuaian tahun periode surat keputusan (SK) aktif"*.
+     - Butir Otomatisasi: Menghilangkan istilah santai *"jadi Kabag"* dan *"approval final"* menjadi *"Status pejabat lama dialihkan menjadi nonaktif"*, *"Pejabat terpilih ditetapkan sebagai Kepala Bagian Umum aktif"*, *"Kepemimpinan Tim Kerja Bagian Umum disinkronkan ke pejabat baru"*, dan *"Wewenang persetujuan akhir lembur langsung terintegrasi"*.
+     - Tombol Submit: *"Tetapkan Kepala Bagian Umum"*.
+   - **Modal Pergantian Pejabat Pembuat Komitmen (`#modalGantiPpk`):**
+     - Subjudul: *"Penetapan pejabat penandatangan SPKL dan pengelolaan anggaran lembur aktif"*.
+     - Butir Otomatisasi: Menghilangkan istilah teknis pemrograman *"di database"* dan informal *"pakai"* menjadi *"Status pejabat PPK sebelumnya dialihkan menjadi nonaktif"*, *"Pejabat terpilih ditetapkan sebagai PPK aktif pada sistem"*, dan *"Penerbitan dokumen SPKL dan dokumen anggaran otomatis menggunakan data pejabat baru"*.
+     - Tombol Submit: *"Tetapkan Pejabat Pembuat Komitmen"*.
+   - **Modal Pengalihan Admin Lembur (`#modalGantiAdmin`):**
+     - Tombol Submit: Diperbarui menjadi *"Alihkan Wewenang Admin"*.
+   - **Tabel & Kontrol Utama:**
+     - Tombol pada kartu pejabat: *"Ganti Kabag Umum"*.
+     - Indikator akun sendiri: *"Akun Sendiri (Terkunci)"*.
+     - Label badge Superadmin: *"Administrator"*.
+     - Konfirmasi dialog JavaScript: *"Apakah Anda yakin ingin mencabut wewenang Admin Lembur dari [Nama]? Hak akses pegawai akan dikembalikan menjadi Pengguna biasa."*
+
 ### C. Berkas yang Diperbarui
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
-| 1 | `resources/views/admin/manajemen_user.blade.php` | Redaksional formal kedinasan pada modal Tambah Superadmin, Tambah Admin, dan Ganti Admin; eliminasi benturan warna kuning-pink menjadi kartu slate-rose/amber elegan anti-slop yang sejuk di mata; pembaruan label tombol aksi submit menjadi "Tetapkan Super Administrator" dan "Tetapkan Sebagai Admin Lembur". |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Redaksional formal kedinasan pada modal Tambah Superadmin, Tambah Admin, Ganti Admin, Ganti Kabag Umum, dan Ganti PPK; eliminasi benturan warna kuning-pink menjadi kartu slate-rose/amber elegan anti-slop; pembaruan label tombol aksi submit menjadi "Tetapkan Kepala Bagian Umum", "Tetapkan Pejabat Pembuat Komitmen", "Alihkan Wewenang Admin", "Tetapkan Super Administrator", dan "Tetapkan Sebagai Admin Lembur". |
+| 2 | `app/Http/Controllers/admin/ManajemenUserController.php` | Standarisasi pesan notifikasi flash session (sukses dan validasi) pada aksi pergantian Kabag, PPK, penambahan Admin, pengalihan Admin, pencabutan Admin, dan promosi Superadmin sesuai format formal kedinasan BPS. |
+
 
 
 

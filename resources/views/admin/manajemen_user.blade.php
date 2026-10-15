@@ -85,7 +85,7 @@
                             <svg class="w-3.5 h-3.5 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                             </svg>
-                            Ganti Kabag
+                            Ganti Kabag Umum
                         </button>
                     </div>
 
@@ -334,7 +334,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-center whitespace-nowrap">
                                         @if($isMe)
-                                            <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 italic">Terkunci (Akun Anda)</span>
+                                            <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 italic">Akun Sendiri (Terkunci)</span>
                                         @else
                                             <div class="inline-flex items-center justify-center gap-1.5">
                                                 <button type="button"
@@ -347,7 +347,7 @@
                                                     Ganti
                                                 </button>
                                                 <form action="{{ route('admin.manajemen-user.hapus-admin', $adm->id_pegawai) }}" method="POST"
-                                                    onsubmit="return confirm('Apakah Anda yakin ingin mencabut wewenang Admin untuk {{ addslashes($adm->nama) }}? Pegawai akan dikembalikan ke peran biasa.');">
+                                                    onsubmit="return confirm('Apakah Anda yakin ingin mencabut wewenang Admin Lembur dari {{ addslashes($adm->nama) }}? Hak akses pegawai akan dikembalikan menjadi Pengguna biasa.');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit"
@@ -382,7 +382,7 @@
                 <div class="flex items-center gap-2">
                     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Super Administrator</h2>
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                        {{ $superadmins->count() }} Pengendali
+                        {{ $superadmins->count() }} Administrator
                     </span>
                 </div>
 
@@ -482,7 +482,7 @@
                 </span>
                 <div>
                     <h3 class="text-base font-bold text-slate-900 leading-tight">Pergantian Kepala Bagian Umum</h3>
-                    <p class="text-[11px] text-slate-500">Pilih pegawai pengganti dan tetapkan tahun periode SK aktif</p>
+                    <p class="text-[11px] text-slate-500">Penetapan pejabat baru dan penyesuaian tahun periode surat keputusan (SK) aktif</p>
                 </div>
             </div>
             <button type="button" onclick="closeModalGantiKabag()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1.5 hover:bg-slate-100 transition-colors cursor-pointer">
@@ -503,13 +503,13 @@
                         <div class="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 leading-relaxed space-y-1">
                             <p class="font-bold flex items-center gap-1.5 text-amber-800 text-xs">
                                 <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                Sistem Otomatisasi Terintegrasi:
+                                Ketentuan Otomatisasi Sistem:
                             </p>
                             <ul class="text-[11px] space-y-0.5 text-amber-900/90 pl-1 list-disc list-inside">
-                                <li>Pejabat lama akan dinonaktifkan.</li>
-                                <li>Pejabat baru jadi Kabag Umum aktif.</li>
-                                <li>Ketua Tim Bagian Umum dialihkan.</li>
-                                <li>Wewenang approval final langsung aktif.</li>
+                                <li>Status pejabat lama dialihkan menjadi nonaktif.</li>
+                                <li>Pejabat terpilih ditetapkan sebagai Kepala Bagian Umum aktif.</li>
+                                <li>Kepemimpinan Tim Kerja Bagian Umum disinkronkan ke pejabat baru.</li>
+                                <li>Wewenang persetujuan akhir lembur langsung terintegrasi.</li>
                             </ul>
                         </div>
 
@@ -656,8 +656,8 @@
                     Batal
                 </button>
                 <button type="submit"
-                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-[#faa938] hover:brightness-95 rounded-xl transition-all shadow-xs cursor-pointer">
-                    Simpan Pergantian Kabag
+                    class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] rounded-xl transition-all shadow-xs cursor-pointer">
+                    Tetapkan Kepala Bagian Umum
                 </button>
             </div>
         </form>
@@ -677,8 +677,8 @@
                     </svg>
                 </span>
                 <div>
-                    <h3 class="text-base font-bold text-slate-900 leading-tight">Ganti Pejabat Pembuat Komitmen (PPK)</h3>
-                    <p class="text-[11px] text-slate-500">Pilih pejabat penandatangan SPKL dan dokumen anggaran aktif</p>
+                    <h3 class="text-base font-bold text-slate-900 leading-tight">Pergantian Pejabat Pembuat Komitmen (PPK)</h3>
+                    <p class="text-[11px] text-slate-500">Penetapan pejabat penandatangan SPKL dan pengelolaan anggaran lembur aktif</p>
                 </div>
             </div>
             <button type="button" onclick="closeModalGantiPpk()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1.5 hover:bg-slate-100 transition-colors cursor-pointer">
@@ -699,12 +699,12 @@
                         <div class="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 leading-relaxed space-y-1">
                             <p class="font-bold flex items-center gap-1.5 text-amber-800 text-xs">
                                 <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                Sistem Otomatisasi Terintegrasi:
+                                Ketentuan Otomatisasi Sistem:
                             </p>
                             <ul class="text-[11px] space-y-0.5 text-amber-900/90 pl-1 list-disc list-inside">
-                                <li>Pejabat PPK lama di database dinonaktifkan.</li>
-                                <li>Pejabat baru didaftarkan sebagai PPK aktif.</li>
-                                <li>Dokumen SPKL & anggaran otomatis pakai PPK baru.</li>
+                                <li>Status pejabat PPK sebelumnya dialihkan menjadi nonaktif.</li>
+                                <li>Pejabat terpilih ditetapkan sebagai PPK aktif pada sistem.</li>
+                                <li>Penerbitan dokumen SPKL dan dokumen anggaran otomatis menggunakan data pejabat baru.</li>
                             </ul>
                         </div>
 
@@ -852,7 +852,7 @@
                 </button>
                 <button type="submit"
                     class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] rounded-xl transition-all shadow-xs cursor-pointer">
-                    Simpan Penetapan PPK
+                    Tetapkan Pejabat Pembuat Komitmen
                 </button>
             </div>
         </form>
@@ -1198,7 +1198,7 @@
                 </button>
                 <button type="submit"
                     class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-950 bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] rounded-xl transition-all shadow-xs cursor-pointer">
-                    Simpan Pergantian Admin
+                    Alihkan Wewenang Admin
                 </button>
             </div>
         </form>
