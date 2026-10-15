@@ -4926,6 +4926,71 @@ Pada tangkapan layar pengguna:
 | :---: | :--- | :--- |
 | 1 | `resources/views/admin/manajemen_user.blade.php` | Penerapan antislop: penyatuan panel eksekutif 2-kolom untuk Kabag dan PPK aktif, pemisahan terstruktur seksi Admin Lembur dan Superadmin, eliminasi kotak template redundan, pembersihan em-dash R-02, dan penyempurnaan tipografi kelembagaan BPS. |
 
+---
+
+## 101. Penyederhanaan Visual & Penambahan Tombol Aksi Tambah Admin & Superadmin pada Header Manajemen User (`/admin/manajemen-user`)
+
+### A. Latar Belakang & Masukan Pengguna
+- **Permintaan Pengguna:**
+  1. Hapus teks/lencana:
+     - `Otoritas Sistem • Khusus Superadmin` (di header halaman).
+     - `Approval Final & Pimpinan Bagian Umum` (di kartu Kabag Umum).
+     - `Penandatangan SPKL & Anggaran Lembur` (di kartu PPK).
+     - `Berdasarkan SK Kepala BPS Provinsi` (di header seksi pejabat).
+     - `Aktif (SK 2026)` (di kartu profil Kabag dan PPK).
+  2. Tambahkan tombol cepat untuk **Tambah Admin** dan **Tambah Superadmin** agar langsung dapat diakses tanpa perlu mencari/menggulir ke tabel masing-masing.
+
+### B. Solusi & Rincian Implementasi
+1. **Pembersihan Lencana & Teks Redundan:**
+   - Menghapus pill badge atas `Otoritas Sistem • Khusus Superadmin` sehingga judul `Manajemen Pejabat & Hak Akses` langsung berada di posisi paling atas dengan margin vertikal yang bersih.
+   - Menghapus label sub-seksi `Berdasarkan SK Kepala BPS Provinsi` dari judul *Pejabat Penandatangan Kedinasan Aktif*.
+   - Menghapus lencana deskriptif `Approval Final & Pimpinan Bagian Umum` pada kartu Kepala Bagian Umum dan `Penandatangan SPKL & Anggaran Lembur` pada kartu PPK, menyisakan judul jabatan struktural yang tegas dan ringkas.
+   - Menghapus lencana status `Aktif (SK 2026)` pada kartu pejabat aktif, menyajikan nama lengkap pejabat, NIP mono, dan satker dengan bersih tanpa dekorasi berlebihan.
+2. **Penempatan Tombol Aksi Cepat pada Header Halaman (*Quick Action Buttons*):**
+   - Menambahkan dua tombol aksi utama di sisi kanan header sejajar dengan tombol *Kelola Seluruh Pengguna*:
+     - **`+ Tambah Admin`**: Tombol beraksen Indigo (`bg-indigo-600 hover:bg-indigo-700`) yang langsung memicu pemanggilan `openModalTambahAdmin()`.
+     - **`+ Tambah Superadmin`**: Tombol beraksen Slate Gelap (`bg-slate-900 hover:bg-slate-800`) berikon bintang emas amber yang langsung memicu `openModalTambahSuperadmin()`.
+   - Tombol pada tabel Admin Lembur dan Super Administrator di bawah tetap dipertahankan sebagai titik aksi kontekstual sekunder.
+3. **Hasil Pengujian Peramban (Browser Subagent Verification):**
+   - Header memuat 3 tombol aksi (*Tambah Admin*, *Tambah Superadmin*, dan *Kelola Seluruh Pengguna*) secara rapi dan responsif.
+   - Menekan tombol `+ Tambah Admin` membuka modal landscape 2-kolom pemilihan admin dengan lancar.
+   - Menekan tombol `+ Tambah Superadmin` membuka modal landscape 2-kolom superadmin dengan klausul permanen.
+   - Kelima teks/lencana redundan telah 100% lenyap dari tampilan antarmuka.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Eliminasi 5 lencana/teks redundan, dan integrasi tombol aksi cepat Tambah Admin serta Tambah Superadmin pada header utama halaman. |
+
+---
+
+## 102. INTEGRASI TOMBOL + TAMBAH ADMIN & + TAMBAH SUPERADMIN PADA POJOK KANAN ATAS TABEL SEKSI MASING-MASING (MANAJEMEN USER)
+
+### A. Konteks & Kebutuhan Pengguna
+- **Tanggal Implementasi:** 15 Oktober 2026
+- **Kebutuhan Pengguna:**
+  1. Menempatkan tombol aksi **"+ Tambah Admin"** dan **"+ Tambah Superadmin"** langsung di pojok kanan atas masing-masing tabel kartu (pada bilah header seksi Admin Lembur dan Super Administrator) sesuai instruksi visual kotak penanda yang dikirimkan pengguna.
+  2. Mengeliminasi blok deskripsi panjang dan monogram kotak avatar ikon `AL` serta `SA` yang sebelumnya memakan ruang vertikal berlebih, sehingga tampilan tabel menjadi ringkas, fokus, dan modern.
+  3. Mengembalikan header utama halaman (*Manajemen Pejabat & Hak Akses*) agar tetap bersih dan hanya memiliki tombol sekunder *Kelola Seluruh Pengguna*.
+
+### B. Solusi & Rincian Implementasi
+1. **Penyelarasan Header Kartu Tabel (*Compact Table Header Bar*):**
+   - **Tabel Admin Lembur:** Bilah header ringkas (`py-3.5 sm:py-4`) menyajikan judul `Admin Lembur` dengan lencana jumlah petugas aktif di sisi kiri, dan tombol **`+ Tambah Admin`** di sisi kanan (`onclick="openModalTambahAdmin()"`).
+   - **Tabel Super Administrator:** Bilah header ringkas menyajikan judul `Super Administrator` dengan lencana jumlah pengendali aktif di sisi kiri, dan tombol **`+ Tambah Superadmin`** di sisi kanan (`onclick="openModalTambahSuperadmin()"`).
+2. **Kepatuhan Desain Anti-Slop & Standar Kelembagaan BPS:**
+   - **Aksen Warna & Kontras:** Tombol menggunakan warna amber resmi BPS `bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b]` dengan warna teks `text-slate-950 font-semibold` (menghasilkan rasio kontras > 10:1 memenuhi kepatuhan aksesibilitas WCAG AAA).
+   - **Ikonografi & Micro-interaction:** Menggunakan ikon plus SVG `text-slate-900` berukuran proporsional, sudut melengkung `rounded-xl`, bayangan halus `shadow-2xs`, dan ring fokus `focus:ring-[#faa938]/30`.
+3. **Fungsionalitas Modal & Alur Penambahan:**
+   - **Modal Tambah Admin (`#modalTambahAdmin`):** Format landscape 2-kolom zero-scroll dengan live search pencarian pegawai instan di sisi kanan dan kartu preview profil pegawai terpilih di sisi kiri, terhubung ke rute `admin.manajemen-user.tambah-admin`.
+   - **Modal Tambah Superadmin (`#modalTambahSuperadmin`):** Format landscape 2-kolom zero-scroll dengan peringatan tegas klausul permanen (*superadmin tidak bisa mencabut superadmin lain*), checkbox persetujuan wajib yang mengaktifkan tombol simpan, terhubung ke rute `admin.manajemen-user.tambah-superadmin`.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Penempatan tombol `+ Tambah Admin` dan `+ Tambah Superadmin` di pojok kanan atas header tabel seksi masing-masing, pembersihan blok deskripsi monogram ikon AL/SA, dan perapian header utama. |
+
+
+
 
 
 
