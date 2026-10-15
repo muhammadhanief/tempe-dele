@@ -4990,6 +4990,54 @@ Pada tangkapan layar pengguna:
 | :---: | :--- | :--- |
 | 1 | `resources/views/admin/manajemen_user.blade.php` | Penempatan bilah header dan tombol `+ Tambah Admin` (oranye) serta `+ Tambah Superadmin` (merah) tepat di atas kartu tabel masing-masing, pembersihan blok deskripsi monogram AL/SA, dan perapian header utama. |
 
+---
+
+## 103. PENYEMPURNAAN BAHASA FORMAL KEDINASAN & TIPOGRAFI ELEGAN ANTI-SLOP PADA DIALOG MODAL TAMBAH SUPERADMIN DAN TAMBAH ADMIN
+
+### A. Latar Belakang Masalah & Masukan Pengguna
+- **Masukan Pengguna:** *"revisi dikit sii ubah dong kata kata nya yang formal sama style font nya dibagusin biar ga sakit mata (yang tambah admin juga)"*
+- **Evaluasi Tampilan Awal:**
+  1. **Teks Informal / Slang:**
+     - Pada modal Tambah Superadmin, terdapat kutipan informal bernada santai: `"beneran mau ngasih superadmin, nanti gabisa dicabut lagi"` serta tombol bertuliskan `"Ya, Angkat Jadi Superadmin"` yang kurang mencerminkan wibawa tata kelola kepegawaian institusi BPS.
+     - Pada modal Tambah Admin, tombol bertuliskan `"Angkat Sebagai Admin"` yang terkesan kurang baku.
+  2. **Kombinasi Warna yang Melelahkan Mata (*Visual Clashing / Sakit Mata*):**
+     - Kotak peringatan keamanan superadmin sebelumnya menggunakan border kuning tebal 2px (`border-2 border-amber-300 bg-amber-50`) yang membungkus kotak dalam berwarna merah muda/pink menyala (`bg-rose-50 border-rose-200 text-rose-700`).
+     - Tumpukan warna kuning terang dan pink menghasilkan kontras warna yang bertabrakan (*harsh color clash*) sehingga membuat mata lelah/silau saat membaca ketentuan penting.
+
+### B. Solusi & Rincian Implementasi
+1. **Standarisasi Copywriting Formal Kedinasan BPS:**
+   - **Modal Tambah Super Administrator (`#modalTambahSuperadmin`):**
+     - **Judul & Subjudul:** *"Penetapan Super Administrator — Pemberian hak akses tertinggi kendali konfigurasi dan tata kelola sistem"*.
+     - **Pernyataan Inti Formal:** *"Penetapan wewenang Super Administrator bersifat permanen dan tidak dapat dibatalkan atau dicabut kembali."*
+     - **Uraian Ketentuan:** *"Pejabat atau pegawai terpilih akan memperoleh kewenangan penuh atas konfigurasi sistem, data kepegawaian, audit log, serta penetapan pejabat kedinasan. Sesuai ketentuan tata kelola keamanan sistem, hak akses ini tidak dapat dicabut oleh Super Administrator lainnya."*
+     - **Pernyataan Konfirmasi:** *"Saya memahami wewenang ini dan menyetujui penetapan hak akses Super Administrator secara permanen."*
+     - **Tombol Aksi Simpan:** Diperbarui menjadi `"Tetapkan Super Administrator"`.
+   - **Modal Tambah Admin Lembur (`#modalTambahAdmin`):**
+     - **Judul & Subjudul:** *"Penugasan Admin Lembur — Pemberian wewenang operasional verifikasi presensi dan tata kelola lembur pegawai"*.
+     - **Ruang Lingkup Tugas Formal:**
+       1. *"Rekonsiliasi dan verifikasi data presensi biometrik harian pegawai."*
+       2. *"Pemantauan transaksi pengajuan lembur dan alur persetujuan pejabat."*
+       3. *"Penerbitan serta penatausahaan dokumen kedinasan (SPKL & Daftar Hadir)."*
+     - **Tombol Aksi Simpan:** Diperbarui menjadi `"Tetapkan Sebagai Admin Lembur"`.
+   - **Modal Pengalihan Admin Lembur (`#modalGantiAdmin`):**
+     - Subjudul diselaraskan: *"Pengalihan wewenang operasional modul lembur ke pegawai pengganti terpilih"*.
+
+2. **Perbaikan Style Font, Tipografi, & Kenyamanan Visual (Anti-Slop):**
+   - **Eliminasi Benturan Warna Kuning-Pink:** Menghapus kotak bertumpuk kuning-pink yang menyilaukan mata dan menggantikannya dengan kartu terpadu bernuansa netral slate lembut (`bg-slate-50 border border-slate-200/90`).
+   - **Hierarki Kartu Peringatan Superadmin:**
+     - Header kartu menggunakan lencana perisai lembut dengan teks kapital rapi: `PERINGATAN KEAMANAN HAK AKSES`.
+     - Poin peringatan utama dibungkus dalam callout rose berlatar lembut (`bg-rose-50 border border-rose-200 text-rose-900`) dengan rasio kontras teks di atas 10:1 (standar WCAG AAA).
+     - Teks deskripsi menggunakan warna `text-slate-600` yang sejuk dan mudah dibaca tanpa silau.
+   - **Kartu Ruang Lingkup Admin Lembur:**
+     - Menggunakan kartu bernuansa netral dengan lencana perisai amber lembut, daftar butir berjarak vertikal proporsional (`space-y-2`), dan bullet amber bersih yang ramah di mata.
+   - **Kartu Preview Pegawai:**
+     - State kosong (*placeholder*) menggunakan tipografi netral yang tenang (`Belum ada pegawai dipilih / Pilih salah satu pegawai pada daftar di sebelah kanan`).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Redaksional formal kedinasan pada modal Tambah Superadmin, Tambah Admin, dan Ganti Admin; eliminasi benturan warna kuning-pink menjadi kartu slate-rose/amber elegan anti-slop yang sejuk di mata; pembaruan label tombol aksi submit menjadi "Tetapkan Super Administrator" dan "Tetapkan Sebagai Admin Lembur". |
+
 
 
 
