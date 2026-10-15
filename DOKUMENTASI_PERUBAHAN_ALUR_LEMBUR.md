@@ -5055,6 +5055,69 @@ Pada tangkapan layar pengguna:
 | 1 | `resources/views/admin/manajemen_user.blade.php` | Redaksional formal kedinasan pada modal Tambah Superadmin, Tambah Admin, Ganti Admin, Ganti Kabag Umum, dan Ganti PPK; eliminasi benturan warna kuning-pink menjadi kartu slate-rose/amber elegan anti-slop; pembaruan label tombol aksi submit menjadi "Tetapkan Kepala Bagian Umum", "Tetapkan Pejabat Pembuat Komitmen", "Alihkan Wewenang Admin", "Tetapkan Super Administrator", dan "Tetapkan Sebagai Admin Lembur". |
 | 2 | `app/Http/Controllers/admin/ManajemenUserController.php` | Standarisasi pesan notifikasi flash session (sukses dan validasi) pada aksi pergantian Kabag, PPK, penambahan Admin, pengalihan Admin, pencabutan Admin, dan promosi Superadmin sesuai format formal kedinasan BPS. |
 
+---
+
+## 104. Standarisasi Menyeluruh Bahasa Formal Kedinasan pada Seluruh Modul Sistem (Dokumen, Pegawai, Tim Kerja, Presensi, Tarif, Pengajuan Lembur, dan Dashboard)
+
+### A. Latar Belakang & Masalah
+* Sebelumnya, masih ditemukan beberapa pesan konfirmasi (`confirm`), peringatan formulir (`alert`), pemberitahuan status (*toast* / `showAlert`), dan teks instruksi yang bernuansa percakapan santai atau mencampurkan istilah bahasa Inggris secara kasual (*Indoglish*). Contohnya:
+  - Pada generator dokumen: *"Pilih bulan dan isi tahun dulu!"* dan konfirmasi hapus *"Hapus file ini?"*.
+  - Pada master pegawai: *"Sinkronisasi akan update data semua pegawai. Lanjutkan?"*, *"Field wajib belum diisi."*, dan *"Password tidak cocok"*.
+  - Pada master tim: *"Tarik data tim & anggota dari API? Proses ini bisa beberapa saat."*, *"Hapus tim '...'?"*, dan *"Anggota dihapus"*.
+  - Pada master presensi: *"Pilih file xlsx terlebih dahulu."* dan *"Upload berhasil!"*.
+  - Pada pengajuan lembur dan tanda tangan digital: *"Tanda tangan digital belum diisi! Silakan goreskan tanda tangan Anda pada kotak tanda tangan."* dan *"Hapus dokumentasi ini?"*.
+  - Pada dashboard Admin & Ketua Tim: *"Gagal menyetujui. Coba lagi."*.
+  - Pada persetujuan Ketua Tim: *"Catatan/alasan penolakan wajib diisi jika menolak."* dan *"Gagal menyimpan, coba lagi."*.
+
+### B. Solusi & Perubahan yang Diterapkan
+1. **Modul Dokumen Kedinasan (`resources/views/admin/dokumen.blade.php`)**:
+   - Validasi bulan & tahun diubah menjadi: *"Silakan pilih bulan dan masukkan tahun terlebih dahulu."*.
+   - Validasi jenis dokumen diubah menjadi: *"Silakan pilih jenis dokumen kedinasan terlebih dahulu."*.
+   - Konfirmasi hapus file SPKL/Laporan (PDF & XLSX) diubah menjadi: *"Apakah Anda yakin ingin menghapus berkas dokumen ini?"*.
+2. **Modul Manajemen Pegawai (`resources/views/admin/pengguna.blade.php`)**:
+   - Konfirmasi sinkronisasi diubah menjadi: *"Proses sinkronisasi akan memperbarui data seluruh pegawai dari basis data pusat BPS. Apakah Anda yakin ingin melanjutkan?"*.
+   - Konfirmasi hapus pegawai diubah menjadi: *"Apakah Anda yakin ingin menghapus data pegawai \"${nama}\"?"*.
+   - Validasi field form diubah menjadi: *"Kolom formulir wajib belum dilengkapi."*.
+   - Validasi kata sandi kosong: *"Kata sandi baru tidak boleh kosong."*.
+   - Notifikasi sukses/update: *"Data pegawai baru berhasil ditambahkan."*, *"Data pegawai berhasil diperbarui."*, *"Data pegawai berhasil dihapus."*, dan *"Kata sandi pegawai berhasil diperbarui."*.
+   - Label ketidakcocokan kata sandi diubah dari *"Password tidak cocok"* menjadi *"Konfirmasi kata sandi tidak sesuai"*.
+3. **Modul Manajemen Tim Kerja (`resources/views/admin/tim.blade.php`)**:
+   - Konfirmasi sinkronisasi API: *"Apakah Anda yakin ingin menyinkronkan data tim dan anggota dari API pusat BPS? Proses ini mungkin memerlukan waktu beberapa saat."*.
+   - Indikator proses: *"Sedang memproses sinkronisasi data tim..."*.
+   - Konfirmasi hapus tim: *"Apakah Anda yakin ingin menghapus tim kerja \"${nama}\"?"*.
+   - Konfirmasi hapus anggota tim: *"Apakah Anda yakin ingin mengeluarkan pegawai \"${nama}\" dari tim kerja ini?"*.
+   - Notifikasi status tim & anggota: *"Data tim kerja berhasil diperbarui."*, *"Tim kerja berhasil dihapus."*, *"Pegawai berhasil dikeluarkan dari tim kerja."*, dan *"Pegawai berhasil ditambahkan ke dalam tim kerja."*.
+4. **Modul Presensi Pegawai (`resources/views/admin/presensi.blade.php`)**:
+   - Validasi file: *"Silakan pilih berkas spreadsheet (.xlsx) terlebih dahulu."*.
+   - Indikator proses upload: *"Sedang memproses unggahan data presensi..."*.
+   - Notifikasi upload: *"Data presensi berhasil diunggah."* dan *"Gagal mengunggah data presensi."*.
+   - Validasi hari libur: *"Silakan tentukan rentang tanggal terlebih dahulu."*.
+5. **Modul Tarif Lembur & Uang Makan (`resources/views/admin/tarif.blade.php`)**:
+   - Notifikasi simpan tarif: *"Tarif uang lembur dan makan berhasil diperbarui."*.
+6. **Modul Pengajuan Lembur Pegawai, Ketua Tim, & Admin (`resources/views/lembur.blade.php`, `resources/views/ketua-tim/lembur.blade.php`, `resources/views/admin/lembur.blade.php`)**:
+   - Konfirmasi hapus dokumentasi: *"Apakah Anda yakin ingin menghapus tautan dokumentasi kegiatan ini?"*.
+   - Validasi tanda tangan digital kanvas: *"Tanda tangan digital belum dibubuhkan. Silakan bubuhkan tanda tangan Anda pada area kanvas yang tersedia."*.
+   - Pesan teks error tanda tangan: *"⚠️ Tanda tangan digital wajib dibubuhkan sebelum mengirimkan pengajuan lembur."*.
+7. **Modul Persetujuan & Dashboard (`resources/views/admin/dashboard.blade.php`, `resources/views/ketua-tim/dashboard.blade.php`, `resources/views/ketua-tim/pengajuan.blade.php`)**:
+   - Quick approve error dashboard: *"Gagal memproses persetujuan pengajuan. Silakan coba beberapa saat lagi."*.
+   - Validasi penolakan Ketua Tim: *"Kolom catatan wajib diisi untuk memberikan alasan penolakan."*.
+   - Error simpan keputusan Ketua Tim: *"Gagal memproses dan menyimpan keputusan. Silakan coba beberapa saat lagi."*.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/dokumen.blade.php` | Standarisasi formal validasi pilihan dokumen dan konfirmasi hapus berkas SPKL/Laporan. |
+| 2 | `resources/views/admin/pengguna.blade.php` | Standarisasi formal konfirmasi sinkronisasi pegawai, validasi kolom, pesan kata sandi, dan hapus pegawai. |
+| 3 | `resources/views/admin/tim.blade.php` | Standarisasi formal konfirmasi sinkronisasi API, hapus tim, keluarkan/tambah anggota, dan notifikasi status tim. |
+| 4 | `resources/views/admin/presensi.blade.php` | Standarisasi formal alert unggah presensi, validasi berkas .xlsx, dan rentang tanggal hari libur. |
+| 5 | `resources/views/admin/tarif.blade.php` | Standarisasi formal notifikasi pembaruan tarif uang lembur dan makan. |
+| 6 | `resources/views/lembur.blade.php` | Standarisasi formal konfirmasi hapus tautan dokumentasi dan validasi pembubuhan tanda tangan digital. |
+| 7 | `resources/views/ketua-tim/lembur.blade.php` | Standarisasi formal konfirmasi hapus tautan dokumentasi dan validasi pembubuhan tanda tangan digital (Ketua Tim). |
+| 8 | `resources/views/admin/lembur.blade.php` | Standarisasi formal konfirmasi hapus tautan dokumentasi dan validasi pembubuhan tanda tangan digital (Admin). |
+| 9 | `resources/views/admin/dashboard.blade.php` | Standarisasi pesan formal kegagalan quick-approve persetujuan pengajuan lembur. |
+| 10 | `resources/views/ketua-tim/dashboard.blade.php` | Standarisasi pesan formal kegagalan quick-approve persetujuan pengajuan lembur. |
+| 11 | `resources/views/ketua-tim/pengajuan.blade.php` | Standarisasi validasi alasan penolakan pada kolom catatan dan pesan error penanganan simpan keputusan. |
+
 
 
 

@@ -1613,3 +1613,24 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Rasio kontras teks slate-900 / slate-700 di atas latar belakang putih teruji melebihi 14:1 (lulus WCAG AAA).
   - Verifikasi: Semua tombol aksi memiliki target sentuh nyaman ($\ge 40$px di mobile, $\ge 36$px di desktop) dan cincin fokus peramban saat dinavigasi keyboard.
 
+### CH. Uji Standarisasi Bahasa Formal Kedinasan pada Seluruh Modul Sistem
+- [ ] **Modul Dokumen Kedinasan (`/admin/dokumen`)**:
+  - Coba submit form generate tanpa memilih bulan/tahun: muncul alert formal *"Silakan pilih bulan dan masukkan tahun terlebih dahulu."*.
+  - Coba submit tanpa memilih jenis dokumen: muncul alert formal *"Silakan pilih jenis dokumen kedinasan terlebih dahulu."*.
+  - Klik tombol hapus berkas SPKL/Laporan (tanda silang): dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menghapus berkas dokumen ini?"*.
+- [ ] **Modul Master Pegawai (`/admin/pengguna`)**:
+  - Klik tombol "Sinkronkan Pegawai": dialog konfirmasi berbunyi *"Proses sinkronisasi akan memperbarui data seluruh pegawai dari basis data pusat BPS. Apakah Anda yakin ingin melanjutkan?"*.
+  - Klik tombol hapus pegawai: dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menghapus data pegawai \"[Nama]\"?"*.
+  - Simpan form pegawai baru tanpa melengkapi kolom wajib: muncul alert *"Kolom formulir wajib belum dilengkapi."*.
+  - Ganti kata sandi pegawai dengan konfirmasi yang berbeda: muncul teks *"Konfirmasi kata sandi tidak sesuai"*.
+- [ ] **Modul Tim Kerja (`/admin/master/tim`)**:
+  - Klik tombol "Tarik dari API": dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menyinkronkan data tim dan anggota dari API pusat BPS? Proses ini mungkin memerlukan waktu beberapa saat."*.
+  - Klik tombol hapus tim: dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menghapus tim kerja \"[Nama]\"?"*.
+  - Klik hapus anggota dari tim: dialog konfirmasi berbunyi *"Apakah Anda yakin ingin mengeluarkan pegawai \"[Nama]\" dari tim kerja ini?"*.
+- [ ] **Modul Presensi Pegawai (`/admin/presensi`)**:
+  - Klik tombol "Upload Data Presensi" tanpa memilih file: muncul alert *"Silakan pilih berkas spreadsheet (.xlsx) terlebih dahulu."*.
+  - Klik tombol "Tambah Hari Libur" tanpa memilih rentang tanggal: muncul alert *"Silakan tentukan rentang tanggal terlebih dahulu."*.
+- [ ] **Modul Pengajuan Lembur & Penandatangan Digital (`/lembur`, `/ketua-tim/lembur`, `/admin/lembur`)**:
+  - Klik tombol submit pengajuan lembur tanpa mencoret tanda tangan: kanvas langsung tersorot merah dengan teks *"⚠️ Tanda tangan digital wajib dibubuhkan sebelum mengirimkan pengajuan lembur."* dan alert *"Tanda tangan digital belum dibubuhkan. Silakan bubuhkan tanda tangan Anda pada area kanvas yang tersedia."*.
+  - Klik tombol hapus dokumentasi pada baris tabel lembur: dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menghapus tautan dokumentasi kegiatan ini?"*.
+
