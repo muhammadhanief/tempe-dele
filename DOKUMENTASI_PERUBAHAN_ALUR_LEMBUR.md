@@ -4974,12 +4974,13 @@ Pada tangkapan layar pengguna:
   3. Mengembalikan header utama halaman (*Manajemen Pejabat & Hak Akses*) agar tetap bersih dan hanya memiliki tombol sekunder *Kelola Seluruh Pengguna*.
 
 ### B. Solusi & Rincian Implementasi
-1. **Penyelarasan Header Kartu Tabel (*Compact Table Header Bar*):**
-   - **Tabel Admin Lembur:** Bilah header ringkas (`py-3.5 sm:py-4`) menyajikan judul `Admin Lembur` dengan lencana jumlah petugas aktif di sisi kiri, dan tombol **`+ Tambah Admin`** di sisi kanan (`onclick="openModalTambahAdmin()"`).
-   - **Tabel Super Administrator:** Bilah header ringkas menyajikan judul `Super Administrator` dengan lencana jumlah pengendali aktif di sisi kiri, dan tombol **`+ Tambah Superadmin`** di sisi kanan (`onclick="openModalTambahSuperadmin()"`).
+1. **Penyelarasan Bilah Header di Luar Kartu Tabel (*External Header Bar*):**
+   - **Tabel Admin Lembur:** Bilah header di atas kartu menyajikan judul `ADMIN LEMBUR` dengan lencana jumlah petugas aktif di sisi kiri, dan tombol **`+ Tambah Admin`** beraksen oranye amber BPS `bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b] text-slate-950 font-semibold` di sisi kanan (`onclick="openModalTambahAdmin()"`).
+   - **Tabel Super Administrator:** Bilah header di atas kartu menyajikan judul `SUPER ADMINISTRATOR` dengan lencana jumlah pengendali aktif di sisi kiri, dan tombol **`+ Tambah Superadmin`** beraksen merah tegas `bg-red-600 hover:bg-red-700 border border-red-700 text-white font-semibold` di sisi kanan (`onclick="openModalTambahSuperadmin()"`), merefleksikan status proteksi hak permanen dengan tingkat keamanan kritis sesuai petunjuk visual kotak merah pengguna.
+   - Kartu tabel di bawah masing-masing header menyajikan struktur data tabel murni berbingkai melengkung modern (`bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden`).
 2. **Kepatuhan Desain Anti-Slop & Standar Kelembagaan BPS:**
-   - **Aksen Warna & Kontras:** Tombol menggunakan warna amber resmi BPS `bg-[#faa938] hover:bg-[#fd9a10] border border-[#f59e0b]` dengan warna teks `text-slate-950 font-semibold` (menghasilkan rasio kontras > 10:1 memenuhi kepatuhan aksesibilitas WCAG AAA).
-   - **Ikonografi & Micro-interaction:** Menggunakan ikon plus SVG `text-slate-900` berukuran proporsional, sudut melengkung `rounded-xl`, bayangan halus `shadow-2xs`, dan ring fokus `focus:ring-[#faa938]/30`.
+   - **Aksen Warna & Kontras:** Tombol Admin menggunakan warna amber BPS dengan rasio kontras teks hitam pekat `text-slate-950` (> 10:1 memenuhi WCAG AAA), sedangkan tombol Superadmin menggunakan warna merah tegap `text-white` (> 4.5:1 memenuhi WCAG AA).
+   - **Ikonografi & Micro-interaction:** Menggunakan ikon plus SVG berukuran proporsional, sudut melengkung `rounded-xl`, bayangan halus `shadow-2xs`, dan ring fokus `focus:ring-[#faa938]/30` / `focus:ring-red-500/30`.
 3. **Fungsionalitas Modal & Alur Penambahan:**
    - **Modal Tambah Admin (`#modalTambahAdmin`):** Format landscape 2-kolom zero-scroll dengan live search pencarian pegawai instan di sisi kanan dan kartu preview profil pegawai terpilih di sisi kiri, terhubung ke rute `admin.manajemen-user.tambah-admin`.
    - **Modal Tambah Superadmin (`#modalTambahSuperadmin`):** Format landscape 2-kolom zero-scroll dengan peringatan tegas klausul permanen (*superadmin tidak bisa mencabut superadmin lain*), checkbox persetujuan wajib yang mengaktifkan tombol simpan, terhubung ke rute `admin.manajemen-user.tambah-superadmin`.
@@ -4987,7 +4988,7 @@ Pada tangkapan layar pengguna:
 ### C. Berkas yang Diperbarui
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
-| 1 | `resources/views/admin/manajemen_user.blade.php` | Penempatan tombol `+ Tambah Admin` dan `+ Tambah Superadmin` di pojok kanan atas header tabel seksi masing-masing, pembersihan blok deskripsi monogram ikon AL/SA, dan perapian header utama. |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Penempatan bilah header dan tombol `+ Tambah Admin` (oranye) serta `+ Tambah Superadmin` (merah) tepat di atas kartu tabel masing-masing, pembersihan blok deskripsi monogram AL/SA, dan perapian header utama. |
 
 
 
