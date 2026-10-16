@@ -5500,6 +5500,46 @@ Disuntikkan 7 record transaksi realistis periode 1–14 Oktober 2026 di bawah `t
 
 ---
 
+## 53. Konfigurasi Lingkungan Pengembang VS Code untuk Mengabaikan Peringatan Kosmetik At-Rules Tailwind CSS v4 (`.vscode/settings.json` & `.gitignore`)
+
+### A. Latar Belakang Masalah
+1. **Peringatan Linter Kosmetik pada CSS Editor:**
+   * Di dalam file [resources/css/app.css](file:///d:/TUGAS%20ITTP/BPS%20-%20MAGANG/lembur/resources/css/app.css#L3-L11), aplikasi menggunakan sintaks resmi arsitektur modern **Tailwind CSS v4** (`@import 'tailwindcss';`, `@source '...';`, dan `@theme { ... }`).
+   * *CSS Language Server* bawaan VS Code / Antigravity IDE belum memperbarui daftar kamus *at-rules* standar CSS untuk mengenali direktif baru Tailwind v4 tersebut.
+   * Akibatnya, pada tab **Problems** IDE muncul 5 peringatan (*severity: warning*):
+     - `Unknown at rule @source` (pada baris 3, 4, 5, dan 6)
+     - `Unknown at rule @theme` (pada baris 8)
+2. **Kebutuhan Pengembang:**
+   * Pengembang menginginkan tab *Problems* editor tetap bersih (*zero warnings*) tanpa mengutak-atik kode CSS inti Tailwind v4 yang sudah terbukti terkompilasi 100% sempurna oleh bundler Vite.
+
+### B. Solusi & Rincian Teknis
+1. **Penyediaan Konfigurasi Workspace (`.vscode/settings.json`):**
+   * Membuat file konfigurasi workspace `.vscode/settings.json` dengan parameter resmi linter CSS VS Code:
+     ```json
+     {
+         "css.lint.unknownAtRules": "ignore"
+     }
+     ```
+   * Pengaturan ini secara cerdas menginstruksikan editor untuk mengabaikan peringatan sintaks khusus (*at-rules*) yang digunakan oleh framework modern seperti Tailwind CSS v4, sehingga garis kuning dan daftar masalah di tab *Problems* langsung hilang.
+2. **Penyesuaian Aturan Pelacakan Git (`.gitignore`):**
+   * Menyesuaikan baris aturan `.gitignore` agar file konfigurasi bersama `.vscode/settings.json` dapat dilacak dan dibagikan ke seluruh tim pengembang tanpa melacak file preferensi personal lainnya:
+     ```gitignore
+     /.vscode/*
+     !/.vscode/settings.json
+     ```
+
+### C. Hasil & Verifikasi
+* **Verifikasi Tab Problems IDE:** Tab *Problems* kini 100% bersih tanpa ada lagi peringatan `Unknown at rule @source` maupun `Unknown at rule @theme`.
+* **Verifikasi Build Vite:** Menjalankan `npm run build` berhasil sempurna (`✓ 53 modules transformed`, `built in 4.16s`), menjamin tidak ada dampak negatif terhadap performa atau integritas tampilan sistem di server.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `.vscode/settings.json` | Konfigurasi pengabaian peringatan at-rules Tailwind CSS v4 pada linter CSS. |
+| 2 | `.gitignore` | Pengecualian pelacakan Git agar `.vscode/settings.json` dapat disertakan ke repositori. |
+
+---
+
 
 
 

@@ -320,6 +320,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 218. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Refactoring 5 dialog modal suksesi pejabat dan admin ke arsitektur 2-layer terpisah [dedicated backdrop fixed inset-0 murni + dedicated scroll/flex container pointer-events-none], pembungkusan ke `@push('modals')`, dan penutupan tag div kontainer halaman untuk eliminasi total celah blur di bagian bawah viewport)*.
 219. 📄 **`resources/css/app.css`** & **`resources/js/app.js`** *(Peningkatan pengalaman pergeseran tabel mobile: metric caching anti forced reflow, penyeretan rel 1:1 instant zero-lag, penambahan tombol navigasi panah cepat sentuh `[ ‹ ]` dan `[ › ]`, serta kinetic momentum touch gliding)*.
 220. 📁 **`public/build/`** *(Bundel aset produksi Vite terbaru: `manifest.json`, `assets/app-C-W_ERKf.css`, `assets/app-i3CBr4cx.js`)*.
+221. 📄 **`.vscode/settings.json`** & **`.gitignore`** *(Konfigurasi pengabaian warning kosmetik at-rules Tailwind CSS v4 `@source` dan `@theme` pada CSS Language Server IDE)*.
 
 ---
 
