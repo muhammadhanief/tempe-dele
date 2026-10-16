@@ -89,19 +89,35 @@
 
             {{-- Header --}}
             <div class="flex flex-col gap-4 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
-                <div>
+                <div class="min-w-0 flex-1">
                     <h3 class="text-base font-semibold text-slate-800 sm:text-lg">Pengajuan Lembur</h3>
                     <p class="text-xs text-slate-500 sm:text-sm">Daftar pengajuan lembur terbaru dari anggota tim</p>
                 </div>
                 <a href="{{ route('ketua-tim.pengajuan') }}"
-                    class="inline-flex items-center justify-center rounded-full border border-black/15 px-3 py-2 text-xs font-semibold hover:bg-gray-50 sm:px-4 sm:text-sm">
+                    class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-black/15 px-4 py-2 text-sm font-semibold hover:bg-gray-50 transition-colors">
                     Lihat Semua
                 </a>
             </div>
 
+            {{-- Petunjuk Geser Horizontal Khusus Mobile --}}
+            <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2 text-[11px] font-medium text-slate-500">
+                <div class="flex items-center justify-between">
+                    <span class="inline-flex items-center gap-1.5">
+                        <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                        <span>Geser tabel ke kiri / kanan</span>
+                    </span>
+                    <span class="table-scroll-pct text-[10px] font-mono text-slate-400 shrink-0">Geser »</span>
+                </div>
+                <div class="table-scroll-track w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
+                    <div class="table-scroll-thumb absolute top-0 left-0 h-full bg-[#faa938] rounded-full" style="width: 30%; transform: translateX(0px);"></div>
+                </div>
+            </div>
+
             {{-- Table --}}
             <div class="overflow-x-auto">
-                <table class="min-w-[700px] w-full text-sm text-center">
+                <table class="min-w-[650px] lg:min-w-full w-full text-sm text-center">
                     <thead class="bg-slate-50 text-slate-500">
                         <tr>
                             <th class="px-3 py-3 font-medium sm:px-5 sm:py-4">Nama Pegawai</th>
@@ -262,7 +278,7 @@
         } catch (e) {
             btn.disabled    = false;
             btn.textContent = '✓ Setujui';
-            alert('Gagal menyetujui. Coba lagi.');
+            alert('Gagal memproses persetujuan pengajuan. Silakan coba beberapa saat lagi.');
         }
     }
 

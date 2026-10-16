@@ -55,7 +55,7 @@
     padding-bottom: 2px;
 }
 
-/* Custom prominent, high-contrast scrollbar for tables */
+/* Custom prominent, high-contrast scrollbar for tables (Desktop) */
 .table-responsive:not(.no-scrollbar):not(.scrollbar-none)::-webkit-scrollbar,
 .overflow-x-auto:not(.no-scrollbar):not(.scrollbar-none)::-webkit-scrollbar {
     height: 8px !important;
@@ -84,6 +84,59 @@
     background: #faa938 !important;
 }
 
+/* Mobile Touch Smoothness & Scrollbar Hygiene (Khusus Mobile < 640px) */
+@media (max-width: 640px) {
+    .table-responsive,
+    .overflow-x-auto:not(.flex):not(.inline-flex) {
+        -webkit-overflow-scrolling: touch !important;
+        scroll-behavior: auto !important;
+        overscroll-behavior-x: contain !important;
+        will-change: scroll-position;
+        /* Di mobile, sembunyikan bilah scrollbar bawah yang kaku karena sudah digantikan track indikator atas */
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    .table-responsive::-webkit-scrollbar,
+    .overflow-x-auto:not(.flex):not(.inline-flex)::-webkit-scrollbar {
+        display: none !important;
+        height: 0 !important;
+        width: 0 !important;
+    }
+
+    /* Edge shadow cue for scrollable content on mobile */
+    .table-scroll-parent {
+        position: relative;
+    }
+    .table-scroll-parent.has-scroll-left::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 14px;
+        background: linear-gradient(to right, rgba(15, 23, 42, 0.08), transparent);
+        pointer-events: none;
+        z-index: 10;
+        border-top-left-radius: 1rem;
+        border-bottom-left-radius: 1rem;
+        transition: opacity 0.2s ease;
+    }
+    .table-scroll-parent.has-scroll-right::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 14px;
+        background: linear-gradient(to left, rgba(15, 23, 42, 0.08), transparent);
+        pointer-events: none;
+        z-index: 10;
+        border-top-right-radius: 1rem;
+        border-bottom-right-radius: 1rem;
+        transition: opacity 0.2s ease;
+    }
+}
+
 /* Mobile Interactive Visual Scrollbar Bar */
 .table-scroll-hint {
     user-select: none;
@@ -93,12 +146,19 @@
 .table-scroll-track {
     position: relative;
     width: 100%;
-    height: 6px;
+    height: 7px;
     background-color: #e2e8f0;
     border-radius: 9999px;
     cursor: pointer;
     overflow: hidden;
     touch-action: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: height 0.15s ease;
+}
+
+.table-scroll-track:hover,
+.table-scroll-track:active {
+    height: 9px;
 }
 
 .table-scroll-thumb {
@@ -110,12 +170,23 @@
     border-radius: 9999px;
     cursor: grab;
     will-change: transform, width;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 3px rgba(245, 158, 11, 0.4);
 }
 
 .table-scroll-thumb:hover,
-.table-scroll-thumb:active {
+.table-scroll-thumb:active,
+.table-scroll-thumb.is-dragging {
     background-color: #e28e14;
+    cursor: grabbing;
+    box-shadow: 0 2px 6px rgba(226, 142, 20, 0.6);
+}
+
+.table-scroll-pct {
+    transition: all 0.15s ease;
+}
+.table-scroll-pct:active {
+    transform: scale(0.95);
 }
 
 /* Drag to scroll enhancement & Text Selection Support */

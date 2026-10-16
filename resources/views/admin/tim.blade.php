@@ -65,8 +65,24 @@
 
 {{-- Tabel --}}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-5">
+    {{-- Petunjuk Geser Horizontal Khusus Mobile --}}
+    <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
+        <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                <span>Geser tabel ke kiri / kanan</span>
+            </span>
+            <span class="table-scroll-pct text-[10px] font-mono text-slate-400 shrink-0">Geser »</span>
+        </div>
+        <div class="table-scroll-track w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden cursor-pointer relative">
+            <div class="table-scroll-thumb absolute top-0 left-0 h-full bg-[#faa938] rounded-full" style="width: 30%; transform: translateX(0px);"></div>
+        </div>
+    </div>
+
     <div class="overflow-x-auto rounded-xl bg-white">
-        <table class="w-full min-w-[980px] rounded-xl">
+        <table class="w-full min-w-[980px] lg:min-w-full rounded-xl">
             <thead>
                 <tr class="bg-gray-100">
                     <th class="p-5 text-center text-sm font-semibold text-gray-900 rounded-tl-xl">Nama Tim</th>
@@ -737,7 +753,7 @@ function initInlineActions() {
                 });
 
                 exitEdit(row, btnDetail, btnEdit, btnSave, btnCancel, btnDelete);
-                showAlert(data.message ?? 'Tim berhasil diupdate');
+                showAlert(data.message ?? 'Data tim kerja berhasil diperbarui.');
             } catch {
                 showAlert('Gagal menghubungi server.', 'error');
             }
@@ -746,7 +762,7 @@ function initInlineActions() {
         btnDelete?.addEventListener('click', async () => {
             const nama = row.querySelector('.cell-display')?.textContent.trim() || 'tim ini';
 
-            if (!confirm(`Hapus tim "${nama}"?`)) return;
+            if (!confirm(`Apakah Anda yakin ingin menghapus tim kerja "${nama}"?`)) return;
 
             try {
                 const res = await fetch(`/admin/master/tim/${kode}`, {
@@ -761,7 +777,7 @@ function initInlineActions() {
 
                 if (res.ok) {
                     row.remove();
-                    showAlert(data.message ?? 'Tim berhasil dihapus');
+                    showAlert(data.message ?? 'Tim kerja berhasil dihapus.');
                     return;
                 }
 
@@ -895,7 +911,7 @@ window.filterAnggota = function () {
 };
 
 async function hapusAnggota(pegawaiId, nama) {
-    if (!confirm(`Hapus "${nama}" dari tim ini?`)) return;
+    if (!confirm(`Apakah Anda yakin ingin mengeluarkan pegawai "${nama}" dari tim kerja ini?`)) return;
 
     try {
         const res = await fetch(`/admin/tim/${currentKodeTim}/anggota`, {
@@ -911,7 +927,7 @@ async function hapusAnggota(pegawaiId, nama) {
         const data = await res.json();
 
         if (res.ok) {
-            showAlert(data.message ?? 'Anggota dihapus');
+            showAlert(data.message ?? 'Pegawai berhasil dikeluarkan dari tim kerja.');
             loadAnggota(anggotaPage);
             return;
         }
@@ -991,7 +1007,7 @@ async function tambahAnggota(pegawaiId, nama) {
         const data = await res.json();
 
         if (res.ok) {
-            showAlert(data.message ?? 'Anggota ditambahkan');
+            showAlert(data.message ?? 'Pegawai berhasil ditambahkan ke dalam tim kerja.');
             loadPegawaiTersedia(pegawaiPage);
             return;
         }
@@ -1067,8 +1083,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 window.syncTim = async function () {
-    if (!confirm('Tarik data tim & anggota dari API? Proses ini bisa beberapa saat.')) return;
-    showAlert('Memproses sinkronisasi...', 'success');
+    if (!confirm('Apakah Anda yakin ingin menyinkronkan data tim dan anggota dari API pusat BPS? Proses ini mungkin memerlukan waktu beberapa saat.')) return;
+    showAlert('Sedang memproses sinkronisasi data tim...', 'success');
     try {
         const res = await fetch('{{ route("admin.tim.sync") }}', {
             method: 'POST',

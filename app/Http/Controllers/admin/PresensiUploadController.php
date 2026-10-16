@@ -181,27 +181,16 @@ class PresensiUploadController extends Controller
             $query->where('periode', $request->periode);
         }
 
-        $riwayat = $query->paginate(10)->withPath(route('admin.riwayat_presensi'));
-
         if ($request->expectsJson()) {
+            $riwayat = $query->paginate(10)->withPath(route('admin.riwayat_presensi'));
             return response()->json($riwayat);
         }
 
-        $daftarHadir = DB::table('t_riwayat_presensi')
-            ->orderBy('uploaded_at', 'desc')
-            ->get();
-
-            try {
-            RiwayatPresensi::create([
-                'periode'     => sprintf('%04d-%02d', $tahun, $bulan),
-                'nama_file'   => $file->getClientOriginalName(),
-                'uploaded_by' => $adminNama,
-                'uploaded_at' => now(),
-            ]);
-            \Log::info('RiwayatPresensi berhasil disimpan');
-        } catch (\Exception $e) {
-            \Log::error('RiwayatPresensi error: ' . $e->getMessage());
+        $daftarHadirQuery = DB::table('t_riwayat_presensi')->orderBy('uploaded_at', 'desc');
+        if ($request->filled('periode')) {
+            $daftarHadirQuery->where('periode', $request->periode);
         }
+        $daftarHadir = $daftarHadirQuery->get();
 
         return view('admin.riwayat_presensi', compact('daftarHadir'));
     }

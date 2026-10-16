@@ -98,9 +98,18 @@ function initTableScrollbars() {
 
     // 1. Locate or enhance preceding mobile hint block
     let hintBlock = wrapper.previousElementSibling;
+    if (!hintBlock && wrapper.parentElement) {
+      hintBlock = wrapper.parentElement.previousElementSibling;
+      if (!hintBlock || !hintBlock.classList.contains('table-scroll-hint')) {
+        hintBlock = wrapper.parentElement.querySelector(':scope > .table-scroll-hint') || hintBlock;
+      }
+    }
     let track = null;
     let thumb = null;
     let hintLabel = null;
+    let btnPrevMobile = null;
+    let btnNextMobile = null;
+    const parentContainer = wrapper.parentElement;
 
     if (hintBlock && (hintBlock.classList.contains('sm:hidden') || hintBlock.classList.contains('table-scroll-hint') || hintBlock.textContent.includes('Geser tabel'))) {
       hintBlock.classList.add('table-scroll-hint');
@@ -141,16 +150,97 @@ function initTableScrollbars() {
         track.appendChild(thumb);
         hintBlock.appendChild(track);
       }
+
+      // 1b. Enhance hintBlock with interactive quick-nav arrow pills if not already present
+      let navGroup = hintBlock.querySelector('.table-scroll-nav-group');
+      if (!navGroup && hintLabel && hintLabel.parentElement) {
+        navGroup = document.createElement('div');
+        navGroup.className = 'table-scroll-nav-group inline-flex items-center gap-1 shrink-0 select-none';
+
+        btnPrevMobile = document.createElement('button');
+        btnPrevMobile.type = 'button';
+        btnPrevMobile.className = 'table-nav-pill-prev inline-flex items-center justify-center w-5.5 h-5.5 rounded-md bg-slate-100/90 hover:bg-amber-100 active:bg-amber-200 text-slate-600 hover:text-amber-800 transition-colors cursor-pointer shadow-2xs';
+        btnPrevMobile.setAttribute('aria-label', 'Geser ke kiri');
+        btnPrevMobile.setAttribute('title', 'Geser ke kiri');
+        btnPrevMobile.innerHTML = '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>';
+
+        btnNextMobile = document.createElement('button');
+        btnNextMobile.type = 'button';
+        btnNextMobile.className = 'table-nav-pill-next inline-flex items-center justify-center w-5.5 h-5.5 rounded-md bg-slate-100/90 hover:bg-amber-100 active:bg-amber-200 text-slate-600 hover:text-amber-800 transition-colors cursor-pointer shadow-2xs';
+        btnNextMobile.setAttribute('aria-label', 'Geser ke kanan');
+        btnNextMobile.setAttribute('title', 'Geser ke kanan');
+        btnNextMobile.innerHTML = '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>';
+
+        const parentOfLabel = hintLabel.parentElement;
+        parentOfLabel.replaceChild(navGroup, hintLabel);
+        navGroup.appendChild(btnPrevMobile);
+        navGroup.appendChild(hintLabel);
+        navGroup.appendChild(btnNextMobile);
+
+        hintLabel.classList.add('cursor-pointer', 'hover:text-amber-700', 'px-1', 'py-0.5', 'rounded', 'hover:bg-amber-50');
+        hintLabel.setAttribute('title', 'Ketuk untuk beralih posisi');
+
+        btnPrevMobile.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const step = Math.max(wrapper.clientWidth * 0.7, 180);
+          wrapper.scrollBy({ left: -step, behavior: 'smooth' });
+        });
+
+        btnNextMobile.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const step = Math.max(wrapper.clientWidth * 0.7, 180);
+          wrapper.scrollBy({ left: step, behavior: 'smooth' });
+        });
+
+        hintLabel.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const maxS = wrapper.scrollWidth - wrapper.clientWidth;
+          if (wrapper.scrollLeft > maxS / 2) {
+            wrapper.scrollTo({ left: 0, behavior: 'smooth' });
+          } else {
+            wrapper.scrollTo({ left: maxS, behavior: 'smooth' });
+          }
+        });
+      } else if (navGroup) {
+        btnPrevMobile = navGroup.querySelector('.table-nav-pill-prev');
+        btnNextMobile = navGroup.querySelector('.table-nav-pill-next');
+      }
     }
 
-    // 2. Synchronize visual scrollbar thumb with table scrollLeft
-    function updateScrollIndicator() {
-      const clientW = wrapper.clientWidth;
-      const scrollW = wrapper.scrollWidth;
-      const maxScroll = scrollW - clientW;
+    // 2. Metric caching to eliminate forced reflows during continuous scroll
+    let cachedClientW = wrapper.clientWidth;
+    let cachedScrollW = wrapper.scrollWidth;
+    let cachedMaxScroll = Math.max(0, cachedScrollW - cachedClientW);
+    let cachedTrackW = track ? (track.clientWidth || track.getBoundingClientRect().width) : 0;
+    let cachedThumbW = 32;
 
-      if (maxScroll <= 5) {
+    function refreshMetrics() {
+      cachedClientW = wrapper.clientWidth;
+      cachedScrollW = wrapper.scrollWidth;
+      cachedMaxScroll = Math.max(0, cachedScrollW - cachedClientW);
+
+      if (track) {
+        cachedTrackW = track.clientWidth || track.getBoundingClientRect().width;
+        if (cachedTrackW > 0 && cachedScrollW > 0) {
+          const thumbRatio = Math.max(cachedClientW / cachedScrollW, 0.16);
+          cachedThumbW = Math.max(thumbRatio * cachedTrackW, 36);
+          if (thumb) thumb.style.width = `${cachedThumbW}px`;
+        }
+      }
+    }
+
+    refreshMetrics();
+
+    // 3. Synchronize visual scrollbar thumb with table scrollLeft (Zero-Reflow)
+    function updateScrollIndicator() {
+      if (cachedMaxScroll <= 5) {
         if (hintBlock) hintBlock.classList.add('hidden');
+        if (parentContainer) {
+          parentContainer.classList.remove('has-scroll-left', 'has-scroll-right');
+        }
         return;
       } else {
         if (hintBlock && hintBlock.classList.contains('sm:hidden')) {
@@ -158,81 +248,179 @@ function initTableScrollbars() {
         }
       }
 
-      if (!track || !thumb) return;
+      const currentScroll = Math.max(0, Math.min(wrapper.scrollLeft, cachedMaxScroll));
+      const scrollPercent = cachedMaxScroll > 0 ? (currentScroll / cachedMaxScroll) : 0;
 
-      const trackW = track.clientWidth || track.getBoundingClientRect().width;
-      if (trackW <= 0) return;
+      // Update mobile edge gradient shadow cue
+      if (parentContainer) {
+        if (currentScroll > 10) {
+          parentContainer.classList.add('has-scroll-left');
+        } else {
+          parentContainer.classList.remove('has-scroll-left');
+        }
 
-      const thumbRatio = Math.max(clientW / scrollW, 0.18);
-      const thumbW = Math.max(thumbRatio * trackW, 32);
-      thumb.style.width = `${thumbW}px`;
+        if (currentScroll < cachedMaxScroll - 10) {
+          parentContainer.classList.add('has-scroll-right');
+        } else {
+          parentContainer.classList.remove('has-scroll-right');
+        }
+      }
 
-      const currentScroll = Math.max(0, Math.min(wrapper.scrollLeft, maxScroll));
-      const scrollPercent = currentScroll / maxScroll;
-      const maxThumbTranslate = trackW - thumbW;
-      const thumbTranslate = scrollPercent * maxThumbTranslate;
-
-      thumb.style.transform = `translateX(${thumbTranslate}px)`;
+      if (track && thumb && cachedTrackW > 0) {
+        const maxThumbTranslate = Math.max(0, cachedTrackW - cachedThumbW);
+        const thumbTranslate = scrollPercent * maxThumbTranslate;
+        thumb.style.transform = `translateX(${thumbTranslate}px)`;
+      }
 
       if (hintLabel) {
-        if (scrollPercent <= 0.05) {
+        if (scrollPercent <= 0.04) {
           hintLabel.textContent = 'Geser kanan »';
-        } else if (scrollPercent >= 0.95) {
+        } else if (scrollPercent >= 0.96) {
           hintLabel.textContent = '« Geser kiri';
         } else {
           hintLabel.textContent = `${Math.round(scrollPercent * 100)}%`;
         }
       }
+
+      if (btnPrevMobile) {
+        btnPrevMobile.style.opacity = scrollPercent <= 0.02 ? '0.35' : '1';
+        btnPrevMobile.style.pointerEvents = scrollPercent <= 0.02 ? 'none' : 'auto';
+      }
+      if (btnNextMobile) {
+        btnNextMobile.style.opacity = scrollPercent >= 0.98 ? '0.35' : '1';
+        btnNextMobile.style.pointerEvents = scrollPercent >= 0.98 ? 'none' : 'auto';
+      }
     }
 
-    // 3. Listen to scroll events on wrapper
+    // 4. High-performance scroll listener on wrapper
     wrapper.addEventListener('scroll', () => {
       window.requestAnimationFrame(updateScrollIndicator);
     }, { passive: true });
 
-    // 4. Interactive click/drag on the track
+    // 5. Interactive click & touch-drag on the track (1:1 instant tracking, zero stutter)
     if (track) {
       let isTrackDown = false;
 
-      const handleTrackSeek = (clientX) => {
+      const handleTrackSeek = (clientX, isContinuousDrag) => {
+        refreshMetrics();
+        if (cachedTrackW <= 0 || cachedMaxScroll <= 0) return;
         const rect = track.getBoundingClientRect();
         const clickX = clientX - rect.left;
-        const ratio = Math.max(0, Math.min(clickX / rect.width, 1));
-        const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-        wrapper.scrollTo({
-          left: ratio * maxScroll,
-          behavior: 'smooth'
-        });
+        const ratio = Math.max(0, Math.min(clickX / cachedTrackW, 1));
+        const targetScroll = ratio * cachedMaxScroll;
+
+        if (isContinuousDrag) {
+          wrapper.scrollLeft = targetScroll;
+        } else {
+          wrapper.scrollTo({
+            left: targetScroll,
+            behavior: 'smooth'
+          });
+        }
       };
 
       track.addEventListener('click', (e) => {
-        handleTrackSeek(e.clientX);
+        handleTrackSeek(e.clientX, false);
       });
 
       track.addEventListener('touchstart', (e) => {
         isTrackDown = true;
+        if (thumb) thumb.classList.add('is-dragging');
         if (e.touches && e.touches[0]) {
-          handleTrackSeek(e.touches[0].clientX);
+          handleTrackSeek(e.touches[0].clientX, true);
         }
       }, { passive: true });
 
       track.addEventListener('touchmove', (e) => {
         if (!isTrackDown) return;
         if (e.touches && e.touches[0]) {
-          handleTrackSeek(e.touches[0].clientX);
+          handleTrackSeek(e.touches[0].clientX, true);
         }
       }, { passive: true });
 
       track.addEventListener('touchend', () => {
         isTrackDown = false;
+        if (thumb) thumb.classList.remove('is-dragging');
+      });
+      track.addEventListener('touchcancel', () => {
+        isTrackDown = false;
+        if (thumb) thumb.classList.remove('is-dragging');
       });
     }
 
-    // 5. Desktop Table Usability: Floating Navigation & Effortless Panning without Scrollbar
+    // 6. Direct Touch Gesture with Natural Momentum Glide on Mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartScroll = 0;
+    let isHorizontalTouch = false;
+    let lastTouchX = 0;
+    let lastTouchTime = 0;
+    let touchVelocity = 0;
+    let momentumAnimId = null;
+
+    wrapper.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      if (momentumAnimId) {
+        cancelAnimationFrame(momentumAnimId);
+        momentumAnimId = null;
+      }
+      refreshMetrics();
+      const t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+      lastTouchX = t.clientX;
+      lastTouchTime = Date.now();
+      touchStartScroll = wrapper.scrollLeft;
+      isHorizontalTouch = false;
+      touchVelocity = 0;
+    }, { passive: true });
+
+    wrapper.addEventListener('touchmove', (e) => {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      const now = Date.now();
+
+      if (!isHorizontalTouch) {
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 6) {
+          isHorizontalTouch = true;
+        } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6) {
+          return;
+        }
+      }
+
+      if (isHorizontalTouch) {
+        const dt = Math.max(now - lastTouchTime, 1);
+        touchVelocity = (t.clientX - lastTouchX) / dt;
+        lastTouchX = t.clientX;
+        lastTouchTime = now;
+      }
+    }, { passive: true });
+
+    wrapper.addEventListener('touchend', () => {
+      if (!isHorizontalTouch) return;
+      if (Math.abs(touchVelocity) > 0.25) {
+        let v = touchVelocity * 13;
+        const friction = 0.93;
+
+        const glideStep = () => {
+          if (Math.abs(v) < 0.4) {
+            momentumAnimId = null;
+            return;
+          }
+          wrapper.scrollLeft -= v;
+          v *= friction;
+          momentumAnimId = requestAnimationFrame(glideStep);
+        };
+        momentumAnimId = requestAnimationFrame(glideStep);
+      }
+    }, { passive: true });
+
+    // 7. Desktop Table Usability: Floating Navigation & Effortless Panning without Scrollbar
     wrapper.classList.add('drag-scrollable');
 
-    // 5a. Floating Navigation Arrows on Parent Container
-    const parentContainer = wrapper.parentElement;
+    // 7a. Floating Navigation Arrows on Parent Container (Desktop Hover)
     let btnLeft = null;
     let btnRight = null;
 
@@ -382,14 +570,16 @@ function initTableScrollbars() {
       }
     });
 
-    // 6. Handle resize with ResizeObserver
+    // 8. Handle resize with ResizeObserver
     if (window.ResizeObserver) {
       const ro = new ResizeObserver(() => {
+        refreshMetrics();
         updateScrollIndicator();
         updateNavButtons();
       });
       ro.observe(wrapper);
       ro.observe(table);
+      if (track) ro.observe(track);
     }
 
     // Initial indicator sync

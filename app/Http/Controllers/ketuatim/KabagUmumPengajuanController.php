@@ -83,6 +83,10 @@ class KabagUmumPengajuanController extends Controller
         }
 
         $statusFilter = $request->get('status', 'all');
+        $search = trim((string) $request->get('search', $request->get('q', '')));
+        $perPage = in_array((int) $request->get('perPage', 10), [10, 25, 50, 100])
+            ? (int) $request->get('perPage', 10)
+            : 10;
 
         // Filter pengajuan: Seluruh Tim Kerja BPS (Monitoring Seluruh Satker & Approval Tim Lain)
         $query = DB::table('t_transaksi as t')
@@ -122,12 +126,16 @@ class KabagUmumPengajuanController extends Controller
             'menunggu_kabag' => $allTransactions->where('status', 'menunggu_kabag')->count(),
             'approved'       => $allTransactions->where('status', 'approved')->count(),
             'rejected'       => $allTransactions->where('status', 'rejected')->count(),
-            'cancelled'      => $allTransactions->where('status', 'cancelled')->count(),
+            'cancelled'      => $allTransactions->whereIn('status', ['cancelled', 'dibatalkan'])->count(),
         ];
 
         // Terapkan filter status jika dipilih
         if ($statusFilter && $statusFilter !== 'all') {
-            $query->where('t.status', $statusFilter);
+            if ($statusFilter === 'cancelled') {
+                $query->whereIn('t.status', ['cancelled', 'dibatalkan']);
+            } else {
+                $query->where('t.status', $statusFilter);
+            }
         }
 
         // Opsi sorting tanggal: desc (default: terbaru), asc (terlama), priority
@@ -145,15 +153,13 @@ class KabagUmumPengajuanController extends Controller
             $query->orderBy('t.date', 'desc')->orderBy('t.id_transaksi', 'desc');
         }
 
-        $pengajuan = $query
-            ->paginate(10)
-            ->appends($request->query());
+        $pengajuan = $query->get();
 
         $hariLibur = DB::table('m_hari_libur')
             ->orderBy('tanggal', 'asc')
             ->get();
 
-        return view('kabag-umum.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'statusFilter', 'stats', 'sort', 'selectedYear', 'selectedMonth'));
+        return view('kabag-umum.pengajuan', compact('pengajuan', 'hariLibur', 'bulan', 'statusFilter', 'stats', 'sort', 'selectedYear', 'selectedMonth', 'search', 'perPage'));
     }
 
     public function approve(Request $request, $id)
@@ -277,16 +283,21 @@ class KabagUmumPengajuanController extends Controller
         }
 
         // Cek pengubahan uraian kegiatan (khusus untuk tim Bagian Umum & syarat presensi sudah ada)
-        if ($request->filled('uraian') && trim($request->uraian) !== trim($transaksi->uraian ?? '')) {
-            $hasPresensi = DB::table('t_presensi')
-                ->where('niplama', $transaksi->nip_lama)
-                ->whereDate('tanggal', $transaksi->date)
-                ->exists();
+        if ($request->has('uraian') && $request->filled('uraian')) {
+            $normReqUraian = trim(preg_replace('/\r\n|\r|\n/', "\n", (string) $request->uraian));
+            $normDbUraian  = trim(preg_replace('/\r\n|\r|\n/', "\n", (string) ($transaksi->uraian ?? '')));
 
-            if ($isTimBagianUmum && $hasPresensi) {
-                $updateData['uraian'] = trim($request->uraian);
-                $updateData['user_edited'] = session('user')['nama'] ?? session('user')['nip'];
-                $updateData['tanggal_edited'] = now();
+            if ($normReqUraian !== $normDbUraian) {
+                $hasPresensi = DB::table('t_presensi')
+                    ->where('niplama', $transaksi->nip_lama)
+                    ->whereDate('tanggal', $transaksi->date)
+                    ->exists();
+
+                if ($isTimBagianUmum && $hasPresensi) {
+                    $updateData['uraian'] = $normReqUraian;
+                    $updateData['user_edited'] = session('user')['nama'] ?? session('user')['nip'];
+                    $updateData['tanggal_edited'] = now();
+                }
             }
         }
 

@@ -43,15 +43,17 @@
             {{-- NAVBAR --}}
             @include('partials.navbar')
 
-            {{-- PAGE CONTENT --}}
-            <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">
-                @yield('content')
-            </main>
+            {{-- PAGE CONTENT & FOOTER --}}
+            <main class="flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex-1">
+                    @yield('content')
+                </div>
 
-            {{-- FOOTER --}}
-            <footer class="py-4 px-4 text-center text-xs text-slate-500">
-                &copy; {{ date('Y') }} BPS Provinsi Jawa Tengah - Tim SID
-            </footer>
+                {{-- FOOTER --}}
+                <footer class="pt-6 text-center text-xs text-slate-500 shrink-0">
+                    &copy; {{ date('Y') }} BPS Provinsi Jawa Tengah - Tim SID
+                </footer>
+            </main>
 
         </div>
         {{-- end MAIN AREA --}}
@@ -59,10 +61,13 @@
     </div>
     {{-- end flex min-h-screen --}}
 
+    {{-- MODALS STACK (ROOT LEVEL FOR 100% VIEWPORT BACKDROP) --}}
+    @stack('modals')
+
     {{-- LOADING OVERLAY --}}
     @if(!$__env->hasSection('hideLoading'))
         <div id="loadingOverlay"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm
                     opacity-0 pointer-events-none transition-opacity duration-300">
             <div class="flex flex-col items-center gap-4 rounded-2xl bg-white border border-slate-200 shadow-xl px-10 py-8">
                 <svg class="h-8 w-8 animate-spin text-[#fd9a10]" xmlns="http://www.w3.org/2000/svg"

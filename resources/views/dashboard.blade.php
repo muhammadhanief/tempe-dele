@@ -148,12 +148,11 @@
 
             {{-- HEADER --}}
             <div
-                class="flex flex-col gap-4
-                border-b border-black/10
+                class="flex flex-col gap-4 border-b border-black/10
                 p-4
                 sm:flex-row sm:items-center sm:justify-between sm:p-5">
 
-                <div>
+                <div class="min-w-0 flex-1">
 
                     <h2 class="text-base font-semibold sm:text-lg">
                         Pengajuan terbaru
@@ -166,10 +165,10 @@
 
                 <a
                     href="{{ route('lembur') }}"
-                    class="inline-flex items-center justify-center
+                    class="inline-flex shrink-0 items-center justify-center whitespace-nowrap
                     rounded-full border border-black/15
                     px-4 py-2 text-sm font-semibold
-                    hover:bg-gray-50">
+                    hover:bg-gray-50 transition-colors">
 
                     Lihat semua
                 </a>
@@ -270,7 +269,7 @@
                 p-4
                 sm:flex-row sm:items-center sm:justify-between sm:p-5">
 
-                <div>
+                <div class="min-w-0 flex-1">
 
                     <h2 class="text-base font-semibold sm:text-lg">
                         Jadwal lembur mendatang
@@ -283,10 +282,10 @@
 
                 <a
                     href="{{ route('lembur') }}"
-                    class="inline-flex items-center justify-center
+                    class="inline-flex shrink-0 items-center justify-center whitespace-nowrap
                     rounded-full border border-black/15
                     px-4 py-2 text-sm font-semibold
-                    hover:bg-gray-50">
+                    hover:bg-gray-50 transition-colors">
 
                     Lihat semua
                 </a>

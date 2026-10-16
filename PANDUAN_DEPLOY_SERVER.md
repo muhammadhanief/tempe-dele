@@ -300,6 +300,26 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 198. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Penataan bertingkat vertikal flex-col header kolom Tanggal: teks Tanggal di atas dan dropdown sortir [Terbaru ▾] di bawahnya, mengeliminasi tabrakan horizontal dengan header Jam Diajukan)*.
 199. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Restrukturisasi tata letak modal #modalAjukan menjadi 2-kolom desktop md:grid-cols-2 zero-scroll: max-w-3xl lg:max-w-4xl max-h-[92vh], textarea uraian rows=3, kanvas tanda tangan h-28 touch-none, mengeliminasi scrollbar vertikal pada layar laptop/desktop dengan fallback responsif 1-kolom di mobile)*.
 200. 📁 **`public/build/`** *(Bundel produksi Vite terbaru hasil `npm run build`: `manifest.json`, `assets/app-CgN_TPC-.css`, `assets/app-DfUGke97.js` memuat seluruh utility Tailwind CSS termutakhir dari 30+ commit terakhir)*.
+201. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Pencarian menyeluruh [nama, NIP, tim, ketua] melintasi seluruh data periode aktif, dukungan perPage 10/25/50/100, sinkronisasi tab status, dan restrukturisasi baris paginasi bawah 3 bagian: Tampilkan data, Page X of Y, Menampilkan X-Y dari Z data)*.
+202. 📄 **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Peningkatan reaktivitas pencarian dan paginasi Persetujuan Kabag Umum menjadi ultra-smooth in-memory reactive engine 0ms: live keystroke filtering di sisi klien khusus Nama & NIP Pegawai [tanpa nama ketua/tim], paginasi tombol [<] [>] instan, sinkronisasi timeline card, dan silent URL replaceState).*
+203. 📄 **`resources/views/dashboard.blade.php`**, **`resources/views/admin/dashboard.blade.php`**, **`resources/views/ketua-tim/dashboard.blade.php`**, **`resources/views/pimpinan/dashboard.blade.php`** *(Standarisasi tombol "Lihat semua" pada seluruh kartu dashboard dengan penambahan `shrink-0`, `whitespace-nowrap`, `min-w-0 flex-1`, dan padding proporsional `px-4 py-2 text-sm` untuk menjamin bentuk pil konsisten dan bebas wrapping/tergencet di berbagai ukuran layar dan kondisi sidebar terbuka/tertutup).*
+204. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/lembur.blade.php`** *(Izin pengeditan mandiri pengajuan lembur anggota Tim Bagian Umum pada status `menunggu_kabag` selama belum disetujui Kabag Umum, dan sinkronisasi tampilan tombol aksi edit kuning di tabel & linimasa).*
+205. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`** *(Standarisasi ketebalan font teks uraian kegiatan pada kartu linimasa, label sub-seksi, dan judul modal detail dari `font-bold` menjadi `font-semibold` di seluruh role untuk meningkatkan kenyamanan visual dan keterbacaan antarmuka).*
+206. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Standarisasi format tampilan catatan transaksi dibatalkan oleh Admin dengan menyajikan label khusus 'Admin:' berkas warna rose lembut dan membersihkan prefix teks teknis `[Dibatalkan Admin]` pada tabel, linimasa, dan modal detail di seluruh role dengan tetap menjaga catatan historis Kabag Umum).*
+207. 📄 **`app/Http/Controllers/LemburController.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/partials/sidebar.blade.php`** *(Standarisasi antarmuka pengajuan lembur pribadi Ketua Tim dan Kepala Bagian Umum menggunakan `lembur.blade.php` penuh dengan fitur multi-tahun, pencarian tim, modal ajukan 2-kolom zero-scroll, modal edit, dan timeline responsif, serta penyesuaian rute aktif bilah sisi).*
+208. 📄 **`app/Http/Controllers/admin/LemburController.php`**, **`resources/views/admin/lembur.blade.php`**, **`app/Exports/LemburExport.php`** *(Perbaikan filter tab status cancelled/dibatalkan pada controller monitoring lembur admin, dukungan badge status cancelled dan dibatalkan pada tabel, serta pemetaan warna dan label status pada ekspor spreadsheet Excel).*
+209. 📄 **`resources/views/admin/riwayat_presensi.blade.php`**, **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Penambahan page header terstruktur dengan tombol kembali [Back icon & "Kembali ke Presensi"] dan tombol tutup [Close "✕"] yang mengarah ke route('admin.presensi'), penyelarasan kontainer & kartu tabel riwayat berkas spreadsheet presensi, pembersihan dead code try-catch RiwayatPresensi::create pada method riwayat(), serta eliminasi skrip AJAX tim/pegawai tak terpakai untuk mencegah galat JavaScript di konsol peramban).*
+210. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`**, **`app/Http/Controllers/admin/PengajuanController.php`**, **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`**, **`resources/views/ketua-tim/pengajuan.blade.php`**, **`resources/views/admin/pengajuan.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`** *(Perbaikan false-positive validasi uraian kegiatan saat persetujuan lembur tanpa presensi: normalisasi karakter line-break canonical CRLF [\r\n vs \n] pada dirty-check controller backend, serta proteksi frontend agar tidak mengirim payload uraian ketika field terkunci/tidak dimodifikasi).*
+211. 📄 **`resources/views/admin/lembur.blade.php`** *(Penyelarasan filter status monitoring lembur admin & superadmin menjadi custom floating dropdown melayang di sebelah kanan bilah pencarian tim pada toolbar, peniadaan deretan pil status desktop dan wrapper mobile terpisah, serta pembaruan deteksi filter aktif URL).*
+212. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Redesain antarmuka modal pergantian pejabat Kabag Umum & PPK, serta modal penambahan Admin Lembur & Superadmin menjadi format landscape 2-kolom zero-scroll: kolom kiri untuk parameter, info otomatisasi, dan live preview kartu pegawai terpilih; kolom kanan untuk live search dan listbox interaktif pegawai dengan avatar, NIP, satker tag, dan radio indicator; serta validasi terproteksi anti-error "An invalid form control is not focusable").*
+213. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Penerapan prinsip desain anti-slop pada halaman Manajemen User: eliminasi pola kontainer monoton bertumpuk, penyatuan panel eksekutif pejabat penandatangan aktif [Kabag Umum & PPK] menjadi 2-kolom desktop lg:grid-cols-2 dengan laci arsip collapsible, penataan hierarki peran Admin Lembur [AL] dan Super Administrator [SA] dengan ringkasan wewenang dan safeguards konfirmasi, kepatuhan aturan tipografi anti-slop R-02 pembersihan karakter em-dash, serta jaminan rasio kontras tinggi kelembagaan BPS).*
+214. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Penataan ulang tombol aksi wewenang: penempatan bilah header dan tombol `+ Tambah Admin` [berwarna oranye amber BPS `#faa938` teks `text-slate-950 font-semibold`] dan `+ Tambah Superadmin` [berwarna merah tegas `bg-red-600` teks `text-white font-semibold`] tepat di luar/atas kartu tabel masing-masing [external header bar], menjaga sudut kartu tabel murni `rounded-2xl`, pembersihan blok monogram avatar AL/SA yang memakan tempat vertikal, serta penyelarasan header utama halaman).*
+215. 📄 **`resources/views/partials/sidebar.blade.php`** & **`resources/views/layouts/app.blade.php`** *(Penataan ulang z-index backdrop overlay menjadi `z-40`, kontainer sidebar mobile menjadi `z-50`, dan loading overlay menjadi `z-[100]` untuk memperbaiki bug tampilan buram dan menu tidak dapat diklik saat rasio layar diperkecil `< 1024px`).*
+216. 📄 **Seluruh View Tabel Modul Utama (10 file Blade) & `resources/js/app.js`**: `resources/views/admin/manajemen_user.blade.php`, `resources/views/admin/pengguna.blade.php`, `resources/views/admin/tim.blade.php`, `resources/views/admin/pejabat.blade.php`, `resources/views/admin/tarif.blade.php`, `resources/views/admin/dokumen.blade.php`, `resources/views/admin/laporan.blade.php`, `resources/views/admin/spkl.blade.php`, `resources/views/ketua-tim/dashboard.blade.php`, `resources/views/pimpinan/dashboard.blade.php` *(Standarisasi tabel geser sentuh [horizontal swipeable table] pada tampilan seluler berbatas lebar `min-w-[XXXpx]` dengan proteksi desktop `lg:min-w-full` agar 100% pas selebar layar monitor tanpa scrollbar horizontal desktop dan tanpa mengubah tampilan desktop sama sekali, dilengkapi bilah panduan geser sentuh interaktif `.table-scroll-hint` khusus mobile `sm:hidden`).*
+217. 📄 **`resources/views/layouts/app.blade.php`** *(Penambahan titik injeksi `@stack('modals')` langsung pada tingkat root `<body>` di luar pembungkus layout flexbox utama untuk memastikan koordinat fixed modal murni relatif terhadap viewport peramban)*.
+218. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Refactoring 5 dialog modal suksesi pejabat dan admin ke arsitektur 2-layer terpisah [dedicated backdrop fixed inset-0 murni + dedicated scroll/flex container pointer-events-none], pembungkusan ke `@push('modals')`, dan penutupan tag div kontainer halaman untuk eliminasi total celah blur di bagian bawah viewport)*.
+219. 📄 **`resources/css/app.css`** & **`resources/js/app.js`** *(Peningkatan pengalaman pergeseran tabel mobile: metric caching anti forced reflow, penyeretan rel 1:1 instant zero-lag, penambahan tombol navigasi panah cepat sentuh `[ ‹ ]` dan `[ › ]`, serta kinetic momentum touch gliding)*.
+220. 📁 **`public/build/`** *(Bundel aset produksi Vite terbaru: `manifest.json`, `assets/app-C-W_ERKf.css`, `assets/app-i3CBr4cx.js`)*.
 
 ---
 
@@ -1397,3 +1417,329 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Hard Refresh Peramban (Bypass Browser Cache)**:
   - Tekan kombinasi tombol **Ctrl + Shift + R** (atau **Ctrl + F5**) untuk memastikan cache CSS lokal peramban dibersihkan.
   - Verifikasi: Tampilan modal ajukan lembur 2 kolom, tabel responsif sticky column, collapsible sidebar, dan seluruh tata letak antarmuka di peladen sama persis 100% dengan tampilan di lingkungan lokal.
+
+### BU. Uji Pencarian Menyeluruh & Standardisasi Paginasi 3 Bagian (`/kabag-umum/pengajuan`)
+- [ ] **Uji Pencarian Menyeluruh Melintasi Seluruh Data Periode Aktif**:
+  - Masuk ke akun Kepala Bagian Umum atau Administrator, buka menu **Persetujuan Kabag** (`/kabag-umum/pengajuan`).
+  - Masukkan nama pegawai (misal: `"joko"`) pada input pencarian.
+  - Verifikasi: Hasil pencarian menampilkan seluruh data transaksi pegawai bersangkutan dari keseluruhan periode aktif (bukan hanya 10 baris di halaman aktif).
+- [ ] **Uji Navigasi Halaman Pada Hasil Pencarian**:
+  - Klik tombol navigasi halaman berikutnya `[ > ]`.
+  - Verifikasi: Halaman ke-2 tetap memuat hasil pencarian kata kunci terkait (parameter `search` tidak hilang dari URL).
+- [ ] **Uji Tombol Pembersih Pencarian `(×)`**:
+  - Klik tombol silang `(×)` pada sisi kanan input pencarian.
+  - Verifikasi: Input dikosongkan dan tabel langsung memuat kembali seluruh transaksi pengajuan lembur tanpa filter pencarian.
+- [ ] **Uji Baris Paginasi Bawah 3 Bagian**:
+  - Periksa bagian bawah tabel:
+    1. **Kiri:** Tampil dropdown `Tampilkan [ 10 v ] data`. Ubah pilihan menjadi 25 atau 50, dan verifikasi jumlah baris yang tampil langsung bertambah sesuai opsi.
+    2. **Tengah:** Tampil navigasi kompak `[ < ] Page X of Y [ > ]` dengan tombol hover oranye `#faa938`.
+    3. **Kanan:** Tampil teks ringkasan `Menampilkan X-Y dari Z data` yang sinkron dengan total data riil.
+
+### BV. Uji Pencarian Ultra-Smooth (0ms Latency, Live Keystroke Filter Tanpa Reload) pada Persetujuan Kabag Umum (`/kabag-umum/pengajuan`)
+- [ ] **Uji Live Keystroke Filter Instan (Tanpa Reload Halaman)**:
+  - Buka `/kabag-umum/pengajuan`, ketik nama pegawai di kotak pencarian:
+  - Verifikasi: Baris tabel dan linimasa terfilter seketika pada setiap ketukan tuts keyboard (**0ms latency**) tanpa layar berkedip (*no white flash/reload*) dan kursor tidak kehilangan fokus.
+- [ ] **Uji Spesialisasi Pencarian Nama & NIP Pegawai (Bebas False-Positive Ketua Tim)**:
+  - Ketik nama pegawai yang juga menjabat sebagai Ketua Tim (misal: `"hendro"`):
+  - Verifikasi: Hasil pencarian **hanya menampilkan baris pengajuan lembur milik Hendro Deasmaran S.T.** (tidak mencantumkan baris milik anggota/bawahan tim seperti Muhammad Sodri atau Joko Suwarjo yang diketuai oleh beliau).
+- [ ] **Uji Transisi Paginasi Mulus (*Instant Page Switching*)**:
+  - Pada hasil pencarian atau tabel default, klik tombol `[ > ]` atau `[ < ]`:
+  - Verifikasi: Halaman berpindah secara instan (0ms) tanpa reload peramban, dan penomoran kolom `No` otomatis berlanjut secara runtut (`1, 2, 3...`).
+- [ ] **Uji Sinkronisasi State URL Senyap (*Silent URL ReplaceState*)**:
+  - Periksa bilah alamat browser saat mengetik atau berpindah halaman: parameter `?search=...&page=...` otomatis diperbarui tanpa me-reload halaman.
+  - Lakukan refresh peramban (F5): pastikan kata kunci pencarian dan posisi halaman tetap tersimpan utuh.
+- [ ] **Uji Sinkronisasi Mode Tampilan Timeline**:
+  - Beralih ke tampilan Timeline: verifikasi kartu linimasa dan garis aksis vertikal (`.timeline-stem`) terfilter dan terpaginasi secara rapi dan sinkron dengan filter pencarian.
+
+### BW. Uji Standarisasi Dimensi & Responsivitas Tombol "Lihat Semua" pada Dashboard Cards
+- [ ] **Uji Tombol "Lihat Semua" pada Dashboard Pegawai (`/dashboard`)**:
+  - Masuk ke akun pegawai, buka menu **Dashboard** (`/dashboard`).
+  - Periksa kartu *"Pengajuan terbaru"* dan *"Jadwal lembur mendatang"*.
+  - Verifikasi: Tombol *"Lihat semua"* berada dalam 1 baris teks yang utuh (*no text-wrap*), berbentuk pil `rounded-full` simetris dan proporsional.
+- [ ] **Uji Responsivitas Sidebar Desktop Buka / Tutup**:
+  - Klik tombol tab tepi/toggle sidebar desktop untuk menutup sidebar (`w-0`), lalu buka kembali (`w-64`):
+  - Verifikasi: Dimensi, tinggi, padding (`px-4 py-2`), dan ukuran font tombol *"Lihat semua"* tetap 100% konsisten, tidak gepeng/kempis, dan tidak terlipat menjadi 2 baris (bukan oval tinggi/telur).
+- [ ] **Uji Responsivitas Layar Laptop Kecil (13"/14", Resolusi 1024px–1366px)**:
+  - Uji halaman dashboard pada viewport 1024px atau 1280px dengan sidebar terbuka:
+  - Verifikasi: Container teks judul (`min-w-0 flex-1`) menyesuaikan ruang secara dinamis tanpa menekan tombol *"Lihat semua"* (`shrink-0 whitespace-nowrap`).
+- [ ] **Uji Konsistensi Lintas Dashboard Peran (Admin, Ketua Tim, Pimpinan)**:
+  - Buka `/admin/dashboard`, `/ketua-tim/dashboard`, dan `/pimpinan/dashboard`:
+  - Verifikasi: Seluruh tombol *"Lihat semua"* / *"Lihat Semua"* memiliki ukuran, padding, tinggi, dan perilaku anti-wrap yang seragam di semua peran pengguna.
+
+### BX. Uji Izin Pengeditan Mandiri Pengajuan Lembur Tim Bagian Umum (`/lembur`)
+- [ ] **Uji Munculnya Tombol Edit pada Pengajuan Tim Bagian Umum**:
+  - Masuk sebagai anggota Tim Bagian Umum (misal: Aning Widiyati), buka menu **Lembur** (`/lembur`).
+  - Periksa baris pengajuan lembur yang berstatus `Menunggu Kabag`.
+  - Verifikasi: Tombol aksi edit kuning (ikon pensil) tampil di tabel maupun tampilan linimasa.
+- [ ] **Uji Keberhasilan Penyimpanan Perubahan Data**:
+  - Klik tombol edit kuning, ubah rincian uraian kegiatan atau jam pengajuan.
+  - Klik tombol *"Simpan Perubahan"*:
+  - Verifikasi: Perubahan berhasil disimpan dengan notifikasi sukses *"Pengajuan lembur berhasil diperbarui."*, tidak ditolak oleh peladen, dan pesan error *"tidak dapat diubah karena sudah diproses"* tidak muncul lagi.
+- [ ] **Uji Penguncian Ketat untuk Tim Lain Setelah Disetujui Ketua Tim**:
+  - Masuk sebagai anggota tim non-Bagian Umum (misal: Tim Sosial atau Nerwilis).
+  - Saat pengajuan telah disetujui Ketua Tim (berstatus `Menunggu Kabag`):
+  - Verifikasi: Tombol aksi edit kuning tidak muncul (terkunci rapat) sehingga integritas keputusan Ketua Tim tetap terlindungi.
+
+### BY. Uji Standarisasi Ketebalan Font Teks Uraian Kegiatan (Semi-Bold) di Seluruh Role
+- [ ] **Uji Tampilan Linimasa Pengajuan Lembur Pribadi (`/lembur` & `/ketua-tim/lembur`)**:
+  - Akses menu **Lembur** pada role Pegawai, Kabag Umum, Admin, atau Pimpinan (`/lembur`), dan alihkan ke mode **Timeline**.
+  - Akses menu **Lembur** pada role Ketua Tim (`/ketua-tim/lembur`), dan alihkan ke mode **Timeline**.
+  - Verifikasi: Teks judul/uraian kegiatan lembur kini menggunakan ketebalan **semi-bold** (`font-semibold` / weight 600), proporsional dan nyaman dibaca untuk uraian paragraf panjang, tidak lagi terlalu pekat/tebal (*no bold weight 700*).
+- [ ] **Uji Harmonisasi Linimasa Verifikasi & Modal Detail Uraian**:
+  - Buka linimasa verifikasi pada role Ketua Tim (`/ketua-tim/pengajuan`), Kabag Umum (`/kabag-umum/pengajuan`), dan Admin (`/admin/pengajuan`):
+  - Verifikasi: Label sub-seksi *Uraian Kegiatan Lembur:* tampil rapi dan tegas dengan `font-semibold`.
+  - Klik baris uraian pada tabel atau buka modal detail uraian:
+  - Verifikasi: Judul modal *Detail Uraian Kegiatan* menggunakan tipografi `font-semibold text-slate-900` yang elegan dan selaras.
+
+### BZ. Uji Standarisasi Format Catatan Transaksi Dibatalkan oleh Admin (Label 'Admin:' & Pembersihan Prefix)
+- [ ] **Uji Tampilan Tabel Persetujuan Kabag Umum (`/kabag-umum/pengajuan`)**:
+  - Buka menu **Persetujuan Kabag**, klik tab filter **Dibatalkan**.
+  - Periksa kolom **Catatan** pada transaksi yang dibatalkan oleh Admin:
+    - Verifikasi: Catatan diawali dengan label/badge khusus **`ADMIN:`** berwarna merah mawar lembut (`text-rose-600 bg-rose-50`), bukan lagi label keliru `KETUA TIM:`.
+    - Verifikasi: Teks catatan bersih dari awalan sistem (string `[Dibatalkan Admin]` telah dibersihkan otomatis).
+    - Verifikasi: Jika sebelumnya transaksi memiliki catatan dari Kabag Umum, label dan catatan `KABAG UMUM:` tetap tampil rapi di bawahnya.
+- [ ] **Uji Tampilan Linimasa & Modal Detail di Seluruh Role**:
+  - Beralih ke mode **Timeline** pada halaman Kabag Umum, Ketua Tim, Pegawai, atau Admin.
+  - Periksa kartu linimasa transaksi dibatalkan:
+    - Verifikasi: Seksi catatan menampilkan label **`Catatan Admin:`** beraksen rose (`text-rose-600 font-semibold`) dengan teks alasan bersih.
+  - Klik teks uraian atau buka modal detail uraian pada transaksi dibatalkan di halaman Pegawai (`/lembur`) atau Ketua Tim (`/ketua-tim/pengajuan`):
+    - Verifikasi: Header catatan modal pop-up menampilkan **`Catatan Admin:`** berwarna merah mawar dengan isi teks bersih tanpa prefix teknis.
+- [ ] **Uji Pembatalan Transaksi Real-Time oleh Admin (`/admin/lembur`)**:
+  - Masuk sebagai Admin, lakukan pembatalan salah satu transaksi via modal konfirmasi aksi:
+  - Verifikasi: Baris tabel langsung berubah menampilkan status `Dibatalkan` dan kolom Catatan langsung menyajikan badge `Admin:` beserta teks alasan secara real-time tanpa perlu me-reload peramban.
+
+### CA. Uji Standarisasi Pengajuan Lembur Pribadi Ketua Tim & Kabag Umum (`/ketua-tim/lembur`)
+- [ ] **Uji Tampilan & Fitur Lembur Pribadi Kabag Umum**:
+  - Masuk ke akun Kepala Bagian Umum (Bpk. Joko Suwarjo) via `/dev-login/kabag`, klik menu **Lembur** di bilah sisi navigasi (`/ketua-tim/lembur`).
+  - Verifikasi: Halaman memuat antarmuka **Pengajuan Lembur Pribadi** modern (`lembur.blade.php`), bukan lagi view usang.
+  - Verifikasi: Toolbar filter lengkap: Pencarian Nama Tim, Pemilih Tanggal, Dropdown Filter Bulan & Multi-Tahun, serta tombol pengalih **Tabel / Timeline**.
+  - Verifikasi: Tombol **`+ Ajukan Lembur`** membuka modal 2-kolom zero-scroll desktop yang proporsional.
+- [ ] **Uji Tampilan & Fitur Lembur Pribadi Ketua Tim**:
+  - Masuk ke akun Ketua Tim (misal: Bpk. Hendro Deasmaran) via `/dev-login/197904262002121002`, klik menu **Lembur** (`/ketua-tim/lembur`).
+  - Verifikasi: Antarmuka identik dengan tampilan pegawai, item menu Lembur di sidebar tetap aktif (`active`), dan seluruh aksi (detail uraian, edit pending, manajemen bukti dokumentasi Drive) beroperasi sempurna.
+- [ ] **Uji Alur Pengajuan Lembur Pribadi**:
+  - Buat pengajuan lembur baru pada akun Ketua Tim / Kabag Umum:
+  - Verifikasi: Setelah pengiriman formulir sukses, sistem mengarahkan kembali ke `/ketua-tim/lembur` dengan notifikasi sukses *"Pengajuan lembur berhasil dikirim."* dan baris pengajuan baru langsung tampak di tabel.
+
+### CB. Uji Filter Tab Status Dibatalkan pada Halaman Monitoring Lembur Admin (`/admin/lembur`)
+- [ ] **Uji Tampilan Data Transaksi pada Tab Dibatalkan**:
+  - Masuk sebagai Administrator via `/dev-login/admin`, buka menu **Lembur** (`/admin/lembur`).
+  - Klik tab filter status **Dibatalkan (1)**:
+  - Verifikasi: Parameter URL menjadi `?status=cancelled`.
+  - Verifikasi: Tabel secara presisi memfilter dan menampilkan transaksi yang berstatus dibatalkan saja (misal: pengajuan Hendro Deasmaran S.T. tanggal 19 Sep 2026).
+  - Verifikasi: Transaksi berstatus lain (seperti *Menunggu Kabag*, *Disetujui*, dll) **tidak lagi bocor atau mendominasi tabel**.
+- [ ] **Uji Format Badge Status & Catatan Pembatalan**:
+  - Verifikasi: Kolom Status menampilkan lencana abu-abu rapi bertuliskan **`● Dibatalkan`**.
+  - Verifikasi: Kolom Catatan menampilkan label **`ADMIN:`** berwarna merah mawar lembut dengan teks alasan pembatalan bersih tanpa string teknis `[Dibatalkan Admin]`.
+- [ ] **Uji Keselarasan Ekspor Excel**:
+  - Dalam kondisi filter tab Dibatalkan aktif, klik tombol **Unduh Excel**:
+  - Buka file spreadsheet hasil unduhan:
+  - Verifikasi: Kolom Status menyajikan teks **"Dibatalkan"** berlatar belakang abu-abu muda (`#F3F4F6`), bukan lagi strip `-`.
+
+### CC. Uji Tombol Kembali (Back) & Tutup (Close) pada Halaman Riwayat Presensi Admin (`/admin/riwayat_presensi`)
+- [ ] **Uji Akses Masuk ke Halaman Riwayat Presensi**:
+  - Masuk sebagai Administrator via `/dev-login/admin`, buka menu **Presensi** (`/admin/presensi`).
+  - Klik tautan **Riwayat Upload** di atas kalender presensi:
+  - Verifikasi: Halaman `/admin/riwayat_presensi` terbuka dengan page header terstruktur rapi bertuliskan **Riwayat Presensi** dan lencana *Upload Log*.
+- [ ] **Uji Fungsionalitas Tombol Kembali (Back) & Tutup (Close)**:
+  - Periksa bilah header:
+    - Tombol ikon panah kiri `[ ← ]` di samping judul.
+    - Tombol teks berikon panah kiri `[ ← Kembali ke Presensi ]` di sisi kanan.
+    - Tombol silang `[ ✕ ]` di ujung kanan.
+  - Klik tombol **Kembali ke Presensi** (atau tombol close `✕`):
+  - Verifikasi: Pengguna seketika diarahkan kembali ke halaman kalender **Presensi Pegawai** (`/admin/presensi`) secara mulus.
+- [ ] **Uji Integritas JavaScript Konsol & Filter Periode**:
+  - Buka kembali `/admin/riwayat_presensi`, buka Developer Tools (F12) tab Console:
+  - Verifikasi: Konsol peramban bersih dari pesan error `TypeError` atau kegagalan pembacaan elemen dropdown.
+  - Pilih bulan tertentu atau klik *Semua*: tabel berkas menyaring baris secara instan dan memperbarui teks total riwayat berkas.
+
+### CD. Uji Persetujuan Pengajuan Lembur Tanpa Data Presensi (Ketua Tim, Kabag Umum, Admin)
+- [ ] **Uji Persetujuan Lembur yang Belum Memiliki Presensi (`/ketua-tim/pengajuan` & `/admin/pengajuan`)**:
+  - Masuk sebagai Ketua Tim atau Administrator via dev-login.
+  - Cari baris pengajuan lembur yang berstatus pending dan berlabel *"Presensi Belum Ada"* (misal: pengajuan dengan uraian kegiatan multi-baris yang datanya belum ada di tabel presensi).
+  - Klik tombol aksi proses/keputusan (ikon pensil atau tombol Proses).
+  - Verifikasi: Pada modal persetujuan, textarea Uraian Kegiatan menampilkan lencana amber *"Presensi Belum Ada"* dan catatan *"Uraian terkunci karena belum ada presensi."* (readonly).
+  - Klik tombol keputusan **Setujui** (hijau), lalu klik **Simpan Keputusan**:
+  - Verifikasi: Pengajuan berhasil disimpan/disetujui dengan lancar.
+  - Verifikasi: **TIDAK MUNCUL** pop-up error *"Uraian kegiatan hanya dapat diubah jika data presensi pegawai sudah tersedia."*
+- [ ] **Uji Integritas Penolakan Saat Uraian Benar-Benar Diubah Tanpa Presensi**:
+  - Jika seorang approver mencoba mengirim payload modifikasi uraian pada transaksi tanpa presensi, sistem tetap menolak dengan pesan validasi yang benar.
+
+### CE. Uji Dropdown Filter Status Monitoring Lembur Admin (/admin/lembur)
+- [ ] **Uji Posisi Dropdown Status Sebelah Filter Tim**:
+  - Masuk sebagai Administrator / Superadmin via `/dev-login/admin`.
+  - Akses menu **Monitoring Lembur** (`/admin/lembur`).
+  - Verifikasi: Tombol filter status terletak persis di sebelah kanan bilah input *"Cari nama tim..."* dalam 1 baris toolbar terpadu desktop.
+  - Verifikasi: Baris terpisah pil status horizontal di bawah toolbar telah dihilangkan sehingga tabel langsung tampil lega di atas.
+- [ ] **Uji Pembukaan Menu Melayang & Indikator Titik Status**:
+  - Klik tombol dropdown status:
+  - Verifikasi: Menu popup floating card terbuka mulus dengan 6 opsi status (*Semua Status*, *Menunggu Kabag*, *Menunggu Ketua*, *Disetujui*, *Ditolak*, *Dibatalkan*).
+  - Verifikasi: Tiap opsi memiliki titik status berwarna, animasi pulse ping pada status menunggu, dan lencana angka jumlah pengajuan riil.
+  - Verifikasi: Status yang sedang aktif disorot dengan latar tegas dan tanda centang putih.
+- [ ] **Uji Pemfilteran Data Tabel & Penutupan Dropdown**:
+  - Pilih salah satu status (misal: *Menunggu Ketua*):
+  - Verifikasi: Tabel seketika memfilter data pengajuan yang berstatus *Menunggu Ketua*, URL browser diperbarui (`?status=pending`), dan label tombol dropdown berubah menampilkan nama status serta lencana angka berwarna amber.
+  - Klik area luar dropdown: pastikan menu tertutup otomatis (*click outside to close*).
+
+### CF. Uji Redesain Modal Landscape 2-Kolom Zero-Scroll Manajemen User (/admin/manajemen-user)
+- [ ] **Uji Tata Letak Landscape & Eliminasi Scroll Layar (Zero-Scroll)**:
+  - Masuk sebagai Superadmin via `/dev-login/200108252024121005` (Muhammad Hanief).
+  - Buka menu **Manajemen User** (`/admin/manajemen-user`).
+  - Klik tombol **Ganti Kepala Bagian Umum** (atau Ganti PPK / Tambah Admin / Tambah Superadmin).
+  - Verifikasi: Dialog modal terbuka dalam format landscape 2-kolom (`max-w-3xl lg:max-w-4xl`) yang pas di tengah layar.
+  - Verifikasi: Pada resolusi laptop ($1280 \times 665$ px), modal **TIDAK** memicu bilah gulir vertikal (*window scrollbar*) pada peramban utama; tombol Batal dan Simpan di footer tampak jelas tanpa perlu scroll.
+- [ ] **Uji Kolom Kiri (Info, Parameter, & Pratinjau Pegawai Terpilih)**:
+  - Verifikasi: Kolom kiri memuat kartu alert informasi otomatisasi suksesi dan input parameter (Tahun SK / checkbox).
+  - Verifikasi: Sebelum pegawai dipilih, kotak pratinjau menampilkan placeholder *"Belum ada pegawai dipilih. Klik salah satu pegawai di sebelah kanan."*
+- [ ] **Uji Kolom Kanan (Pencarian Cepat & Pemilihan Kartu Pegawai)**:
+  - Ketik nama atau NIP (misal: *"Abdul"*) pada bilah pencarian kolom kanan.
+  - Verifikasi: Daftar pegawai seketika menyaring data secara instan, counter menunjukkan jumlah data ditemukan, dan tombol silang `(✕)` muncul.
+  - Klik pada kartu pegawai: kartu di kolom kanan langsung tersorot dengan latar warna tematik, lingkaran radio terisi centang, dan kotak pratinjau di kolom kiri seketika menampilkan kartu pegawai terpilih (avatar inisial, badge Terpilih, satker, nama, NIP, dan tombol silang batal).
+  - Klik tombol silang `(✕)` pada kartu pratinjau: pilihan pegawai dibatalkan secara bersih.
+- [ ] **Uji Validasi Form Tanpa Galat Konsol**:
+  - Buka modal tanpa memilih pegawai, lalu klik tombol **Simpan**:
+  - Verifikasi: Formulir dicegah dari submit, muncul alert pemberitahuan ramah, dan konsol peramban bersih dari galat *"An invalid form control is not focusable"*.
+
+### CG. Uji Antarmuka Anti-Slop Manajemen User & Pejabat (/admin/manajemen-user)
+- [ ] **Uji Eliminasi Pola Kontainer Monoton & Penyatuan Panel Pejabat 2-Kolom**:
+  - Masuk sebagai Superadmin via `/dev-login/200108252024121005` (Muhammad Hanief), buka menu **Manajemen User** (`/admin/manajemen-user`).
+  - Verifikasi: Halaman **TIDAK LAGI** menampilkan 4 kotak kontainer putih raksasa yang identik bertumpuk ke bawah (*cookie-cutter slop*).
+  - Verifikasi: Seksi pertama menyajikan **"Pejabat Penandatangan Kedinasan Aktif"** dengan tata letak 2 kolom berdampingan (`grid-cols-1 lg:grid-cols-2`):
+    - **Kolom Kiri**: Kartu Kepala Bagian Umum beraksen Amber BPS (`#faa938`), avatar monogram inisial, lencana status *Aktif (SK 2026)*, NIP & NIP BPS font mono, satuan kerja, tombol *Ganti Kabag*, serta laci akordion arsip riwayat pejabat.
+    - **Kolom Kanan**: Kartu PPK beraksen Biru Sky (`sky-600`), avatar monogram inisial, lencana status *Aktif (SK 2026)*, NIP & NIP BPS, satuan kerja, tombol *Ganti PPK*, serta laci akordion arsip riwayat PPK.
+- [ ] **Uji Laci Riwayat Pejabat (Collapsible Archive Drawer)**:
+  - Pada kartu Kabag Umum dan PPK, klik tombol `Riwayat Arsip (N Pejabat Terdahulu) ▾`:
+  - Verifikasi: Laci riwayat membuka mulus menampilkan tabel pejabat demisioner dengan NIP font mono dan tahun SK tanpa merusak tata letak kartu.
+- [ ] **Uji Diferensiasi Hierarki Pengelola (Admin Lembur vs Super Administrator)**:
+  - Gulir ke seksi bawah:
+    - **Seksi Admin Lembur (Operasional)**: Monogram peran `AL` indigo, badge counter jumlah petugas, deskripsi wewenang operasional (presensi, tim, rekapitulasi, pembatalan), dan tabel admin bertombol *Cabut Akses* ber-safeguard dialog konfirmasi.
+    - **Seksi Super Administrator (Governance & Kebijakan Utama)**: Monogram peran `SA` rose, badge counter jumlah superadmin, ringkasan proteksi akun permanen, tabel berpenanda *Akun Anda*, dan status *Permanen (Tak Dapat Dicabut)*.
+- [ ] **Uji Kepatuhan Aturan Anti-Slop (R-02 Bebas Em-Dash, Kontras WCAG AAA, & Interaktivitas)**:
+  - Verifikasi: Tidak ada satu pun karakter em-dash (`—`) pada seluruh tabel; semua kolom kosong menggunakan tanda hubung `-` standar.
+  - Verifikasi: Rasio kontras teks slate-900 / slate-700 di atas latar belakang putih teruji melebihi 14:1 (lulus WCAG AAA).
+  - Verifikasi: Semua tombol aksi memiliki target sentuh nyaman ($\ge 40$px di mobile, $\ge 36$px di desktop) dan cincin fokus peramban saat dinavigasi keyboard.
+
+### CH. Uji Standarisasi Bahasa Formal Kedinasan pada Seluruh Modul Sistem
+- [ ] **Modul Dokumen Kedinasan (`/admin/dokumen`)**:
+  - Coba submit form generate tanpa memilih bulan/tahun: muncul alert formal *"Silakan pilih bulan dan masukkan tahun terlebih dahulu."*.
+  - Coba submit tanpa memilih jenis dokumen: muncul alert formal *"Silakan pilih jenis dokumen kedinasan terlebih dahulu."*.
+  - Klik tombol hapus berkas SPKL/Laporan (tanda silang): dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menghapus berkas dokumen ini?"*.
+- [ ] **Modul Master Pegawai (`/admin/pengguna`)**:
+  - Klik tombol "Sinkronkan Pegawai": dialog konfirmasi berbunyi *"Proses sinkronisasi akan memperbarui data seluruh pegawai dari basis data pusat BPS. Apakah Anda yakin ingin melanjutkan?"*.
+  - Klik tombol hapus pegawai: dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menghapus data pegawai \"[Nama]\"?"*.
+  - Simpan form pegawai baru tanpa melengkapi kolom wajib: muncul alert *"Kolom formulir wajib belum dilengkapi."*.
+  - Ganti kata sandi pegawai dengan konfirmasi yang berbeda: muncul teks *"Konfirmasi kata sandi tidak sesuai"*.
+- [ ] **Modul Tim Kerja (`/admin/master/tim`)**:
+  - Klik tombol "Tarik dari API": dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menyinkronkan data tim dan anggota dari API pusat BPS? Proses ini mungkin memerlukan waktu beberapa saat."*.
+  - Klik tombol hapus tim: dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menghapus tim kerja \"[Nama]\"?"*.
+  - Klik hapus anggota dari tim: dialog konfirmasi berbunyi *"Apakah Anda yakin ingin mengeluarkan pegawai \"[Nama]\" dari tim kerja ini?"*.
+- [ ] **Modul Presensi Pegawai (`/admin/presensi`)**:
+  - Klik tombol "Upload Data Presensi" tanpa memilih file: muncul alert *"Silakan pilih berkas spreadsheet (.xlsx) terlebih dahulu."*.
+  - Klik tombol "Tambah Hari Libur" tanpa memilih rentang tanggal: muncul alert *"Silakan tentukan rentang tanggal terlebih dahulu."*.
+- [ ] **Modul Pengajuan Lembur & Penandatangan Digital (`/lembur`, `/ketua-tim/lembur`, `/admin/lembur`)**:
+  - Klik tombol submit pengajuan lembur tanpa mencoret tanda tangan: kanvas langsung tersorot merah dengan teks *"⚠️ Tanda tangan digital wajib dibubuhkan sebelum mengirimkan pengajuan lembur."* dan alert *"Tanda tangan digital belum dibubuhkan. Silakan bubuhkan tanda tangan Anda pada area kanvas yang tersedia."*.
+  - Klik tombol hapus dokumentasi pada baris tabel lembur: dialog konfirmasi berbunyi *"Apakah Anda yakin ingin menghapus tautan dokumentasi kegiatan ini?"*.
+
+### CI. Uji Responsif Bilah Sisi (Sidebar) dan Penataan Z-Index Backdrop Overlay (Mobile & Tablet Ratio)
+- [ ] **Uji Tampilan & Interaktivitas Sidebar Mobile (`< 1024px`)**:
+  - Buka aplikasi pada peramban dan perkecil ukuran jendela layar (lebar layar `< 1024px` atau gunakan *responsive device mode* tablet/smartphone).
+  - Klik tombol *hamburger toggle* di pojok kiri atas bilah navigasi (*navbar*).
+  - **Verifikasi**: Bilah sisi (*sidebar*) navigasi gelap bergeser keluar dari sisi kiri dengan tajam (*crisp*), tidak terlapisi efek buram (*blur*), dan seluruh teks/menu navigasi terbaca sangat jelas.
+  - **Verifikasi**: Seluruh tautan menu navigasi di dalam sidebar (Dashboard, Lembur, Rekapitulasi, dsb.) dapat diklik secara responsif tanpa terhalang lapisan backdrop.
+  - **Verifikasi**: Menekan tombol silang `(X)` pada sudut kanan atas header sidebar atau mengeklik area backdrop overlay gelap di sebelah kanan sidebar akan menutup sidebar kembali dengan transisi animasi yang mulus.
+
+### CJ. Uji Bounded Modal Container & Pinned Action Footer (/admin/manajemen-user)
+- [ ] **Uji Keterlihatan Tombol Aksi Modal pada Layar Pendek / Resolusi Laptop (< 650px Viewport Height)**:
+  - Buka menu **Manajemen User** (`/admin/manajemen-user`) pada peramban.
+  - Ubah ketinggian layar peramban menjadi pendek (misal: 1280x600 px atau buka DevTools di bagian bawah layar).
+  - Buka modal **Penetapan Super Administrator** (klik tombol `+ Tambah Superadmin` di atas tabel Super Administrator).
+  - **Verifikasi**: Dialog modal dibatasi maksimal 90% dari tinggi viewport (`max-h-[90vh]`).
+  - **Verifikasi**: Header judul modal dan footer tombol aksi (**"Batal"** dan **"Tetapkan Super Administrator"**) tersemat statis (*shrink-0*) dan **100% terlihat jelas di dalam layar**, tanpa pernah terpotong ke bawah garis lipatan layar.
+  - **Verifikasi**: Grid formulir dan kotak daftar pegawai di dalamnya memiliki scroll internal mandiri (`overflow-y-auto`) yang mulus, dan tombol submit dapat diklik langsung dengan nyaman.
+  - Lakukan hal yang sama pada modal **Ganti Kabag Umum**, **Ganti PPK**, **Tambah Admin Lembur**, dan **Alihkan Wewenang Admin Lembur**.
+
+### CK. Uji Standarisasi Pengguliran Horizontal Tabel (Horizontal Swipeable Tables) pada Tampilan Mobile Seluruh Modul
+- [ ] **Uji Geser Sentuh Tabel pada Tampilan Mobile (Viewport Smartphone $\le 430$px)**:
+  - Buka aplikasi di peramban menggunakan mode responsif smartphone (misal: iPhone 14 Pro / 390x844 px).
+  - Buka halaman **Manajemen User** (`/admin/manajemen-user`):
+    - **Verifikasi**: Pada tabel Admin Lembur dan Super Administrator, muncul bilah panduan visual interaktif di atas tabel (`.table-scroll-hint`) dengan teks *"Geser tabel ke samping untuk melihat data lengkap"* dan rel indikator scroll thumb.
+    - **Verifikasi**: Lakukan gestur geser (*swipe / drag*) pada tabel ke arah kanan ➔ tabel bergeser dengan sangat mulus (*fluid*), kolom NIP, Tanggal Ditugaskan, dan tombol Aksi terlihat jelas tanpa ada teks yang terhimpit.
+    - **Verifikasi**: Indikator thumb pada rel bergerak secara proporsional dari 0% ke 100% mengikuti posisi pengguliran jari.
+  - Buka halaman lain: **Kelola Pengguna** (`/admin/pengguna`), **Tim Kerja** (`/admin/master/tim`), **Kelola Pejabat** (`/admin/master/pejabat`), **Tarif Lembur** (`/admin/tarif`), **Dokumen Kedinasan** (`/admin/dokumen`), **Laporan Lembur** (`/admin/laporan`), **Monitoring SPKL** (`/admin/spkl`), dan **Dashboard** (`/ketua-tim/dashboard`, `/pimpinan/dashboard`):
+    - **Verifikasi**: Seluruh tabel di modul tersebut memunculkan panduan geser dan dapat digeser secara leluasa ke kanan dan kiri tanpa mengalami freeze.
+- [ ] **Uji Jaminan Nol Regresi Tampilan Desktop ($\ge 1024$px / 1280x800 px)**:
+  - Kembalikan viewport peramban ke resolusi desktop (misal: 1280x800 px atau perbesar jendela browser).
+  - **Verifikasi**: Seluruh bilah panduan geser mobile (`.table-scroll-hint`) **100% tersembunyi (*hidden*)** karena memiliki utilitas `sm:hidden`.
+  - **Verifikasi**: Seluruh tabel membentang secara elegan 100% selebar kontainer kartu (*fit 100%*) berkat kelas `lg:min-w-full`.
+  - **Verifikasi**: **TIDAK ADA** bilah penggulir (*scroll bar*) horizontal desktop yang muncul. Tampilan desktop terjamin 100% identik dengan kondisi awal sebelum penyesuaian mobile.
+
+### CL. Uji Interaktivitas Uraian Tugas & Aksi Icon-Only Kabag Umum (/kabag-umum/pengajuan), Sidebar Mobile Tanpa Blur, dan Alur Tim SID Herry Kusmaiwanto
+- [ ] **Uji Tombol Interaktif Uraian Tugas & Dialog Modal Detail (`#modalDetailUraian`)**:
+  - Masuk sebagai Kabag Umum (Ir. Joko Suwarjo) via `/dev-login/197106131993121001`, lalu buka menu **Persetujuan Kabag** (`/kabag-umum/pengajuan`).
+  - Pada kolom **Uraian Tugas**, arahkan kursor ke salah satu baris:
+    - **Verifikasi**: Teks uraian terpotong 2 baris (*line clamp*) dengan highlight hover amber lembut dan ikon popup expand oranye.
+    - Klik tombol uraian tugas tersebut ➔ dialog modal **Detail Uraian Tugas** langsung terbuka di tengah layar.
+    - **Verifikasi**: Modal menyajikan nama pegawai, NIP, tanggal pelaksanaan lembur, jam diajukan vs disetujui, nama tim kerja, nama ketua tim, lencana status permohonan, teks uraian utuh tanpa terpotong, serta kotak catatan persetujuan Ketua Tim dan Kabag Umum (jika ada).
+    - **Verifikasi**: Menekan tombol `(X)` di kanan atas modal, mengklik area luar modal, atau menekan tombol `Escape` pada keyboard menutup dialog modal secara instan.
+- [ ] **Uji Kolom Aksi Icon-Only (Tanpa Teks Label)**:
+  - Periksa kolom **Aksi** pada tabel desktop:
+    - **Verifikasi**: Tombol aksi berdimensi ringkas `h-7 w-7 rounded-lg` dengan penataan tengah (*centered*).
+    - **Verifikasi**: Tidak ada label teks *"Setujui"*, *"Proses"*, atau *"Koreksi"*; isi tombol murni berupa ikon SVG yang informatif dan memiliki atribut tooltip `title="..."`.
+    - Lakukan persetujuan pengajuan via modal keputusan ➔ setelah tersimpan, tombol aksi ter-render ulang secara dinamis via AJAX sebagai tombol icon-only *Koreksi* tanpa memuat teks.
+- [ ] **Uji Penutupan Latar Belakang (Backdrop Overlay) Sidebar Mobile Tanpa Blur**:
+  - Ubah rasio peramban ke ukuran layar kecil / mobile (lebar `< 1024px`).
+  - Buka menu navigasi sidebar dengan menekan tombol hamburger di navbar:
+    - **Verifikasi**: Area latar belakang halaman di samping/belakang sidebar teredupkan secara elegan oleh lapisan gelap (`bg-black/50`).
+    - **Verifikasi**: Halaman di balik overlay **TIDAK LAGI** mengalami efek blur/kabur (`backdrop-blur-sm` telah dihilangkan), teks dan elemen halaman di belakangnya tetap tajam dan terlihat jelas di balik bayangan redup.
+- [ ] **Uji Alur Pengajuan Lembur Herry Kusmaiwanto S.Si (Tim Kerja SID)**:
+  - Masuk sebagai Ketua Tim SID (Sumbodo Aji Cahyono) via `/dev-login/197703081999011001`, buka `/ketua-tim/pengajuan`:
+    - **Verifikasi**: Tampil pengajuan lembur Herry Kusmaiwanto S.Si periode 1–14 Oktober 2026.
+    - Pengajuan berstatus `pending` dapat diproses atau disetujui oleh Ketua Tim SID.
+  - Masuk sebagai Kabag Umum via `/dev-login/197106131993121001`, buka `/kabag-umum/pengajuan`:
+    - **Verifikasi**: Pengajuan Herry Kusmaiwanto S.Si berstatus `menunggu_kabag` muncul di tab *Menunggu Kabag* dan siap disetujui final oleh Kabag Umum.
+    - Pengajuan yang telah disetujui final berstatus `approved` tercatat rapi di tab *Disetujui* dan otomatis eligible.
+
+### CM. Uji Eliminasi Strip Putih Footer Saat Modal Terbuka (Full Viewport Backdrop Overlay)
+- [ ] **Uji Backdrop Gelap Menyentuh Tepi Paling Dasar Layar (Tanpa Bocor Footer / Strip Putih)**:
+  - Buka menu **Manajemen User** (`/admin/manajemen-user`).
+  - Klik tombol `+ Tambah Superadmin` (atau `+ Tambah Admin`, `Ganti Kabag`, `Ganti PPK`).
+  - Periksa bagian paling dasar peramban (bottom edge):
+    - **Verifikasi**: Lapisan penutup gelap (*dark backdrop overlay* `bg-slate-900/60`) menutupi 100% tinggi viewport layar, dari ujung atas hingga ujung bawah monitor secara merata.
+    - **Verifikasi**: **TIDAK ADA** garis/pita putih horizontal atau teks footer yang menembus di atas backdrop modal.
+    - **Verifikasi**: Halaman di balik modal terkunci dan tidak dapat digulir (*overflow-hidden* aktif pada body).
+  - Tutup modal (klik tombol Batal, ikon silang `X`, atau tekan tombol `Escape`):
+    - **Verifikasi**: Dialog modal tertutup mulus, penguncian scroll dilepas, dan footer `&copy; 2026 BPS Provinsi Jawa Tengah - Tim SID` kembali tampil normal dan simetris di bagian bawah halaman.
+
+### CN. Uji Eliminasi Celah Blur Modal (2-Layer Backdrop Architecture & Root Portaling @stack('modals'))
+- [ ] **Uji Backdrop Gelap & Blur Seragam Menyeluruh Tanpa Celah di Bagian Bawah Layar**:
+  - Masuk sebagai Superadmin via `/dev-login/198701052010121003` atau Admin via `/dev-login/199307042015021001`, lalu buka menu **Manajemen User** (`/admin/manajemen-user`).
+  - Klik tombol `+ Tambah Superadmin` (atau `+ Tambah Admin`, `Ganti Kabag`, `Ganti PPK`).
+  - Periksa area vertikal di bagian dasar peramban tepat di bawah kartu modal hingga batas taskbar sistem operasi:
+    - **Verifikasi**: Latar belakang halaman di bawah kartu modal tertutup sempurna oleh efek gelap `bg-slate-900/60` dan buram `backdrop-blur-xs` yang rata dan homogen dari sudut kiri-atas hingga sudut kanan-bawah viewport monitor.
+    - **Verifikasi**: **TIDAK ADA** strip putih, teks tabel yang bocor tanpa blur, maupun batas garis horizontal yang terputus di area bawah layar.
+    - **Verifikasi**: Klik pada area luar modal (backdrop) langsung menutup dialog modal secara instan.
+    - **Verifikasi**: Tombol Batal, ikon silang `X`, dan tombol keyboard `Escape` tetap berfungsi menutup modal dengan mulus.
+- [ ] **Uji Jaminan Nol Regresi Tampilan Desktop**:
+  - Saat modal ditutup, pastikan tabel pejabat aktif, tabel admin lembur, dan tabel super administrator tetap berpenampilan 100% pas selebar layar tanpa perubahan tata letak sedikit pun.
+
+### CO. Uji Kehalusan Pergeseran Tabel Mobile (Quick-Nav Pills, Kinetic Momentum Glide & Desktop Zero-Regression)
+- [ ] **Uji Pergeseran Tabel Halus pada Tampilan Smartphone (< 640px / 390x844 px)**:
+  - Buka halaman tabel mana pun (contoh: `/admin/manajemen-user` atau `/admin/lembur` atau `/kabag-umum/pengajuan`).
+  - Periksa bilah indikator geser `.table-scroll-hint` di atas tabel:
+    - **Verifikasi**: Muncul tombol panah sentuh cepat `[ ‹ ]` dan `[ › ]` yang mengapit indikator persentase di sisi kanan bilah.
+    - **Verifikasi**: Ketuk tombol `[ › ]` ➔ tabel meluncur (*smooth glide*) ke kanan dengan sangat mulus dan angka persentase bertambah proporsional.
+    - **Verifikasi**: Ketuk tombol `[ ‹ ]` ➔ tabel meluncur kembali ke kiri dengan mulus.
+    - **Verifikasi**: Ketuk label persentase (misal: "Geser kanan »" atau "« Geser kiri") ➔ tabel berganti posisi secara otomatis.
+    - **Verifikasi**: Seret bilah jempol oranye (*thumb track*) ➔ tabel bergeser secara instan 1:1 mengikuti ujung jari tanpa patah-patah (*zero lag / no stutter*).
+    - **Verifikasi**: Lakukan usapan jari (*swipe / flick*) langsung di atas tabel ➔ tabel bergerak dengan inersia kinetik alami dan berhenti secara mulus (*kinetic momentum glide*).
+    - **Verifikasi**: Tidak ada bilah scrollbar bawah kaku yang menghalangi jari, dan bayangan tepi (*edge gradient cue*) muncul secara elegan di kiri/kanan.
+- [ ] **Uji Jaminan Mutlak Nol Regresi Tampilan Desktop ($\ge 1024$px / 1280x800 px)**:
+  - Kembalikan viewport ke layar desktop/laptop.
+  - **Verifikasi**: Bilah panduan mobile `.table-scroll-hint` beserta tombol `[ ‹ ]` dan `[ › ]` **100% tersembunyi**.
+  - **Verifikasi**: Seluruh tabel membentang 100% selebar kontainer kartu tanpa horizontal scrollbar desktop.
+  - **Verifikasi**: Seleksi teks dengan kursor kiri mouse tetap berfungsi normal tanpa hambatan.
+
+
+
+
+

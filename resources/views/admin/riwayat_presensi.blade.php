@@ -4,16 +4,62 @@
 
 @section('content')
 
-<div class="flex items-center gap-3 max-w-6xl mx-auto px-8 my-5">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 my-4 sm:my-6">
 
+    {{-- Top Action Bar / Page Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 mb-5 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+            {{-- Tombol Back Icon --}}
+            <a href="{{ route('admin.presensi') }}"
+               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:text-[#faa938] hover:border-[#faa938] hover:bg-amber-50/40 shadow-sm transition-all"
+               title="Kembali ke Presensi Pegawai">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </a>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-lg sm:text-xl font-bold text-gray-800 tracking-tight">Riwayat Presensi</h1>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-[#faa938] border border-amber-200">
+                        Upload Log
+                    </span>
+                </div>
+                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    Daftar riwayat berkas spreadsheet presensi pegawai yang telah diunggah ke sistem.
+                </p>
+            </div>
+        </div>
+
+        {{-- Navigasi Aksi: Kembali ke Presensi & Tombol Close (x) --}}
+        <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <a href="{{ route('admin.presensi') }}"
+               class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-[#faa938] hover:text-[#faa938] shadow-sm transition-all"
+               title="Kembali ke Halaman Presensi">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Kembali ke Presensi</span>
+            </a>
+            <a href="{{ route('admin.presensi') }}"
+               class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-400 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-100 shadow-sm transition-all"
+               title="Tutup (Kembali ke Presensi)">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    {{-- Filter Periode & Info --}}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         {{-- Filter Periode --}}
         <div class="relative shrink-0" id="periodPicker">
             <button type="button" id="periodBtn"
-                class="inline-flex items-center h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors">
+                class="inline-flex items-center h-10 gap-2 px-4 text-sm font-medium border border-gray-200 bg-white text-gray-700 rounded-xl hover:border-[#faa938] transition-colors shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current">
                     <path d="M208 64c17.7 0 32 14.3 32 32v32h160V96c0-17.7 14.3-32 32-32s32 14.3 32 32v32h32c35.3 0 64 28.7 64 64v320c0 35.3-28.7 64-64 64H128c-35.3 0-64-28.7-64-64V192c0-35.3 28.7-64 64-64h32V96c0-17.7 14.3-32 32-32zm336 160H96v288c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V224z"/>
                 </svg>
-                <span id="periodLabel" class="leading-none">Mar 2026</span>
+                <span id="periodLabel" class="leading-none">Semua Periode</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-3 h-3 fill-current opacity-50">
                     <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
                 </svg>
@@ -34,16 +80,21 @@
                     </button>
                 </div>
                 <div class="grid grid-cols-3 gap-2" id="monthGrid"></div>
-                <div class="flex items-center justify-between mt-3">
-                    <button type="button" id="btnThisMonth" class="text-sm font-medium text-gray-500 hover:text-[#faa938]">Bulan ini</button>
-                    <button type="button" id="btnClosePanel" class="px-3 py-1 text-sm font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">Tutup</button>
+                <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                    <button type="button" id="btnAllPeriod" class="text-xs font-medium text-gray-500 hover:text-[#faa938]">Semua</button>
+                    <button type="button" id="btnThisMonth" class="text-xs font-medium text-gray-500 hover:text-[#faa938]">Bulan ini</button>
+                    <button type="button" id="btnClosePanel" class="px-2.5 py-1 text-xs font-medium rounded-full border border-gray-200 text-gray-600 hover:border-[#faa938] hover:text-[#faa938]">Tutup</button>
                 </div>
             </div>
         </div>
-</div>
+
+        <div class="text-xs text-gray-400">
+            Total Riwayat: <span id="totalRiwayatCount" class="font-semibold text-gray-700">{{ count($daftarHadir) }}</span> berkas
+        </div>
+    </div>
 
     {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
-    <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-4 mb-2.5 text-[11px] font-medium text-slate-500 max-w-6xl mx-auto">
+    <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 mb-2.5 text-[11px] font-medium text-slate-500">
         <div class="flex items-center justify-between">
             <span class="inline-flex items-center gap-1.5">
                 <svg class="h-3.5 w-3.5 text-[#faa938] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,198 +109,91 @@
         </div>
     </div>
 
-<div class="overflow-x-auto max-w-6xl mx-auto px-4 sm:px-8 my-5">
-    {{-- Tabel --}}
-    <table class="w-full min-w-[700px] rounded-xl border-separate border-spacing-0">
-        <thead>
-            <tr class="bg-gray-100">
-                <th class="p-3 text-center text-sm font-semibold text-gray-900 rounded-tl-xl">
-                    Periode
-                </th>
-                <th class="p-3 text-center text-sm font-semibold text-gray-900">
-                    Nama File
-                </th>
-                <th class="p-3 text-center text-sm font-semibold text-gray-900">
-                    User Upload
-                </th>
-                <th class="p-3 text-center text-sm font-semibold text-gray-900 rounded-tr-xl">
-                    Tanggal Upload
-                </th>
-            </tr>
-        </thead>
+    {{-- Tabel Container --}}
+    <div id="tableContainer" class="overflow-x-auto my-3 bg-white rounded-xl shadow-sm border border-gray-200">
+        <table class="w-full min-w-[700px] border-collapse">
+            <thead>
+                <tr class="bg-gray-50/80 border-b border-gray-200">
+                    <th class="py-3 px-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Periode
+                    </th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Nama Berkas
+                    </th>
+                    <th class="py-3 px-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        User Pengunggah
+                    </th>
+                    <th class="py-3 px-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Waktu Unggah
+                    </th>
+                </tr>
+            </thead>
 
-        <tbody class="divide-y divide-gray-200">
-            @forelse($daftarHadir as $d)
-            <tr class="bg-white hover:bg-gray-50">
+            <tbody class="divide-y divide-gray-100 bg-white" id="riwayatTableBody">
+                @forelse($daftarHadir as $d)
+                <tr class="riwayat-row hover:bg-amber-50/20 transition-colors" data-periode="{{ $d->periode }}">
+                    <!-- Periode -->
+                    <td class="py-3 px-4 text-sm text-gray-900 text-center font-medium whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-800">
+                            {{ \Carbon\Carbon::createFromFormat('Y-m', $d->periode)->translatedFormat('F Y') }}
+                        </span>
+                    </td>
 
-                <!-- Periode -->
-                <td class="p-2 text-sm text-gray-900 text-center">
-                    {{ \Carbon\Carbon::createFromFormat('Y-m', $d->periode)->translatedFormat('F Y') }}
-                </td>
+                    <!-- Nama File -->
+                    <td class="py-3 px-4 text-sm text-gray-900 font-medium">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-600 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span class="truncate max-w-md" title="{{ $d->nama_file }}">{{ $d->nama_file ?? '-' }}</span>
+                        </div>
+                    </td>
 
-                <!-- Nama File -->
-                <td class="p-2 text-sm text-gray-900">
-                    {{ $d->nama_file ?? '-' }}
-                </td>
+                    <!-- User Upload -->
+                    <td class="py-3 px-4 text-sm text-gray-700 text-center whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1.5 text-xs text-gray-600">
+                            <svg class="w-3.5 h-3.5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            {{ $d->uploaded_by ?? '-' }}
+                        </span>
+                    </td>
 
-                <!-- User Upload -->
-                <td class="p-2 text-sm text-gray-900 text-center">
-                    {{ $d->uploaded_by ?? '-' }}
-                </td>
-
-                <!-- Tanggal Upload -->
-                <td class="p-2 text-sm text-gray-900 text-center">
-                    {{ \Carbon\Carbon::parse($d->uploaded_at)->translatedFormat('d M Y H:i') }}
-                </td>
-
-            </tr>
-            @empty
-            <tr>
-                <td colspan="4" class="p-8 text-center text-sm text-gray-400">
-                    Tidak ada data riwayat upload.
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-<!-- Pagination -->
-    <div class="flex justify-center mt-6">
-        <nav class="inline-flex items-center p-1 rounded bg-white space-x-2">
-            <a href="#" class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938]">
-                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-                </svg>
-            </a>
-            <p class="text-gray-500">Page 1 of 10</p>
-            <a href="#" class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938]">
-                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-                </svg>
-            </a>
-        </nav>
+                    <!-- Tanggal Upload -->
+                    <td class="py-3 px-4 text-sm text-gray-500 text-center whitespace-nowrap font-mono text-xs">
+                        {{ \Carbon\Carbon::parse($d->uploaded_at)->translatedFormat('d M Y H:i') }}
+                    </td>
+                </tr>
+                @empty
+                <tr id="riwayatEmptyRow">
+                    <td colspan="4" class="p-8 text-center text-sm text-gray-400">
+                        Tidak ada data riwayat upload.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-    <!-- /Pagination -->
+
 </div>
 
 <script>
     // =====================
-    // GLOBAL STATE
-    // =====================
-    const now = new Date();
-    let current = new Date(now.getFullYear(), now.getMonth(), 1);
-    let selectedEmployeeId = null;
-    let selectedTeamId = null;
-    let cachedTim = [];
-    let cachedPegawai = [];
-    const gridEl = document.getElementById('presensiGrid');
-
-    function pad2(n) { return String(n).padStart(2, '0'); }
-
-    function makeBtn(text, cls, onClick) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.textContent = text;
-        b.className = cls;
-        b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
-        return b;
-    }
-
-    // =====================
-    // FETCH DATA
-    // =====================
-    async function fetchTim() {
-        const res = await fetch('/admin/presensi/tim');
-        cachedTim = await res.json();
-        populateDropdownTim('', cachedTim);
-    }
-
-    async function fetchPegawai(kodeTim = '') {
-        const url = kodeTim
-            ? `/admin/presensi/pegawai?kode_tim=${kodeTim}`
-            : '/admin/presensi/pegawai';
-        const res = await fetch(url);
-        cachedPegawai = await res.json();
-        populateDropdown('', cachedPegawai);
-    }
-
-    // =====================
-    // DROPDOWN TIM
-    // =====================
-    function populateDropdownTim(filter = '', data = []) {
-        const list = document.getElementById('listTim');
-        list.innerHTML = '';
-        data
-            .filter(t => t.nama_tim.toLowerCase().includes(filter.toLowerCase()))
-            .forEach(tim => {
-                const li = document.createElement('li');
-                li.className = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-                li.textContent = tim.nama_tim;
-                li.onclick = () => pilihTim(tim);
-                list.appendChild(li);
-            });
-    }
-
-    window.toggleDropdownTim = function () {
-        document.getElementById('dropdownTim').classList.toggle('hidden');
-        populateDropdownTim('', cachedTim);
-    };
-
-    window.filterDropdownTim = function () {
-        const search = document.getElementById('searchTim').value;
-        populateDropdownTim(search, cachedTim);
-        document.getElementById('dropdownTim').classList.remove('hidden');
-    };
-
-    window.pilihTim = function (tim) {
-        selectedTeamId = tim.kode_tim;
-        document.getElementById('searchTim').value = tim.nama_tim;
-        document.getElementById('dropdownTim').classList.add('hidden');
-        selectedEmployeeId = null;
-        document.getElementById('searchPegawai').value = '';
-        fetchPegawai(tim.kode_tim);
-    };
-
-    // =====================
-    // DROPDOWN PEGAWAI
-    // =====================
-    function populateDropdown(filter = '', data = []) {
-        const list = document.getElementById('listPegawai');
-        list.innerHTML = '';
-        data
-            .filter(e => `${e.nama} ${e.nip}`.toLowerCase().includes(filter.toLowerCase()))
-            .forEach(emp => {
-                const li = document.createElement('li');
-                li.className = 'cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-50';
-                li.textContent = `${emp.nama} - ${emp.nip}`;
-                li.onclick = () => pilihPegawai(emp);
-                list.appendChild(li);
-            });
-    }
-
-    window.toggleDropdown = function () {
-        document.getElementById('dropdownPegawai').classList.toggle('hidden');
-        populateDropdown('', cachedPegawai);
-    };
-
-    window.filterDropdown = function () {
-        const search = document.getElementById('searchPegawai').value;
-        populateDropdown(search, cachedPegawai);
-        document.getElementById('dropdownPegawai').classList.remove('hidden');
-    };
-
-    window.pilihPegawai = function (emp) {
-        selectedEmployeeId = emp.id_pegawai;
-        document.getElementById('searchPegawai').value = `${emp.nama} - ${emp.nip}`;
-        document.getElementById('dropdownPegawai').classList.add('hidden');
-    };
-
-    // =====================
-    // PERIOD PICKER
+    // PERIOD PICKER & FILTER
     // =====================
     (function () {
-        const el = (id) => document.getElementById(id);
+        const now = new Date();
+        const pad2 = (n) => String(n).padStart(2, '0');
+        const makeBtn = (text, cls, onClick) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = text;
+            b.className = cls;
+            b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+            return b;
+        };
 
+        const el           = (id) => document.getElementById(id);
         const picker       = el('periodPicker');
         const btn          = el('periodBtn');
         const panel        = el('periodPanel');
@@ -260,6 +204,7 @@
         const btnPrev      = el('yearPrev');
         const btnNext      = el('yearNext');
         const btnThisMonth = el('btnThisMonth');
+        const btnAllPeriod = el('btnAllPeriod');
         const btnClose     = el('btnClosePanel');
 
         if (!picker || !btn || !panel) return;
@@ -269,14 +214,49 @@
 
         let view     = 'month';
         let viewYear = now.getFullYear();
-        let selYear  = now.getFullYear();
-        let selMonth = now.getMonth();
+        let selYear  = null;
+        let selMonth = null;
+
+        function filterTable(targetPeriod) {
+            const rows = document.querySelectorAll('#riwayatTableBody tr.riwayat-row');
+            let visibleCount = 0;
+            rows.forEach(r => {
+                const rowPeriod = r.getAttribute('data-periode');
+                if (!targetPeriod || rowPeriod === targetPeriod) {
+                    r.style.display = '';
+                    visibleCount++;
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+
+            let emptyRow = document.getElementById('riwayatEmptyRow');
+            if (!emptyRow && visibleCount === 0) {
+                emptyRow = document.createElement('tr');
+                emptyRow.id = 'riwayatEmptyRow';
+                emptyRow.innerHTML = '<td colspan="4" class="p-8 text-center text-sm text-gray-400">Tidak ada berkas untuk periode yang dipilih.</td>';
+                document.getElementById('riwayatTableBody').appendChild(emptyRow);
+            } else if (emptyRow) {
+                emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+            }
+
+            const countEl = document.getElementById('totalRiwayatCount');
+            if (countEl) countEl.textContent = String(visibleCount);
+        }
 
         function setPeriod(y, m) {
             selYear = y; selMonth = m;
             periodLabel.textContent = `${monthShort[m]} ${y}`;
-            periodValue.value = `${y}-${pad2(m + 1)}`;
-            // TODO: trigger fetch/filter
+            const val = `${y}-${pad2(m + 1)}`;
+            periodValue.value = val;
+            filterTable(val);
+        }
+
+        function resetAllPeriod() {
+            selYear = null; selMonth = null;
+            periodLabel.textContent = 'Semua Periode';
+            periodValue.value = '';
+            filterTable('');
         }
 
         function renderMonth() {
@@ -326,7 +306,7 @@
         }
 
         function openPanel() {
-            viewYear = selYear;
+            viewYear = selYear || now.getFullYear();
             renderMonth();
             panel.classList.remove('hidden');
         }
@@ -352,31 +332,40 @@
             closePanel();
         });
 
+        btnAllPeriod?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetAllPeriod();
+            closePanel();
+        });
+
         btnClose?.addEventListener('click', (e) => { e.stopPropagation(); closePanel(); });
 
         document.addEventListener('click', (e) => {
             if (!picker.contains(e.target)) closePanel();
         });
-
-        setPeriod(selYear, selMonth);
     })();
 
     // =====================
-    // INIT
+    // MOBILE TABLE SCROLL SYNC
     // =====================
     document.addEventListener('DOMContentLoaded', function () {
-        fetchTim();
-        fetchPegawai();
+        const container = document.getElementById('tableContainer');
+        const thumb = document.querySelector('.table-scroll-thumb');
+        const pctText = document.querySelector('.table-scroll-pct');
 
-        document.addEventListener('click', function (e) {
-            const wrapperTim = document.getElementById('searchTim')?.closest('.relative');
-            if (wrapperTim && !wrapperTim.contains(e.target))
-                document.getElementById('dropdownTim').classList.add('hidden');
-
-            const wrapperPegawai = document.getElementById('searchPegawai')?.closest('.relative');
-            if (wrapperPegawai && !wrapperPegawai.contains(e.target))
-                document.getElementById('dropdownPegawai').classList.add('hidden');
-        });
+        if (container && thumb) {
+            container.addEventListener('scroll', function () {
+                const maxScroll = container.scrollWidth - container.clientWidth;
+                if (maxScroll <= 0) return;
+                const scrollLeft = container.scrollLeft;
+                const pct = Math.min(100, Math.max(0, Math.round((scrollLeft / maxScroll) * 100)));
+                const thumbWidth = 30; // 30%
+                const maxTranslate = 100 - thumbWidth;
+                const translateVal = (pct / 100) * maxTranslate;
+                thumb.style.transform = `translateX(${translateVal}%)`;
+                if (pctText) pctText.textContent = `${pct}%`;
+            });
+        }
     });
 </script>
 

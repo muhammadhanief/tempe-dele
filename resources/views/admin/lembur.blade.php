@@ -113,8 +113,8 @@
 
                 {{-- Toggle Filter Mobile (Accordion) --}}
                 @php
-                    $hasActiveSearchFilter = !empty(request('nip')) || !empty(request('search')) || !empty(request('tim'));
-                    $activeFilterCount = (!empty(request('nip')) ? 1 : 0) + (!empty(request('search')) || !empty(request('tim')) ? 1 : 0);
+                    $hasActiveSearchFilter = !empty(request('nip')) || !empty(request('search')) || !empty(request('tim')) || !empty(request('status'));
+                    $activeFilterCount = (!empty(request('nip')) ? 1 : 0) + (!empty(request('search')) || !empty(request('tim')) ? 1 : 0) + (!empty(request('status')) ? 1 : 0);
                 @endphp
                 <button type="button" id="btnToggleMobileFilter" onclick="toggleMobileFilter()"
                     class="sm:hidden inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] hover:text-[#faa938] transition-all shrink-0 cursor-pointer">
@@ -133,7 +133,7 @@
                 </button>
             </div>
 
-            {{-- Collapsible Container Pegawai & Tim --}}
+            {{-- Collapsible Container Pegawai, Tim & Status --}}
             <div id="mobileFilterCollapse" class="{{ $hasActiveSearchFilter ? 'flex' : 'hidden' }} sm:!flex flex-col sm:flex-row sm:items-center gap-2.5 w-full sm:w-auto">
                 {{-- Filter Pegawai --}}
                 <div class="relative w-full sm:w-64" id="wrapSearchPegawai">
@@ -181,214 +181,127 @@
                         <ul id="listTim"></ul>
                     </div>
                 </div>
+
+                {{-- Filter Status Dropdown (di sebelah Cari nama tim) --}}
+                @php
+                    $statusMap = [
+                        '' => [
+                            'label' => 'Semua Status',
+                            'count' => $statusCounts['all'] ?? 0,
+                            'dot'   => 'bg-slate-800',
+                            'badge' => 'bg-slate-100 text-slate-700',
+                            'activeBg' => 'bg-slate-900 text-white font-semibold',
+                        ],
+                        'menunggu_kabag' => [
+                            'label' => 'Menunggu Kabag',
+                            'count' => $statusCounts['menunggu_kabag'] ?? 0,
+                            'dot'   => 'bg-blue-600',
+                            'badge' => 'bg-blue-100 text-blue-800',
+                            'activeBg' => 'bg-blue-600 text-white font-semibold',
+                        ],
+                        'pending' => [
+                            'label' => 'Menunggu Ketua',
+                            'count' => $statusCounts['pending'] ?? 0,
+                            'dot'   => 'bg-amber-500',
+                            'badge' => 'bg-amber-100 text-amber-800',
+                            'activeBg' => 'bg-amber-500 text-white font-semibold',
+                        ],
+                        'approved' => [
+                            'label' => 'Disetujui',
+                            'count' => $statusCounts['approved'] ?? 0,
+                            'dot'   => 'bg-emerald-500',
+                            'badge' => 'bg-emerald-100 text-emerald-800',
+                            'activeBg' => 'bg-emerald-600 text-white font-semibold',
+                        ],
+                        'rejected' => [
+                            'label' => 'Ditolak',
+                            'count' => $statusCounts['rejected'] ?? 0,
+                            'dot'   => 'bg-rose-500',
+                            'badge' => 'bg-rose-100 text-rose-800',
+                            'activeBg' => 'bg-rose-600 text-white font-semibold',
+                        ],
+                        'cancelled' => [
+                            'label' => 'Dibatalkan',
+                            'count' => $statusCounts['cancelled'] ?? 0,
+                            'dot'   => 'bg-gray-500',
+                            'badge' => 'bg-gray-100 text-gray-800',
+                            'activeBg' => 'bg-gray-700 text-white font-semibold',
+                        ],
+                    ];
+                    $currentStatusKey = (string)($status ?? '');
+                    $activeStatusConfig = $statusMap[$currentStatusKey] ?? $statusMap[''];
+                @endphp
+
+                <div class="relative w-full sm:w-56 shrink-0" id="wrapStatusFilter">
+                    <button type="button" id="btnStatusDropdown" onclick="toggleStatusDropdown(event)"
+                        class="inline-flex w-full h-10 items-center justify-between gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] active:bg-gray-50 transition-all cursor-pointer select-none">
+                        <span class="inline-flex items-center gap-2 truncate pointer-events-none">
+                            @if($currentStatusKey === 'menunggu_kabag')
+                                <span class="relative flex h-2 w-2 shrink-0">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                                </span>
+                            @elseif($currentStatusKey === 'pending')
+                                <span class="relative flex h-2 w-2 shrink-0">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                </span>
+                            @else
+                                <span class="h-2 w-2 rounded-full {{ $activeStatusConfig['dot'] }} shrink-0"></span>
+                            @endif
+                            <span class="font-bold text-slate-800 truncate">{{ $activeStatusConfig['label'] }}</span>
+                        </span>
+
+                        <span class="inline-flex items-center gap-1.5 shrink-0 pointer-events-none">
+                            <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $activeStatusConfig['badge'] }}">
+                                {{ $activeStatusConfig['count'] }}
+                            </span>
+                            <svg id="iconChevronStatus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-2.5 w-2.5 fill-current opacity-40 transition-transform duration-200">
+                                <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                            </svg>
+                        </span>
+                    </button>
+
+                    {{-- Custom Menu Popup Pilihan Status --}}
+                    <div id="menuStatusDropdown"
+                        class="hidden absolute left-0 right-0 sm:left-auto sm:right-0 top-full mt-1.5 z-50 w-full sm:w-60 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden py-1 divide-y divide-gray-50">
+                        @foreach($statusMap as $val => $cfg)
+                            @php $isSelected = ($currentStatusKey === (string)$val); @endphp
+                            <button type="button" onclick="selectStatus('{{ $val }}')"
+                                class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $isSelected ? $cfg['activeBg'] : 'text-gray-700 hover:bg-gray-50' }}">
+                                <span class="inline-flex items-center gap-2.5 pointer-events-none">
+                                    @if($val === 'menunggu_kabag')
+                                        <span class="relative flex h-2 w-2 shrink-0">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $isSelected ? 'bg-white opacity-75' : 'bg-blue-400 opacity-75' }}"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 {{ $isSelected ? 'bg-white' : 'bg-blue-600' }}"></span>
+                                        </span>
+                                    @elseif($val === 'pending')
+                                        <span class="relative flex h-2 w-2 shrink-0">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $isSelected ? 'bg-white opacity-75' : 'bg-amber-400 opacity-75' }}"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 {{ $isSelected ? 'bg-white' : 'bg-amber-500' }}"></span>
+                                        </span>
+                                    @else
+                                        <span class="h-2 w-2 rounded-full {{ $isSelected ? 'bg-white' : $cfg['dot'] }} shrink-0"></span>
+                                    @endif
+                                    <span class="{{ $isSelected ? 'font-semibold' : '' }}">{{ $cfg['label'] }}</span>
+                                </span>
+
+                                <span class="inline-flex items-center gap-1.5 shrink-0 pointer-events-none">
+                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $isSelected ? 'bg-white/20 text-white' : $cfg['badge'] }}">
+                                        {{ $cfg['count'] }}
+                                    </span>
+                                    @if($isSelected)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @endif
+                                </span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
-        </div>
-
-        @php
-            $currentStatusLabel = 'Semua Status';
-            $currentStatusCount = $statusCounts['all'] ?? 0;
-            $currentStatusBadgeClass = 'bg-slate-100 text-slate-700';
-            $currentStatusDotClass = 'bg-slate-800';
-
-            if ($status === 'menunggu_kabag') {
-                $currentStatusLabel = 'Menunggu Kabag';
-                $currentStatusCount = $statusCounts['menunggu_kabag'] ?? 0;
-                $currentStatusBadgeClass = 'bg-blue-100 text-blue-800';
-                $currentStatusDotClass = 'bg-blue-600';
-            } elseif ($status === 'pending') {
-                $currentStatusLabel = 'Menunggu Ketua';
-                $currentStatusCount = $statusCounts['pending'] ?? 0;
-                $currentStatusBadgeClass = 'bg-amber-100 text-amber-800';
-                $currentStatusDotClass = 'bg-amber-500';
-            } elseif ($status === 'approved') {
-                $currentStatusLabel = 'Disetujui';
-                $currentStatusCount = $statusCounts['approved'] ?? 0;
-                $currentStatusBadgeClass = 'bg-emerald-100 text-emerald-800';
-                $currentStatusDotClass = 'bg-emerald-600';
-            } elseif ($status === 'rejected') {
-                $currentStatusLabel = 'Ditolak';
-                $currentStatusCount = $statusCounts['rejected'] ?? 0;
-                $currentStatusBadgeClass = 'bg-rose-100 text-rose-800';
-                $currentStatusDotClass = 'bg-rose-600';
-            } elseif ($status === 'cancelled') {
-                $currentStatusLabel = 'Dibatalkan';
-                $currentStatusCount = $statusCounts['cancelled'] ?? 0;
-                $currentStatusBadgeClass = 'bg-gray-100 text-gray-800';
-                $currentStatusDotClass = 'bg-gray-600';
-            }
-        @endphp
-
-        {{-- Status Filter Mobile: Dropdown Kompak & Elegan (Khusus Layar HP < 640px) --}}
-        <div class="sm:hidden relative w-full mb-3 z-30" id="mobileStatusWrapper">
-            <button type="button" id="btnMobileStatus"
-                class="inline-flex w-full h-10 items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3.5 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] active:bg-gray-50 transition-all cursor-pointer select-none">
-                <span class="inline-flex items-center gap-2 truncate pointer-events-none">
-                    <span class="h-2.5 w-2.5 rounded-full {{ $currentStatusDotClass }} shrink-0"></span>
-                    <span class="text-slate-400 font-normal">Status:</span>
-                    <span class="font-bold text-slate-800 truncate">{{ $currentStatusLabel }}</span>
-                </span>
-
-                <span class="inline-flex items-center gap-2 shrink-0 pointer-events-none">
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $currentStatusBadgeClass }}">
-                        {{ $currentStatusCount }}
-                    </span>
-                    <svg id="iconChevronStatus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="h-2.5 w-2.5 fill-current opacity-40 transition-transform duration-200">
-                        <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
-                    </svg>
-                </span>
-            </button>
-
-            {{-- Custom Menu Popup Pilihan Status dengan Tipografi Cantik & Modern --}}
-            <div id="menuMobileStatus"
-                class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden py-1 divide-y divide-gray-50">
-                
-                {{-- Semua Status --}}
-                <button type="button" onclick="selectStatus('')"
-                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ empty($status) ? 'bg-slate-900 text-white font-semibold' : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100' }}">
-                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
-                        <span class="h-2 w-2 rounded-full {{ empty($status) ? 'bg-white' : 'bg-slate-800' }}"></span>
-                        <span>Semua Status</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ empty($status) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700' }}">
-                        {{ $statusCounts['all'] ?? 0 }}
-                    </span>
-                </button>
-
-                {{-- Menunggu Kabag --}}
-                <button type="button" onclick="selectStatus('menunggu_kabag')"
-                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'menunggu_kabag' ? 'bg-blue-600 text-white font-semibold' : 'text-blue-900 hover:bg-blue-50/60 active:bg-blue-100/60' }}">
-                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
-                        <span class="relative flex h-2 w-2">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'menunggu_kabag' ? 'bg-white opacity-75' : 'bg-blue-400 opacity-75' }}"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'menunggu_kabag' ? 'bg-white' : 'bg-blue-600' }}"></span>
-                        </span>
-                        <span>Menunggu Kabag</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'menunggu_kabag' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
-                        {{ $statusCounts['menunggu_kabag'] ?? 0 }}
-                    </span>
-                </button>
-
-                {{-- Menunggu Ketua --}}
-                <button type="button" onclick="selectStatus('pending')"
-                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'pending' ? 'bg-amber-500 text-white font-semibold' : 'text-amber-900 hover:bg-amber-50/60 active:bg-amber-100/60' }}">
-                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
-                        <span class="relative flex h-2 w-2">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'pending' ? 'bg-white opacity-75' : 'bg-amber-400 opacity-75' }}"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'pending' ? 'bg-white' : 'bg-amber-500' }}"></span>
-                        </span>
-                        <span>Menunggu Ketua</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }}">
-                        {{ $statusCounts['pending'] ?? 0 }}
-                    </span>
-                </button>
-
-                {{-- Disetujui --}}
-                <button type="button" onclick="selectStatus('approved')"
-                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'approved' ? 'bg-emerald-600 text-white font-semibold' : 'text-emerald-900 hover:bg-emerald-50/60 active:bg-emerald-100/60' }}">
-                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
-                        <span class="h-2 w-2 rounded-full {{ $status === 'approved' ? 'bg-white' : 'bg-emerald-500' }}"></span>
-                        <span>Disetujui</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
-                        {{ $statusCounts['approved'] ?? 0 }}
-                    </span>
-                </button>
-
-                {{-- Ditolak --}}
-                <button type="button" onclick="selectStatus('rejected')"
-                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'rejected' ? 'bg-rose-600 text-white font-semibold' : 'text-rose-900 hover:bg-rose-50/60 active:bg-rose-100/60' }}">
-                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
-                        <span class="h-2 w-2 rounded-full {{ $status === 'rejected' ? 'bg-white' : 'bg-rose-500' }}"></span>
-                        <span>Ditolak</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
-                        {{ $statusCounts['rejected'] ?? 0 }}
-                    </span>
-                </button>
-
-                {{-- Dibatalkan --}}
-                <button type="button" onclick="selectStatus('cancelled')"
-                    class="w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer {{ $status === 'cancelled' ? 'bg-gray-600 text-white font-semibold' : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100' }}">
-                    <span class="inline-flex items-center gap-2.5 pointer-events-none">
-                        <span class="h-2 w-2 rounded-full {{ $status === 'cancelled' ? 'bg-white' : 'bg-gray-500' }}"></span>
-                        <span>Dibatalkan</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold pointer-events-none {{ $status === 'cancelled' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800' }}">
-                        {{ $statusCounts['cancelled'] ?? 0 }}
-                    </span>
-                </button>
-            </div>
-        </div>
-
-        {{-- Desktop Status Filter Tabs / Monitoring Pills (HANYA tampil di Desktop sm:flex) --}}
-        <div class="hidden sm:flex flex-wrap items-center gap-2 mb-3.5 sm:mb-4">
-            {{-- Semua Status --}}
-            <button type="button" onclick="selectStatus('')"
-                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ empty($status) ? 'bg-slate-900 text-white border-slate-900 shadow-sm shadow-slate-900/20 ring-2 ring-slate-900/10' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300' }}">
-                <span>Semua Status</span>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ empty($status) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700' }}">
-                    {{ $statusCounts['all'] ?? 0 }}
-                </span>
-            </button>
-
-            {{-- Menunggu Kabag --}}
-            <button type="button" onclick="selectStatus('menunggu_kabag')"
-                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'menunggu_kabag' ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-600/25 ring-2 ring-blue-600/20' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50/80 hover:border-blue-300' }}">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'menunggu_kabag' ? 'bg-white opacity-75' : 'bg-blue-400 opacity-75' }}"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'menunggu_kabag' ? 'bg-white' : 'bg-blue-600' }}"></span>
-                </span>
-                <span>Menunggu Kabag</span>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'menunggu_kabag' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
-                    {{ $statusCounts['menunggu_kabag'] ?? 0 }}
-                </span>
-            </button>
-
-            {{-- Menunggu Ketua --}}
-            <button type="button" onclick="selectStatus('pending')"
-                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'pending' ? 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/25 ring-2 ring-amber-500/20' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50/80 hover:border-amber-300' }}">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $status === 'pending' ? 'bg-white opacity-75' : 'bg-amber-400 opacity-75' }}"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 {{ $status === 'pending' ? 'bg-white' : 'bg-amber-500' }}"></span>
-                </span>
-                <span>Menunggu Ketua</span>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }}">
-                    {{ $statusCounts['pending'] ?? 0 }}
-                </span>
-            </button>
-
-            {{-- Disetujui --}}
-            <button type="button" onclick="selectStatus('approved')"
-                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'approved' ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/25 ring-2 ring-emerald-600/20' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50/80 hover:border-emerald-300' }}">
-                <span class="h-2 w-2 rounded-full {{ $status === 'approved' ? 'bg-white' : 'bg-emerald-500' }}"></span>
-                <span>Disetujui</span>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
-                    {{ $statusCounts['approved'] ?? 0 }}
-                </span>
-            </button>
-
-            {{-- Ditolak --}}
-            <button type="button" onclick="selectStatus('rejected')"
-                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'rejected' ? 'bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-600/25 ring-2 ring-rose-600/20' : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50/80 hover:border-rose-300' }}">
-                <span class="h-2 w-2 rounded-full {{ $status === 'rejected' ? 'bg-white' : 'bg-rose-500' }}"></span>
-                <span>Ditolak</span>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }}">
-                    {{ $statusCounts['rejected'] ?? 0 }}
-                </span>
-            </button>
-
-            {{-- Dibatalkan --}}
-            <button type="button" onclick="selectStatus('cancelled')"
-                class="inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border whitespace-nowrap cursor-pointer {{ $status === 'cancelled' ? 'bg-gray-600 text-white border-gray-600 shadow-sm shadow-gray-600/25 ring-2 ring-gray-600/20' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50/80 hover:border-gray-300' }}">
-                <span class="h-2 w-2 rounded-full {{ $status === 'cancelled' ? 'bg-white' : 'bg-gray-500' }}"></span>
-                <span>Dibatalkan</span>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $status === 'cancelled' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800' }}">
-                    {{ $statusCounts['cancelled'] ?? 0 }}
-                </span>
-            </button>
         </div>
 
         {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
@@ -570,7 +483,7 @@
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                             <span>Ditolak</span>
                                         </span>
-                                    @elseif($t->status === 'cancelled')
+                                    @elseif($t->status === 'cancelled' || $t->status === 'dibatalkan')
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200">
                                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
                                             <span>Dibatalkan</span>
@@ -581,8 +494,20 @@
                                 </td>
 
                                 <td class="px-3.5 py-3.5 text-xs text-gray-600 text-left max-w-[140px] break-words align-middle" id="note-cell-{{ $t->id_transaksi }}">
-                                    @if(!empty($t->note))
-                                        <span class="italic text-gray-600 leading-relaxed">{{ $t->note }}</span>
+                                    @php
+                                        $rawNote = $t->note ?? '';
+                                        $isAdminCancelled = ($t->status === 'cancelled') || str_contains($rawNote, '[Dibatalkan Admin]');
+                                        $cleanNote = str_contains($rawNote, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNote)) : $rawNote;
+                                    @endphp
+                                    @if(!empty($rawNote))
+                                        @if($isAdminCancelled)
+                                            <div>
+                                                <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Admin:</span>
+                                                <div class="italic text-gray-700 leading-relaxed mt-0.5">{{ $cleanNote }}</div>
+                                            </div>
+                                        @else
+                                            <span class="italic text-gray-600 leading-relaxed">{{ $rawNote }}</span>
+                                        @endif
                                     @else
                                         <span class="text-gray-300">-</span>
                                     @endif
@@ -601,7 +526,7 @@
                                                 </a>
                                                 @if($t->submitted_by_NIP === session('user')['nip'])
                                                     <form action="{{ route('admin.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
-                                                        onsubmit="return confirm('Hapus dokumentasi ini?')" class="inline">
+                                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus tautan dokumentasi kegiatan ini?')" class="inline">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="p-1 text-gray-400 hover:text-red-600 rounded transition-colors" title="Hapus dokumentasi">
@@ -1242,11 +1167,11 @@
             }
             const sigErr = document.getElementById('signatureError');
             if (sigErr) {
-                sigErr.textContent = '⚠️ Tanda tangan digital wajib digoreskan sebelum mengirim pengajuan.';
+                sigErr.textContent = '⚠️ Tanda tangan digital wajib dibubuhkan sebelum mengirimkan pengajuan lembur.';
                 sigErr.classList.remove('hidden');
             }
             canvas?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            alert('Tanda tangan digital belum diisi! Silakan goreskan tanda tangan Anda pada kotak tanda tangan.');
+            alert('Tanda tangan digital belum dibubuhkan. Silakan bubuhkan tanda tangan Anda pada area kanvas yang tersedia.');
             return;
         }
         document.getElementById('signatureError').classList.add('hidden');
@@ -1569,6 +1494,8 @@
     function tutupSemuaDropdown() {
         document.getElementById('dropdownPegawai')?.classList.add('hidden');
         document.getElementById('dropdownTim')?.classList.add('hidden');
+        document.getElementById('menuStatusDropdown')?.classList.add('hidden');
+        document.getElementById('iconChevronStatus')?.classList.remove('rotate-180');
     }
 
     // =====================
@@ -2198,7 +2125,7 @@
 
             const noteCell = document.getElementById(`note-cell-${id}`);
             if (noteCell) {
-                noteCell.innerHTML = `<span class="italic text-gray-600 leading-relaxed">${data.note || `[Dibatalkan Admin] ${alasan}`}</span>`;
+                noteCell.innerHTML = `<div><span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Admin:</span><div class="italic text-gray-700 leading-relaxed mt-0.5">${alasan}</div></div>`;
             }
 
             const aksiCell = document.getElementById(`aksi-cell-${id}`);
@@ -2313,33 +2240,35 @@
         fetchPegawai();
         updateExportLink();
 
-        // Setup Mobile Status Custom Dropdown
-        const btnMobileStatus     = document.getElementById('btnMobileStatus');
-        const menuMobileStatus    = document.getElementById('menuMobileStatus');
-        const iconChevronStatus   = document.getElementById('iconChevronStatus');
-        const wrapperMobileStatus = document.getElementById('mobileStatusWrapper');
-
-        if (btnMobileStatus && menuMobileStatus) {
-            btnMobileStatus.addEventListener('click', function (e) {
+        // Setup Status Custom Dropdown
+        window.toggleStatusDropdown = function (e) {
+            if (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                const isHidden = menuMobileStatus.classList.contains('hidden');
-                if (isHidden) {
-                    menuMobileStatus.classList.remove('hidden');
-                    iconChevronStatus?.classList.add('rotate-180');
-                } else {
-                    menuMobileStatus.classList.add('hidden');
-                    iconChevronStatus?.classList.remove('rotate-180');
-                }
-            });
+            }
+            const menu = document.getElementById('menuStatusDropdown');
+            const chevron = document.getElementById('iconChevronStatus');
+            if (!menu) return;
 
-            document.addEventListener('click', function (e) {
-                if (wrapperMobileStatus && !wrapperMobileStatus.contains(e.target)) {
-                    menuMobileStatus.classList.add('hidden');
-                    iconChevronStatus?.classList.remove('rotate-180');
-                }
-            });
-        }
+            const isHidden = menu.classList.contains('hidden');
+            tutupSemuaDropdown();
+
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                chevron?.classList.add('rotate-180');
+            } else {
+                menu.classList.add('hidden');
+                chevron?.classList.remove('rotate-180');
+            }
+        };
+
+        const wrapperStatusFilter = document.getElementById('wrapStatusFilter');
+        document.addEventListener('click', function (e) {
+            if (wrapperStatusFilter && !wrapperStatusFilter.contains(e.target)) {
+                document.getElementById('menuStatusDropdown')?.classList.add('hidden');
+                document.getElementById('iconChevronStatus')?.classList.remove('rotate-180');
+            }
+        });
 
         // Restore state dari URL
         const params       = new URLSearchParams(window.location.search);
