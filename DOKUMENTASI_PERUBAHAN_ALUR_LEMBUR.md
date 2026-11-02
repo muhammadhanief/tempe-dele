@@ -5543,3 +5543,36 @@ Disuntikkan 7 record transaksi realistis periode 1–14 Oktober 2026 di bawah `t
 
 
 
+## 54. Pembatasan Persetujuan Ketua Tim Hanya untuk Pengajuan yang Ditujukan Kepadanya (`ketuatim/PengajuanController.php`)
+
+### A. Latar Belakang
+Saat pengujian end-to-end (02 November 2026), ditemukan bahwa endpoint `POST /ketua-tim/pengajuan/{id}/approve` tidak memeriksa apakah pengajuan benar-benar ditujukan kepada ketua tim yang sedang login. Di tampilan, pengajuan tim lain memang tidak muncul, tetapi ketua tim lain tetap bisa menyetujui atau menolak pengajuan tim lain dengan mengirim request langsung (misalnya lewat DevTools) memakai ID pengajuan.
+
+Endpoint serupa di Dashboard (`POST /ketua-tim/transaksi/{id}/approve`) sudah memiliki pengecekan ini, sehingga perilaku kedua endpoint sebelumnya tidak konsisten.
+
+### B. Perubahan
+Di awal fungsi `approve()` pada `app/Http/Controllers/ketuatim/PengajuanController.php` ditambahkan pengecekan. Request hanya diproses jika salah satu syarat terpenuhi:
+1. `approver_employee_id` pada pengajuan sama dengan NIP atau NIP lama pengguna yang login.
+2. Pengguna adalah Kepala Bagian Umum yang aktif di `m_pejabat` (tetap boleh menyetujui pengajuan semua tim).
+3. Pengguna ber-role `admin` atau `superadmin` (akses rute ini tidak berubah).
+
+Jika tidak memenuhi, server mengembalikan HTTP 403 dengan pesan "Anda bukan Ketua Tim yang dituju pada pengajuan ini."
+
+Tidak ada perubahan database maupun tampilan.
+
+### C. Hasil Pengujian (database salinan `lembur_e2e`)
+| Skenario | Hasil |
+| :--- | :--- |
+| Ketua tim lain menyetujui pengajuan tim lain | Ditolak (403) |
+| Ketua tim lain menolak pengajuan tim lain | Ditolak (403), status tetap `pending` |
+| Ketua tim yang dituju menyetujui | Berhasil, status `menunggu_kabag` |
+| Kabag Umum menyetujui pengajuan tim lain | Berhasil (tidak dibatasi) |
+| Admin melalui rute ketua tim | Berhasil (tidak dibatasi) |
+| Kabag Umum memberi persetujuan final | Berhasil, status `approved` |
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Pengecekan kepemilikan pengajuan sebelum ketua tim menyetujui atau menolak. |
+
+---
