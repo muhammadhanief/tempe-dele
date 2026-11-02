@@ -150,6 +150,30 @@ class PengajuanController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan'], 404);
         }
 
+        // Ketua tim hanya boleh memutuskan pengajuan yang ditujukan kepadanya.
+        // Kabag Umum aktif, admin, dan superadmin tidak dibatasi.
+        $nipUser     = session('user')['nip'] ?? null;
+        $nipLamaUser = session('user')['nip_lama'] ?? null;
+        $roleUser    = session('user')['role'] ?? null;
+
+        $isApproverAsli = $nipUser && $transaksi->approver_employee_id === $nipUser
+            || $nipLamaUser && $transaksi->approver_employee_id === $nipLamaUser;
+
+        $isKabagAktif = DB::table('m_pejabat')
+            ->where('jabatan', 'Kepala Bagian Umum')
+            ->where('status', 'aktif')
+            ->where(function ($q) use ($nipUser, $nipLamaUser) {
+                $q->where('nip', $nipUser ?? '-');
+                if ($nipLamaUser) $q->orWhere('nip_lama', $nipLamaUser);
+            })->exists();
+
+        if (!$isApproverAsli && !$isKabagAktif && !in_array($roleUser, ['admin', 'superadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda bukan Ketua Tim yang dituju pada pengajuan ini.'
+            ], 403);
+        }
+
         // KUNCI STATUS:
         // 1. Jika sudah disetujui final (approved) oleh Kabag Umum, Ketua Tim tidak dapat membatalkan menjadi Ditolak.
         if ($transaksi->status === 'approved' && $request->status === 'rejected') {
