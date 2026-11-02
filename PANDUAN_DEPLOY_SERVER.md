@@ -321,6 +321,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 219. 📄 **`resources/css/app.css`** & **`resources/js/app.js`** *(Peningkatan pengalaman pergeseran tabel mobile: metric caching anti forced reflow, penyeretan rel 1:1 instant zero-lag, penambahan tombol navigasi panah cepat sentuh `[ ‹ ]` dan `[ › ]`, serta kinetic momentum touch gliding)*.
 220. 📁 **`public/build/`** *(Bundel aset produksi Vite terbaru: `manifest.json`, `assets/app-C-W_ERKf.css`, `assets/app-i3CBr4cx.js`)*.
 221. 📄 **`.vscode/settings.json`** & **`.gitignore`** *(Konfigurasi pengabaian warning kosmetik at-rules Tailwind CSS v4 `@source` dan `@theme` pada CSS Language Server IDE)*.
+222. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`** *(Pengecekan keamanan: ketua tim hanya boleh menyetujui atau menolak pengajuan yang ditujukan kepadanya; Kabag Umum, admin, dan superadmin tidak dibatasi)*.
 
 ---
 
@@ -1744,3 +1745,13 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 
 
 
+### CP. Uji Pembatasan Persetujuan Ketua Tim (Hanya Pengajuan Tim Sendiri)
+- [ ] Login sebagai **Ketua Tim A**, buka menu Pengajuan, lalu setujui pengajuan anggota timnya sendiri.
+  - **Verifikasi**: Berhasil, status menjadi **Menunggu Kabag Umum**.
+- [ ] Login sebagai **Ketua Tim B** (tim lain). Di DevTools Console, kirim request setuju ke pengajuan milik Tim A:
+  ```js
+  fetch('/ketua-tim/pengajuan/<ID_PENGAJUAN_TIM_A>/approve', {method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json', 'Content-Type': 'application/json'}, body: JSON.stringify({status: 'approved'})}).then(r => r.json()).then(console.log)
+  ```
+  - **Verifikasi**: Respons HTTP 403 dengan pesan "Anda bukan Ketua Tim yang dituju pada pengajuan ini.", dan status pengajuan tidak berubah.
+- [ ] Login sebagai **Kabag Umum** dan setujui pengajuan seperti biasa.
+  - **Verifikasi**: Tetap berhasil.
