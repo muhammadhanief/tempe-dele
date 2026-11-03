@@ -82,7 +82,7 @@ class AuthController extends Controller
         try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-                'x-api-key'    => env('KIPAPP_API_KEY'),
+                'x-api-key'    => config('services.kipapp.api_key'),
                 'Origin'       => 'https://jateng.web.bps.go.id',
             ])->post('https://jateng.web.bps.go.id/apiconnect/login', [
                 'username' => $request->username,
