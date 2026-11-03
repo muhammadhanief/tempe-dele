@@ -349,6 +349,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 231. 📄 **`database/migrations/2026_11_03_000001_widen_password_column_in_m_pegawai.php`** *(Berkas baru: perlebar kolom `password` ke VARCHAR(255). Jalankan SQL poin 8 di Bagian 1 atau migrasi spesifiknya)*.
 232. 📄 **`app/Traits/KoreksiLembur.php`** *(Catatan penyetuju tidak lagi ditimpa catatan otomatis "tidak masuk proses bisnis"; catatan sistem disambung di belakangnya)*.
 233. 📄 **`app/Http/Controllers/AuthController.php`** *(Form login kosong ditolak dengan pesan, dan `detail` API berupa array tidak lagi menyebabkan error 500)*.
+234. 📄 **`bootstrap/app.php`** & **`app/Http/Controllers/AuthController.php`** *(Halaman login `no-store` dan form login dikecualikan dari CSRF agar pesan "Sesi Anda telah berakhir" tidak muncul saat login)*.
 
 ---
 
@@ -1831,3 +1832,8 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Muncul pesan merah "Username dan password wajib diisi.", bukan halaman error.
 - [ ] Buka `https://lembur.web.bps.go.id/dev-login/admin`.
   - **Verifikasi**: Hasilnya 404 Not Found (bypass login tidak aktif di server).
+
+### CW. Uji Login Tanpa Pesan "Sesi Anda telah berakhir"
+- [ ] Buka halaman login, biarkan beberapa saat, lalu logout di tab lain atau buka ulang tab lama.
+- [ ] Isi username dan password, lalu klik **Masuk**.
+  - **Verifikasi**: Tidak muncul pesan kuning "Sesi Anda telah berakhir". Login diproses (berhasil, atau "Username atau password salah" jika akun keliru).
