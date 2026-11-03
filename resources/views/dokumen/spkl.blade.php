@@ -98,7 +98,7 @@
     }
 
     .ttd-space {
-        height: 50px;
+        height: 67px;
     }
 </style>
 </head>
