@@ -5642,3 +5642,38 @@ Setelah kasus header SPKL (seksi 55), dilakukan pengecekan menyeluruh pada 03 No
 | 6 | 10 berkas backup | Dihapus dari repositori. |
 
 ---
+
+## 57. Perbaikan Error "Undefined variable $jamSelesaiDisetujui" pada Persetujuan Admin (`admin/PengajuanController.php`)
+
+### A. Laporan dari Server (03 November 2026)
+Saat admin menyetujui pengajuan dan mengubah jam disetujui di `/admin/pengajuan`, muncul pesan `Undefined variable $jamSelesaiDisetujui` dan data tidak tersimpan.
+
+### B. Penyebab
+Commit `036a451` (05 Oktober 2026, penambahan validasi catatan wajib) tidak sengaja menghapus dua baris yang membuat `$jamMulaiDisetujui` dan `$jamSelesaiDisetujui` dari jam input. Variabel itu dipakai untuk validasi lintas tengah malam, batas jam pulang presensi, dan nilai yang disimpan. Akibatnya **semua persetujuan lewat halaman Admin gagal**, bukan hanya saat jam diubah.
+
+### C. Perbaikan
+Dua baris dikembalikan persis seperti versi commit `71915df`:
+```php
+$jamMulaiDisetujui   = Carbon::parse($transaksi->date . ' ' . $jamMulaiInput);
+$jamSelesaiDisetujui = Carbon::parse($transaksi->date . ' ' . $jamSelesaiInput);
+```
+Tidak ada perubahan tampilan.
+
+### D. Hasil Pengujian (database `lembur_e2e`)
+| Skenario | Hasil |
+| :--- | :--- |
+| Setujui tanpa mengubah jam | Berhasil, jam disetujui = jam pengajuan |
+| Ubah jam tanpa catatan | Ditolak (422), catatan wajib diisi |
+| Jam selesai 20:00 melebihi presensi pulang 19:30 | Ditolak (422) dengan pesan batas presensi |
+| Ubah jam 16:30–19:15 dengan catatan (kasus server) | Berhasil tersimpan |
+| Lembur lintas tengah malam 22:00–01:00 | Berhasil |
+
+### E. Pencegahan
+Seluruh `app/` dipindai dengan skrip berbasis tokenizer PHP untuk mencari variabel yang dipakai tetapi tidak pernah diisi, serta nama di `compact()` yang belum dibuat. Pemindai berhasil mendeteksi bug ini pada versi lama, dan tidak menemukan kasus lain (dua temuan di `ImportCleanDbCommand` adalah variabel referensi `exec()`, bukan bug).
+
+### F. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/admin/PengajuanController.php` | Definisi `$jamMulaiDisetujui` dan `$jamSelesaiDisetujui` dikembalikan. |
+
+---
