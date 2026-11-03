@@ -109,11 +109,12 @@
     @php
         $logoSrc = null;
         if (extension_loaded('gd')) {
+            // Versi 2000px: logo asli (10262px) butuh ±290 MB memori di DomPDF dan gagal di server.
             $logoCandidates = [
-                public_path('images/LOGO BPS PROVINSI JATENG.png'),
-                base_path('public/images/LOGO BPS PROVINSI JATENG.png'),
-                base_path('../public_html/images/LOGO BPS PROVINSI JATENG.png'),
-                '/home/lemburwe/public_html/images/LOGO BPS PROVINSI JATENG.png',
+                public_path('images/logo-bps-jateng-dokumen.png'),
+                base_path('public/images/logo-bps-jateng-dokumen.png'),
+                base_path('../public_html/images/logo-bps-jateng-dokumen.png'),
+                '/home/lemburwe/public_html/images/logo-bps-jateng-dokumen.png',
             ];
             foreach ($logoCandidates as $cand) {
                 if (!empty($cand) && file_exists($cand)) {
@@ -177,11 +178,10 @@
     {{-- TANDA TANGAN --}}
     <table class="ttd-table">
         <tr>
-            <td class="ttd-box" style="padding-top: 15px;">
-                <div style="height: 50px;">
-                    Pejabat Pembuat Komitmen<br>
-                    BPS Provinsi Jawa Tengah
-                </div>
+            <td class="ttd-box">
+                &nbsp;<br>
+                Pejabat Pembuat Komitmen<br>
+                BPS Provinsi Jawa Tengah
                 <div class="ttd-space"></div>
                 <span class="nama-pejabat" style="font-weight: bold; text-decoration: underline;">{{ $ppk->nama ?? '' }}</span><br>
                 @if(!empty($ppk->nip) || !empty($ppk->nip_lama))
