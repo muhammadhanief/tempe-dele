@@ -352,6 +352,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 234. 📄 **`bootstrap/app.php`** & **`app/Http/Controllers/AuthController.php`** *(Halaman login `no-store` dan form login dikecualikan dari CSRF agar pesan "Sesi Anda telah berakhir" tidak muncul saat login)*.
 235. 📄 **`app/Http/Controllers/AuthController.php`** *(ID sesi dibuat ulang setelah login berhasil untuk mencegah session fixation)*.
 236. 📄 **`routes/web.php`** & **`app/Http/Controllers/AuthController.php`** *(Logout memakai `invalidate()` + `regenerateToken()`, login memakai `regenerate(true)` sehingga sesi lama benar-benar dihapus)*.
+237. 📄 **`resources/views/profile.blade.php`** *(Profil tidak melebar di HP, nama panjang turun baris, email kosong tampil `-`)*.
+238. 📄 **`resources/views/partials/sidebar.blade.php`** *(Path SVG ikon Rekapitulasi Lembur dilengkapi; error console di halaman admin hilang)*.
 
 ---
 
@@ -1843,3 +1845,9 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Login berhasil dan diarahkan ke dashboard sesuai role. Di DevTools → Application → Cookies, nilai `laravel-session` berbeda dari sebelum login.
 - [ ] Setelah login, klik **Logout**, lalu tekan tombol **Back** di browser.
   - **Verifikasi**: Halaman dalam aplikasi tidak bisa dibuka lagi (diarahkan ke halaman login).
+
+### CX. Uji Halaman Profil di HP dan Ikon Sidebar Admin
+- [ ] Buka `/profile` dari HP (atau DevTools mode HP 375 px) dengan akun pegawai bernama panjang.
+  - **Verifikasi**: Tidak bisa digeser ke kanan; nama turun baris; avatar bulat; email kosong tampil `-`.
+- [ ] Login sebagai admin, buka DevTools → Console.
+  - **Verifikasi**: Tidak ada error `<path> attribute d`, dan ikon amplop menu "Rekapitulasi Lembur" tampil utuh.
