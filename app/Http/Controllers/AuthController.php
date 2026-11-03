@@ -79,6 +79,11 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // Tolak form kosong sebelum memanggil API (API mengembalikan 'detail' berupa array untuk input kosong).
+        if (trim((string) $request->username) === '' || trim((string) $request->password) === '') {
+            return back()->withErrors(['login' => 'Username dan password wajib diisi.'])->onlyInput('username');
+        }
+
         try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
@@ -326,7 +331,11 @@ class AuthController extends Controller
                 'body'   => $response->body(),
             ]);
 
-            if (isset($body['detail']) && str_contains(strtolower($body['detail']), 'incorrect username or password')) {
+            // 'detail' dari API bisa berupa teks atau array (daftar error validasi)
+            $detail = $body['detail'] ?? null;
+            $detailText = is_string($detail) ? $detail : (is_array($detail) ? json_encode($detail) : '');
+
+            if ($detailText !== '' && str_contains(strtolower($detailText), 'incorrect username or password')) {
                 return back()->withErrors(['login' => 'Username atau password salah.']);
             }
 
@@ -339,7 +348,7 @@ class AuthController extends Controller
             }
 
             return back()->withErrors([
-                'login' => '[Error ' . $response->status() . '] ' . ($body['detail'] ?? $body['message'] ?? $response->body())
+                'login' => '[Error ' . $response->status() . '] ' . ($detailText !== '' ? $detailText : (is_string($body['message'] ?? null) ? $body['message'] : $response->body()))
             ]);
 
         } catch (ConnectionException $e) {
