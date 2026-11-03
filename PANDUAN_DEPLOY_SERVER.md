@@ -350,6 +350,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 232. 📄 **`app/Traits/KoreksiLembur.php`** *(Catatan penyetuju tidak lagi ditimpa catatan otomatis "tidak masuk proses bisnis"; catatan sistem disambung di belakangnya)*.
 233. 📄 **`app/Http/Controllers/AuthController.php`** *(Form login kosong ditolak dengan pesan, dan `detail` API berupa array tidak lagi menyebabkan error 500)*.
 234. 📄 **`bootstrap/app.php`** & **`app/Http/Controllers/AuthController.php`** *(Halaman login `no-store` dan form login dikecualikan dari CSRF agar pesan "Sesi Anda telah berakhir" tidak muncul saat login)*.
+235. 📄 **`app/Http/Controllers/AuthController.php`** *(ID sesi dibuat ulang setelah login berhasil untuk mencegah session fixation)*.
 
 ---
 
@@ -1837,3 +1838,5 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] Buka halaman login, biarkan beberapa saat, lalu logout di tab lain atau buka ulang tab lama.
 - [ ] Isi username dan password, lalu klik **Masuk**.
   - **Verifikasi**: Tidak muncul pesan kuning "Sesi Anda telah berakhir". Login diproses (berhasil, atau "Username atau password salah" jika akun keliru).
+- [ ] Login dengan akun asli.
+  - **Verifikasi**: Login berhasil dan diarahkan ke dashboard sesuai role. Di DevTools → Application → Cookies, nilai `laravel-session` berbeda dari sebelum login.
