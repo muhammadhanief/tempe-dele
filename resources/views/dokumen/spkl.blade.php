@@ -130,7 +130,7 @@
             <img
                 src="{{ $logoSrc }}"
                 alt="Header BPS Provinsi Jawa Tengah"
-                style="width: 50%;"
+                style="width: 60%;"
             >
         </div>
         <div style="width: 100%; border-top: 2px solid black; margin: 4px 0 8px 0;"></div>
