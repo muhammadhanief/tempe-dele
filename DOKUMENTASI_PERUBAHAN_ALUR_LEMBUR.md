@@ -5677,3 +5677,35 @@ Seluruh `app/` dipindai dengan skrip berbasis tokenizer PHP untuk mencari variab
 | 1 | `app/Http/Controllers/admin/PengajuanController.php` | Definisi `$jamMulaiDisetujui` dan `$jamSelesaiDisetujui` dikembalikan. |
 
 ---
+
+## 58. Pengujian Menyeluruh Seluruh Aksi Aplikasi dan Perbaikan Temuan (Approve Mandiri Pegawai, Ganti Password, Rute Unduh Rusak)
+
+### A. Cakupan Pengujian (03 November 2026)
+Skrip pengujian menjalankan 80 aksi tulis dan unduh di database salinan `lembur_e2e`, mencakup semua role:
+* **Pegawai:** ajukan, edit pengajuan pending, tambah/hapus link dokumentasi (termasuk format anti-WAF `b64:`), percobaan mengubah data orang lain.
+* **Ketua Tim:** ajukan lembur sendiri, setujui via Dashboard dan Pengajuan, lihat presensi, ambil anggota.
+* **Kabag Umum:** lihat presensi, persetujuan final.
+* **Admin:** ajukan lembur, dokumentasi, edit uraian, pembatalan (2 menu), persetujuan, upload Excel presensi, kalender/riwayat presensi, hari libur, pejabat, pengguna, tarif, tim dan anggota, seluruh generate/unduh dokumen.
+* **Superadmin:** tambah/ganti/hapus admin, ganti Kabag Umum dan PPK (lalu dikembalikan), tambah superadmin dengan dan tanpa konfirmasi.
+
+### B. Temuan dan Perbaikan
+| No | Temuan | Dampak | Perbaikan |
+| :---: | :--- | :--- | :--- |
+| 1 | Rute lama `POST /lembur/{id}/approve` hanya mewajibkan login. | **Pegawai bisa menyetujui lembur sendiri** (terbukti di pengujian, status berubah menjadi `approved`). Rute ini tidak dipakai di halaman mana pun. | Rute dihapus. |
+| 2 | Kolom `m_pegawai.password` hanya VARCHAR(50), sedangkan hash bcrypt 60 karakter. | Fitur **Ganti Password** di menu Pengguna error 500. | Migrasi `2026_11_03_000001_widen_password_column_in_m_pegawai.php` memperlebar kolom ke VARCHAR(255). |
+| 3 | Rute `/admin/dokumen/download-excel/laporan/{jenis}` menunjuk ke fungsi `downloadExcel()` yang tidak ada. | Error 500 jika URL dibuka. Tombol unduh di menu Dokumen tidak terdampak karena memakai rute `dokumen.view`. | Rute dihapus. |
+
+### C. Hasil Setelah Perbaikan
+80 dari 80 aksi berjalan sesuai harapan. Aksi yang seharusnya ditolak (approve mandiri, dokumentasi milik orang lain, rute lama) kini mengembalikan 404/403/422, dan aksi lainnya berhasil tanpa error. Tidak ada perubahan tampilan.
+
+### D. Catatan yang Tidak Diubah
+* Rute `admin/dokumen/download/{type}` (tidak dipakai UI) selalu mengirim header PDF, termasuk untuk dokumen XLSX.
+* Parameter `format` pada generate dokumen tidak dibatasi ke `pdf`/`xlsx`, sehingga nilai lain (misalnya `excel`) membuat baris `t_dokumen` berisi PDF dengan tipe tidak standar.
+
+### E. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `routes/web.php` | Hapus rute `lembur.approve` dan `admin.dokumen.download.excel`. |
+| 2 | `database/migrations/2026_11_03_000001_widen_password_column_in_m_pegawai.php` | Berkas baru: kolom `password` menjadi VARCHAR(255). |
+
+---
