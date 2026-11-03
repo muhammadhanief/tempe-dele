@@ -348,6 +348,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 230. 📄 **`routes/web.php`** *(Hapus rute lama `POST /lembur/{id}/approve` yang membuat pegawai bisa menyetujui lembur sendiri, dan rute `/admin/dokumen/download-excel/...` yang menunjuk fungsi yang tidak ada)*.
 231. 📄 **`database/migrations/2026_11_03_000001_widen_password_column_in_m_pegawai.php`** *(Berkas baru: perlebar kolom `password` ke VARCHAR(255). Jalankan SQL poin 8 di Bagian 1 atau migrasi spesifiknya)*.
 232. 📄 **`app/Traits/KoreksiLembur.php`** *(Catatan penyetuju tidak lagi ditimpa catatan otomatis "tidak masuk proses bisnis"; catatan sistem disambung di belakangnya)*.
+233. 📄 **`app/Http/Controllers/AuthController.php`** *(Form login kosong ditolak dengan pesan, dan `detail` API berupa array tidak lagi menyebabkan error 500)*.
 
 ---
 
@@ -1823,3 +1824,10 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] Pilih pengajuan pegawai yang presensinya terlambat (masuk setelah 07:30) atau berstatus bukan WFO/WFOL.
 - [ ] Setujui dengan mengubah jam dan mengisi catatan, misalnya "Jam disesuaikan".
   - **Verifikasi**: Catatan di tabel berbunyi "Jam disesuaikan — Lembur disetujui namun tidak masuk proses bisnis karena: ...". Catatan admin tidak hilang.
+
+### CV. Uji Login Form Kosong dan Mode Debug Server
+- [ ] Pastikan `.env` server berisi `APP_ENV=production` dan `APP_DEBUG=false`, lalu jalankan `php artisan optimize:clear`.
+- [ ] Buka halaman login, kosongkan username dan password, lalu klik **Masuk**.
+  - **Verifikasi**: Muncul pesan merah "Username dan password wajib diisi.", bukan halaman error.
+- [ ] Buka `https://lembur.web.bps.go.id/dev-login/admin`.
+  - **Verifikasi**: Hasilnya 404 Not Found (bypass login tidak aktif di server).
