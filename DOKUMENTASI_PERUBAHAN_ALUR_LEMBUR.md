@@ -5874,3 +5874,33 @@ Tidak ada perubahan tampilan maupun alur bagi pengguna.
 | 2 | `routes/web.php` | Rute `logout` memakai `invalidate()` dan `regenerateToken()`. |
 
 ---
+
+## 66. Perbaikan Halaman Profil di HP, Ikon Sidebar Rekapitulasi Lembur, dan Email Contoh di Profil
+
+Atas laporan pengujian dan persetujuan pengguna (03 November 2026).
+
+### A. Temuan dan Perbaikan
+| No | Temuan | Penyebab | Perbaikan |
+| :---: | :--- | :--- | :--- |
+| 1 | Halaman `/profile` di HP melebar ke kanan; kartu nama dan identitas terpotong; nama panjang tidak turun baris (role pegawai dan ketua tim). | Nama dan email memakai `truncate` (`white-space: nowrap`), dan grid satu kolom di HP ikut melebar mengikuti teks tersebut. | Grid diberi `grid-cols-1` (kolom `minmax(0,1fr)`), `truncate` diganti `break-words`, dan avatar diberi `shrink-0` agar tetap bulat. |
+| 2 | Ikon menu "Rekapitulasi Lembur" di sidebar admin rusak dan memunculkan error console di semua halaman admin/superadmin. | Data path SVG ikon (amplop Heroicons) di `sidebar.blade.php` terpotong di `...L3.32 8.91a2.25` sejak kode awal. | Path dilengkapi menjadi `...L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75`. |
+| 3 | Email di profil menampilkan teks contoh `user@email.com`. | Teks contoh dipakai sebagai nilai cadangan saat email kosong (87 dari 143 pegawai tidak memiliki email). | Email kosong ditampilkan `-`, sama seperti kolom lain di halaman profil. |
+
+Semua class Tailwind yang dipakai (`grid-cols-1`, `break-words`, `shrink-0`) sudah ada di bundel CSS produksi, sehingga tidak perlu `npm run build` ulang.
+
+### B. Hasil Pengujian (Chrome, database `lembur_e2e`, pegawai bernama panjang tanpa email)
+* Lebar HP 375 px (diuji di dalam iframe karena jendela Chrome di Windows minimal ±500 px): sebelum perbaikan lebar halaman 495 px pada layar 360 px; sesudah perbaikan 360 px (tidak ada yang keluar layar). Nama turun baris, avatar tetap bulat, email tampil `-`.
+* Desktop 1280 px: tata letak tetap tiga kolom seperti sebelumnya.
+* Console halaman admin: error `<path> attribute d: Unexpected end of attribute` muncul sebelum perbaikan, hilang sesudahnya; ikon amplop tampil utuh.
+* Validasi seluruh 21 path ikon sidebar: hanya ikon Rekapitulasi Lembur yang rusak.
+
+### C. Catatan Role Pimpinan (Bukan Bug)
+Belum ada akun ber-role `pimpinan` di database; `/dev-login/ppk` masuk sebagai PPK yang ber-role `user`, sehingga diarahkan ke dashboard pegawai. Halaman pimpinan diuji dengan memberi role `pimpinan` sementara kepada Kepala BPS di database uji (lalu dikembalikan): 5 halaman pimpinan terbuka tanpa error dan akses ke halaman admin/ketua tim tetap ditolak (403). Penetapan siapa yang ber-role pimpinan perlu dikonfirmasi ke mentor.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/profile.blade.php` | Grid `grid-cols-1`, `break-words`, avatar `shrink-0`, email kosong `-`. |
+| 2 | `resources/views/partials/sidebar.blade.php` | Path SVG ikon Rekapitulasi Lembur dilengkapi. |
+
+---
