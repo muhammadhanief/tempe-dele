@@ -5904,3 +5904,13 @@ Belum ada akun ber-role `pimpinan` di database; `/dev-login/ppk` masuk sebagai P
 | 2 | `resources/views/partials/sidebar.blade.php` | Path SVG ikon Rekapitulasi Lembur dilengkapi. |
 
 ---
+
+### E. Revisi Seksi 66: Tampilan Desktop Profil Dikembalikan
+Perbandingan piksel tampilan desktop (1280 px dan 1920 px) sebelum dan sesudah perbaikan menunjukkan bahwa `break-words` mengubah tampilan desktop: nama panjang turun baris, dan email terpotong di tengah kata (misalnya `saniman@bps.go.i` / `d`). Atas permintaan pengguna agar tampilan desktop tidak berubah, nama dan email dikembalikan ke `truncate`.
+
+Penyebab profil melebar di HP ternyata cukup diatasi dengan `grid-cols-1`. Hasil akhir:
+* **HP 375 px:** lebar halaman 360 px pada layar 360 px (tidak melebar); nama panjang terpotong dengan "..." seperti di desktop.
+* **Desktop:** tata letak, ukuran, dan posisi kartu sama seperti semula. Perbedaannya hanya email kosong tampil `-` (bukan `user@email.com`), dan avatar tetap bulat untuk nama panjang (sebelumnya lonjong).
+* **Sidebar:** hanya ikon Rekapitulasi Lembur yang berubah (menjadi utuh).
+
+---
