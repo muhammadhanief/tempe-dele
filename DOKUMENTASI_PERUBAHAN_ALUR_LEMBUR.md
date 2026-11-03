@@ -5914,3 +5914,22 @@ Penyebab profil melebar di HP ternyata cukup diatasi dengan `grid-cols-1`. Hasil
 * **Sidebar:** hanya ikon Rekapitulasi Lembur yang berubah (menjadi utuh).
 
 ---
+
+## 67. Filter Tim di Halaman Daftar Hadir Tidak Lagi Melebar di HP
+
+### A. Temuan
+Audit tampilan HP (375 px) pada 27 halaman untuk role admin, pegawai, ketua tim, kabag, dan superadmin (ditambah halaman login) menemukan satu halaman yang melebar ke samping: **Admin → Daftar Hadir**. Lebar halaman menjadi 397 px pada layar 360 px. Penyebabnya dropdown filter tim (`#timFilter`): lebar `<select>` mengikuti opsi terpanjang (nama tim yang panjang), sehingga keluar dari kotak filter. Halaman lain tidak melebar.
+
+### B. Perbaikan
+Class `max-w-full` ditambahkan pada pembungkus dropdown (`relative shrink-0 max-w-full`) dan pada `<select id="timFilter">`. Dropdown tidak lagi bisa lebih lebar dari kotak filter; nama tim yang terlalu panjang terpotong di HP. Class `max-w-full` sudah ada di CSS hasil build, jadi tidak perlu `npm run build`.
+
+### C. Hasil Uji
+* **HP 375 px:** sebelum lebar halaman 397 px (dropdown 360 px); sesudah 360 px (dropdown 286 px, tidak keluar layar).
+* **Desktop 1280 px:** lebar dan posisi dropdown sama persis sebelum dan sesudah (lebar 360 px, x = 471 px).
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/daftar_hadir.blade.php` | `max-w-full` pada pembungkus dan `<select id="timFilter">`. |
+
+---
