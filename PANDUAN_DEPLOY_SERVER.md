@@ -347,6 +347,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 229. 📄 **`app/Http/Controllers/admin/PengajuanController.php`** *(Perbaikan error `Undefined variable $jamSelesaiDisetujui` saat admin menyetujui atau mengubah jam disetujui)*.
 230. 📄 **`routes/web.php`** *(Hapus rute lama `POST /lembur/{id}/approve` yang membuat pegawai bisa menyetujui lembur sendiri, dan rute `/admin/dokumen/download-excel/...` yang menunjuk fungsi yang tidak ada)*.
 231. 📄 **`database/migrations/2026_11_03_000001_widen_password_column_in_m_pegawai.php`** *(Berkas baru: perlebar kolom `password` ke VARCHAR(255). Jalankan SQL poin 8 di Bagian 1 atau migrasi spesifiknya)*.
+232. 📄 **`app/Traits/KoreksiLembur.php`** *(Catatan penyetuju tidak lagi ditimpa catatan otomatis "tidak masuk proses bisnis"; catatan sistem disambung di belakangnya)*.
 
 ---
 
@@ -1817,3 +1818,8 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Hasilnya `404` dan status pengajuan tidak berubah.
 - [ ] Login sebagai **Admin**, buka **Pengguna**, lalu ganti password salah satu pengguna.
   - **Verifikasi**: Muncul "Password berhasil diubah", bukan error 500. (Pastikan SQL poin 8 sudah dijalankan.)
+
+### CU. Uji Catatan Penyetuju Tidak Tertimpa
+- [ ] Pilih pengajuan pegawai yang presensinya terlambat (masuk setelah 07:30) atau berstatus bukan WFO/WFOL.
+- [ ] Setujui dengan mengubah jam dan mengisi catatan, misalnya "Jam disesuaikan".
+  - **Verifikasi**: Catatan di tabel berbunyi "Jam disesuaikan — Lembur disetujui namun tidak masuk proses bisnis karena: ...". Catatan admin tidak hilang.
