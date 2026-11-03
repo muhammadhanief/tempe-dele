@@ -5712,13 +5712,13 @@ Skrip pengujian menjalankan 80 aksi tulis dan unduh di database salinan `lembur_
 
 ## 59. Penyesuaian Posisi dan Ukuran Logo Kop SPKL (`dokumen/spkl.blade.php`)
 
-Atas permintaan pengguna (03 November 2026), logo kop SPKL yang sebelumnya rata kiri dengan lebar 70% diubah menjadi **rata tengah dengan lebar 50%** dari lebar halaman. Logo dibungkus `<div style="text-align: center">` agar posisinya konsisten di DomPDF. Garis pemisah di bawah logo tetap selebar halaman.
+Atas permintaan pengguna (03 November 2026), logo kop SPKL yang sebelumnya rata kiri dengan lebar 70% diubah menjadi **rata tengah dengan lebar 60%** dari lebar halaman (dibandingkan dengan versi 50% dan 70%, pengguna memilih 60%). Logo dibungkus `<div style="text-align: center">` agar posisinya konsisten di DomPDF. Garis pemisah di bawah logo tetap selebar halaman.
 
 Hasil render diperiksa: logo tetap tajam dan terbaca, puncak memori 56 MB pada limit 128 MB.
 
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
-| 1 | `resources/views/dokumen/spkl.blade.php` | Logo kop rata tengah, lebar 50%. |
+| 1 | `resources/views/dokumen/spkl.blade.php` | Logo kop rata tengah, lebar 60%. |
 
 ---
 
