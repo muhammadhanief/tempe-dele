@@ -334,6 +334,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 226. 📄 **`app/Http/Controllers/AuthController.php`** & **`config/services.php`** *(API key login dibaca lewat `config('services.kipapp.api_key')` sehingga aman dengan `config:cache`)*.
 227. 📄 **`app/Http/Controllers/admin/AnggotaTimController.php`** *(Akses langsung URL `/admin/tim/{kode}/anggota` diarahkan ke halaman Tim, bukan error 500)*.
 228. 🗑️ **Hapus 10 berkas backup** jika unggah manual: `app/Http/Controllers/LemburController_backup260913.php`, `LemburController_bck.php`, `LemburController_perbaikan ketua tim jd admin.php`, `admin/LemburController_backup260913.php`, `admin/LemburController_perbaikanketuatimjd admin.php`, `admin/PengajuanController_bck.php`, `resources/views/admin/pengajuan.bladebck.php`, `resources/views/ketua-tim/lembur.blade_sblm perbaikan tgl.php`, `resources/views/lembur.blade_sblm perbaikan tgl.php`, `routes/web_backup sblm perbaikan upload.php` *(Git menghapusnya otomatis saat `git pull`)*.
+229. 📄 **`app/Http/Controllers/admin/PengajuanController.php`** *(Perbaikan error `Undefined variable $jamSelesaiDisetujui` saat admin menyetujui atau mengubah jam disetujui)*.
 
 ---
 
@@ -1787,3 +1788,11 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Login tetap berhasil. Jika gagal, jalankan `php artisan config:clear` dan laporkan.
 - [ ] Buka langsung URL `/admin/tim/<kode_tim>/anggota` sebagai admin.
   - **Verifikasi**: Diarahkan ke halaman Tim, bukan halaman error.
+
+### CS. Uji Persetujuan Admin dengan Perubahan Jam Disetujui
+- [ ] Login sebagai **Admin**, buka **Pengajuan**, pilih pengajuan yang menunggu, lalu klik setujui tanpa mengubah jam.
+  - **Verifikasi**: Tersimpan tanpa pesan error.
+- [ ] Ubah jam mulai/selesai disetujui, isi catatan, lalu simpan.
+  - **Verifikasi**: Tidak muncul `Undefined variable $jamSelesaiDisetujui`, dan jam baru tampil di tabel.
+- [ ] Isi jam selesai melebihi jam pulang presensi.
+  - **Verifikasi**: Muncul pesan "tidak boleh melebihi jam kepulangan presensi pegawai".
