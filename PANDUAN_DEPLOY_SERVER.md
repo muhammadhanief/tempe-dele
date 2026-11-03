@@ -1785,7 +1785,7 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] Login sebagai **Kabag Umum** dan setujui pengajuan seperti biasa.
   - **Verifikasi**: Tetap berhasil.
 
-### CQ. Uji Header Logo dan Tanda Tangan SPKL
+### CQ. Uji Header Logo dan Tanda Tangan SPKL (Logo 60% Rata Tengah, Ruang TTD 3 Baris)
 - [ ] Pastikan berkas `logo-bps-jateng-dokumen.png` ada di folder `images/` publik server (`public/images/` atau `public_html/images/`).
 - [ ] Buka **Admin → Generate Dokumen**, lalu buat ulang SPKL PNS untuk satu bulan. SPKL lama tersimpan di database, jadi tidak berubah sebelum dibuat ulang.
   - **Verifikasi**: Logo BPS Provinsi Jawa Tengah tampil di kop, bukan teks "Header BPS Provinsi Jawa Tengah".
