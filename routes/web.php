@@ -132,7 +132,9 @@ if (app()->environment('local')) {
 Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.proses');
 Route::match(['get', 'post'], '/logout', function () {
-    session()->flush();
+    // Kosongkan data, ganti ID sesi, hapus file sesi lama, dan buat token CSRF baru.
+    session()->invalidate();
+    session()->regenerateToken();
     return redirect()->route('login');
 })->name('logout');
 
