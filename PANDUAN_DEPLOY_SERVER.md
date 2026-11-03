@@ -322,6 +322,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 220. 📁 **`public/build/`** *(Bundel aset produksi Vite terbaru: `manifest.json`, `assets/app-C-W_ERKf.css`, `assets/app-i3CBr4cx.js`)*.
 221. 📄 **`.vscode/settings.json`** & **`.gitignore`** *(Konfigurasi pengabaian warning kosmetik at-rules Tailwind CSS v4 `@source` dan `@theme` pada CSS Language Server IDE)*.
 222. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`** *(Pengecekan keamanan: ketua tim hanya boleh menyetujui atau menolak pengajuan yang ditujukan kepadanya; Kabag Umum, admin, dan superadmin tidak dibatasi)*.
+223. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Header SPKL memakai logo versi dokumen agar tidak gagal dirender di server; kolom tanda tangan PPK dan Kabag Umum disejajarkan)*.
+224. 🖼️ **`public/images/logo-bps-jateng-dokumen.png`** *(Berkas baru: logo kop 2000 px untuk PDF. Jika folder publik server terpisah di `public_html/`, salin juga ke `public_html/images/`)*.
 
 ---
 
@@ -1755,3 +1757,10 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Respons HTTP 403 dengan pesan "Anda bukan Ketua Tim yang dituju pada pengajuan ini.", dan status pengajuan tidak berubah.
 - [ ] Login sebagai **Kabag Umum** dan setujui pengajuan seperti biasa.
   - **Verifikasi**: Tetap berhasil.
+
+### CQ. Uji Header Logo dan Tanda Tangan SPKL
+- [ ] Pastikan berkas `logo-bps-jateng-dokumen.png` ada di folder `images/` publik server (`public/images/` atau `public_html/images/`).
+- [ ] Buka **Admin → Generate Dokumen**, lalu buat ulang SPKL PNS untuk satu bulan. SPKL lama tersimpan di database, jadi tidak berubah sebelum dibuat ulang.
+  - **Verifikasi**: Logo BPS Provinsi Jawa Tengah tampil di kop, bukan teks "Header BPS Provinsi Jawa Tengah".
+  - **Verifikasi**: Nama dan NIP PPK serta Kabag Umum sejajar di baris yang sama.
+  - **Verifikasi**: NIP Kabag Umum tercetak 18 digit. Jika masih 15 digit, perbaiki data di **Admin → Kelola Pejabat**.
