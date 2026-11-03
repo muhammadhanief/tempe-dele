@@ -139,7 +139,6 @@ Route::match(['get', 'post'], '/logout', function () {
 
 Route::get('/lembur', [LemburController::class, 'index'])->name('lembur')->middleware('checksession');
 Route::post('/lembur', [LemburController::class, 'store'])->name('lembur.store')->middleware('checksession');
-Route::post('/lembur/{id}/approve', [LemburController::class, 'approve'])->name('lembur.approve')->middleware('checksession');
 Route::get('/lembur/tim', [LemburController::class, 'timPegawai'])->name('lembur.tim')->middleware('checksession');
 
 // ─── Authenticated (semua role) ───────────────────────────
@@ -196,7 +195,6 @@ Route::middleware('checksession')->group(function () {
 
         // Laporan
         Route::get('/laporan', [\App\Http\Controllers\admin\LaporanController::class, 'index'])->name('laporan');
-        Route::get('/dokumen/download-excel/laporan/{jenis}', [DokumenGenerateController::class, 'downloadExcel'])->name('dokumen.download.excel')->middleware('checksession');
 
         // Akumulasi
         Route::get('/akumulasi', [\App\Http\Controllers\admin\AkumulasiController::class, 'index'])->name('akumulasi');
