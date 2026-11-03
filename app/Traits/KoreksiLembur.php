@@ -111,9 +111,10 @@ trait KoreksiLembur
             }
 
             $eligible  = empty($pelanggaranList) ? 1 : 0;
+            // Catatan penyetuju (wajib saat jam diubah) dipertahankan; catatan sistem disambung di belakangnya.
             $noteFinal = empty($pelanggaranList)
                 ? ($transaksi->note ?? null)
-                : 'Lembur disetujui namun tidak masuk proses bisnis karena: ' . implode(' dan ', $pelanggaranList) . '.';
+                : ($transaksi->note ? $transaksi->note . ' — ' : '') . 'Lembur disetujui namun tidak masuk proses bisnis karena: ' . implode(' dan ', $pelanggaranList) . '.';
 
             DB::table('t_transaksi')->where('id_transaksi', $transaksi->id_transaksi)->update([
                 'jam_selesai_disetujui' => $jamSelesaiFinal->format('H:i:s'),
