@@ -13,7 +13,13 @@ class AuthController extends Controller
 {
     public function index()
     {
-        return view('login');
+        // Jangan simpan halaman login di cache browser agar token form selalu baru
+        // (mencegah halaman lama/dipulihkan browser membawa token kedaluwarsa).
+        return response()->view('login')->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma'        => 'no-cache',
+            'Expires'       => '0',
+        ]);
     }
 
     private function getSsoBpsToken(): ?string
