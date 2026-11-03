@@ -5765,3 +5765,33 @@ Atas permintaan pengguna (03 November 2026), ruang kosong untuk tanda tangan bas
 | 1 | `resources/views/dokumen/spkl.blade.php` | `.ttd-space` 50px → 67px. |
 
 ---
+
+## 62. Perbaikan Error 500 Saat Login dengan Form Kosong (`AuthController.php`) dan Temuan APP_DEBUG Server
+
+### A. Laporan (03 November 2026)
+Login di `https://lembur.web.bps.go.id/login` tanpa mengisi username dan password menampilkan halaman error Laravel: `TypeError: strtolower(): Argument #1 ($string) must be of type string, array given` di `AuthController.php:329`.
+
+### B. Penyebab
+API login BPS (`jateng.web.bps.go.id/apiconnect/login`) mengembalikan `detail` berupa **array** (daftar error validasi) untuk input kosong, bukan teks. Kode memanggil `strtolower($body['detail'])` sehingga PHP 8 melempar `TypeError`. Pola yang sama juga ada pada pesan error akhir (`'[Error ...] ' . $body['detail']`).
+
+### C. Perbaikan
+1. Username atau password kosong langsung ditolak sebelum memanggil API, dengan pesan "Username dan password wajib diisi." pada kotak error login yang sudah ada (tanpa perubahan tampilan).
+2. `detail` dinormalisasi menjadi teks (`json_encode` jika array) sebelum diproses.
+
+### D. Hasil Pengujian (respons API disimulasikan dengan `Http::fake`)
+| Skenario | Sebelum | Sesudah |
+| :--- | :--- | :--- |
+| Form kosong | Memanggil API | "Username dan password wajib diisi." |
+| API 422, `detail` array | **TypeError** | "Username atau password salah." |
+| API 401, `detail` teks | "Username atau password salah." | Sama |
+| API 500, `detail` array | **TypeError** | "Server API sedang bermasalah, coba lagi nanti." |
+
+### E. Temuan Server: `APP_DEBUG` Aktif
+Halaman error yang tampil di server adalah halaman debug Laravel lengkap (kode sumber, path berkas, versi Laravel 12.70.2 dan PHP 8.4.27). Artinya `.env` server memakai `APP_DEBUG=true`. Di produksi nilai ini wajib `false` karena halaman debug dapat membocorkan informasi internal. Perlu dicek juga `APP_ENV=production`, karena jika bernilai `local` maka rute bypass `/dev-login/{nip}` aktif di server.
+
+### F. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/AuthController.php` | Validasi form kosong dan normalisasi `detail` API. |
+
+---
