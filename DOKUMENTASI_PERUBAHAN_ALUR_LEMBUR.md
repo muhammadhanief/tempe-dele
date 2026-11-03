@@ -5604,3 +5604,41 @@ Pada tangkapan layar server, NIP Kabag Umum tercetak `197106131993121` (15 digit
 | 2 | `public/images/logo-bps-jateng-dokumen.png` | Berkas baru: logo kop 2000 px untuk dokumen PDF. |
 
 ---
+
+## 56. Pengerasan Kesiapan Server: Pengaman Perintah Artisan, API Key via Config, URL Anggota Tim, Pembersihan Berkas Backup, dan Sinkronisasi Vendor
+
+### A. Latar Belakang
+Setelah kasus header SPKL (seksi 55), dilakukan pengecekan menyeluruh pada 03 November 2026 untuk mencari hal yang berjalan di laptop tetapi berisiko di server. Perubahan di seksi ini **tidak mengubah tampilan** halaman maupun bentuk surat.
+
+### B. Temuan dan Perbaikan
+| No | Temuan | Risiko | Perbaikan |
+| :---: | :--- | :--- | :--- |
+| 1 | `php artisan lembur:import-clean-db` menghapus seluruh tabel tanpa konfirmasi; `lembur:reset-transaksi --force` mengosongkan transaksi. Keduanya ikut ter-deploy. | Seluruh data server hilang jika perintah dijalankan. | Kedua perintah menolak berjalan saat `APP_ENV=production`. |
+| 2 | `AuthController` membaca `env('KIPAPP_API_KEY')` langsung. | Setelah `php artisan config:cache`, nilainya `null` dan semua login gagal (terbukti saat diuji). | Ditambahkan `services.kipapp.api_key` di `config/services.php`, dan `AuthController` memakai `config()`. |
+| 3 | `/admin/tim/{kode}/anggota` memanggil view yang tidak ada jika dibuka langsung di browser. | Error 500. | Akses langsung diarahkan ke halaman Tim; permintaan AJAX tetap mengembalikan JSON. |
+| 4 | 10 berkas backup (`*_bck.php`, `*_backup260913.php`, `*_sblm perbaikan*.php`, dll.) ikut ter-deploy. | Membingungkan dan memunculkan peringatan Composer "does not comply with psr-4". | Berkas dihapus dari repositori setelah dipastikan tidak dirujuk kode aktif. |
+| 5 | Folder `vendor/` di laptop tidak sesuai `composer.lock` (masih Laravel 12.50 dengan dependensi PHP 8.4). | Versi library yang diuji berbeda dengan yang tercatat di `composer.lock`. | Menjalankan `composer install`; aplikasi diuji ulang di Laravel 12.69.2. Panduan deploy kini mewajibkan `composer install`. |
+
+### C. Pengecekan Lain yang Dinyatakan Aman
+* Huruf besar/kecil nama file (Linux membedakan): 78 referensi kelas, 64 view, dan 12 aset sesuai.
+* Tidak ada sisa `dd()`/`dump()` maupun URL `localhost`.
+* Bypass login dan panel tes login hanya aktif saat `APP_ENV=local`.
+* Seluruh dokumen (SPKL PDF/XLSX, Laporan PDF/XLSX, Daftar Hadir, Rekap, Akumulasi, Export Lembur) berhasil dibuat dengan 351 data uji. Puncak memori 24–60 MB, kecuali **Laporan PDF sekitar 100 MB**. Ini batas yang perlu dipantau di bulan yang sangat ramai jika server membatasi memori di sekitar 128 MB.
+
+### D. Hasil Pengujian Setelah Perbaikan (Laravel 12.69.2, database `lembur_e2e`)
+* 36 halaman untuk 5 role terbuka tanpa error.
+* Alur pengajuan → ketua tim → Kabag Umum berhasil; ketua tim lain tetap ditolak (403).
+* `lembur:import-clean-db` dan `lembur:reset-transaksi --force` dengan `APP_ENV=production` ditolak dan data tetap utuh.
+* Setelah `config:cache`, `config('services.kipapp.api_key')` tetap terisi.
+
+### E. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Console/Commands/ImportCleanDbCommand.php` | Pengaman `APP_ENV=production`. |
+| 2 | `app/Console/Commands/ResetTransaksiCommand.php` | Pengaman `APP_ENV=production`. |
+| 3 | `app/Http/Controllers/AuthController.php` | API key login dibaca lewat `config()`. |
+| 4 | `config/services.php` | Tambahan kunci `kipapp.api_key`. |
+| 5 | `app/Http/Controllers/admin/AnggotaTimController.php` | Akses langsung diarahkan ke halaman Tim. |
+| 6 | 10 berkas backup | Dihapus dari repositori. |
+
+---
