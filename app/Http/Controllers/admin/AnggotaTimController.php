@@ -35,7 +35,9 @@ class AnggotaTimController extends Controller
             return response()->json($anggota);
         }
 
-        return view('admin.master.tim.anggota', compact('tim', 'anggota'));
+        // Daftar anggota hanya ditampilkan lewat modal di halaman Tim (AJAX).
+        // View 'admin.master.tim.anggota' tidak ada, jadi akses langsung diarahkan kembali.
+        return redirect()->route('admin.tim');
     }
 
     public function destroy(Request $request, string $kode_tim)
