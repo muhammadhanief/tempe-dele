@@ -5576,3 +5576,31 @@ Tidak ada perubahan database maupun tampilan.
 | 1 | `app/Http/Controllers/ketuatim/PengajuanController.php` | Pengecekan kepemilikan pengajuan sebelum ketua tim menyetujui atau menolak. |
 
 ---
+## 55. Perbaikan Header Logo SPKL yang Hilang di Server dan Tanda Tangan Pejabat yang Tidak Sejajar (`dokumen/spkl.blade.php`)
+
+### A. Laporan dari Server (03 November 2026)
+1. Setelah update di server, SPKL yang dibuat tidak menampilkan logo kop. Yang muncul hanya teks "Header BPS Provinsi Jawa Tengah" (teks `alt` gambar).
+2. Nama dan NIP pada kolom tanda tangan PPK dan Kabag Umum tidak sejajar.
+
+### B. Penyebab
+1. **Logo:** berkas `public/images/LOGO BPS PROVINSI JATENG.png` berukuran 10262 x 2160 piksel (RGBA). DomPDF butuh sekitar 290 MB memori untuk memprosesnya. Di laptop (memory_limit 512 MB) berhasil, tetapi di server yang limitnya lebih kecil gambar gagal dimuat. Hasil uji: limit 128 MB dan 256 MB gagal, limit 512 MB berhasil.
+2. **Tanda tangan:** kolom PPK memakai `padding-top: 15px` dan blok tinggi tetap `50px` untuk 2 baris teks, sedangkan kolom Kabag Umum berisi 3 baris tanpa tinggi tetap. Karena tinggi kedua kolom berbeda, posisi nama dan NIP ikut bergeser.
+
+### C. Perubahan
+1. Menambahkan berkas `public/images/logo-bps-jateng-dokumen.png` (2000 x 421 piksel, latar putih, 89 KB) dan memakainya di template SPKL. Logo asli tidak diubah karena masih dipakai di ekspor Excel.
+2. Kolom PPK diubah menjadi 3 baris seperti kolom Kabag Umum (baris pertama kosong, lalu "Pejabat Pembuat Komitmen" dan "BPS Provinsi Jawa Tengah"), sehingga nama dan NIP kedua pejabat sejajar.
+
+### D. Hasil Pengujian
+* SPKL PNS Oktober 2026 dibuat dengan `memory_limit=128M`: logo tampil, puncak memori 41 MB, ukuran PDF 94 KB (sebelumnya sekitar 720 KB).
+* Nama dan NIP Mansur Hidayat (PPK) serta Hendro Deasmaran (Kabag Umum) tercetak pada baris yang sama.
+
+### E. Catatan Data Server
+Pada tangkapan layar server, NIP Kabag Umum tercetak `197106131993121` (15 digit). Ini masalah data di tabel `m_pejabat` server, bukan kode. Perbaiki lewat menu **Admin → Kelola Pejabat** atau dengan kueri sanitasi NIP di Bagian 1 `PANDUAN_DEPLOY_SERVER.md`.
+
+### F. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/dokumen/spkl.blade.php` | Memakai logo versi dokumen; struktur kolom tanda tangan PPK disamakan dengan Kabag Umum. |
+| 2 | `public/images/logo-bps-jateng-dokumen.png` | Berkas baru: logo kop 2000 px untuk dokumen PDF. |
+
+---
