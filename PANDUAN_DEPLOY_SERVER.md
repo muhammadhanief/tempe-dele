@@ -354,6 +354,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 236. 📄 **`routes/web.php`** & **`app/Http/Controllers/AuthController.php`** *(Logout memakai `invalidate()` + `regenerateToken()`, login memakai `regenerate(true)` sehingga sesi lama benar-benar dihapus)*.
 237. 📄 **`resources/views/profile.blade.php`** *(Profil tidak melebar di HP, avatar tetap bulat, email kosong tampil `-`; tampilan desktop tidak berubah)*.
 238. 📄 **`resources/views/partials/sidebar.blade.php`** *(Path SVG ikon Rekapitulasi Lembur dilengkapi; error console di halaman admin hilang)*.
+239. 📄 **`resources/views/admin/daftar_hadir.blade.php`** *(Dropdown filter tim dibatasi `max-w-full` agar halaman tidak melebar di HP; tampilan desktop tidak berubah)*.
 
 ---
 
@@ -1851,3 +1852,7 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Tidak bisa digeser ke kanan; nama panjang terpotong "..."; avatar bulat; email kosong tampil `-`. Tampilan desktop sama seperti sebelumnya.
 - [ ] Login sebagai admin, buka DevTools → Console.
   - **Verifikasi**: Tidak ada error `<path> attribute d`, dan ikon amplop menu "Rekapitulasi Lembur" tampil utuh.
+
+### CY. Uji Filter Tim Daftar Hadir di HP
+- [ ] Login sebagai admin, buka **Daftar Hadir** dari HP (atau DevTools mode HP 375 px).
+  - **Verifikasi**: Halaman tidak bisa digeser ke kanan; dropdown filter tim tidak keluar dari kotak filter dan filter tetap berfungsi. Di desktop, dropdown tampil sama seperti sebelumnya.
