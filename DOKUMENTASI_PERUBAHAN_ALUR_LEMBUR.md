@@ -5755,3 +5755,13 @@ Seluruh migrasi di `database/migrations/` diperiksa terhadap struktur database:
 | 1 | `app/Traits/KoreksiLembur.php` | Catatan penyetuju dipertahankan, catatan sistem disambung. |
 
 ---
+
+## 61. Ruang Tanda Tangan SPKL Diperlebar Menjadi Setara 3 Baris (`dokumen/spkl.blade.php`)
+
+Atas permintaan pengguna (03 November 2026), ruang kosong untuk tanda tangan basah di antara jabatan dan nama pejabat (PPK dan Kabag Umum) yang sebelumnya terlihat setara 2 baris diperlebar menjadi setara 3 baris. Kelas `.ttd-space` diubah dari `height: 50px` menjadi `height: 67px` (tambah satu baris teks 9,5pt × 1,35). Kedua kolom tetap sejajar karena memakai kelas yang sama.
+
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/dokumen/spkl.blade.php` | `.ttd-space` 50px → 67px. |
+
+---
