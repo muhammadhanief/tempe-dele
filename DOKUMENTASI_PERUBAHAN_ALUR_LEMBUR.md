@@ -5795,3 +5795,35 @@ Halaman error yang tampil di server adalah halaman debug Laravel lengkap (kode s
 | 1 | `app/Http/Controllers/AuthController.php` | Validasi form kosong dan normalisasi `detail` API. |
 
 ---
+
+## 63. Pesan "Sesi Anda telah berakhir" di Halaman Login: Halaman Login No-Store dan Form Login Dikecualikan dari CSRF
+
+### A. Laporan (03 November 2026)
+Bu Yuli (mentor) melaporkan pesan kuning "Sesi Anda telah berakhir. Silakan masuk kembali." muncul setiap kali hendak login, termasuk saat berganti browser.
+
+### B. Analisis
+* Pesan ini dibuat di `bootstrap/app.php` dan hanya muncul saat terjadi `TokenMismatchException` (HTTP 419), yaitu token CSRF di form login tidak cocok dengan sesi.
+* Pemeriksaan langsung di server dari jendela Incognito: cookie `laravel-session` dan `XSRF-TOKEN` terpasang dengan domain benar, ikut terkirim saat klik Masuk, dan token lolos (halaman menampilkan "Username atau password salah" untuk akun uji). Server juga berada di belakang firewall F5 BIG-IP (cookie `f5avr...session_` dan `TS0151fc2b`) yang tidak mengganggu cookie Laravel.
+* Halaman di dalam aplikasi sudah memakai header `no-store` (middleware `CheckSession`), tetapi halaman login belum. Halaman login yang diambil dari cache atau dipulihkan browser membawa token lama sehingga ditolak.
+
+### C. Perubahan
+1. `AuthController::index()` mengirim header `Cache-Control: no-store, no-cache, must-revalidate`, `Pragma: no-cache`, dan `Expires: 0`.
+2. Rute `login` ditambahkan ke pengecualian `validateCsrfTokens` di `bootstrap/app.php` (bersama `logout`). Kredensial tetap diverifikasi ke SSO BPS, sehingga risiko *login CSRF* sangat kecil. Seluruh rute lain tetap dilindungi CSRF.
+
+Tidak ada perubahan tampilan.
+
+### D. Hasil Pengujian
+| Skenario | Sebelum | Sesudah |
+| :--- | :--- | :--- |
+| Halaman login lama (token kedaluwarsa) lalu klik Masuk | "Sesi Anda telah berakhir" | Diproses normal |
+| Klik Masuk tanpa cookie sesi | "Sesi Anda telah berakhir" | Diproses normal |
+| Request POST admin tanpa token | Ditolak (419) | Tetap ditolak (419) |
+| Header halaman login | Dapat disimpan cache | `no-store` |
+
+### E. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/AuthController.php` | Header `no-store` pada halaman login. |
+| 2 | `bootstrap/app.php` | Rute `login` dikecualikan dari validasi CSRF. |
+
+---
