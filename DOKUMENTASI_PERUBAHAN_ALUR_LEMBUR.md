@@ -5827,3 +5827,23 @@ Tidak ada perubahan tampilan.
 | 2 | `bootstrap/app.php` | Rute `login` dikecualikan dari validasi CSRF. |
 
 ---
+
+## 64. ID Sesi Baru Setelah Login Berhasil (Pencegahan Session Fixation)
+
+### A. Latar Belakang
+Saat meninjau keamanan perubahan seksi 63 (form login dikecualikan dari CSRF), ditemukan bahwa `AuthController::login()` tidak membuat ID sesi baru setelah login berhasil. Praktik standar Laravel adalah memanggil `$request->session()->regenerate()` agar ID sesi sebelum login tidak dapat dipakai ulang (*session fixation*). Kekurangan ini sudah ada sejak awal, bukan akibat seksi 63.
+
+### B. Perubahan
+`$request->session()->regenerate()` dipanggil tepat sebelum data login (`user`, `logged_in`, `id_pegawai`, `role`) disimpan ke sesi. Data sesi lain tetap dibawa. Tidak ada perubahan tampilan.
+
+### C. Hasil Pengujian (API BPS disimulasikan dengan `Http::fake`, database `lembur_e2e`)
+* Login berhasil diarahkan ke `/pegawai/dashboard`.
+* `logged_in = true`, `role` dan `user` tersimpan.
+* ID sesi sebelum dan sesudah login berbeda.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/AuthController.php` | `session()->regenerate()` setelah login berhasil. |
+
+---
