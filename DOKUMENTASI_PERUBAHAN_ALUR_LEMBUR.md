@@ -5721,3 +5721,37 @@ Hasil render diperiksa: logo tetap tajam dan terbaca, puncak memori 56 MB pada l
 | 1 | `resources/views/dokumen/spkl.blade.php` | Logo kop rata tengah, lebar 50%. |
 
 ---
+
+## 60. Catatan Penyetuju Tidak Lagi Tertimpa Catatan Otomatis Koreksi Eligible (`app/Traits/KoreksiLembur.php`) dan Audit Migrasi
+
+### A. Masalah
+Saat pengajuan disetujui, `KoreksiLembur` memeriksa presensi. Jika status presensi bukan WFO/WFOL atau pegawai terlambat masuk, kolom `note` **diganti** dengan "Lembur disetujui namun tidak masuk proses bisnis karena: ...". Akibatnya catatan penyetuju yang **wajib** diisi saat jam disetujui diubah ikut hilang. Untuk kasus durasi presensi kurang dari 2 jam, catatan justru disambung, sehingga perilakunya tidak konsisten.
+
+### B. Perubahan
+Catatan penyetuju dipertahankan dan catatan sistem disambung di belakangnya dengan pemisah ` — `, sama seperti kasus durasi kurang dari 2 jam. Disetujui pengguna pada 03 November 2026.
+
+Contoh hasil:
+> Jam disesuaikan karena rapat selesai 19.15 — Lembur disetujui namun tidak masuk proses bisnis karena: presensi kantor terlambat.
+
+### C. Hasil Pengujian (`lembur_e2e`)
+| Skenario | Catatan Tersimpan |
+| :--- | :--- |
+| Terlambat + catatan admin | Catatan admin — catatan sistem |
+| Terlambat tanpa catatan | Hanya catatan sistem (sama seperti sebelumnya) |
+| Tepat waktu WFO + catatan | Hanya catatan admin, `eligible = 1` |
+| Disetujui ulang | Tidak tersambung dua kali (koreksi hanya berjalan saat `eligible` masih kosong) |
+
+Tanda pisah tersimpan sebagai UTF-8 (`E2 80 94`) pada kolom `utf8mb4`.
+
+### D. Audit Migrasi Database (Database Lokal `lembur_real`)
+Seluruh migrasi di `database/migrations/` diperiksa terhadap struktur database:
+* Semua kolom hasil migrasi sudah ada: `jam_mulai`, `jam_selesai`, `jam_mulai_disetujui`, `jam_selesai_disetujui`, `hari`, `note_kabag`, `approved_kabag_at`, `status` VARCHAR(30), `user_edited`, `tanggal_edited`, `uraian` TEXT di `t_transaksi`; `tahun` di `m_pejabat`; `golongan` di `m_rates`; `password` VARCHAR(255) di `m_pegawai`.
+* Semua tabel yang dipakai kode tersedia.
+* Migrasi lama bawaan (`users`, `tim`, `riwayat_presensi`) tercatat *Pending* karena struktur database berasal dari dump SQL. Tabel tersebut tidak dipakai kode (yang dipakai `m_tim` dan `t_riwayat_presensi`). Ini alasan `php artisan migrate` tanpa `--path` tidak boleh dijalankan di server.
+
+### E. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Traits/KoreksiLembur.php` | Catatan penyetuju dipertahankan, catatan sistem disambung. |
+
+---
