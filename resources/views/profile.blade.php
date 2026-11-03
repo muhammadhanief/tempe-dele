@@ -18,10 +18,10 @@
           </div>
 
           <div class="min-w-0">
-            <p class="break-words text-lg font-semibold text-gray-900">
+            <p class="truncate text-lg font-semibold text-gray-900">
               {{ $user->nama ?? 'Nama Lengkap' }}
             </p>
-            <p class="break-words text-sm text-gray-500">
+            <p class="truncate text-sm text-gray-500">
               {{ !empty($user->email) ? $user->email : '-' }}
             </p>
           </div>
