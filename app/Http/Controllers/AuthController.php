@@ -314,6 +314,9 @@ class AuthController extends Controller
 
                 $pegawaiData = DB::table('m_pegawai')->where('nip', $nipUser)->first();
 
+                // ID sesi baru setelah login berhasil (mencegah session fixation); data sesi tetap dibawa.
+                $request->session()->regenerate();
+
                 Session::put('user', $data);
                 Session::put('logged_in', true);
                 Session::put('id_pegawai', $pegawaiData->id_pegawai ?? null);
