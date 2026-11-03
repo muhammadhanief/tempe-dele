@@ -164,6 +164,9 @@ class PengajuanController extends Controller
                 }
             }
 
+            $jamMulaiDisetujui   = Carbon::parse($transaksi->date . ' ' . $jamMulaiInput);
+            $jamSelesaiDisetujui = Carbon::parse($transaksi->date . ' ' . $jamSelesaiInput);
+
             if ($jamSelesaiDisetujui->lessThan($jamMulaiDisetujui)) {
                 $jamSelesaiDisetujui->addDay();
             }
