@@ -5847,3 +5847,30 @@ Saat meninjau keamanan perubahan seksi 63 (form login dikecualikan dari CSRF), d
 | 1 | `app/Http/Controllers/AuthController.php` | `session()->regenerate()` setelah login berhasil. |
 
 ---
+
+## 65. Sesi Lama Dihancurkan Saat Login dan Logout (`AuthController.php` & `routes/web.php`)
+
+### A. Kondisi Sebelumnya
+| Kejadian | Perilaku Lama |
+| :--- | :--- |
+| Login berhasil | `regenerate()`: ID sesi baru, tetapi file sesi lama hanya ditinggalkan hingga dibersihkan otomatis. |
+| Logout | `flush()`: data sesi dikosongkan, tetapi ID sesi dan file sesi tetap sama. |
+
+### B. Perubahan
+1. Login berhasil memakai `$request->session()->regenerate(true)`, sehingga file sesi lama langsung dihapus.
+2. Logout memakai `session()->invalidate()` dan `session()->regenerateToken()`: data dikosongkan, ID sesi diganti, file sesi lama dihapus, dan token CSRF baru dibuat.
+
+Tidak ada perubahan tampilan maupun alur bagi pengguna.
+
+### C. Hasil Pengujian (database `lembur_e2e`)
+* Login berhasil (API disimulasikan): ID sesi berganti dan file sesi lama **terhapus**.
+* Logout (POST maupun GET): diarahkan ke halaman login tanpa pesan kuning; cookie `laravel-session` berubah.
+* Cookie yang disalin sebelum logout tidak dapat lagi membuka dashboard maupun menjalankan aksi admin (diarahkan ke login).
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/AuthController.php` | `regenerate(true)` setelah login berhasil. |
+| 2 | `routes/web.php` | Rute `logout` memakai `invalidate()` dan `regenerateToken()`. |
+
+---
