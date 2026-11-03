@@ -71,10 +71,16 @@ php artisan migrate --path=database/migrations/2026_09_25_000002_widen_uraian_co
 Pastikan seluruh berkas kode terbaru telah disinkronkan ke server produksi:
 
 ### Skenario A: Menggunakan Git (`git pull`)
-Jika server produksi terhubung dengan repositori Git, cukup jalankan perintah di root project:
+Jika server produksi terhubung dengan repositori Git, jalankan perintah berikut di root project:
 ```bash
 git pull origin main
+composer install --no-dev --optimize-autoloader
 ```
+
+> [!IMPORTANT]
+> **`composer install` wajib dijalankan.** Folder `vendor/` tidak ikut Git, sedangkan `composer.lock` sudah diperbarui (Laravel 12.50 → 12.69). Library versi lama di `vendor/` membutuhkan PHP 8.4, sedangkan versi baru cukup PHP 8.2. Tanpa langkah ini, versi library di server tidak sama dengan yang sudah diuji.
+>
+> **Struktur folder publik:** jika folder publik server terpisah di `public_html/` (pola cPanel), `git pull` tidak memperbarui isinya. Salin isi `public/build/` dan `public/images/` ke `public_html/` setiap kali update.
 
 ### Skenario B: Unggah Manual (File Manager cPanel / FTP)
 Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan penting berikut ikut terunggah**:
@@ -324,6 +330,10 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 222. 📄 **`app/Http/Controllers/ketuatim/PengajuanController.php`** *(Pengecekan keamanan: ketua tim hanya boleh menyetujui atau menolak pengajuan yang ditujukan kepadanya; Kabag Umum, admin, dan superadmin tidak dibatasi)*.
 223. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Header SPKL memakai logo versi dokumen agar tidak gagal dirender di server; kolom tanda tangan PPK dan Kabag Umum disejajarkan)*.
 224. 🖼️ **`public/images/logo-bps-jateng-dokumen.png`** *(Berkas baru: logo kop 2000 px untuk PDF. Jika folder publik server terpisah di `public_html/`, salin juga ke `public_html/images/`)*.
+225. 📄 **`app/Console/Commands/ImportCleanDbCommand.php`** & **`app/Console/Commands/ResetTransaksiCommand.php`** *(Pengaman: perintah `lembur:import-clean-db` dan `lembur:reset-transaksi` menolak berjalan saat `APP_ENV=production`)*.
+226. 📄 **`app/Http/Controllers/AuthController.php`** & **`config/services.php`** *(API key login dibaca lewat `config('services.kipapp.api_key')` sehingga aman dengan `config:cache`)*.
+227. 📄 **`app/Http/Controllers/admin/AnggotaTimController.php`** *(Akses langsung URL `/admin/tim/{kode}/anggota` diarahkan ke halaman Tim, bukan error 500)*.
+228. 🗑️ **Hapus 10 berkas backup** jika unggah manual: `app/Http/Controllers/LemburController_backup260913.php`, `LemburController_bck.php`, `LemburController_perbaikan ketua tim jd admin.php`, `admin/LemburController_backup260913.php`, `admin/LemburController_perbaikanketuatimjd admin.php`, `admin/PengajuanController_bck.php`, `resources/views/admin/pengajuan.bladebck.php`, `resources/views/ketua-tim/lembur.blade_sblm perbaikan tgl.php`, `resources/views/lembur.blade_sblm perbaikan tgl.php`, `routes/web_backup sblm perbaikan upload.php` *(Git menghapusnya otomatis saat `git pull`)*.
 
 ---
 
@@ -377,6 +387,9 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
+
+> [!WARNING]
+> `php artisan config:cache` baru aman setelah commit `fix(config): baca KIPAPP_API_KEY lewat config` ikut ter-deploy. Pada versi sebelumnya, login utama membaca `env('KIPAPP_API_KEY')` langsung, sehingga setelah `config:cache` nilainya kosong dan semua login gagal. Jika ragu, cukup jalankan `php artisan optimize:clear`.
 
 > Jika tidak memiliki akses terminal SSH di server cPanel, Anda dapat membuat rute sementara atau menghapus isi folder cache di `bootstrap/cache/*.php` secara manual via File Manager cPanel.
 
@@ -1764,3 +1777,13 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Logo BPS Provinsi Jawa Tengah tampil di kop, bukan teks "Header BPS Provinsi Jawa Tengah".
   - **Verifikasi**: Nama dan NIP PPK serta Kabag Umum sejajar di baris yang sama.
   - **Verifikasi**: NIP Kabag Umum tercetak 18 digit. Jika masih 15 digit, perbaiki data di **Admin → Kelola Pejabat**.
+
+### CR. Uji Pengaman Server (Composer, Config Cache, Perintah Artisan)
+- [ ] Jalankan `php artisan --version`.
+  - **Verifikasi**: Tampil `Laravel Framework 12.69.x` (tanda `composer install` sudah dijalankan).
+- [ ] Jalankan `php artisan lembur:reset-transaksi --force`.
+  - **Verifikasi**: Muncul pesan "tidak boleh dijalankan di server produksi" dan tidak ada data yang terhapus.
+- [ ] (Opsional) Jalankan `php artisan config:cache`, lalu login dengan akun pegawai biasa.
+  - **Verifikasi**: Login tetap berhasil. Jika gagal, jalankan `php artisan config:clear` dan laporkan.
+- [ ] Buka langsung URL `/admin/tim/<kode_tim>/anggota` sebagai admin.
+  - **Verifikasi**: Diarahkan ke halaman Tim, bukan halaman error.
