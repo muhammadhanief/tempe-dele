@@ -151,9 +151,9 @@
             </div>
 
             {{-- Filter Tim --}}
-            <div class="relative shrink-0">
+            <div class="relative shrink-0 max-w-full">
                 <select id="timFilter" onchange="onTimFilterChange(this.value)"
-                    class="h-10 appearance-none rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
+                    class="h-10 max-w-full appearance-none rounded-xl border border-gray-200 bg-white pl-3.5 pr-8 text-xs font-semibold text-gray-700 shadow-2xs hover:border-[#faa938] focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all cursor-pointer">
                     <option value="">Semua Tim ({{ count($daftarHadir) }})</option>
                     @foreach($tim as $t)
                         <option value="{{ $t->kode_tim }}" {{ request('tim') === $t->kode_tim ? 'selected' : '' }}>
