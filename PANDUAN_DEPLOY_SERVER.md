@@ -39,7 +39,14 @@ UPDATE m_pejabat SET nip = '197106131993121001' WHERE nip = '197106131993121' OR
 
 -- 7. Penyesuaian Role Pak Joko Suwarjo (Flow Baru: Ketua Tim / Kabag Umum, Non-Admin)
 UPDATE m_pegawai SET role = 'ketua_tim' WHERE nip = '197106131993121001' OR nip_lama = '340013741';
+
+-- 8. Perlebar Kolom Password (Update 03 November 2026)
+-- Hash password 60 karakter tidak muat di VARCHAR(50) sehingga fitur Ganti Password error 500.
+ALTER TABLE m_pegawai MODIFY COLUMN password VARCHAR(255) NULL;
 ```
+
+> [!CAUTION]
+> Poin 5 memakai `id_pejabat = 12` dan `9` dari database lokal. Cek dulu ID di tabel `m_pejabat` server sebelum menjalankannya, atau atur pejabat aktif lewat menu **Admin → Kelola Pejabat**.
 
 > [!NOTE]
 > **Modul Manajemen User, Suksesi PPK & Parameter Dokumen Dinamis (Update Terkini)**:  
@@ -58,6 +65,9 @@ php artisan migrate --path=database/migrations/2026_09_25_000001_add_user_edited
 
 # Migrasi Perpanjangan Kapasitas Uraian Kegiatan (Menjadi TEXT)
 php artisan migrate --path=database/migrations/2026_09_25_000002_widen_uraian_column_in_t_transaksi.php
+
+# Migrasi Perlebar Kolom Password m_pegawai (Update 03 November 2026)
+php artisan migrate --path=database/migrations/2026_11_03_000001_widen_password_column_in_m_pegawai.php
 ```
 
 > [!WARNING]
@@ -335,6 +345,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 227. 📄 **`app/Http/Controllers/admin/AnggotaTimController.php`** *(Akses langsung URL `/admin/tim/{kode}/anggota` diarahkan ke halaman Tim, bukan error 500)*.
 228. 🗑️ **Hapus 10 berkas backup** jika unggah manual: `app/Http/Controllers/LemburController_backup260913.php`, `LemburController_bck.php`, `LemburController_perbaikan ketua tim jd admin.php`, `admin/LemburController_backup260913.php`, `admin/LemburController_perbaikanketuatimjd admin.php`, `admin/PengajuanController_bck.php`, `resources/views/admin/pengajuan.bladebck.php`, `resources/views/ketua-tim/lembur.blade_sblm perbaikan tgl.php`, `resources/views/lembur.blade_sblm perbaikan tgl.php`, `routes/web_backup sblm perbaikan upload.php` *(Git menghapusnya otomatis saat `git pull`)*.
 229. 📄 **`app/Http/Controllers/admin/PengajuanController.php`** *(Perbaikan error `Undefined variable $jamSelesaiDisetujui` saat admin menyetujui atau mengubah jam disetujui)*.
+230. 📄 **`routes/web.php`** *(Hapus rute lama `POST /lembur/{id}/approve` yang membuat pegawai bisa menyetujui lembur sendiri, dan rute `/admin/dokumen/download-excel/...` yang menunjuk fungsi yang tidak ada)*.
+231. 📄 **`database/migrations/2026_11_03_000001_widen_password_column_in_m_pegawai.php`** *(Berkas baru: perlebar kolom `password` ke VARCHAR(255). Jalankan SQL poin 8 di Bagian 1 atau migrasi spesifiknya)*.
 
 ---
 
@@ -1796,3 +1808,12 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Tidak muncul `Undefined variable $jamSelesaiDisetujui`, dan jam baru tampil di tabel.
 - [ ] Isi jam selesai melebihi jam pulang presensi.
   - **Verifikasi**: Muncul pesan "tidak boleh melebihi jam kepulangan presensi pegawai".
+
+### CT. Uji Penutupan Rute Lama dan Ganti Password
+- [ ] Login sebagai **pegawai**, lalu di DevTools Console jalankan:
+  ```js
+  fetch('/lembur/<ID_PENGAJUAN_SENDIRI>/approve', {method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json'}}).then(r => console.log(r.status))
+  ```
+  - **Verifikasi**: Hasilnya `404` dan status pengajuan tidak berubah.
+- [ ] Login sebagai **Admin**, buka **Pengguna**, lalu ganti password salah satu pengguna.
+  - **Verifikasi**: Muncul "Password berhasil diubah", bukan error 500. (Pastikan SQL poin 8 sudah dijalankan.)
