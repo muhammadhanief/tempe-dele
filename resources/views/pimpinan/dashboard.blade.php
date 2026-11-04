@@ -149,12 +149,14 @@
                                             : '-' }}
                                     </td>
                                     <td class="px-3 py-3 sm:px-5 sm:py-4">
-                                        @if ($p->status === 'pending')
+                                        @if (in_array($p->status, ['pending', 'menunggu_kabag']))
                                             <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-600">Menunggu</span>
                                         @elseif ($p->status === 'approved')
                                             <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">Disetujui</span>
                                         @elseif ($p->status === 'rejected')
                                             <span class="inline-flex items-center rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600">Ditolak</span>
+                                        @else
+                                            <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">Dibatalkan</span>
                                         @endif
                                     </td>
                                 </tr>
