@@ -79,6 +79,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
             {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
             <div class="sm:hidden table-scroll-hint flex flex-col gap-1.5 px-1 mb-2.5 text-[11px] font-medium text-slate-500">
                 <div class="flex items-center justify-between">
@@ -112,64 +113,45 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-300 ">
+                        @forelse($akumulasi as $r)
                         <tr class="bg-white transition-all duration-500 hover:bg-gray-50">
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 ">24 Februari 2026</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">Bekerja</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 text-center">5</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 text-center">5</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">III/b</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">300.000</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">37.000 </td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">337.000</td>
-                            <td class=" p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">16.850</td>
-                            <td class=" p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">320.150</td>
+                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 ">{{ \Carbon\Carbon::parse($r->tanggal)->translatedFormat('d F Y') }}</td>
+                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">{{ $r->jenis_hari }}</td>
+                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 text-center">{{ $r->jam_diajukan }}</td>
+                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 text-center">{{ $r->jam_disetujui }}</td>
+                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">{{ $r->golongan }}</td>
+                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">{{ number_format($r->uang_lembur, 0, ',', '.') }}</td>
+                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">{{ number_format($r->uang_makan, 0, ',', '.') }} </td>
+                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">{{ number_format($r->jumlah, 0, ',', '.') }}</td>
+                            <td class=" p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">{{ number_format($r->pajak, 0, ',', '.') }}</td>
+                            <td class=" p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">{{ number_format($r->terima, 0, ',', '.') }}</td>
                         </tr>
-                        <tr class="bg-white transition-all duration-500 hover:bg-gray-50">
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 ">24 Februari 2026</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">Bekerja</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 text-center">5</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 text-center">5</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">III/b</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">300.000</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">37.000 </td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">337.000</td>
-                            <td class=" p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">16.850</td>
-                            <td class=" p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">320.150</td>
+                        @empty
+                        <tr class="bg-white">
+                            <td colspan="10" class="p-5 text-center text-sm leading-6 text-gray-400">Tidak ada data lembur untuk periode ini.</td>
                         </tr>
-                        <tr class="bg-white transition-all duration-500 hover:bg-gray-50">
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 ">24 Februari 2026</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">Bekerja</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 text-center">5</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900 text-center">5</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">III/b</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">300.000</td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">37.000 </td>
-                            <td class="p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">337.000</td>
-                            <td class=" p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">16.850</td>
-                            <td class=" p-5 whitespace-nowrap text-sm leading-6 font-medium text-gray-900">320.150</td>
-                        </tr>
+                        @endforelse
                         <tfoot>
                             <tr class="border-t border-gray-600 font-semibold">
                                 <td colspan="9" class="p-5 text-right">Total</td>
-                                <td class="p-5 text-left text-[#faa938]">960.450</td>
+                                <td class="p-5 text-left text-[#faa938]">{{ number_format($totalTerima, 0, ',', '.') }}</td>
                             </tr>
                         </tfoot>
                 </table>
             </div>
         </div>
-      </div>
 
 
     <div class="flex justify-center mt-6">
         <nav class="inline-flex items-center p-1 rounded bg-white space-x-2">
-            <a class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938]" href="#">
+            <a class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938]" href="{{ $akumulasi->previousPageUrl() ?? '#' }}">
                 <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                     <path fill-rule="evenodd"
                         d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
                 </svg>
             </a>
-            <p class="text-gray-500">Page 1 of 10</p>
-            <a class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938]" href="#">
+            <p class="text-gray-500">Page {{ $akumulasi->currentPage() }} of {{ max(1, $akumulasi->lastPage()) }}</p>
+            <a class="p-1 rounded border text-black bg-white hover:text-white hover:bg-[#faa938] hover:border-[#faa938]" href="{{ $akumulasi->nextPageUrl() ?? '#' }}">
                 <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                     <path fill-rule="evenodd"
                         d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
@@ -209,8 +191,9 @@
   ];
 
   const now = new Date();
-  let selectedYear = now.getFullYear();
-  let selectedMonth = now.getMonth() + 1; // 1-12
+  const [serverYear, serverMonth] = "{{ $bulan }}".split("-").map(Number);
+  let selectedYear = serverYear || now.getFullYear();
+  let selectedMonth = serverMonth || (now.getMonth() + 1); // 1-12
   let viewYear = selectedYear;
 
   function pad2(n) { return String(n).padStart(2, "0"); }
@@ -222,8 +205,14 @@
     periodLabel.textContent = `${monthNames[month - 1]} ${year}`;
     periodValue.value = `${year}-${pad2(month)}`;
 
-    // TODO: filter/fetch data based on periodValue.value
-    // console.log("period selected:", periodValue.value);
+  }
+
+  function goToPeriod(year, month) {
+    setPeriod(year, month);
+    const url = new URL(window.location.href);
+    url.searchParams.set("bulan", periodValue.value);
+    url.searchParams.delete("page");
+    window.location.href = url.toString();
   }
 
   function syncYearUI() {
@@ -250,8 +239,8 @@
 
       b.addEventListener("click", (e) => {
         e.stopPropagation();
-        setPeriod(viewYear, m);
         closePanel();
+        goToPeriod(viewYear, m);
       });
 
       monthGrid.appendChild(b);
@@ -340,8 +329,8 @@
   // Bulan ini
   btnThisMonth?.addEventListener("click", (e) => {
     e.stopPropagation();
-    setPeriod(now.getFullYear(), now.getMonth() + 1);
     closePanel();
+    goToPeriod(now.getFullYear(), now.getMonth() + 1);
   });
 
   // Tutup
