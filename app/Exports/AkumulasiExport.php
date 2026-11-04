@@ -54,7 +54,7 @@ class AkumulasiExport implements FromCollection, WithHeadings, WithTitle, WithSt
 
         return $query->get()->map(function ($item, $i) {
             $jumlah = $item->total_uang_lembur + $item->total_uang_makan;
-            $pajak  = round($jumlah * ($item->pajak_pct / 100));
+            $pajak  = round($jumlah * $item->pajak_pct); // m_rates.pajak berupa pecahan (0.05 = 5%)
             $terima = $jumlah - $pajak;
 
             return [

@@ -25,9 +25,9 @@ class RateController extends Controller
     public function update(Request $request, int $id_rate)
     {
         $validated = $request->validate([
-            'uang_lembur' => 'required|integer',
-            'uang_makan'  => 'required|integer',
-            'pajak'       => 'required|numeric',
+            'uang_lembur' => 'required|integer|min:0',
+            'uang_makan'  => 'required|integer|min:0',
+            'pajak'       => 'required|numeric|min:0|max:1',
         ]);
 
         Rate::where('id_rate', $id_rate)->update($validated);
