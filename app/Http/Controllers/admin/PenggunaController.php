@@ -50,11 +50,16 @@ class PenggunaController extends Controller
         $nip = session('user')['nip'];
         $roleSaya = DB::table('m_pegawai')->where('nip', $nip)->value('role');
 
+        // Role yang tidak diubah tidak perlu divalidasi (mis. role pimpinan tetap pimpinan).
+        if ($request->input('role') === $pegawai->role) {
+            $request->request->remove('role');
+        }
+
         $validated = $request->validate([
             'nama'     => 'sometimes|string|max:255',
             'nip'      => 'nullable|string|max:30',
             'nip_lama' => 'nullable|string|max:30',
-            'email'    => 'sometimes|email|unique:m_pegawai,email,' . $id . ',id_pegawai',
+            'email'    => 'sometimes|nullable|email|unique:m_pegawai,email,' . $id . ',id_pegawai',
             'golongan' => 'nullable|string|max:10',
             'role'     => 'sometimes|in:user,admin,ketua_tim',
         ]);

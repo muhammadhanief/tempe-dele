@@ -163,6 +163,12 @@
                             <span class="cell-display">{{ $p->golongan ?? '—' }}</span>
                             <select name="golongan"
                                 class="cell-edit hidden w-full min-w-[90px] border border-gray-200 rounded-lg px-2 py-1 text-sm focus:border-[#faa938] focus:outline-none">
+                                {{-- Golongan saat ini (mis. III/a, V, atau kosong) ikut jadi pilihan agar tidak berubah saat disimpan --}}
+                                @if(empty($p->golongan))
+                                    <option value="" selected>—</option>
+                                @elseif(!in_array($p->golongan, ['I','II','III','IV'], true))
+                                    <option value="{{ $p->golongan }}" selected>{{ $p->golongan }}</option>
+                                @endif
                                 @foreach(['I','II','III','IV'] as $gol)
                                     <option value="{{ $gol }}" {{ $p->golongan === $gol ? 'selected' : '' }}>
                                         {{ $gol }}
@@ -180,6 +186,10 @@
                                     class="cell-edit hidden w-full min-w-[100px] border border-gray-200 rounded-lg px-2 py-1 text-sm focus:border-[#faa938] focus:outline-none">
                                     <option value="user"  {{ $p->role === 'user'  ? 'selected' : '' }}>User</option>
                                     <option value="admin" {{ $p->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                                    {{-- Role lain (mis. ketua_tim) ikut jadi pilihan agar tidak turun ke user saat disimpan --}}
+                                    @if(!in_array($p->role, ['user', 'admin'], true))
+                                        <option value="{{ $p->role }}" selected>{{ ucfirst($p->role) }}</option>
+                                    @endif
                                 </select>
                             @else
                                 <input type="hidden" name="role" value="{{ $p->role }}" class="cell-edit hidden">
