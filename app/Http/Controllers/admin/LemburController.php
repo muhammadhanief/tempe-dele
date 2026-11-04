@@ -340,7 +340,7 @@ class LemburController extends Controller
                 ->first();
 
             if ($presensi && $presensi->jam_selesai) {
-                $jamPulangPresensi = Carbon::parse($transaksi->date . ' ' . $presensi->jam_selesai);
+                $jamPulangPresensi = Carbon::parse($transaksi->date . ' ' . Carbon::parse($presensi->jam_selesai)->format('H:i:s'));
                 if ($jamPulangPresensi->lessThan($jamMulaiDisetujui)) {
                     $jamPulangPresensi->addDay();
                 }
