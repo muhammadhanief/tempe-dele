@@ -411,7 +411,7 @@
 
     {{-- Tabel Pengajuan --}}
     <div class="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-200">
-        <table class="w-full min-w-[1100px] table-auto">
+        <table class="w-full min-w-[1100px] min-[1366px]:min-w-0 table-auto">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200 text-left">
                     <th class="w-9 px-2 py-3 text-center text-xs font-semibold text-gray-700">No</th>

@@ -114,7 +114,7 @@
 
     {{-- Tabel --}}
     <div class="overflow-x-auto rounded-xl bg-white">
-        <table class="w-full min-w-[1050px] rounded-xl">
+        <table class="w-full min-w-[1050px] xl:min-w-0 rounded-xl">
             <thead>
                 <tr class="bg-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-600">
 
@@ -148,7 +148,7 @@
                             class="group relative px-4 py-4 text-center text-sm font-semibold capitalize leading-6 text-gray-900 lg:p-5 {{ $loop->last ? 'rounded-tr-xl' : '' }}">
                             {{ $label }}
 
-                            <span class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-max -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-normal normal-case tracking-normal text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                            <span class="pointer-events-none absolute bottom-full {{ $loop->last ? 'right-0' : 'left-1/2 -translate-x-1/2' }} z-20 mb-2 w-max whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-normal normal-case tracking-normal text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                                 {{ $desc }}
                             </span>
                         </th>

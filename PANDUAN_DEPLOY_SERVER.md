@@ -356,6 +356,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 238. 📄 **`resources/views/partials/sidebar.blade.php`** *(Path SVG ikon Rekapitulasi Lembur dilengkapi; error console di halaman admin hilang)*.
 239. 📄 **`resources/views/admin/lembur.blade.php`** + folder **`public/build/`** *(Kontrol urutan dipindah ke ujung kanan baris filter dengan label Perlu ditindak dulu / Tanggal terbaru / Tanggal terlama; tabel monitoring lembur admin digabung dari 11 menjadi 7 kolom [Tanggal & Jam, Pegawai, Tim & Ketua, Uraian + Catatan, Status + Presensi, Dokumentasi, Aksi] dan lebar otomatis tanpa scroll samping di laptop 1280–1920px; kotak cari pegawai/tim lentur)*.
 240. 📄 **`resources/views/admin/daftar_hadir.blade.php`** *(Dropdown filter tim dibatasi `max-w-full` agar halaman tidak melebar di HP; tampilan desktop tidak berubah)*.
+241. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/rekapitulasi.blade.php`**, **`resources/views/admin/spkl.blade.php`** + folder **`public/build/`** *(Tabel tidak terpotong di laptop tanpa mengubah desain: lebar minimum tabel dilepas di layar lebar, tooltip HL 6 rekapitulasi rata kanan, pesan data kosong rekap admin tetap terlihat saat digeser)*.
 
 ---
 
@@ -1871,3 +1872,16 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 ### CZ. Uji Filter Tim Daftar Hadir di HP
 - [ ] Login sebagai admin, buka **Daftar Hadir** dari HP (atau DevTools mode HP 375 px).
   - **Verifikasi**: Halaman tidak bisa digeser ke kanan; dropdown filter tim tidak keluar dari kotak filter dan filter tetap berfungsi. Di desktop, dropdown tampil sama seperti sebelumnya.
+
+### DA. Uji Tabel Tidak Terpotong di Layar Laptop (Lembur, Pengajuan Kabag, Rekapitulasi)
+- [ ] **Uji `/lembur` dan `/ketua-tim/lembur`** (layar laptop 1280px ke atas, sidebar terbuka):
+  - Verifikasi: kolom Dokumentasi dan Aksi terlihat utuh tanpa perlu menggeser tabel.
+  - Verifikasi: susunan dan urutan kolom sama seperti sebelumnya.
+- [ ] **Uji `/kabag-umum/pengajuan`** (layar 1366px ke atas):
+  - Verifikasi: kolom Aksi (tombol oranye) terlihat utuh tanpa menggeser tabel.
+- [ ] **Uji `/rekapitulasi`** (pegawai atau ketua tim, layar 1280px ke atas):
+  - Verifikasi: kolom HL 6 dan nilai "Jumlah Bekerja Hari Libur" terlihat utuh; tidak ada ruang geser kosong di kanan tabel.
+  - Arahkan kursor ke judul HL 6: tooltip "Hari Libur, lembur 6 jam" tampil rata kanan dan tidak terpotong.
+- [ ] **Uji `/admin/rekapitulasi`** (pilih bulan tanpa data):
+  - Geser tabel ke kanan: pesan "Tidak ada data lembur untuk periode ini." tetap terlihat.
+- [ ] **Uji HP (375px)**: tabel di halaman-halaman di atas tetap bisa digeser seperti sebelumnya.
