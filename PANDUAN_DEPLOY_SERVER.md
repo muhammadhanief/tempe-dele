@@ -380,6 +380,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 262. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Tombol koreksi tetap jalan saat catatan memuat tanda kutip)*.
 263. 📄 **`resources/views/pimpinan/dashboard.blade.php`** *(Kolom Status dashboard Pimpinan terisi untuk Menunggu Kabag dan Dibatalkan)*.
 264. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Logo kop SPKL 70% dan rata kiri)*.
+265. 📄 **`app/Traits/KoreksiLembur.php`** *(Presensi pulang sebelum jam mulai lembur tidak lagi dihitung penuh; pulang dini hari tetap dianggap hari berikutnya)*.
 
 ---
 
@@ -1947,4 +1948,5 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Koreksi dengan tanda kutip**: Ketua Tim → Pengajuan → setujui dengan catatan memuat tanda kutip (contoh: Pak Joko' minta) → klik ikon koreksi tanpa refresh. Verifikasi: modal terbuka dan catatan terisi.
 - [ ] **Dashboard pegawai**: pegawai yang punya pengajuan Menunggu Kabag. Verifikasi: subjudul "5 pengajuan lembur terakhir kamu." dan badge "Diproses" pada pengajuan tersebut. Pengajuan yang dibatalkan admin tampil dengan badge abu-abu "Dibatalkan".
 - [ ] **Kop SPKL**: Admin → Generate Dokumen → generate SPKL PDF, buka. Verifikasi: logo BPS Jawa Tengah berada di kiri atas (rata dengan tepi kiri tabel), lebarnya sekitar 70% area cetak, garis hitam di bawahnya, lalu judul "SURAT PERINTAH KERJA LEMBUR" di tengah.
+- [ ] **Pulang sebelum jam mulai**: siapkan presensi pegawai tanggal tertentu dengan jam pulang 16:00 (lebih kecil dari jam mulai lembur 16:01), lalu setujui pengajuan 16:01–19:01 pegawai itu pada tanggal yang sama. Verifikasi: pengajuan tidak eligible dengan catatan "Presensi pulang sebelum jam mulai lembur." dan tidak ikut terhitung di Akumulasi. Pulang 18:30 tetap eligible dan dihitung 2 jam.
 - [ ] **Pesan catatan Kabag**: Kabag membuka pengajuan Tim Bagian Umum berstatus Pending, mengubah jam, kosongkan catatan, lalu Setujui. Verifikasi: pesan "...berbeda dari jam pengajuan." Untuk pengajuan tim lain berstatus Menunggu Kabag, pesannya "...berbeda dari jam yang sudah disetujui Ketua Tim."

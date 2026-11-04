@@ -6223,3 +6223,18 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 ### F. Kop Surat SPKL: Logo 70% dan Rata Kiri
 * Atas permintaan pengguna, logo kop SPKL (`dokumen/spkl.blade.php`) diubah dari lebar 60% dan rata tengah menjadi **lebar 70% dan rata kiri**, sama dengan contoh `spkl.pdf`.
 * Hasil ukur pada PDF yang dibangkitkan: logo di `x = 42,5 pt`, lebar `357,2 pt`, jumlah halaman 2. Angkanya sama persis dengan berkas contoh. Garis pemisah, judul, dan isi tabel tidak diubah.
+
+### G. Perbaikan: Presensi Pulang Sebelum Jam Mulai Lembur Tidak Lagi Dihitung Penuh
+* **Masalah:** pada `app/Traits/KoreksiLembur.php`, jika jam pulang presensi lebih kecil dari jam mulai lembur (misalnya pengajuan 16:01 sampai 19:01 tetapi presensi pulang 16:00), kode menganggap pegawai pulang pada hari berikutnya sehingga lembur dihitung penuh (3 jam). Anggapan hari berikutnya itu memang diperlukan untuk lembur yang melewati tengah malam, tetapi tidak untuk pulang sore hari.
+* **Perbaikan:** jam pulang yang lebih kecil dari jam mulai hanya dianggap hari berikutnya jika jam pulangnya dini hari (sebelum 06:00). Selain itu dihitung pulang sebelum jam mulai: `eligible = 0`, `jam_selesai_disetujui` disamakan dengan jam mulai, dan catatan sistem "Presensi pulang sebelum jam mulai lembur." Tabel presensi tidak diubah dan jam pulang asli tetap tampil di Daftar Hadir.
+* **Perilaku jam pulang lain (tidak diubah):** pulang sama atau lebih lambat dari pengajuan dihitung sesuai pengajuan (maksimal 4 jam hari kerja, 6 jam hari libur); pulang lebih awal tetapi masih 2 jam atau lebih dihitung sampai jam pulang; kurang dari 2 jam tidak eligible.
+* **Urutan kejadian:** jika presensi diunggah setelah pengajuan disetujui, trigger `sync_jam_*` dari mentor lebih dulu menaikkan atau menurunkan jam disetujui sesuai presensi dan otomatis menolak pengajuan yang durasinya kurang dari 2 jam. Perbaikan ini berlaku pada urutan sebaliknya: presensi sudah ada, lalu pengajuan disetujui (koreksi berjalan saat persetujuan atau saat rekap dibuka).
+* **Hasil uji (salinan database, koreksi dijalankan untuk November 2026, pengajuan 16:01 sampai 19:01 hari kerja):**
+
+| Presensi pulang | Jam disetujui | Eligible | Catatan |
+| :--- | :--- | :---: | :--- |
+| 16:00 (sebelum jam mulai) | 16:01 | Tidak | "Presensi pulang sebelum jam mulai lembur." (sebelumnya dihitung 19:01, 3 jam) |
+| 17:30 | 17:30 | Tidak | "Durasi lembur presensi kurang dari 2 jam." |
+| 18:30 | 18:30 | Ya | Dihitung 2 jam |
+
+* Berkas: `app/Traits/KoreksiLembur.php`.
