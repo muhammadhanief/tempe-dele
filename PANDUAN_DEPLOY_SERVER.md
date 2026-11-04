@@ -357,6 +357,16 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 239. 📄 **`resources/views/admin/lembur.blade.php`** + folder **`public/build/`** *(Kontrol urutan dipindah ke ujung kanan baris filter dengan label Perlu ditindak dulu / Tanggal terbaru / Tanggal terlama; tabel monitoring lembur admin digabung dari 11 menjadi 7 kolom [Tanggal & Jam, Pegawai, Tim & Ketua, Uraian + Catatan, Status + Presensi, Dokumentasi, Aksi] dan lebar otomatis tanpa scroll samping di laptop 1280–1920px; kotak cari pegawai/tim lentur)*.
 240. 📄 **`resources/views/admin/daftar_hadir.blade.php`** *(Dropdown filter tim dibatasi `max-w-full` agar halaman tidak melebar di HP; tampilan desktop tidak berubah)*.
 241. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/rekapitulasi.blade.php`**, **`resources/views/admin/spkl.blade.php`** + folder **`public/build/`** *(Tabel tidak terpotong di laptop tanpa mengubah desain: lebar minimum tabel dilepas di layar lebar, tooltip HL 6 rekapitulasi rata kanan, pesan data kosong rekap admin tetap terlihat saat digeser)*.
+242. 📄 **`app/Exports/LemburExport.php`** *(Export Excel Lembur admin tidak lagi kehilangan baris data pertama)*.
+243. 📄 **`resources/views/admin/pengguna.blade.php`** & **`app/Http/Controllers/admin/PenggunaController.php`** *(Edit pegawai tidak mengubah golongan/role; pegawai tanpa email bisa disimpan)*.
+244. 📄 **`lang/id/validation.php`** *(FOLDER BARU `lang/id/`: pesan validasi Bahasa Indonesia, bukan `validation.unique`)*.
+245. 📄 **`app/Http/Controllers/admin/TimController.php`** & **`resources/views/admin/tim.blade.php`** *(Hapus tim berfungsi; tim yang dipakai pengajuan ditolak dengan pesan; detail anggota aman untuk nama bertanda petik)*.
+246. 📄 **`resources/views/admin/pengajuan.blade.php`** *(Ikon edit keputusan tetap bisa diklik setelah simpan)*.
+247. 📄 **`resources/views/admin/presensi.blade.php`** *(Upload file bukan Excel menampilkan pesan format yang benar)*.
+248. 📄 **`resources/views/admin/lembur.blade.php`** *(Alasan pembatalan tampil sebagai teks biasa)*.
+249. 📄 **`resources/views/admin/dokumen.blade.php`** *(Pesan berhasil/gagal setelah generate dan hapus dokumen)*.
+250. 📄 **`resources/views/lembur.blade.php`** & **`resources/views/ketua-tim/lembur.blade.php`** *(Error dari server saat Ajukan Lembur tampil di modal Ajukan, isian lama dikembalikan)*.
+251. 📄 **`app/Http/Controllers/admin/PejabatController.php`** *(Halaman Pejabat menampilkan pejabat aktif setelah Ganti Kabag/PPK)*.
 
 ---
 
@@ -1885,3 +1895,14 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji `/admin/rekapitulasi`** (pilih bulan tanpa data):
   - Geser tabel ke kanan: pesan "Tidak ada data lembur untuk periode ini." tetap terlihat.
 - [ ] **Uji HP (375px)**: tabel di halaman-halaman di atas tetap bisa digeser seperti sebelumnya.
+
+### DB. Uji Perbaikan Bug Hasil Uji Klik Menyeluruh (Seksi 108)
+- [ ] **Export Lembur admin**: Admin → Lembur → Export Excel. Verifikasi: jumlah baris di Excel sama dengan jumlah pengajuan bulan itu; nomor mulai dari 1.
+- [ ] **Edit pengguna**: Admin → Pengguna → edit nama pegawai bergolongan III/a → Simpan. Verifikasi: golongan tetap III/a. Superadmin → edit Ketua Tim → Simpan tanpa perubahan. Verifikasi: role tetap Ketua_tim. Edit pegawai tanpa email → Simpan berhasil.
+- [ ] **Pesan validasi**: tambah pengguna dengan email yang sudah dipakai. Verifikasi: pesan "Email sudah dipakai." (bukan `validation.unique`).
+- [ ] **Hapus tim**: hapus tim baru tanpa pengajuan → terhapus. Hapus tim yang punya pengajuan → muncul pesan "Tim tidak bisa dihapus karena sudah dipakai pada pengajuan lembur...".
+- [ ] **Pengajuan admin**: simpan keputusan, lalu klik lagi ikon edit di baris yang sama tanpa refresh. Verifikasi: modal terbuka.
+- [ ] **Upload presensi**: unggah file .txt/.pdf. Verifikasi: pesan "Berkas harus berupa berkas berjenis: xlsx, xls.".
+- [ ] **Dokumen**: generate SPKL. Verifikasi: muncul pesan hijau "SPKL berhasil digenerate/diperbarui.".
+- [ ] **Ajukan lembur (pegawai)**: isi form lalu kirim tanpa tanda tangan yang valid. Verifikasi: modal Ajukan terbuka dengan pesan merah dan isian sebelumnya masih ada.
+- [ ] **Pejabat**: Admin → Pejabat. Verifikasi: baris tahun berjalan menampilkan Kabag Umum dan PPK yang sedang aktif.
