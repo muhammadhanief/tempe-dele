@@ -1002,7 +1002,7 @@
 
                     {{-- Preview Durasi --}}
                     <p id="editPreviewDurasi" class="hidden text-xs text-gray-500">
-                        Estimasi: <span id="editDurasiLabel" class="font-semibold text-gray-800"></span>
+                        Estimasi: <span id="editDurasiLabel"></span>
                     </p>
 
                     {{-- Form Uraian Kegiatan --}}
