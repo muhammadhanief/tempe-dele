@@ -6133,12 +6133,12 @@ Saat durasi kurang dari 2 jam, modal Ajukan Lembur menampilkan peringatan yang s
 * Baris estimasi hanya berisi durasi, misalnya "⏱️ Estimasi durasi: 1 jam (dihitung 1 jam)", tanpa huruf tebal.
 * Peringatan minimal 2 jam tampil sekali di kotak merah: "Minimal lembur 2 jam sesuai ketentuan PMK/BPS." Ukuran huruf dan jarak dalam kotak disamakan dengan baris estimasi.
 * Catatan lain (lintas tengah malam, maksimal 6 jam, maksimal 12 jam) disambung dengan titik, bukan tanda pisah.
-* Modal Edit Pengajuan (pegawai & ketua tim) memakai teks yang sama tanpa tanda pisah dan tanpa huruf tebal.
+* Modal Edit Pengajuan (pegawai & ketua tim) memakai teks yang sama tanpa tanda pisah dan tanpa huruf tebal. Angka durasinya juga tidak lagi `font-semibold`, sehingga satu baris tampil dengan warna dan ketebalan yang sama.
 * Halaman admin: kotak merah minimal 2 jam sebelumnya tidak pernah muncul; sekarang muncul dan hilang sesuai durasi, sama seperti halaman pegawai.
 * Halaman admin: saat modal Ajukan dibuka ulang, jam dan tanggal sudah dikosongkan tetapi estimasi durasi lama masih tampil. Sekarang estimasi dan kotak merah ikut disembunyikan, sama seperti halaman pegawai.
 
 ### C. Hasil Uji
-* Uji klik di Chrome untuk pegawai, ketua tim, dan admin: 59 dari 59 skenario lolos (1 jam, 1 jam 30 menit, 2 jam, 6/7 jam, lintas tengah malam, kosongkan jam, Batal lalu buka lagi, tanggal dobel, modal Edit).
+* Uji klik di Chrome untuk pegawai, ketua tim, dan admin: 59 dari 59 skenario lolos, ditambah 35 tangkapan layar per skenario untuk dicek mata (1 jam, 1 jam 30 menit, 2 jam, 6/7 jam, lintas tengah malam, kosongkan jam, Batal lalu buka lagi, tanggal dobel, modal Edit).
 * Backend: kirim paksa 1 jam ditolak dengan "Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS." dan tidak tersimpan; kirim 2 jam tersimpan.
 
 ### D. Berkas yang Diperbarui
