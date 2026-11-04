@@ -1555,6 +1555,11 @@ function updateCatatanWajibHint() {
     }
 }
 
+// Nilai untuk atribut onclick: tanda kutip pada catatan/uraian tidak boleh memotong atribut.
+function argAttr(value) {
+    return JSON.stringify(value ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
 window.openModalKeputusan = function(id, jamMulai, jamSelesai, catatan, status, uraian, hasPresensi, jamSelesaiPresensi, jamPengajuanMulai, jamPengajuanSelesai, isKabagProcessed) {
     currentId = id;
     const currentStatus = status || 'pending';
@@ -1880,11 +1885,11 @@ window.simpanKeputusan = function() {
 
         const aksiElement = document.getElementById(`aksi-${currentId}`);
         if (aksiElement) {
-            const safeNote = JSON.stringify(data.note || catatan || '');
-            const safeUraian = JSON.stringify(currentUraian);
+            const safeNote = argAttr(data.note || catatan || '');
+            const safeUraian = argAttr(currentUraian);
             const presensiFlag = currentHasPresensi ? 1 : 0;
             aksiElement.innerHTML = `
-                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}", ${safeKabagProcessed})'
+                <button type="button" onclick="openModalKeputusan(${currentId}, '${approvedMulai}', '${approvedSelesai}', ${safeNote}, '${finalStatus}', ${safeUraian}, ${presensiFlag}, '${currentJamSelesaiPresensi}', '${currentJamPengajuanMulai}', '${currentJamPengajuanSelesai}', ${safeKabagProcessed})"
                     class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 transition-all shadow-2xs hover:shadow-xs cursor-pointer group mx-auto"
                     title="Koreksi Keputusan Pengajuan">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1944,11 +1949,11 @@ window.simpanKeputusan = function() {
 
         const aksiTimelineEl = document.getElementById(`aksi-timeline-${currentId}`);
         if (aksiTimelineEl) {
-            const safeNote = JSON.stringify(data.note || catatan || '');
-            const safeUraian = JSON.stringify(currentUraian);
+            const safeNote = argAttr(data.note || catatan || '');
+            const safeUraian = argAttr(currentUraian);
             const presensiFlag = currentHasPresensi ? 1 : 0;
             aksiTimelineEl.innerHTML = `
-                <button type="button" onclick='openModalKeputusan(${currentId}, "${approvedMulai}", "${approvedSelesai}", ${safeNote}, "${finalStatus}", ${safeUraian}, ${presensiFlag}, "${currentJamSelesaiPresensi}", "${currentJamPengajuanMulai}", "${currentJamPengajuanSelesai}", ${safeKabagProcessed})'
+                <button type="button" onclick="openModalKeputusan(${currentId}, '${approvedMulai}', '${approvedSelesai}', ${safeNote}, '${finalStatus}', ${safeUraian}, ${presensiFlag}, '${currentJamSelesaiPresensi}', '${currentJamPengajuanMulai}', '${currentJamPengajuanSelesai}', ${safeKabagProcessed})"
                     class="inline-flex items-center justify-center h-8 w-8 rounded-xl text-slate-600 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
                     title="Koreksi Keputusan Pengajuan">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
