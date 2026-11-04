@@ -12,8 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
 
+        // 'login' dikecualikan: kredensial tetap diverifikasi ke SSO BPS, dan token yang
+        // kedaluwarsa di halaman login hanya memunculkan pesan "Sesi Anda telah berakhir".
         $middleware->validateCsrfTokens(except: [
             'logout',
+            'login',
         ]);
 
         $middleware->alias([

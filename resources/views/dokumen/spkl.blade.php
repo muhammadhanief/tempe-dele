@@ -98,7 +98,7 @@
     }
 
     .ttd-space {
-        height: 50px;
+        height: 67px;
     }
 </style>
 </head>
@@ -109,11 +109,12 @@
     @php
         $logoSrc = null;
         if (extension_loaded('gd')) {
+            // Versi 2000px: logo asli (10262px) butuh ±290 MB memori di DomPDF dan gagal di server.
             $logoCandidates = [
-                public_path('images/LOGO BPS PROVINSI JATENG.png'),
-                base_path('public/images/LOGO BPS PROVINSI JATENG.png'),
-                base_path('../public_html/images/LOGO BPS PROVINSI JATENG.png'),
-                '/home/lemburwe/public_html/images/LOGO BPS PROVINSI JATENG.png',
+                public_path('images/logo-bps-jateng-dokumen.png'),
+                base_path('public/images/logo-bps-jateng-dokumen.png'),
+                base_path('../public_html/images/logo-bps-jateng-dokumen.png'),
+                '/home/lemburwe/public_html/images/logo-bps-jateng-dokumen.png',
             ];
             foreach ($logoCandidates as $cand) {
                 if (!empty($cand) && file_exists($cand)) {
@@ -125,11 +126,13 @@
     @endphp
     
     @if($logoSrc)
-        <img
-            src="{{ $logoSrc }}"
-            alt="Header BPS Provinsi Jawa Tengah"
-            style="width: 70%; display: block; margin-bottom: 4px;"
-        >
+        <div style="text-align: center; margin-bottom: 4px;">
+            <img
+                src="{{ $logoSrc }}"
+                alt="Header BPS Provinsi Jawa Tengah"
+                style="width: 60%;"
+            >
+        </div>
         <div style="width: 100%; border-top: 2px solid black; margin: 4px 0 8px 0;"></div>
     @else
         <div style="text-align: left; margin-bottom: 8px; border-bottom: 2px solid black; padding-bottom: 6px;">
@@ -177,11 +180,10 @@
     {{-- TANDA TANGAN --}}
     <table class="ttd-table">
         <tr>
-            <td class="ttd-box" style="padding-top: 15px;">
-                <div style="height: 50px;">
-                    Pejabat Pembuat Komitmen<br>
-                    BPS Provinsi Jawa Tengah
-                </div>
+            <td class="ttd-box">
+                &nbsp;<br>
+                Pejabat Pembuat Komitmen<br>
+                BPS Provinsi Jawa Tengah
                 <div class="ttd-space"></div>
                 <span class="nama-pejabat" style="font-weight: bold; text-decoration: underline;">{{ $ppk->nama ?? '' }}</span><br>
                 @if(!empty($ppk->nip) || !empty($ppk->nip_lama))

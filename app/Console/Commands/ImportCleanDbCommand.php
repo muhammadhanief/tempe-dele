@@ -26,6 +26,12 @@ class ImportCleanDbCommand extends Command
      */
     public function handle()
     {
+        // Perintah ini menghapus SEMUA tabel. Hanya untuk laptop pengembang.
+        if (app()->environment('production')) {
+            $this->error('Perintah ini menghapus seluruh tabel database dan tidak boleh dijalankan di server produksi (APP_ENV=production).');
+            return 1;
+        }
+
         $defaultPath = 'D:\\TUGAS ITTP\\BPS - MAGANG\\bahan lembur\\bersih_lemburwe_lembur';
         $path = $this->option('path') ?: $defaultPath;
 

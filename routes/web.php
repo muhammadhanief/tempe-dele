@@ -132,14 +132,15 @@ if (app()->environment('local')) {
 Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.proses');
 Route::match(['get', 'post'], '/logout', function () {
-    session()->flush();
+    // Kosongkan data, ganti ID sesi, hapus file sesi lama, dan buat token CSRF baru.
+    session()->invalidate();
+    session()->regenerateToken();
     return redirect()->route('login');
 })->name('logout');
 
 
 Route::get('/lembur', [LemburController::class, 'index'])->name('lembur')->middleware('checksession');
 Route::post('/lembur', [LemburController::class, 'store'])->name('lembur.store')->middleware('checksession');
-Route::post('/lembur/{id}/approve', [LemburController::class, 'approve'])->name('lembur.approve')->middleware('checksession');
 Route::get('/lembur/tim', [LemburController::class, 'timPegawai'])->name('lembur.tim')->middleware('checksession');
 
 // ─── Authenticated (semua role) ───────────────────────────
@@ -196,7 +197,6 @@ Route::middleware('checksession')->group(function () {
 
         // Laporan
         Route::get('/laporan', [\App\Http\Controllers\admin\LaporanController::class, 'index'])->name('laporan');
-        Route::get('/dokumen/download-excel/laporan/{jenis}', [DokumenGenerateController::class, 'downloadExcel'])->name('dokumen.download.excel')->middleware('checksession');
 
         // Akumulasi
         Route::get('/akumulasi', [\App\Http\Controllers\admin\AkumulasiController::class, 'index'])->name('akumulasi');
@@ -284,6 +284,7 @@ Route::middleware('checksession')->group(function () {
             Route::post('/manajemen-user/ganti-kabag',         [ManajemenUserController::class, 'gantiKabag'])->name('manajemen-user.ganti-kabag');
             Route::post('/manajemen-user/ganti-ppk',           [ManajemenUserController::class, 'gantiPpk'])->name('manajemen-user.ganti-ppk');
             Route::post('/manajemen-user/tambah-admin',        [ManajemenUserController::class, 'tambahAdmin'])->name('manajemen-user.tambah-admin');
+            Route::post('/manajemen-user/ganti-admin',         [ManajemenUserController::class, 'gantiAdmin'])->name('manajemen-user.ganti-admin');
             Route::delete('/manajemen-user/hapus-admin/{id}',  [ManajemenUserController::class, 'hapusAdmin'])->name('manajemen-user.hapus-admin');
             Route::post('/manajemen-user/tambah-superadmin',   [ManajemenUserController::class, 'tambahSuperadmin'])->name('manajemen-user.tambah-superadmin');
         });

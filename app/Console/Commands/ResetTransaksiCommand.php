@@ -26,6 +26,12 @@ class ResetTransaksiCommand extends Command
      */
     public function handle()
     {
+        // Mengosongkan data transaksi hanya untuk data uji di laptop pengembang.
+        if (app()->environment('production')) {
+            $this->error('Perintah ini mengosongkan data transaksi lembur dan tidak boleh dijalankan di server produksi (APP_ENV=production).');
+            return 1;
+        }
+
         if (!$this->option('force')) {
             $confirm = $this->confirm(
                 'Apakah Anda yakin ingin mengosongkan seluruh data transaksi lembur & dokumen hasil generate? (Data master pegawai, pejabat, dan tim TIDAK akan terhapus)',

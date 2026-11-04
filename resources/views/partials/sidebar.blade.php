@@ -1,7 +1,7 @@
 {{-- Overlay backdrop (mobile only) --}}
 <div
     id="sidebar-overlay"
-    class="fixed inset-0 z-55 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden"
+    class="fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden"
     onclick="closeSidebar()"
 ></div>
 
@@ -39,7 +39,7 @@
 {{-- Sidebar --}}
 <aside
     id="main-sidebar"
-    class="fixed lg:sticky top-0 left-0 z-40
+    class="fixed lg:sticky top-0 left-0 z-50
            flex flex-col h-screen h-[100dvh] max-h-screen max-h-[100dvh] bg-slate-900 shrink-0
            -translate-x-full lg:translate-x-0"
 >
@@ -175,7 +175,7 @@
                             'label' => 'Lembur',
                             'path' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
                             'route' => 'ketua-tim.lembur',
-                            'active' => request()->routeIs('ketua-tim.lembur'),
+                            'active' => request()->routeIs('ketua-tim.lembur') || request()->routeIs('lembur'),
                         ],
                     ],
                 ],
@@ -217,7 +217,7 @@
             $lainnyaItems = [
                 [
                     'label' => 'Rekapitulasi Lembur',
-                    'path' => 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25',
+                    'path' => 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75',
                     'route' => 'admin.spkl',
                     'active' => request()->routeIs('admin.spkl'),
                 ],

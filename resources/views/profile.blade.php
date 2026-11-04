@@ -5,13 +5,13 @@
 @section('content')
 <div class="w-4/5 mx-auto py-8">
 
-  <div class="grid gap-6 lg:grid-cols-3">
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
     <!-- Left: Profile Card -->
     <div class="lg:col-span-1">
       <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
         <div class="flex items-center gap-4">
           <!-- Avatar -->
-          <div class="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+          <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500">
             <svg class="h-7 w-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2-8 4.5A1.5 1.5 0 0 0 5.5 20h13A1.5 1.5 0 0 0 20 18.5C20 16 16.42 14 12 14Z"/>
             </svg>
@@ -22,7 +22,7 @@
               {{ $user->nama ?? 'Nama Lengkap' }}
             </p>
             <p class="truncate text-sm text-gray-500">
-              {{ $user->email ?? 'user@email.com' }}
+              {{ !empty($user->email) ? $user->email : '-' }}
             </p>
           </div>
         </div>

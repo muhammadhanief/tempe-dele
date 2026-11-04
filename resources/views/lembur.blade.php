@@ -354,21 +354,26 @@
                                     <td class="px-1.5 py-2 text-gray-600 align-middle">
                                         <div class="space-y-0.5 text-left whitespace-normal break-words max-h-10 overflow-hidden text-[10.5px]">
                                             @php
-                                                $isSystemNote = !empty($t->note) && (
-                                                    str_contains(strtolower($t->note), 'durasi lembur') ||
-                                                    str_contains(strtolower($t->note), 'proses bisnis') ||
-                                                    str_contains(strtolower($t->note), 'kebijakan') ||
-                                                    str_contains(strtolower($t->note), 'sistem')
+                                                $rawNote = $t->note ?? '';
+                                                $isAdminCancelled = ($t->status === 'cancelled') || str_contains($rawNote, '[Dibatalkan Admin]');
+                                                $cleanNote = str_contains($rawNote, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNote)) : $rawNote;
+                                                $isSystemNote = !$isAdminCancelled && !empty($rawNote) && (
+                                                    str_contains(strtolower($rawNote), 'durasi lembur') ||
+                                                    str_contains(strtolower($rawNote), 'proses bisnis') ||
+                                                    str_contains(strtolower($rawNote), 'kebijakan') ||
+                                                    str_contains(strtolower($rawNote), 'sistem')
                                                 );
                                             @endphp
-                                            @if(!empty($t->note))
-                                                <div class="line-clamp-2 leading-tight" title="{{ $t->note }}">
-                                                    @if($isSystemNote)
+                                            @if(!empty($rawNote))
+                                                <div class="line-clamp-2 leading-tight" title="{{ $cleanNote }}">
+                                                    @if($isAdminCancelled)
+                                                        <span class="inline-block text-[9px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-1 py-0.2 rounded">Admin:</span>
+                                                    @elseif($isSystemNote)
                                                         <span class="inline-block text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-1 py-0.2 rounded">Sistem:</span>
                                                     @else
                                                         <span class="text-[9px] font-bold uppercase text-slate-400">Ketua:</span>
                                                     @endif
-                                                    <span class="italic text-gray-700">{{ $t->note }}</span>
+                                                    <span class="italic text-gray-700">{{ $cleanNote }}</span>
                                                 </div>
                                             @endif
                                             @if(!empty($t->note_kabag))
@@ -398,7 +403,7 @@
                                                     </a>
 
                                                     <form action="{{ route('pegawai.lembur.destroyDoc', $t->id_transaksi) }}" method="POST"
-                                                        onsubmit="return confirm('Hapus dokumentasi ini?')">
+                                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus tautan dokumentasi kegiatan ini?')">
                                                         @csrf
                                                         @method('DELETE')
 
@@ -428,7 +433,8 @@
 
                                     <td class="whitespace-nowrap px-1 py-2 text-center align-middle">
                                         @php
-                                            $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && empty($t->approved_at));
+                                            $isTimUmum = str_contains(strtolower($t->nama_tim ?? ''), 'bagian umum') || ($t->tim_kode_tim ?? '') === 'QrBzgE3O3lEqVPjy';
+                                            $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && $isTimUmum && empty($t->approved_kabag_at));
                                         @endphp
                                         @if($canEdit)
                                             <button type="button"
@@ -591,7 +597,7 @@
 
                                     {{-- Judul Uraian Kegiatan --}}
                                     <div>
-                                        <h3 class="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words">
+                                        <h3 class="text-sm sm:text-base font-semibold text-slate-900 leading-snug break-words">
                                             {{ $t->uraian ?? 'Pengajuan Kegiatan Lembur' }}
                                         </h3>
                                     </div>
@@ -627,23 +633,31 @@
                                     @if(!empty($t->note) || !empty($t->note_kabag))
                                         <div class="space-y-1.5 pt-1">
                                             @php
-                                                $isSystemNote = !empty($t->note) && (
-                                                    str_contains(strtolower($t->note), 'durasi lembur') ||
-                                                    str_contains(strtolower($t->note), 'proses bisnis') ||
-                                                    str_contains(strtolower($t->note), 'kebijakan') ||
-                                                    str_contains(strtolower($t->note), 'sistem')
+                                                $rawNoteTimeline = $t->note ?? '';
+                                                $isAdminCancelledTimeline = ($t->status === 'cancelled') || str_contains($rawNoteTimeline, '[Dibatalkan Admin]');
+                                                $cleanNoteTimeline = str_contains($rawNoteTimeline, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNoteTimeline)) : $rawNoteTimeline;
+                                                $isSystemNote = !$isAdminCancelledTimeline && !empty($rawNoteTimeline) && (
+                                                    str_contains(strtolower($rawNoteTimeline), 'durasi lembur') ||
+                                                    str_contains(strtolower($rawNoteTimeline), 'proses bisnis') ||
+                                                    str_contains(strtolower($rawNoteTimeline), 'kebijakan') ||
+                                                    str_contains(strtolower($rawNoteTimeline), 'sistem')
                                                 );
                                             @endphp
-                                            @if(!empty($t->note))
-                                                @if($isSystemNote)
+                                            @if(!empty($rawNoteTimeline))
+                                                @if($isAdminCancelledTimeline)
+                                                    <div class="border-l-2 border-rose-400 pl-3 py-0.5 text-xs text-slate-600 bg-rose-50/40 rounded-r-lg">
+                                                        <span class="font-semibold text-rose-800">Catatan Admin:</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $cleanNoteTimeline }}"</span>
+                                                    </div>
+                                                @elseif($isSystemNote)
                                                     <div class="border-l-2 border-slate-400 pl-3 py-0.5 text-xs text-slate-600 bg-slate-50 rounded-r-lg">
                                                         <span class="font-semibold text-slate-700">Catatan Sistem:</span>
-                                                        <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $cleanNoteTimeline }}"</span>
                                                     </div>
                                                 @else
                                                     <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
                                                         <span class="font-semibold text-amber-800">Catatan Ketua:</span>
-                                                        <span class="italic text-slate-700 ml-1">"{{ $t->note }}"</span>
+                                                        <span class="italic text-slate-700 ml-1">"{{ $cleanNoteTimeline }}"</span>
                                                     </div>
                                                 @endif
                                             @endif
@@ -676,7 +690,8 @@
 
                                         <div>
                                             @php
-                                                $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && empty($t->approved_at));
+                                                $isTimUmum = str_contains(strtolower($t->nama_tim ?? ''), 'bagian umum') || ($t->tim_kode_tim ?? '') === 'QrBzgE3O3lEqVPjy';
+                                                $canEdit = ($t->status === 'pending') || ($t->status === 'menunggu_kabag' && $isTimUmum && empty($t->approved_kabag_at));
                                             @endphp
                                             @if($canEdit)
                                                 <button type="button"
@@ -778,7 +793,7 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900">Detail Uraian Kegiatan</h3>
+                            <h3 class="text-sm sm:text-base font-semibold text-slate-900">Detail Uraian Kegiatan</h3>
                             <p class="text-[11px] text-slate-500">Rincian pekerjaan & status pengajuan lembur</p>
                         </div>
                     </div>
@@ -1776,8 +1791,17 @@
 
         let hasCatatan = false;
         if (catatanKetua.trim()) {
-            if (boxKetua) boxKetua.classList.remove('hidden');
-            if (textCatatanKetua) textCatatanKetua.textContent = catatanKetua;
+            if (boxKetua) {
+                boxKetua.classList.remove('hidden');
+                const isAdminCancel = (status === 'cancelled') || catatanKetua.includes('[Dibatalkan Admin]');
+                const labelKetua = boxKetua.querySelector('span');
+                if (labelKetua) {
+                    labelKetua.textContent = isAdminCancel ? 'Catatan Admin:' : 'Catatan Ketua Tim:';
+                    labelKetua.className = isAdminCancel ? 'block text-[10px] font-bold uppercase text-rose-600 mb-1' : 'block text-[10px] font-bold uppercase text-slate-500 mb-1';
+                }
+                const cleanCatatanKetua = catatanKetua.replace('[Dibatalkan Admin]', '').trim();
+                if (textCatatanKetua) textCatatanKetua.textContent = isAdminCancel ? cleanCatatanKetua : catatanKetua;
+            }
             hasCatatan = true;
         } else {
             if (boxKetua) boxKetua.classList.add('hidden');
@@ -2427,11 +2451,11 @@
             }
             const sigErr = document.getElementById('signatureError');
             if (sigErr) {
-                sigErr.textContent = '⚠️ Tanda tangan digital wajib digoreskan sebelum mengirim pengajuan.';
+                sigErr.textContent = '⚠️ Tanda tangan digital wajib dibubuhkan sebelum mengirimkan pengajuan lembur.';
                 sigErr.classList.remove('hidden');
             }
             canvas?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            alert('Tanda tangan digital belum diisi! Silakan goreskan tanda tangan Anda pada kotak tanda tangan.');
+            alert('Tanda tangan digital belum dibubuhkan. Silakan bubuhkan tanda tangan Anda pada area kanvas yang tersedia.');
             return;
         }
 
