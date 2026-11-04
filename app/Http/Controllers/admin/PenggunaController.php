@@ -38,7 +38,10 @@ class PenggunaController extends Controller
             'email'    => 'required|email|unique:m_pegawai,email',
             'golongan' => 'nullable|string|max:10',
             'role'     => 'required|in:user,admin,ketua_tim',
+            'password' => 'required|string|min:6',
         ]);
+
+        $validated['password'] = Hash::make($validated['password']);
 
         Pegawai::create($validated);
         return response()->json(['message' => 'Pegawai berhasil ditambahkan']);
