@@ -13,7 +13,13 @@ class AuthController extends Controller
 {
     public function index()
     {
-        return view('login');
+        // Jangan simpan halaman login di cache browser agar token form selalu baru
+        // (mencegah halaman lama/dipulihkan browser membawa token kedaluwarsa).
+        return response()->view('login')->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma'        => 'no-cache',
+            'Expires'       => '0',
+        ]);
     }
 
     private function getSsoBpsToken(): ?string
@@ -79,10 +85,15 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // Tolak form kosong sebelum memanggil API (API mengembalikan 'detail' berupa array untuk input kosong).
+        if (trim((string) $request->username) === '' || trim((string) $request->password) === '') {
+            return back()->withErrors(['login' => 'Username dan password wajib diisi.'])->onlyInput('username');
+        }
+
         try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-                'x-api-key'    => env('KIPAPP_API_KEY'),
+                'x-api-key'    => config('services.kipapp.api_key'),
                 'Origin'       => 'https://jateng.web.bps.go.id',
             ])->post('https://jateng.web.bps.go.id/apiconnect/login', [
                 'username' => $request->username,
@@ -303,6 +314,10 @@ class AuthController extends Controller
 
                 $pegawaiData = DB::table('m_pegawai')->where('nip', $nipUser)->first();
 
+                // ID sesi baru setelah login berhasil (mencegah session fixation); file sesi lama
+                // langsung dihapus, data sesi tetap dibawa.
+                $request->session()->regenerate(true);
+
                 Session::put('user', $data);
                 Session::put('logged_in', true);
                 Session::put('id_pegawai', $pegawaiData->id_pegawai ?? null);
@@ -326,7 +341,11 @@ class AuthController extends Controller
                 'body'   => $response->body(),
             ]);
 
-            if (isset($body['detail']) && str_contains(strtolower($body['detail']), 'incorrect username or password')) {
+            // 'detail' dari API bisa berupa teks atau array (daftar error validasi)
+            $detail = $body['detail'] ?? null;
+            $detailText = is_string($detail) ? $detail : (is_array($detail) ? json_encode($detail) : '');
+
+            if ($detailText !== '' && str_contains(strtolower($detailText), 'incorrect username or password')) {
                 return back()->withErrors(['login' => 'Username atau password salah.']);
             }
 
@@ -339,7 +358,7 @@ class AuthController extends Controller
             }
 
             return back()->withErrors([
-                'login' => '[Error ' . $response->status() . '] ' . ($body['detail'] ?? $body['message'] ?? $response->body())
+                'login' => '[Error ' . $response->status() . '] ' . ($detailText !== '' ? $detailText : (is_string($body['message'] ?? null) ? $body['message'] : $response->body()))
             ]);
 
         } catch (ConnectionException $e) {

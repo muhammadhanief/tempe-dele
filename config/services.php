@@ -24,6 +24,7 @@ return [
     ],
     'kipapp' => [
     'token'  => env('KIPAPP_BEARER_TOKEN'),
+    'api_key' => env('KIPAPP_API_KEY'),
     'origin' => env('KIPAPP_ORIGIN', 'https://jateng.web.bps.go.id'),
     'url'    => env('KIPAPP_URL', 'https://kipapp.bps.go.id/api/v3'),
     ],

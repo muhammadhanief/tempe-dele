@@ -601,7 +601,7 @@
 
                                     {{-- Uraian Tugas Kegiatan Lembur --}}
                                     <div class="bg-slate-50/50 rounded-xl p-3 border border-slate-100/80">
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Uraian Kegiatan Lembur:</span>
+                                        <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">Uraian Kegiatan Lembur:</span>
                                         <p class="text-xs sm:text-sm font-medium text-slate-800 leading-relaxed break-words" id="uraian-timeline-{{ $p->id_transaksi }}">
                                             {{ $p->uraian ?? 'Pengajuan Tugas Lembur' }}
                                         </p>
@@ -612,23 +612,31 @@
                                         @if(!empty($p->note) || !empty($p->note_kabag))
                                             <div class="space-y-1.5 pt-1">
                                                 @php
-                                                    $isSystemNote = !empty($p->note) && (
-                                                        str_contains(strtolower($p->note), 'durasi lembur') ||
-                                                        str_contains(strtolower($p->note), 'proses bisnis') ||
-                                                        str_contains(strtolower($p->note), 'kebijakan') ||
-                                                        str_contains(strtolower($p->note), 'sistem')
+                                                    $rawNote = $p->note ?? '';
+                                                    $isAdminCancelled = ($p->status === 'cancelled') || str_contains($rawNote, '[Dibatalkan Admin]');
+                                                    $cleanNote = str_contains($rawNote, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNote)) : $rawNote;
+                                                    $isSystemNote = !$isAdminCancelled && !empty($rawNote) && (
+                                                        str_contains(strtolower($rawNote), 'durasi lembur') ||
+                                                        str_contains(strtolower($rawNote), 'proses bisnis') ||
+                                                        str_contains(strtolower($rawNote), 'kebijakan') ||
+                                                        str_contains(strtolower($rawNote), 'sistem')
                                                     );
                                                 @endphp
-                                                @if(!empty($p->note))
-                                                    @if($isSystemNote)
+                                                @if(!empty($rawNote))
+                                                    @if($isAdminCancelled)
+                                                        <div class="border-l-2 border-rose-400 pl-3 py-0.5 text-xs text-slate-600 bg-rose-50/40 rounded-r-lg">
+                                                            <span class="font-semibold text-rose-800">Catatan Admin:</span>
+                                                            <span class="italic text-slate-700 ml-1">"{{ $cleanNote }}"</span>
+                                                        </div>
+                                                    @elseif($isSystemNote)
                                                         <div class="border-l-2 border-slate-400 pl-3 py-0.5 text-xs text-slate-600 bg-slate-50 rounded-r-lg">
                                                             <span class="font-semibold text-slate-700">Catatan Sistem:</span>
-                                                            <span class="italic text-slate-700 ml-1">"{{ $p->note }}"</span>
+                                                            <span class="italic text-slate-700 ml-1">"{{ $cleanNote }}"</span>
                                                         </div>
                                                     @else
                                                         <div class="border-l-2 border-amber-400 pl-3 py-0.5 text-xs text-slate-600 bg-amber-50/40 rounded-r-lg">
                                                             <span class="font-semibold text-amber-800">Catatan Ketua:</span>
-                                                            <span class="italic text-slate-700 ml-1">"{{ $p->note }}"</span>
+                                                            <span class="italic text-slate-700 ml-1">"{{ $cleanNote }}"</span>
                                                         </div>
                                                     @endif
                                                 @endif
@@ -911,7 +919,7 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900">Detail Uraian Kegiatan</h3>
+                            <h3 class="text-sm sm:text-base font-semibold text-slate-900">Detail Uraian Kegiatan</h3>
                             <p class="text-[11px] text-slate-500">Rincian pekerjaan & status pengajuan lembur</p>
                         </div>
                     </div>
@@ -1785,7 +1793,7 @@ window.simpanKeputusan = function() {
     }
 
     if (keputusan === 'rejected' && !catatan.trim()) {
-        alert('Catatan/alasan penolakan wajib diisi jika menolak.');
+        alert('Kolom catatan wajib diisi untuk memberikan alasan penolakan.');
         document.getElementById('kCatatan').focus();
         return;
     }
@@ -1794,6 +1802,20 @@ window.simpanKeputusan = function() {
     btn.disabled = true;
     btn.textContent = 'Menyimpan...';
 
+    const payload = {
+        status: keputusan,
+        jam_mulai_disetujui: jamMulai || null,
+        jam_selesai_disetujui: jamSelesai || null,
+        note: catatan,
+    };
+
+    // Hanya sertakan uraian jika field dapat diedit (ada presensi) dan teksnya benar-benar diubah
+    const normUraian = (uraian || '').replace(/\r\n|\r/g, '\n').trim();
+    const normCurrentUraian = (currentUraian || '').replace(/\r\n|\r/g, '\n').trim();
+    if (currentHasPresensi && normUraian !== normCurrentUraian) {
+        payload.uraian = uraian;
+    }
+
     fetch(`/ketua-tim/pengajuan/${currentId}/approve`, {
         method: 'POST',
         headers: {
@@ -1801,13 +1823,7 @@ window.simpanKeputusan = function() {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json',
         },
-        body: JSON.stringify({
-            status: keputusan,
-            jam_mulai_disetujui: jamMulai || null,
-            jam_selesai_disetujui: jamSelesai || null,
-            note: catatan,
-            uraian: uraian,
-        })
+        body: JSON.stringify(payload)
     })
     .then(async response => {
         const data = await response.json();
@@ -1979,7 +1995,7 @@ window.simpanKeputusan = function() {
         closeModalKeputusan();
     })
     .catch(error => {
-        alert(error.message || 'Gagal menyimpan, coba lagi.');
+        alert(error.message || 'Gagal memproses dan menyimpan keputusan. Silakan coba beberapa saat lagi.');
     })
     .finally(() => {
         btn.disabled = false;
@@ -2120,8 +2136,17 @@ window.openModalUraian = function (el) {
 
     let hasCatatan = false;
     if (catatanKetua.trim()) {
-        if (boxKetua) boxKetua.classList.remove('hidden');
-        if (textCatatanKetua) textCatatanKetua.textContent = catatanKetua;
+        if (boxKetua) {
+            boxKetua.classList.remove('hidden');
+            const isAdminCancel = (status === 'cancelled') || catatanKetua.includes('[Dibatalkan Admin]');
+            const labelKetua = boxKetua.querySelector('span');
+            if (labelKetua) {
+                labelKetua.textContent = isAdminCancel ? 'Catatan Admin:' : 'Catatan Ketua Tim:';
+                labelKetua.className = isAdminCancel ? 'block text-[10px] font-bold uppercase text-rose-600 mb-1' : 'block text-[10px] font-bold uppercase text-slate-500 mb-1';
+            }
+            const cleanCatatanKetua = catatanKetua.replace('[Dibatalkan Admin]', '').trim();
+            if (textCatatanKetua) textCatatanKetua.textContent = isAdminCancel ? cleanCatatanKetua : catatanKetua;
+        }
         hasCatatan = true;
     } else {
         if (boxKetua) boxKetua.classList.add('hidden');

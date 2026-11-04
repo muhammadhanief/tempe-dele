@@ -271,7 +271,7 @@ class ManajemenUserController extends Controller
 
             Log::info("Pergantian PPK berhasil oleh Superadmin: {$pegawaiBaru->nama} ({$pegawaiBaru->nip})");
 
-            return back()->with('success', "Pejabat Pembuat Komitmen (PPK) berhasil diperbarui menjadi {$pegawaiBaru->nama}. Seluruh dokumen kedinasan (SPKL dll) akan otomatis menggunakan data pejabat ini.");
+            return back()->with('success', "Pejabat Pembuat Komitmen (PPK) berhasil diperbarui menjadi {$pegawaiBaru->nama}. Seluruh dokumen kedinasan (SPKL dan lampiran terkait) otomatis menggunakan data pejabat aktif ini.");
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal memperbarui PPK', ['error' => $e->getMessage()]);
@@ -308,7 +308,63 @@ class ManajemenUserController extends Controller
 
         Log::info("Penambahan Admin oleh Superadmin: {$pegawai->nama} ({$pegawai->nip})");
 
-        return back()->with('success', "Pegawai {$pegawai->nama} berhasil diangkat sebagai Admin Lembur.");
+        return back()->with('success', "Pegawai {$pegawai->nama} berhasil ditugaskan sebagai Admin Lembur.");
+    }
+
+    /**
+     * Pergantian Petugas Admin Lembur (Menggantikan admin lama dengan pegawai baru)
+     */
+    public function gantiAdmin(Request $request)
+    {
+        $this->checkSuperadmin();
+
+        $request->validate([
+            'id_pegawai_lama' => 'required|exists:m_pegawai,id_pegawai',
+            'id_pegawai_baru' => 'required|exists:m_pegawai,id_pegawai|different:id_pegawai_lama',
+        ], [
+            'id_pegawai_lama.required'   => 'Admin lama yang akan digantikan tidak valid.',
+            'id_pegawai_baru.required'   => 'Pilih pegawai pengganti sebagai Admin Lembur baru.',
+            'id_pegawai_baru.different'  => 'Pegawai pengganti harus berbeda dari admin yang digantikan.',
+        ]);
+
+        $adminLama = DB::table('m_pegawai')->where('id_pegawai', $request->id_pegawai_lama)->first();
+        $adminBaru = DB::table('m_pegawai')->where('id_pegawai', $request->id_pegawai_baru)->first();
+
+        if (!$adminLama || $adminLama->role !== 'admin') {
+            return back()->with('error', 'Admin yang akan digantikan tidak berstatus Admin Lembur.');
+        }
+
+        $sessionNip = $this->getSessionNip();
+        if ($adminLama->nip === $sessionNip) {
+            return back()->with('error', 'Anda tidak dapat menggantikan wewenang akun Anda sendiri dari menu ini.');
+        }
+
+        if ($adminBaru->role === 'superadmin') {
+            return back()->with('error', "{$adminBaru->nama} sudah memiliki hak akses Super Administrator.");
+        }
+
+        DB::beginTransaction();
+        try {
+            // 1. Kembalikan wewenang admin lama ke user biasa
+            DB::table('m_pegawai')
+                ->where('id_pegawai', $adminLama->id_pegawai)
+                ->update(['role' => 'user']);
+
+            // 2. Angkat pegawai baru sebagai admin lembur
+            DB::table('m_pegawai')
+                ->where('id_pegawai', $adminBaru->id_pegawai)
+                ->update(['role' => 'admin']);
+
+            DB::commit();
+
+            Log::info("Pergantian Admin Lembur oleh Superadmin: {$adminLama->nama} digantikan oleh {$adminBaru->nama}");
+
+            return back()->with('success', "Wewenang Admin Lembur berhasil dialihkan dari {$adminLama->nama} kepada {$adminBaru->nama}.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal memproses pergantian Admin Lembur', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Terjadi kesalahan saat memproses pergantian admin: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -336,7 +392,7 @@ class ManajemenUserController extends Controller
 
         Log::info("Pencabutan Admin oleh Superadmin: {$pegawai->nama} ({$pegawai->nip})");
 
-        return back()->with('success', "Akses Admin untuk {$pegawai->nama} berhasil dicabut dan dikembalikan ke peran Pengguna biasa.");
+        return back()->with('success', "Wewenang Admin Lembur untuk {$pegawai->nama} berhasil dicabut. Akun telah dikembalikan ke peran Pengguna biasa.");
     }
 
     /**
@@ -366,6 +422,6 @@ class ManajemenUserController extends Controller
 
         Log::warning("PROMOSI SUPERADMIN: {$pegawai->nama} ({$pegawai->nip}) telah diangkat menjadi Superadmin oleh " . ($this->getSessionNip() ?? 'unknown'));
 
-        return back()->with('success', "Pegawai {$pegawai->nama} berhasil diangkat menjadi Super Administrator.");
+        return back()->with('success', "Pegawai {$pegawai->nama} berhasil ditetapkan sebagai Super Administrator secara permanen.");
     }
 }
