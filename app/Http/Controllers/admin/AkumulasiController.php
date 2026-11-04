@@ -47,7 +47,7 @@ class AkumulasiController extends Controller
 
     $akumulasi->getCollection()->transform(function ($item) {
         $jumlah = $item->total_uang_lembur + $item->total_uang_makan;
-        $pajak  = round($jumlah * ($item->pajak_pct / 100));
+        $pajak  = round($jumlah * $item->pajak_pct); // m_rates.pajak berupa pecahan (0.05 = 5%)
 
         $item->total_jumlah = $jumlah;
         $item->total_pajak  = $pajak;

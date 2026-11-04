@@ -198,6 +198,18 @@ document.querySelectorAll('tbody tr[data-kerja-id]').forEach(row => {
             return;
         }
 
+        // Cek dulu sebelum kirim agar tarif hari kerja & hari libur tidak tersimpan sebagian
+        const nominalValid = [uangLemburKerja, uangLemburLibur, uangMakan]
+            .every(v => v !== '' && Number.isInteger(Number(v)) && Number(v) >= 0);
+        if (!nominalValid) {
+            showAlert('Uang lembur dan uang makan wajib berupa angka bulat dan tidak boleh negatif.', 'error');
+            return;
+        }
+        if (pajak === '' || isNaN(Number(pajak)) || Number(pajak) < 0 || Number(pajak) > 1) {
+            showAlert('Pajak diisi dalam bentuk pecahan antara 0 dan 1 (contoh: 0.05 untuk 5%).', 'error');
+            return;
+        }
+
         try {
             const resKerja = await fetch(`/admin/tarif/${kerjaId}`, {
                 method: 'PUT',

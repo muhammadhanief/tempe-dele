@@ -6122,28 +6122,83 @@ Bug nomor 12 (Manajemen User melebar di HP) diperbaiki terpisah di seksi 108.
 
 ---
 
-## 111. Teks Estimasi Durasi di Modal Ajukan Lembur Dirapikan (`/lembur`, `/ketua-tim/lembur`, `/admin/lembur`)
+## 111. Perbaikan Bug Hasil Uji E2E Klik + Database (Lanjutan Seksi 110)
 
-### A. Masalah
-Saat durasi kurang dari 2 jam, modal Ajukan Lembur menampilkan peringatan yang sama dua kali:
-* Baris estimasi: "Estimasi Durasi: 1 jam (dihitung 1 jam) — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS." (tebal, dengan tanda pisah).
-* Kotak merah di bawahnya: "**Minimal 2 Jam:** Minimal lembur 2 jam sesuai PMK/BPS."
+### A. Latar Belakang
+Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan dan di database) di atas `main` terbaru menemukan bug di luar yang sudah diperbaiki pada seksi 110. Bug hapus tim dan pesan upload file bukan Excel sudah ditangani di seksi 110, jadi tidak diulang di sini.
 
-### B. Perubahan
-* Baris estimasi hanya berisi durasi, misalnya "⏱️ Estimasi durasi: 1 jam (dihitung 1 jam)", tanpa huruf tebal.
-* Peringatan minimal 2 jam tampil sekali di kotak merah: "Minimal lembur 2 jam sesuai ketentuan PMK/BPS." Ukuran huruf dan jarak dalam kotak disamakan dengan baris estimasi.
-* Catatan lain (lintas tengah malam, maksimal 6 jam, maksimal 12 jam) disambung dengan titik, bukan tanda pisah.
-* Modal Edit Pengajuan (pegawai & ketua tim) memakai teks yang sama tanpa tanda pisah dan tanpa huruf tebal. Angka durasinya juga tidak lagi `font-semibold`, sehingga satu baris tampil dengan warna dan ketebalan yang sama.
-* Halaman admin: kotak merah minimal 2 jam sebelumnya tidak pernah muncul; sekarang muncul dan hilang sesuai durasi, sama seperti halaman pegawai.
-* Halaman admin: saat modal Ajukan dibuka ulang, jam dan tanggal sudah dikosongkan tetapi estimasi durasi lama masih tampil. Sekarang estimasi dan kotak merah ikut disembunyikan, sama seperti halaman pegawai.
+### B. Daftar Perbaikan
+| No | Masalah | Penyebab | Perbaikan |
+| :---: | :--- | :--- | :--- |
+| 1 | Akumulasi admin dan file Excel-nya memotong pajak hanya 0,05% (contoh: Rp79, seharusnya Rp7.850 untuk golongan III). Nominal admin berbeda dengan akumulasi pegawai. | `m_rates.pajak` disimpan sebagai pecahan (0.05), tetapi dibagi 100 lagi. | Pembagian 100 dihapus di `admin/AkumulasiController` dan `AkumulasiExport`. |
+| 2 | Di modal Anggota Tim, kolom cari dan tombol **Tambah** tidak pernah terlihat, sehingga anggota tidak bisa ditambah lewat layar. | Skrip petunjuk geser tabel (`app.js`) menganggap elemen apa pun tepat di atas tabel sebagai petunjuk geser, lalu menyembunyikannya bila tabel tidak perlu digeser. | Elemen hanya diperlakukan sebagai petunjuk geser bila memang petunjuk geser (`sm:hidden`, `.table-scroll-hint`, atau berisi "Geser tabel"). |
+| 3 | Tambah Pengguna meminta password, tetapi password tidak tersimpan (kolom kosong). | Validasi `store` tidak menyertakan `password`. | `password` wajib, minimal 6 karakter, disimpan dengan `Hash::make`. |
+| 4 | Kabag dipaksa mengisi catatan walau tidak mengubah jam yang sudah dipangkas Ketua Tim. | Jam di modal Kabag terisi jam yang disetujui Ketua Tim, tetapi dibandingkan dengan jam pengajuan awal (di tampilan dan di server). | Pembanding diganti ke jam yang sudah disetujui Ketua Tim (atau jam pengajuan bila belum ada). Catatan tetap wajib bila Kabag mengubah jam. |
+| 5 | Tarif bisa diisi negatif (-500) dan tersimpan. | Validasi hanya `integer`/`numeric`. | Server: `min:0`, pajak `0–1`. Halaman: dicek sebelum kirim agar tarif hari kerja dan hari libur tidak tersimpan sebagian. |
 
-### C. Hasil Uji
-* Uji klik di Chrome untuk pegawai, ketua tim, dan admin: 59 dari 59 skenario lolos, ditambah 35 tangkapan layar per skenario untuk dicek mata (1 jam, 1 jam 30 menit, 2 jam, 6/7 jam, lintas tengah malam, kosongkan jam, Batal lalu buka lagi, tanggal dobel, modal Edit).
-* Backend: kirim paksa 1 jam ditolak dengan "Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS." dan tidak tersimpan; kirim 2 jam tersimpan.
+### C. Hasil Uji Setelah Perbaikan
+* Alur lembur (pegawai → ketua → kabag → admin), 33 langkah: semua lolos. Kabag langsung bisa menyetujui jam hasil pangkas Ketua Tim; bila Kabag mengubah jam tanpa catatan tetap ditolak di tampilan dan di server (422).
+* Modal Anggota Tim di 1366px dan 375px: kolom cari dan tombol Tambah terlihat; petunjuk geser tabel di HP pada halaman lain tetap tampil; pemindaian semua halaman tidak menemukan kontrol lain yang tersembunyi.
+* Tambah pengguna password 4 karakter: ditolak "Password minimal 6 karakter."; password valid tersimpan sebagai hash bcrypt dan cocok saat dicek `Hash::check`.
+* Tarif -500 dan pajak 5: ditolak dengan pesan, DB tidak berubah; kiriman langsung ke server: 422.
 
 ### D. Berkas yang Diperbarui
 | No | File | Keterangan |
 | :---: | :--- | :--- |
-| 1 | `resources/views/lembur.blade.php` | Modal Ajukan dan Edit. |
-| 2 | `resources/views/ketua-tim/lembur.blade.php` | Sama dengan berkas pegawai. |
-| 3 | `resources/views/admin/lembur.blade.php` | Modal Ajukan admin. |
+| 1 | `app/Http/Controllers/admin/AkumulasiController.php` | Bug 1. |
+| 2 | `app/Exports/AkumulasiExport.php` | Bug 1. |
+| 3 | `resources/js/app.js` + `public/build/` | Bug 2. |
+| 4 | `app/Http/Controllers/admin/PenggunaController.php` | Bug 3. |
+| 5 | `resources/views/kabag-umum/pengajuan.blade.php` | Bug 4. |
+| 6 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Bug 4. |
+| 7 | `app/Http/Controllers/admin/RateController.php` | Bug 5. |
+| 8 | `resources/views/admin/tarif.blade.php` | Bug 5. |
+
+### E. Catatan
+* Bug 3 butuh kolom `password` `VARCHAR(255)` (SQL poin 8 di Bagian 1 panduan deploy). Tanpa itu, simpan pengguna baru akan error 500 karena hash 60 karakter tidak muat di `VARCHAR(50)`.
+* Bug 4 menyentuh poin "Perlu Konfirmasi Mentor" di seksi 110 bagian E. Perbaikannya berada di commit tersendiri sehingga mudah dikembalikan bila mentor memutuskan aturan lama.
+* Tidak diubah karena perlu keputusan: duplikat pejabat per tahun (sengaja dipakai sebagai riwayat Ganti Kabag/PPK), halaman `/pimpinan` yang tidak bisa diakses PPK (tidak ada pegawai ber-role `pimpinan`), data pejabat "VADSJN" yang aktif sebagai Kabag kedua, dan hapus hari libur tanpa konfirmasi.
+
+---
+
+## 112. Perapian Teks Estimasi Durasi Modal Ajukan Lembur dan Perbaikan Bug Hasil Uji Per Role (Lanjutan Seksi 111)
+
+### A. Latar Belakang
+1. Teks estimasi durasi di modal Ajukan Lembur menampilkan peringatan minimal 2 jam dua kali, dengan tanda "—" dan huruf tebal.
+2. Uji klik menyeluruh per role (297 tangkapan layar, tiap gambar berjudul "dipencet ini, hasilnya begini") menemukan bug tambahan di dashboard, persetujuan Ketua Tim, dan dashboard Pimpinan.
+
+### B. Perubahan
+| No | Masalah | Perbaikan |
+| :---: | :--- | :--- |
+| 1 | Peringatan minimal 2 jam tampil dua kali: di baris estimasi (tebal, dengan "—") dan di kotak merah. | Baris estimasi hanya berisi durasi, tidak tebal. Peringatan tampil sekali di kotak merah "Minimal lembur 2 jam sesuai ketentuan PMK/BPS." dengan ukuran huruf dan jarak sama dengan baris estimasi. Catatan lain (lintas tengah malam, maksimal 6 jam, maksimal 12 jam) disambung dengan titik. |
+| 2 | Modal Edit Pengajuan: angka durasi tebal dan warnanya campur. | Angka durasi tidak lagi `font-semibold`. |
+| 3 | Modal Ajukan admin: kotak merah minimal 2 jam tidak pernah muncul, dan estimasi lama tertinggal saat modal dibuka ulang. | Kotak merah muncul dan hilang sesuai durasi; estimasi dan kotak merah disembunyikan saat modal dibuka ulang. |
+| 4 | Dashboard pegawai: subjudul "3 pengajuan lembur terakhir kamu" padahal yang tampil 5. | Subjudul menjadi "5 pengajuan lembur terakhir kamu." |
+| 5 | Dashboard pegawai: pengajuan berstatus Menunggu Kabag tidak punya badge status. | Tampil sebagai "Diproses", sama dengan hitungan "Diproses" di kartu ringkasan. |
+| 6 | Tombol **Setujui** di dashboard Ketua Tim error 500 ("Double date specification") jika pegawai sudah punya presensi. Pola yang sama ada di `admin/LemburController`. | `jam_selesai` presensi bertipe datetime, sehingga diambil jamnya dulu (`Carbon::parse(...)->format('H:i:s')`) sebelum digabung dengan tanggal, sama seperti controller lain. |
+| 7 | Tombol koreksi keputusan Ketua Tim tidak membuka modal setelah simpan jika catatan memuat tanda kutip tunggal (atribut `onclick` terpotong). | Nilai catatan dan uraian dipasang lewat helper `argAttr()` yang meloloskan tanda kutip, sama dengan perbaikan bug 9 di seksi 110. |
+| 8 | Dashboard Pimpinan: kolom Status kosong untuk Menunggu Kabag dan Dibatalkan. | Menunggu Kabag tampil "Menunggu", status lain yang tidak dikenal tampil "Dibatalkan". |
+
+### C. Hasil Uji
+* Modal durasi di pegawai, ketua tim, dan admin: 59 dari 59 skenario klik lolos dan 35 tangkapan layar.
+* Uji klik per role: 297 tangkapan layar (Pegawai 51, Ketua Tim 40, Kabag Umum 28, Pimpinan 19, Admin operasional 86, Admin data master 44, Superadmin 29).
+* Tombol Setujui Ketua Tim diuji lewat HTTP pada salinan database dengan data presensi: kode lama HTTP 500, kode baru HTTP 200 (status menjadi Menunggu Kabag, jam disetujui dibatasi ke jam yang lebih awal antara jam pengajuan dan jam pulang presensi). Pengajuan tanpa presensi juga HTTP 200.
+* Backend: kirim paksa pengajuan 1 jam ditolak "Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS." dan tidak tersimpan; kirim 2 jam tersimpan.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Bug 1 dan 2. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Bug 1 dan 2 (sama dengan berkas pegawai). |
+| 3 | `resources/views/admin/lembur.blade.php` | Bug 1 dan 3. |
+| 4 | `resources/views/dashboard.blade.php` | Bug 4 dan 5. |
+| 5 | `app/Http/Controllers/ketuatim/DashboardController.php` | Bug 6. |
+| 6 | `app/Http/Controllers/admin/LemburController.php` | Bug 6. |
+| 7 | `resources/views/ketua-tim/pengajuan.blade.php` | Bug 7. |
+| 8 | `resources/views/pimpinan/dashboard.blade.php` | Bug 8. |
+
+### E. Catatan (Tidak Diubah)
+* Empat trigger `sync_jam_*` pada tabel `t_presensi` (jam disetujui disamakan dengan jam pulang presensi saat presensi diunggah) sudah ada di dump database dari mentor sejak awal dan tidak ada di repo. Tidak diubah dan tidak ada SQL baru.
+* Role `pimpinan` tidak dimiliki satu pun pegawai di database mana pun (dump mentor maupun lokal); halamannya hanya dapat dibuka admin dan superadmin lewat alamat langsung. Tidak diubah.
+* Kolom Status di dashboard Pimpinan terpotong di layar 1366px; menunggu persetujuan pengguna karena menyangkut tampilan.
+* Pertanyaan untuk mentor: lembur hari libur lebih dari 6 jam dan hari kerja lebih dari 4 jam tidak punya kolom di tabel Rekapitulasi (HL 2–6, HB 2–4); kebijakan catatan Kabag pada seksi 111; Ketua Tim dapat menyetujui pengajuannya sendiri; kebutuhan akun Pimpinan untuk Kepala BPS.

@@ -111,7 +111,11 @@ function initTableScrollbars() {
     let btnNextMobile = null;
     const parentContainer = wrapper.parentElement;
 
-    if (hintBlock && (hintBlock.classList.contains('sm:hidden') || hintBlock.classList.contains('table-scroll-hint') || hintBlock.textContent.includes('Geser tabel'))) {
+    // Elemen di atas tabel yang bukan petunjuk geser (mis. toolbar cari/tambah) jangan ikut disembunyikan
+    const isHintBlock = hintBlock && (hintBlock.classList.contains('sm:hidden') || hintBlock.classList.contains('table-scroll-hint') || hintBlock.textContent.includes('Geser tabel'));
+    if (!isHintBlock) hintBlock = null;
+
+    if (hintBlock) {
       hintBlock.classList.add('table-scroll-hint');
       track = hintBlock.querySelector('.table-scroll-track');
       thumb = hintBlock.querySelector('.table-scroll-thumb');

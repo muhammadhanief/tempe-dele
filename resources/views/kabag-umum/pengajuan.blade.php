@@ -1262,6 +1262,9 @@ let currentHasPresensiKabag = false;
 let currentJamSelesaiPresensiKabag = '';
 let currentJamPengajuanMulaiKabag = '';
 let currentJamPengajuanSelesaiKabag = '';
+// Acuan pembanding catatan Kabag: jam yang sudah disetujui Ketua Tim (atau jam pengajuan jika belum ada)
+let currentJamAcuanMulaiKabag = '';
+let currentJamAcuanSelesaiKabag = '';
 
 function updateCatatanKabagWajibHint() {
     const noteWajibHint = document.getElementById('mNoteWajibHint');
@@ -1275,8 +1278,8 @@ function updateCatatanKabagWajibHint() {
 
     const mulai = document.getElementById('mJamMulai').value;
     const selesai = document.getElementById('mJamSelesai').value;
-    const isJamDiubah = (currentJamPengajuanMulaiKabag && mulai !== currentJamPengajuanMulaiKabag) ||
-                        (currentJamPengajuanSelesaiKabag && selesai !== currentJamPengajuanSelesaiKabag);
+    const isJamDiubah = (currentJamAcuanMulaiKabag && mulai !== currentJamAcuanMulaiKabag) ||
+                        (currentJamAcuanSelesaiKabag && selesai !== currentJamAcuanSelesaiKabag);
 
     if (isJamDiubah) {
         noteWajibHint.className = 'text-rose-600 font-semibold text-[11px]';
@@ -1298,6 +1301,8 @@ window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua,
     currentJamSelesaiPresensiKabag = (jamSelesaiPresensi !== undefined && jamSelesaiPresensi !== null) ? String(jamSelesaiPresensi).trim() : '';
     currentJamPengajuanMulaiKabag = (jamPengajuanMulai !== undefined && jamPengajuanMulai !== null && String(jamPengajuanMulai).trim() !== '') ? String(jamPengajuanMulai).trim() : (jamMulai || '');
     currentJamPengajuanSelesaiKabag = (jamPengajuanSelesai !== undefined && jamPengajuanSelesai !== null && String(jamPengajuanSelesai).trim() !== '') ? String(jamPengajuanSelesai).trim() : (jamSelesai || '');
+    currentJamAcuanMulaiKabag = jamMulai || currentJamPengajuanMulaiKabag;
+    currentJamAcuanSelesaiKabag = jamSelesai || currentJamPengajuanSelesaiKabag;
 
     const elJamMulai = document.getElementById('mJamMulai');
     const elJamSelesai = document.getElementById('mJamSelesai');
@@ -1426,6 +1431,8 @@ window.closeModalKabag = function() {
     currentJamSelesaiPresensiKabag = '';
     currentJamPengajuanMulaiKabag = '';
     currentJamPengajuanSelesaiKabag = '';
+    currentJamAcuanMulaiKabag = '';
+    currentJamAcuanSelesaiKabag = '';
 };
 
 window.setKeputusanKabag = function(val) {
@@ -1466,10 +1473,10 @@ window.simpanKeputusanKabag = function() {
     const uraian = document.getElementById('mUraian').value;
 
     if (selectedKeputusanKabag === 'approved') {
-        const isJamDiubah = (currentJamPengajuanMulaiKabag && jamMulai !== currentJamPengajuanMulaiKabag) ||
-                            (currentJamPengajuanSelesaiKabag && jamSelesai !== currentJamPengajuanSelesaiKabag);
+        const isJamDiubah = (currentJamAcuanMulaiKabag && jamMulai !== currentJamAcuanMulaiKabag) ||
+                            (currentJamAcuanSelesaiKabag && jamSelesai !== currentJamAcuanSelesaiKabag);
         if (isJamDiubah && (!noteKabag || noteKabag.trim() === '')) {
-            alert('Catatan Kabag wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan.');
+            alert('Catatan Kabag wajib diisi jika jam lembur yang disetujui Kabag berbeda dari jam yang sudah disetujui Ketua Tim.');
             document.getElementById('mNoteKabag').focus();
             return;
         }

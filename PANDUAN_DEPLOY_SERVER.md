@@ -369,7 +369,16 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 251. 📄 **`resources/views/admin/dokumen.blade.php`** *(Pesan berhasil/gagal setelah generate dan hapus dokumen)*.
 252. 📄 **`resources/views/lembur.blade.php`** & **`resources/views/ketua-tim/lembur.blade.php`** *(Error dari server saat Ajukan Lembur tampil di modal Ajukan, isian lama dikembalikan)*.
 253. 📄 **`app/Http/Controllers/admin/PejabatController.php`** *(Halaman Pejabat menampilkan pejabat aktif setelah Ganti Kabag/PPK)*.
-254. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** & **`resources/views/admin/lembur.blade.php`** *(Teks estimasi durasi di modal Ajukan Lembur dirapikan, peringatan minimal 2 jam tidak dobel)*.
+254. 📄 **`app/Http/Controllers/admin/AkumulasiController.php`** & **`app/Exports/AkumulasiExport.php`** *(Pajak akumulasi admin dan Excel tidak lagi dibagi 100 dua kali)*.
+255. 📄 **`resources/js/app.js`** + folder **`public/build/`** *(Kolom cari dan tombol Tambah di modal Anggota Tim tidak lagi tersembunyi)*.
+256. 📄 **`app/Http/Controllers/admin/PenggunaController.php`** *(Password pegawai baru disimpan sebagai hash; butuh SQL poin 8 Bagian 1)*.
+257. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** & **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`** *(Catatan Kabag hanya wajib jika jam diubah dari jam yang disetujui Ketua Tim)*.
+258. 📄 **`app/Http/Controllers/admin/RateController.php`** & **`resources/views/admin/tarif.blade.php`** *(Tarif negatif dan pajak di luar 0–1 ditolak)*.
+259. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** & **`resources/views/admin/lembur.blade.php`** *(Teks estimasi durasi di modal Ajukan Lembur dirapikan, peringatan minimal 2 jam tidak dobel)*.
+260. 📄 **`resources/views/dashboard.blade.php`** *(Dashboard pegawai: subjudul 5 pengajuan dan badge Menunggu Kabag)*.
+261. 📄 **`app/Http/Controllers/ketuatim/DashboardController.php`** & **`app/Http/Controllers/admin/LemburController.php`** *(Tombol Setujui tidak lagi error 500 saat pegawai sudah punya presensi)*.
+262. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Tombol koreksi tetap jalan saat catatan memuat tanda kutip)*.
+263. 📄 **`resources/views/pimpinan/dashboard.blade.php`** *(Kolom Status dashboard Pimpinan terisi untuk Menunggu Kabag dan Dibatalkan)*.
 
 ---
 
@@ -1924,6 +1933,15 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Ajukan lembur (pegawai)**: isi form lalu kirim tanpa tanda tangan yang valid. Verifikasi: modal Ajukan terbuka dengan pesan merah dan isian sebelumnya masih ada.
 - [ ] **Pejabat**: Admin → Pejabat. Verifikasi: baris tahun berjalan menampilkan Kabag Umum dan PPK yang sedang aktif.
 
-### DE. Uji Teks Estimasi Durasi (Seksi 111)
-- [ ] **Ajukan lembur 1 jam**: Pegawai → Ajukan Lembur → jam 16:01–17:01. Verifikasi: baris estimasi "⏱️ Estimasi durasi: 1 jam (dihitung 1 jam)" tanpa huruf tebal dan tanpa tanda pisah; kotak merah "Minimal lembur 2 jam sesuai ketentuan PMK/BPS." tampil sekali; tombol Kirim nonaktif.
-- [ ] **Ubah ke 2 jam**: ganti jam selesai ke 18:01. Verifikasi: kotak merah hilang, tombol Kirim aktif. Ulangi di Ketua Tim dan Admin.
+### DE. Uji Perbaikan Bug Hasil Uji E2E (Seksi 111)
+- [ ] **Pajak akumulasi admin**: Admin → Akumulasi, pilih bulan yang ada lembur eligible pegawai golongan III. Verifikasi: kolom pajak = 5% dari jumlah dan nominal diterima sama dengan halaman `/akumulasi` milik pegawai tersebut; file Download Excel menampilkan angka yang sama.
+- [ ] **Anggota tim**: Admin → Tim → ikon Anggota. Verifikasi: kolom cari dan tombol **Tambah** terlihat (di laptop dan HP); tambah satu pegawai lalu keluarkan lagi berhasil.
+- [ ] **Password pegawai baru**: pastikan SQL poin 8 Bagian 1 sudah dijalankan. Admin → Pengguna → Tambah dengan password 4 karakter → ditolak "Password minimal 6 karakter."; dengan password 6+ karakter → tersimpan dan kolom `password` di phpMyAdmin berisi hash `$2y$...`.
+- [ ] **Catatan Kabag**: Ketua Tim menyetujui sambil memangkas jam (dengan catatan) → Kabag membuka dan langsung menyetujui tanpa mengubah jam → tersimpan tanpa diminta catatan. Kabag mengubah jam tanpa catatan → muncul peringatan dan tidak tersimpan.
+- [ ] **Tarif**: Admin → Tarif → isi uang lembur -500 atau pajak 5 → muncul pesan merah dan nilai lama tetap; isi nilai valid → tersimpan.
+
+### DF. Uji Perapian Estimasi Durasi dan Perbaikan Bug Per Role (Seksi 112)
+- [ ] **Estimasi 1 jam**: Pegawai → Ajukan Lembur → jam 16:01–17:01. Verifikasi: baris "⏱️ Estimasi durasi: 1 jam (dihitung 1 jam)" tanpa huruf tebal dan tanpa "—"; kotak merah "Minimal lembur 2 jam sesuai ketentuan PMK/BPS." tampil sekali; tombol Kirim nonaktif. Ubah jam selesai ke 18:01: kotak merah hilang, tombol aktif. Ulangi di Ketua Tim dan Admin.
+- [ ] **Setujui dengan presensi**: Admin → Presensi → unggah presensi yang memuat pegawai berpengajuan pending. Masuk sebagai Ketua Tim → Dashboard → buka pengajuan itu → Setujui. Verifikasi: berhasil, status menjadi Menunggu Kabag, tidak muncul alert "Gagal memproses".
+- [ ] **Koreksi dengan tanda kutip**: Ketua Tim → Pengajuan → setujui dengan catatan memuat tanda kutip (contoh: Pak Joko' minta) → klik ikon koreksi tanpa refresh. Verifikasi: modal terbuka dan catatan terisi.
+- [ ] **Dashboard pegawai**: pegawai yang punya pengajuan Menunggu Kabag. Verifikasi: subjudul "5 pengajuan lembur terakhir kamu." dan badge "Diproses" pada pengajuan tersebut.

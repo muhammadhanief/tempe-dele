@@ -223,15 +223,21 @@ class KabagUmumPengajuanController extends Controller
                 : ($transaksi->jam_selesai_disetujui ?? $transaksi->jam_selesai);
 
             if ($transaksi->jam_mulai && $transaksi->jam_selesai) {
-                $mulaiAwal = substr($transaksi->jam_mulai, 0, 5);
-                $selesaiAwal = substr($transaksi->jam_selesai, 0, 5);
+                // Acuan = jam yang sudah disetujui Ketua Tim (sama dengan isian awal modal Kabag),
+                // atau jam pengajuan bila belum ada / masih pending. Catatan Kabag hanya wajib jika Kabag mengubahnya.
+                $pakaiPengajuan = $transaksi->status === 'pending';
+                $mulaiAwal = substr((!$pakaiPengajuan && $transaksi->jam_mulai_disetujui) ? $transaksi->jam_mulai_disetujui : $transaksi->jam_mulai, 0, 5);
+                $selesaiAwal = substr((!$pakaiPengajuan && $transaksi->jam_selesai_disetujui) ? $transaksi->jam_selesai_disetujui : $transaksi->jam_selesai, 0, 5);
+                if ($selesaiAwal > substr($transaksi->jam_selesai, 0, 5)) {
+                    $selesaiAwal = substr($transaksi->jam_selesai, 0, 5);
+                }
                 $mulaiBaru = $jamMulai ? substr($jamMulai, 0, 5) : null;
                 $selesaiBaru = $jamSelesai ? substr($jamSelesai, 0, 5) : null;
 
                 if (($mulaiBaru !== $mulaiAwal || $selesaiBaru !== $selesaiAwal) && empty($noteKabag)) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Catatan Kabag wajib diisi jika jam lembur yang disetujui berbeda dari jam pengajuan.'
+                        'message' => 'Catatan Kabag wajib diisi jika jam lembur yang disetujui Kabag berbeda dari jam yang sudah disetujui Ketua Tim.'
                     ], 422);
                 }
             }
