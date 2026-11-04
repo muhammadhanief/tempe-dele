@@ -6012,9 +6012,62 @@ Permintaan pengguna: perbaiki **tanpa mengubah desain desktop** (tidak menggabun
 | 5 | `resources/views/admin/spkl.blade.php` | Pesan data kosong tetap terlihat saat tabel digeser. |
 | 6 | `public/build/*` | Hasil `npm run build`. |
 
+## 108. Tombol Tambah Admin/Superadmin Tidak Keluar Layar di HP (`/admin/manajemen-user`)
+
+### A. Latar Belakang
+Di HP (375px) judul seksi "Super Administrator", badge "1 Administrator", dan tombol "Tambah Superadmin" dipaksa sebaris (`flex justify-between` tanpa wrap). Badge pecah dua baris dan tombol terdorong keluar layar, sehingga halaman bisa digeser ±49px ke samping. Seksi "Admin Lembur" juga mepet.
+
+### B. Perubahan
+1. Baris judul kedua seksi diberi `max-sm:flex-wrap`: di HP tombol turun ke baris di bawah judul.
+2. Badge jumlah diberi `max-sm:whitespace-nowrap` agar tidak pecah dua baris.
+3. Kedua kelas hanya aktif di bawah 640px. Tampilan desktop **identik piksel** dengan sebelumnya (dibandingkan pada 1366px dan 1920px).
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/manajemen_user.blade.php` | Baris judul seksi Admin Lembur dan Super Administrator boleh turun baris di HP. |
+| 2 | `public/build/*` | Hasil `npm run build`. |
+
+## 109. Halaman Akumulasi Pegawai Tersambung ke Data Lembur Asli (`/akumulasi`)
+
+### A. Latar Belakang
+1. Rute `/akumulasi` hanya menampilkan view statis: tiga baris "24 Februari 2026" yang ditulis langsung di view, total "960.450", dan paginasi "Page 1 of 10". Pemilih bulan tidak memfilter apa pun (`// TODO: filter/fetch data`).
+2. Tombol pemilih bulan melayang di kiri tengah tabel karena `<div class="flex ... justify-between">` pembungkusnya tidak pernah ditutup, sehingga tabel ikut berada dalam baris flex yang sama.
+
+### B. Perubahan
+1. **Controller baru** `app/Http/Controllers/pegawai/AkumulasiController.php`:
+   - Mengambil pengajuan milik pegawai yang login dengan `status = approved` dan `eligible = 1` pada bulan terpilih (`?bulan=YYYY-MM`, default bulan berjalan), sama seperti halaman Rekapitulasi pegawai. `koreksiUntukBulan()` dijalankan lebih dulu.
+   - Tarif diambil dari `m_rates` berdasarkan golongan dasar pegawai (`III/d` → `III`) dan jenis hari (`hari`).
+   - Per baris: jam diajukan dan jam disetujui (jam penuh, mendukung lintas tengah malam), uang lembur = tarif × jam disetujui, uang makan, jumlah, PPh 21 = jumlah × `pajak` (disimpan sebagai pecahan, mis. 0.05), dan terima.
+   - Total "Terima" dihitung dari seluruh data bulan itu; paginasi 10 baris per halaman.
+2. **Rute** `/akumulasi` diarahkan ke controller tersebut (sebelumnya `fn() => view('akumulasi')`).
+3. **View** `resources/views/akumulasi.blade.php`:
+   - Baris statis diganti perulangan data asli dengan kelas tabel yang sama; baris "Tidak ada data lembur untuk periode ini." saat kosong.
+   - Total, tombol sebelumnya/berikutnya, dan "Page X of Y" memakai data paginasi asli.
+   - Tag penutup `div` yang hilang ditambahkan sehingga pemilih bulan berada di atas tabel.
+   - Memilih bulan (atau "Bulan ini") memuat ulang halaman dengan `?bulan=YYYY-MM`; label periode mengikuti bulan dari server.
+
+### C. Hasil Pengujian
+Diuji dengan data Saniman SH (golongan III/d), 2 pengajuan September 2026, dijalankan dalam transaksi database yang di-*rollback* (data asli tidak berubah):
+
+| Tanggal | Jam | Uang Lembur | Uang Makan | Jumlah | PPh 21 | Terima |
+| :--- | :---: | ---: | ---: | ---: | ---: | ---: |
+| 01 Sep 2026 | 4 | 120.000 | 37.000 | 157.000 | 7.850 | 149.150 |
+| 07 Sep 2026 | 3 | 90.000 | 37.000 | 127.000 | 6.350 | 120.650 |
+| **Total** | | | | | | **269.800** |
+
+Hasil sama dengan hitungan manual dari `m_rates` (golongan III hari kerja: Rp30.000/jam, makan Rp37.000, pajak 5%). Pemilih bulan memuat `?bulan=2026-09` dengan label "September 2026"; tidak ada error JavaScript; halaman tidak melebar di HP.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/pegawai/AkumulasiController.php` | **Baru.** Perhitungan akumulasi lembur pegawai per bulan. |
+| 2 | `routes/web.php` | Rute `/akumulasi` memakai controller baru. |
+| 3 | `resources/views/akumulasi.blade.php` | Data, total, paginasi, dan pemilih bulan memakai data asli; tag penutup `div` diperbaiki. |
+
 ---
 
-## 108. Perbaikan Bug Hasil Uji Klik Menyeluruh (Semua Role)
+## 110. Perbaikan Bug Hasil Uji Klik Menyeluruh (Semua Role)
 
 ### A. Latar Belakang
 Uji klik UI + backend pada seluruh fitur role pegawai, ketua tim, kabag, admin, dan superadmin (sekitar 340 skenario, dicek di tampilan dan database) menemukan bug berikut. Semuanya diperbaiki tanpa perubahan database dan tanpa `npm run build`.
@@ -6036,7 +6089,7 @@ Uji klik UI + backend pada seluruh fitur role pegawai, ketua tim, kabag, admin, 
 | 13 | Detail anggota tim gagal untuk nama tim bertanda petik. | Nama tim disisipkan mentah ke `onclick`. | Memakai `@js()`. |
 | 14 | Alasan pembatalan admin sempat tampil sebagai HTML. | Alasan disisipkan mentah ke `innerHTML`. | Di-escape sebelum ditampilkan. |
 
-Bug nomor 12 (Manajemen User melebar di HP) belum diubah karena mengubah tata letak dan menunggu persetujuan.
+Bug nomor 12 (Manajemen User melebar di HP) diperbaiki terpisah di seksi 108.
 
 ### C. Hasil Uji
 * Export Oktober 2026: 30 transaksi di DB, 30 baris di Excel (No 1–30), judul kolom di baris 4.
@@ -6066,4 +6119,3 @@ Bug nomor 12 (Manajemen User melebar di HP) belum diubah karena mengubah tata le
 ### E. Perlu Konfirmasi Mentor (Bukan Bug)
 * Ketua tim bisa memilih dirinya sendiri sebagai penyetuju pengajuannya (persetujuan final tetap lewat Kabag).
 * Kabag wajib mengisi catatan walau hanya menyetujui jam yang sudah disesuaikan Ketua Tim.
-* Halaman `/akumulasi` pegawai berisi data contoh dan tidak ada di menu.

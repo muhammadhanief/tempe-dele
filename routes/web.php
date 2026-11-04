@@ -147,7 +147,7 @@ Route::get('/lembur/tim', [LemburController::class, 'timPegawai'])->name('lembur
 Route::middleware('checksession')->group(function () {
 
     Route::get('/dashboard', [PegawaiDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/akumulasi',     fn() => view('akumulasi'))->name('akumulasi');
+    Route::get('/akumulasi', [\App\Http\Controllers\pegawai\AkumulasiController::class, 'index'])->name('akumulasi');
     Route::get('/rekapitulasi', [\App\Http\Controllers\pegawai\RekapitulasiController::class, 'index'])->name('rekapitulasi')->middleware('checksession');
     Route::get('/profile', function () { $nip = session('user')['nip']; $user = \DB::table('m_pegawai')->where('nip', $nip)->first(); return view('profile', compact('user'));})->name('profile')->middleware('checksession');
 

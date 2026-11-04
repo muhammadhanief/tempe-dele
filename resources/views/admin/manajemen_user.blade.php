@@ -269,10 +269,10 @@
     <div class="space-y-6 pt-2">
         {{-- SEKSI A: ADMIN LEMBUR (OPERASIONAL) --}}
         <div class="space-y-2.5">
-            <div class="flex items-center justify-between gap-3 px-1">
+            <div class="flex items-center justify-between gap-3 px-1 max-sm:flex-wrap">
                 <div class="flex items-center gap-2">
                     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Admin Lembur</h2>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 max-sm:whitespace-nowrap">
                         {{ $admins->count() }} Petugas
                     </span>
                 </div>
@@ -394,10 +394,10 @@
 
         {{-- SEKSI B: SUPER ADMINISTRATOR (GOVERNANCE UTAMA) --}}
         <div class="space-y-2.5">
-            <div class="flex items-center justify-between gap-3 px-1">
+            <div class="flex items-center justify-between gap-3 px-1 max-sm:flex-wrap">
                 <div class="flex items-center gap-2">
                     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Super Administrator</h2>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 max-sm:whitespace-nowrap">
                         {{ $superadmins->count() }} Administrator
                     </span>
                 </div>
