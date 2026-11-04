@@ -6119,3 +6119,42 @@ Bug nomor 12 (Manajemen User melebar di HP) diperbaiki terpisah di seksi 108.
 ### E. Perlu Konfirmasi Mentor (Bukan Bug)
 * Ketua tim bisa memilih dirinya sendiri sebagai penyetuju pengajuannya (persetujuan final tetap lewat Kabag).
 * Kabag wajib mengisi catatan walau hanya menyetujui jam yang sudah disesuaikan Ketua Tim.
+
+---
+
+## 111. Perbaikan Bug Hasil Uji E2E Klik + Database (Lanjutan Seksi 110)
+
+### A. Latar Belakang
+Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan dan di database) di atas `main` terbaru menemukan bug di luar yang sudah diperbaiki pada seksi 110. Bug hapus tim dan pesan upload file bukan Excel sudah ditangani di seksi 110, jadi tidak diulang di sini.
+
+### B. Daftar Perbaikan
+| No | Masalah | Penyebab | Perbaikan |
+| :---: | :--- | :--- | :--- |
+| 1 | Akumulasi admin dan file Excel-nya memotong pajak hanya 0,05% (contoh: Rp79, seharusnya Rp7.850 untuk golongan III). Nominal admin berbeda dengan akumulasi pegawai. | `m_rates.pajak` disimpan sebagai pecahan (0.05), tetapi dibagi 100 lagi. | Pembagian 100 dihapus di `admin/AkumulasiController` dan `AkumulasiExport`. |
+| 2 | Di modal Anggota Tim, kolom cari dan tombol **Tambah** tidak pernah terlihat, sehingga anggota tidak bisa ditambah lewat layar. | Skrip petunjuk geser tabel (`app.js`) menganggap elemen apa pun tepat di atas tabel sebagai petunjuk geser, lalu menyembunyikannya bila tabel tidak perlu digeser. | Elemen hanya diperlakukan sebagai petunjuk geser bila memang petunjuk geser (`sm:hidden`, `.table-scroll-hint`, atau berisi "Geser tabel"). |
+| 3 | Tambah Pengguna meminta password, tetapi password tidak tersimpan (kolom kosong). | Validasi `store` tidak menyertakan `password`. | `password` wajib, minimal 6 karakter, disimpan dengan `Hash::make`. |
+| 4 | Kabag dipaksa mengisi catatan walau tidak mengubah jam yang sudah dipangkas Ketua Tim. | Jam di modal Kabag terisi jam yang disetujui Ketua Tim, tetapi dibandingkan dengan jam pengajuan awal (di tampilan dan di server). | Pembanding diganti ke jam yang sudah disetujui Ketua Tim (atau jam pengajuan bila belum ada). Catatan tetap wajib bila Kabag mengubah jam. |
+| 5 | Tarif bisa diisi negatif (-500) dan tersimpan. | Validasi hanya `integer`/`numeric`. | Server: `min:0`, pajak `0–1`. Halaman: dicek sebelum kirim agar tarif hari kerja dan hari libur tidak tersimpan sebagian. |
+
+### C. Hasil Uji Setelah Perbaikan
+* Alur lembur (pegawai → ketua → kabag → admin), 33 langkah: semua lolos. Kabag langsung bisa menyetujui jam hasil pangkas Ketua Tim; bila Kabag mengubah jam tanpa catatan tetap ditolak di tampilan dan di server (422).
+* Modal Anggota Tim di 1366px dan 375px: kolom cari dan tombol Tambah terlihat; petunjuk geser tabel di HP pada halaman lain tetap tampil; pemindaian semua halaman tidak menemukan kontrol lain yang tersembunyi.
+* Tambah pengguna password 4 karakter: ditolak "Password minimal 6 karakter."; password valid tersimpan sebagai hash bcrypt dan cocok saat dicek `Hash::check`.
+* Tarif -500 dan pajak 5: ditolak dengan pesan, DB tidak berubah; kiriman langsung ke server: 422.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/admin/AkumulasiController.php` | Bug 1. |
+| 2 | `app/Exports/AkumulasiExport.php` | Bug 1. |
+| 3 | `resources/js/app.js` + `public/build/` | Bug 2. |
+| 4 | `app/Http/Controllers/admin/PenggunaController.php` | Bug 3. |
+| 5 | `resources/views/kabag-umum/pengajuan.blade.php` | Bug 4. |
+| 6 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Bug 4. |
+| 7 | `app/Http/Controllers/admin/RateController.php` | Bug 5. |
+| 8 | `resources/views/admin/tarif.blade.php` | Bug 5. |
+
+### E. Catatan
+* Bug 3 butuh kolom `password` `VARCHAR(255)` (SQL poin 8 di Bagian 1 panduan deploy). Tanpa itu, simpan pengguna baru akan error 500 karena hash 60 karakter tidak muat di `VARCHAR(50)`.
+* Bug 4 menyentuh poin "Perlu Konfirmasi Mentor" di seksi 110 bagian E. Perbaikannya berada di commit tersendiri sehingga mudah dikembalikan bila mentor memutuskan aturan lama.
+* Tidak diubah karena perlu keputusan: duplikat pejabat per tahun (sengaja dipakai sebagai riwayat Ganti Kabag/PPK), halaman `/pimpinan` yang tidak bisa diakses PPK (tidak ada pegawai ber-role `pimpinan`), data pejabat "VADSJN" yang aktif sebagai Kabag kedua, dan hapus hari libur tanpa konfirmasi.

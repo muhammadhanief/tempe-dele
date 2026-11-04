@@ -369,6 +369,11 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 251. 📄 **`resources/views/admin/dokumen.blade.php`** *(Pesan berhasil/gagal setelah generate dan hapus dokumen)*.
 252. 📄 **`resources/views/lembur.blade.php`** & **`resources/views/ketua-tim/lembur.blade.php`** *(Error dari server saat Ajukan Lembur tampil di modal Ajukan, isian lama dikembalikan)*.
 253. 📄 **`app/Http/Controllers/admin/PejabatController.php`** *(Halaman Pejabat menampilkan pejabat aktif setelah Ganti Kabag/PPK)*.
+254. 📄 **`app/Http/Controllers/admin/AkumulasiController.php`** & **`app/Exports/AkumulasiExport.php`** *(Pajak akumulasi admin dan Excel tidak lagi dibagi 100 dua kali)*.
+255. 📄 **`resources/js/app.js`** + folder **`public/build/`** *(Kolom cari dan tombol Tambah di modal Anggota Tim tidak lagi tersembunyi)*.
+256. 📄 **`app/Http/Controllers/admin/PenggunaController.php`** *(Password pegawai baru disimpan sebagai hash; butuh SQL poin 8 Bagian 1)*.
+257. 📄 **`resources/views/kabag-umum/pengajuan.blade.php`** & **`app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php`** *(Catatan Kabag hanya wajib jika jam diubah dari jam yang disetujui Ketua Tim)*.
+258. 📄 **`app/Http/Controllers/admin/RateController.php`** & **`resources/views/admin/tarif.blade.php`** *(Tarif negatif dan pajak di luar 0–1 ditolak)*.
 
 ---
 
@@ -1922,3 +1927,10 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Dokumen**: generate SPKL. Verifikasi: muncul pesan hijau "SPKL berhasil digenerate/diperbarui.".
 - [ ] **Ajukan lembur (pegawai)**: isi form lalu kirim tanpa tanda tangan yang valid. Verifikasi: modal Ajukan terbuka dengan pesan merah dan isian sebelumnya masih ada.
 - [ ] **Pejabat**: Admin → Pejabat. Verifikasi: baris tahun berjalan menampilkan Kabag Umum dan PPK yang sedang aktif.
+
+### DE. Uji Perbaikan Bug Hasil Uji E2E (Seksi 111)
+- [ ] **Pajak akumulasi admin**: Admin → Akumulasi, pilih bulan yang ada lembur eligible pegawai golongan III. Verifikasi: kolom pajak = 5% dari jumlah dan nominal diterima sama dengan halaman `/akumulasi` milik pegawai tersebut; file Download Excel menampilkan angka yang sama.
+- [ ] **Anggota tim**: Admin → Tim → ikon Anggota. Verifikasi: kolom cari dan tombol **Tambah** terlihat (di laptop dan HP); tambah satu pegawai lalu keluarkan lagi berhasil.
+- [ ] **Password pegawai baru**: pastikan SQL poin 8 Bagian 1 sudah dijalankan. Admin → Pengguna → Tambah dengan password 4 karakter → ditolak "Password minimal 6 karakter."; dengan password 6+ karakter → tersimpan dan kolom `password` di phpMyAdmin berisi hash `$2y$...`.
+- [ ] **Catatan Kabag**: Ketua Tim menyetujui sambil memangkas jam (dengan catatan) → Kabag membuka dan langsung menyetujui tanpa mengubah jam → tersimpan tanpa diminta catatan. Kabag mengubah jam tanpa catatan → muncul peringatan dan tidak tersimpan.
+- [ ] **Tarif**: Admin → Tarif → isi uang lembur -500 atau pajak 5 → muncul pesan merah dan nilai lama tetap; isi nilai valid → tersimpan.
