@@ -110,12 +110,10 @@ class LemburExport implements FromCollection, WithColumnWidths, WithEvents
                 $sheet    = $event->sheet->getDelegate();
                 $dataRows = count($this->data);
 
-                // Data dari collection() mulai di baris 1
-                // Sisipkan 3 baris di atas (judul1, judul2, kosong)
-                $sheet->insertNewRowBefore(1, 3);
-
-                // Sekarang data mulai baris 4, heading di baris 4, data di 5+
-                // Tapi kita perlu heading dulu — tulis manual di baris 4
+                // Data dari collection() mulai di baris 1.
+                // Sisipkan 4 baris di atas (judul1, judul2, kosong, heading) agar data mulai baris 5
+                // dan heading di baris 4 tidak menimpa data pertama.
+                $sheet->insertNewRowBefore(1, 4);
                 $headings = ['No', 'Tanggal', 'NIP', 'Nama Pegawai', 'Jam Diajukan', 'Jam Disetujui', 'Uraian Kegiatan', 'Ketua Tim', 'Nama Tim', 'Status'];
                 foreach ($headings as $i => $h) {
                     $col = chr(65 + $i); // A, B, C, ...
