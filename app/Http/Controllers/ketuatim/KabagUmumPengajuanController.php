@@ -237,7 +237,9 @@ class KabagUmumPengajuanController extends Controller
                 if (($mulaiBaru !== $mulaiAwal || $selesaiBaru !== $selesaiAwal) && empty($noteKabag)) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Catatan Kabag wajib diisi jika jam lembur yang disetujui Kabag berbeda dari jam yang sudah disetujui Ketua Tim.'
+                        'message' => $pakaiPengajuan
+                            ? 'Catatan Kabag wajib diisi jika jam lembur yang disetujui Kabag berbeda dari jam pengajuan.'
+                            : 'Catatan Kabag wajib diisi jika jam lembur yang disetujui Kabag berbeda dari jam yang sudah disetujui Ketua Tim.'
                     ], 422);
                 }
             }

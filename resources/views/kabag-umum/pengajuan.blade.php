@@ -1265,6 +1265,14 @@ let currentJamPengajuanSelesaiKabag = '';
 // Acuan pembanding catatan Kabag: jam yang sudah disetujui Ketua Tim (atau jam pengajuan jika belum ada)
 let currentJamAcuanMulaiKabag = '';
 let currentJamAcuanSelesaiKabag = '';
+let currentStatusKabag = '';
+
+// Pesan catatan wajib: pengajuan yang belum melewati Ketua Tim (Tim Bagian Umum) dibandingkan dengan jam pengajuan.
+function pesanCatatanKabagWajib() {
+    return currentStatusKabag === 'pending'
+        ? 'Catatan Kabag wajib diisi jika jam lembur yang disetujui Kabag berbeda dari jam pengajuan.'
+        : 'Catatan Kabag wajib diisi jika jam lembur yang disetujui Kabag berbeda dari jam yang sudah disetujui Ketua Tim.';
+}
 
 function updateCatatanKabagWajibHint() {
     const noteWajibHint = document.getElementById('mNoteWajibHint');
@@ -1295,6 +1303,7 @@ function updateCatatanKabagWajibHint() {
 // =====================
 window.openModalKabag = function(id, nama, tim, jamMulai, jamSelesai, noteKetua, noteKabag, currentStatus, uraian, isBagianUmum, hasPresensi, jamSelesaiPresensi, jamPengajuanMulai, jamPengajuanSelesai) {
     currentKabagId = id;
+    currentStatusKabag = currentStatus || '';
     currentUraianKabag = (uraian !== undefined && uraian !== null) ? uraian : '';
     currentIsBagianUmum = Boolean(isBagianUmum);
     currentHasPresensiKabag = Boolean(hasPresensi);
@@ -1433,6 +1442,7 @@ window.closeModalKabag = function() {
     currentJamPengajuanSelesaiKabag = '';
     currentJamAcuanMulaiKabag = '';
     currentJamAcuanSelesaiKabag = '';
+    currentStatusKabag = '';
 };
 
 window.setKeputusanKabag = function(val) {
@@ -1476,7 +1486,7 @@ window.simpanKeputusanKabag = function() {
         const isJamDiubah = (currentJamAcuanMulaiKabag && jamMulai !== currentJamAcuanMulaiKabag) ||
                             (currentJamAcuanSelesaiKabag && jamSelesai !== currentJamAcuanSelesaiKabag);
         if (isJamDiubah && (!noteKabag || noteKabag.trim() === '')) {
-            alert('Catatan Kabag wajib diisi jika jam lembur yang disetujui Kabag berbeda dari jam yang sudah disetujui Ketua Tim.');
+            alert(pesanCatatanKabagWajib());
             document.getElementById('mNoteKabag').focus();
             return;
         }
