@@ -369,6 +369,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 251. 📄 **`resources/views/admin/dokumen.blade.php`** *(Pesan berhasil/gagal setelah generate dan hapus dokumen)*.
 252. 📄 **`resources/views/lembur.blade.php`** & **`resources/views/ketua-tim/lembur.blade.php`** *(Error dari server saat Ajukan Lembur tampil di modal Ajukan, isian lama dikembalikan)*.
 253. 📄 **`app/Http/Controllers/admin/PejabatController.php`** *(Halaman Pejabat menampilkan pejabat aktif setelah Ganti Kabag/PPK)*.
+254. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`** & **`resources/views/admin/lembur.blade.php`** *(Teks estimasi durasi di modal Ajukan Lembur dirapikan, peringatan minimal 2 jam tidak dobel)*.
 
 ---
 
@@ -1922,3 +1923,7 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Dokumen**: generate SPKL. Verifikasi: muncul pesan hijau "SPKL berhasil digenerate/diperbarui.".
 - [ ] **Ajukan lembur (pegawai)**: isi form lalu kirim tanpa tanda tangan yang valid. Verifikasi: modal Ajukan terbuka dengan pesan merah dan isian sebelumnya masih ada.
 - [ ] **Pejabat**: Admin → Pejabat. Verifikasi: baris tahun berjalan menampilkan Kabag Umum dan PPK yang sedang aktif.
+
+### DE. Uji Teks Estimasi Durasi (Seksi 111)
+- [ ] **Ajukan lembur 1 jam**: Pegawai → Ajukan Lembur → jam 16:01–17:01. Verifikasi: baris estimasi "⏱️ Estimasi durasi: 1 jam (dihitung 1 jam)" tanpa huruf tebal dan tanpa tanda pisah; kotak merah "Minimal lembur 2 jam sesuai ketentuan PMK/BPS." tampil sekali; tombol Kirim nonaktif.
+- [ ] **Ubah ke 2 jam**: ganti jam selesai ke 18:01. Verifikasi: kotak merah hilang, tombol Kirim aktif. Ulangi di Ketua Tim dan Admin.
