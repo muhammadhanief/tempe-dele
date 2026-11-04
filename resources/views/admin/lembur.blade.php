@@ -1192,6 +1192,8 @@
         document.getElementById('tanggal').value     = '';
         document.getElementById('infoHari').classList.add('hidden');
         document.getElementById('infoJamMulai').classList.add('hidden');
+        document.getElementById('previewDurasi').classList.add('hidden');
+        document.getElementById('errorDurasiMinimal')?.classList.add('hidden');
         document.getElementById('errorTanggalDobel')?.classList.add('hidden');
         document.getElementById('tanggal')?.classList.remove('border-rose-400', 'bg-rose-50/40');
         document.getElementById('jam_selesai')?.removeAttribute('min');
