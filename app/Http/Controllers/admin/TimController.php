@@ -68,7 +68,18 @@ class TimController extends Controller
     public function destroy(string $kode_tim)
     {
         $tim = Tim::findOrFail($kode_tim);
-        $tim->delete();
+
+        // t_transaksi mengunci tim (foreign key RESTRICT), jadi tim yang sudah punya riwayat lembur ditolak.
+        if (DB::table('t_transaksi')->where('tim_kode_tim', $kode_tim)->exists()) {
+            return response()->json([
+                'message' => 'Tim tidak bisa dihapus karena sudah dipakai pada pengajuan lembur. Ubah statusnya menjadi nonaktif.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($tim, $kode_tim) {
+            DB::table('t_anggota_tim')->where('tim_kode_tim', $kode_tim)->delete();
+            $tim->delete();
+        });
 
         return response()->json(['message' => 'Tim berhasil dihapus']);
     }
