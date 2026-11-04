@@ -1141,13 +1141,13 @@
                                 {{-- Preview Durasi --}}
                                 <div id="previewDurasiWrapper" class="mt-2">
                                     <div id="previewDurasi" class="hidden rounded-lg bg-orange-50/70 border border-orange-100 px-3 py-1.5 text-xs text-orange-800">
-                                        ⏱️ Estimasi Durasi: <span id="durasiLabel" class="font-bold text-orange-950"></span>
+                                        ⏱️ Estimasi durasi: <span id="durasiLabel"></span>
                                     </div>
-                                    <div id="errorDurasiMinimal" class="hidden mt-1.5 p-2 rounded-xl border border-red-200 bg-red-50 text-[11px] text-red-700 flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div id="errorDurasiMinimal" class="hidden mt-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-700 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                         </svg>
-                                        <span><strong>Minimal 2 Jam:</strong> Minimal lembur 2 jam sesuai PMK/BPS.</span>
+                                        <span>Minimal lembur 2 jam sesuai ketentuan PMK/BPS.</span>
                                     </div>
                                 </div>
                             </div>
@@ -2013,20 +2013,20 @@
         const jam = Math.floor(totalMenit / 60);
         const menit = totalMenit % 60;
 
-        let info = `${jam} jam ${menit > 0 ? menit + ' menit' : ''} (dihitung ${jam} jam)`;
+        let info = `${jam} jam${menit > 0 ? ' ' + menit + ' menit' : ''} (dihitung ${jam} jam)`;
         if (isCrossMidnight) {
-            info += ' — 🌙 Lembur lintas tengah malam hingga dini hari';
+            info += '. 🌙 Lembur lintas tengah malam hingga dini hari';
         }
         let warna = isCrossMidnight ? 'text-indigo-600 font-medium' : 'text-gray-500';
 
         if (jam < 2) {
-            info += ' — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.';
-            warna = 'text-red-600 font-bold';
+            info += '. ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.';
+            warna = 'text-red-600';
         } else if (jam > 12) {
-            info += ' — ⚠️ Durasi lembur melebihi batas wajar harian (maksimal 12 jam).';
-            warna = 'text-red-600 font-bold';
+            info += '. ⚠️ Durasi lembur melebihi batas wajar harian (maksimal 12 jam).';
+            warna = 'text-red-600';
         } else if (jam > 6 && !isCrossMidnight) {
-            info += ' — ⚠️ Maksimal lembur 6 jam';
+            info += '. ⚠️ Maksimal lembur 6 jam.';
             warna = 'text-amber-600';
         }
 
@@ -2352,23 +2352,21 @@
         const jam = Math.floor(totalMenit / 60);
         const menit = totalMenit % 60;
 
-        let info = `${jam} jam ${menit > 0 ? menit + ' menit' : ''} (dihitung ${jam} jam)`;
+        let info = `${jam} jam${menit > 0 ? ' ' + menit + ' menit' : ''} (dihitung ${jam} jam)`;
         if (isCrossMidnight) {
-            info += ' — 🌙 Lembur lintas tengah malam hingga dini hari';
+            info += '. 🌙 Lembur lintas tengah malam hingga dini hari';
         }
         let warna = isCrossMidnight ? 'text-indigo-600 font-medium' : 'text-gray-500';
 
         if (jam < 2) {
-            info += ' — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS.';
-            warna = 'text-red-600 font-bold';
             if (errorBox) errorBox.classList.remove('hidden');
             if (btnSubmit) {
                 btnSubmit.disabled = true;
                 btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
             }
         } else if (jam > 12) {
-            info += ' — ⚠️ Durasi lembur melebihi batas wajar harian (maksimal 12 jam).';
-            warna = 'text-red-600 font-bold';
+            info += '. ⚠️ Durasi lembur melebihi batas wajar harian (maksimal 12 jam).';
+            warna = 'text-red-600';
             if (btnSubmit) {
                 btnSubmit.disabled = true;
                 btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
@@ -2380,18 +2378,18 @@
                 btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
             }
             if (jam > 6 && !isCrossMidnight) {
-                info += ' — ⚠️ Maksimal lembur 6 jam';
+                info += '. ⚠️ Maksimal lembur 6 jam.';
                 warna = 'text-amber-500';
             }
         }
 
         label.textContent = info;
         preview.className = `rounded-xl border px-3.5 py-2.5 text-xs transition-all ${
-            jam < 2 || jam > 12
-                ? 'border-rose-200 bg-rose-50 text-rose-700 font-medium'
+            jam > 12
+                ? 'border-rose-200 bg-rose-50 text-rose-700'
                 : (isCrossMidnight
-                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 font-medium'
-                    : (jam > 6 ? 'border-amber-200 bg-amber-50 text-amber-800 font-medium' : 'border-orange-100 bg-orange-50/70 text-orange-800 font-medium'))
+                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                    : (jam > 6 ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-orange-100 bg-orange-50/70 text-orange-800'))
         }`;
         preview.classList.remove('hidden');
     }
