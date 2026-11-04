@@ -299,6 +299,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 197. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Kalibrasi layout tabel pengajuan ketua tim fit 100% desktop tanpa scroll horizontal [lg:min-w-full], distribusi colgroup presisi 100% [3.5%, 17%, 10.5%, 10.5%, 11.5%, 20%, 9%, 12.5%, 5.5%], padding sel rapat rapi px-1 / px-1.5 py-2, standarisasi lencana jam disetujui hijau text-[10.5px] px-1.5 py-0.5 bebas tabrakan, tombol presensi & badge status proporsional, serta sinkronisasi AJAX real-time)*.
 198. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Penataan bertingkat vertikal flex-col header kolom Tanggal: teks Tanggal di atas dan dropdown sortir [Terbaru ▾] di bawahnya, mengeliminasi tabrakan horizontal dengan header Jam Diajukan)*.
 199. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Restrukturisasi tata letak modal #modalAjukan menjadi 2-kolom desktop md:grid-cols-2 zero-scroll: max-w-3xl lg:max-w-4xl max-h-[92vh], textarea uraian rows=3, kanvas tanda tangan h-28 touch-none, mengeliminasi scrollbar vertikal pada layar laptop/desktop dengan fallback responsif 1-kolom di mobile)*.
+200. 📄 **`resources/views/admin/lembur.blade.php`** + folder **`public/build/`** *(Kontrol urutan dipindah ke ujung kanan baris filter dengan label Perlu ditindak dulu / Tanggal terbaru / Tanggal terlama; tabel monitoring lembur admin digabung dari 11 menjadi 7 kolom [Tanggal & Jam, Pegawai, Tim & Ketua, Uraian + Catatan, Status + Presensi, Dokumentasi, Aksi] dan lebar otomatis tanpa scroll samping di laptop 1280–1920px)*.
 
 ---
 
@@ -1389,6 +1390,16 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Verifikasi: Batas bawah kolom kiri (Jam Mulai/Selesai & Estimasi Durasi) sejajar horizontal dengan batas bawah kolom kanan (Kotak Tanda Tangan Digital).
   - Verifikasi: Jarak antar-elemen di kolom kiri lapang dan proporsional (`justify-between`, `py-2.5`), mengeliminasi ruang kosong canggung di sudut kiri bawah.
 
-
-
-
+### BT. Uji Kontrol Urutan di Baris Filter & Tabel Monitoring Lembur Admin Tanpa Scroll Samping (`/admin/lembur`)
+- [ ] **Uji Kontrol Urutan**:
+  - Masuk sebagai Administrator, buka `/admin/lembur`.
+  - Verifikasi: kontrol urutan ada di ujung kanan baris filter (sejajar "Cari nama tim"), bukan di judul kolom Tanggal.
+  - Pilih **Tanggal terlama**: halaman memuat ulang dengan `?sort=asc`, data urut dari tanggal terlama, dan judul kolom menampilkan "Tanggal & Jam ↑".
+  - Pilih **Perlu ditindak dulu**: baris berstatus Menunggu Kabag tampil paling atas.
+- [ ] **Uji Tabel Tanpa Scroll Samping**:
+  - Buka halaman di laptop 1280px, 1366px, 1536px, dan 1920px (atau ubah ukuran jendela/zoom browser).
+  - Verifikasi: tabel 7 kolom tampil utuh tanpa scrollbar horizontal; nama tim maksimal ±3 baris.
+  - Verifikasi: jam disetujui (hijau) tampil di bawah jam diajukan, catatan tampil di bawah uraian dengan label "Catatan:", dan badge presensi tampil di bawah badge status.
+- [ ] **Uji Batal Pengajuan (JavaScript)**:
+  - Klik ikon pensil pada salah satu baris lalu batalkan pengajuan.
+  - Verifikasi: badge status berubah menjadi "Dibatalkan", catatan pembatalan muncul di bawah uraian, dan badge presensi tetap tampil.
