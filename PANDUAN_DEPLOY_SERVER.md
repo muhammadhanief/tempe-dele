@@ -379,6 +379,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 261. 📄 **`app/Http/Controllers/ketuatim/DashboardController.php`** & **`app/Http/Controllers/admin/LemburController.php`** *(Tombol Setujui tidak lagi error 500 saat pegawai sudah punya presensi)*.
 262. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Tombol koreksi tetap jalan saat catatan memuat tanda kutip)*.
 263. 📄 **`resources/views/pimpinan/dashboard.blade.php`** *(Kolom Status dashboard Pimpinan terisi untuk Menunggu Kabag dan Dibatalkan)*.
+264. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Logo kop SPKL 70% dan rata kiri)*.
 
 ---
 
@@ -1945,4 +1946,5 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Setujui dengan presensi**: Admin → Presensi → unggah presensi yang memuat pegawai berpengajuan pending. Masuk sebagai Ketua Tim → Dashboard → buka pengajuan itu → Setujui. Verifikasi: berhasil, status menjadi Menunggu Kabag, tidak muncul alert "Gagal memproses".
 - [ ] **Koreksi dengan tanda kutip**: Ketua Tim → Pengajuan → setujui dengan catatan memuat tanda kutip (contoh: Pak Joko' minta) → klik ikon koreksi tanpa refresh. Verifikasi: modal terbuka dan catatan terisi.
 - [ ] **Dashboard pegawai**: pegawai yang punya pengajuan Menunggu Kabag. Verifikasi: subjudul "5 pengajuan lembur terakhir kamu." dan badge "Diproses" pada pengajuan tersebut.
+- [ ] **Kop SPKL**: Admin → Generate Dokumen → generate SPKL PDF, buka. Verifikasi: logo BPS Jawa Tengah berada di kiri atas (rata dengan tepi kiri tabel), lebarnya sekitar 70% area cetak, garis hitam di bawahnya, lalu judul "SURAT PERINTAH KERJA LEMBUR" di tengah.
 - [ ] **Pesan catatan Kabag**: Kabag membuka pengajuan Tim Bagian Umum berstatus Pending, mengubah jam, kosongkan catatan, lalu Setujui. Verifikasi: pesan "...berbeda dari jam pengajuan." Untuk pengajuan tim lain berstatus Menunggu Kabag, pesannya "...berbeda dari jam yang sudah disetujui Ketua Tim."

@@ -6209,6 +6209,7 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 | 8 | `resources/views/pimpinan/dashboard.blade.php` | Bug 8. |
 | 9 | `resources/views/kabag-umum/pengajuan.blade.php` | Bug 9 (alert modal). |
 | 10 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Bug 9 (pesan server). |
+| 11 | `resources/views/dokumen/spkl.blade.php` | Kop surat SPKL (lihat seksi F). |
 
 ### E. Catatan (Tidak Diubah)
 * Empat trigger `sync_jam_*` pada tabel `t_presensi` (jam disetujui disamakan dengan jam pulang presensi saat presensi diunggah) sudah ada di dump database dari mentor sejak awal dan tidak ada di repo. Tidak diubah dan tidak ada SQL baru.
@@ -6216,3 +6217,7 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 * Kolom Status di dashboard Pimpinan terpotong di layar 1366px; menunggu persetujuan pengguna karena menyangkut tampilan.
 * Sudah diputuskan pengguna sehingga bukan pertanyaan terbuka: lembur boleh diajukan melebihi batas tetapi dihitung sesuai batas maksimal (4 jam hari kerja, 6 jam hari libur); Ketua Tim boleh menyetujui pengajuannya sendiri karena persetujuan final tetap di Kabag; role Pimpinan dibiarkan; catatan Kabag hanya wajib jika jam diubah dari tingkat sebelumnya.
 * Pengajuan sampai 19:30 dengan presensi pulang 20:00: trigger database dari mentor menaikkan jam disetujui menjadi jam presensi (dibatasi 4 atau 6 jam). Dibiarkan; bila pegawai bekerja melebihi pengajuan, pegawai menyampaikan ke Ketua Tim, Kabag, atau Admin untuk dikoreksi.
+
+### F. Kop Surat SPKL: Logo 70% dan Rata Kiri
+* Atas permintaan pengguna, logo kop SPKL (`dokumen/spkl.blade.php`) diubah dari lebar 60% dan rata tengah menjadi **lebar 70% dan rata kiri**, sama dengan contoh `spkl.pdf`.
+* Hasil ukur pada PDF yang dibangkitkan: logo di `x = 42,5 pt`, lebar `357,2 pt`, jumlah halaman 2. Angkanya sama persis dengan berkas contoh. Garis pemisah, judul, dan isi tabel tidak diubah.
