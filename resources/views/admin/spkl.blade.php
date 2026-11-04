@@ -204,8 +204,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="29" class="p-8 text-center text-sm text-gray-400">
-                            Tidak ada data lembur untuk periode ini.
+                        <td colspan="29" class="p-8 text-left text-sm text-gray-400">
+                            <span class="sticky left-8 inline-block">Tidak ada data lembur untuk periode ini.</span>
                         </td>
                     </tr>
                 @endforelse

@@ -211,7 +211,7 @@
         {{-- Card Tabel --}}
         <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs">
             <div id="tableScrollWrapper" class="overflow-x-auto w-full overscroll-x-contain cursor-grab active:cursor-grabbing select-none" style="-webkit-overflow-scrolling: touch; touch-action: pan-x pan-y;">
-                <table class="w-full table-fixed border-separate border-spacing-0" style="min-width: 1020px;">
+                <table class="w-full min-w-[1020px] xl:min-w-[880px] table-fixed border-separate border-spacing-0">
                     <thead class="bg-gray-50/90">
                         <tr>
                             <th style="width: 8.5%;" class="sticky left-0 z-20 bg-gray-50 px-1 py-3 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl border-b border-r border-gray-200 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.08)]">Tanggal</th>
