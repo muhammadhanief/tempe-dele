@@ -6119,3 +6119,26 @@ Bug nomor 12 (Manajemen User melebar di HP) diperbaiki terpisah di seksi 108.
 ### E. Perlu Konfirmasi Mentor (Bukan Bug)
 * Ketua tim bisa memilih dirinya sendiri sebagai penyetuju pengajuannya (persetujuan final tetap lewat Kabag).
 * Kabag wajib mengisi catatan walau hanya menyetujui jam yang sudah disesuaikan Ketua Tim.
+
+---
+
+## 111. Teks Estimasi Durasi di Modal Ajukan Lembur Dirapikan (`/lembur`, `/ketua-tim/lembur`, `/admin/lembur`)
+
+### A. Masalah
+Saat durasi kurang dari 2 jam, modal Ajukan Lembur menampilkan peringatan yang sama dua kali:
+* Baris estimasi: "Estimasi Durasi: 1 jam (dihitung 1 jam) — ⚠️ Minimal pengajuan lembur adalah 2 jam sesuai ketentuan PMK/BPS." (tebal, dengan tanda pisah).
+* Kotak merah di bawahnya: "**Minimal 2 Jam:** Minimal lembur 2 jam sesuai PMK/BPS."
+
+### B. Perubahan
+* Baris estimasi hanya berisi durasi, misalnya "⏱️ Estimasi durasi: 1 jam (dihitung 1 jam)", tanpa huruf tebal.
+* Peringatan minimal 2 jam tampil sekali di kotak merah: "Minimal lembur 2 jam sesuai ketentuan PMK/BPS." Ukuran huruf dan jarak dalam kotak disamakan dengan baris estimasi.
+* Catatan lain (lintas tengah malam, maksimal 6 jam, maksimal 12 jam) disambung dengan titik, bukan tanda pisah.
+* Modal Edit Pengajuan (pegawai & ketua tim) memakai teks yang sama tanpa tanda pisah dan tanpa huruf tebal.
+* Halaman admin: kotak merah minimal 2 jam sebelumnya tidak pernah muncul; sekarang muncul dan hilang sesuai durasi, sama seperti halaman pegawai.
+
+### C. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Modal Ajukan dan Edit. |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Sama dengan berkas pegawai. |
+| 3 | `resources/views/admin/lembur.blade.php` | Modal Ajukan admin. |
