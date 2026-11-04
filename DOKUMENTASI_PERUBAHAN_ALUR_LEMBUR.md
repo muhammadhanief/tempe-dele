@@ -6028,7 +6028,7 @@ Uji klik UI + backend pada seluruh fitur role pegawai, ketua tim, kabag, admin, 
 | 4 | Halaman Pejabat menampilkan pejabat lama (nonaktif) setelah Ganti Kabag/PPK. | `firstWhere` mengambil baris pertama per jabatan. | Data diurutkan dengan pejabat aktif lebih dulu. |
 | 5 | Hapus tim selalu gagal (404). | JS memanggil `/admin/master/tim/{kode}`. | URL diperbaiki ke `/admin/tim/{kode}`; tim yang sudah dipakai pengajuan ditolak dengan pesan jelas (foreign key `RESTRICT`), anggota tim ikut dihapus. |
 | 6 | Ajukan lembur yang ditolak server: modal terbuka kosong, pesan error tidak terlihat (pegawai & ketua tim). | Modal di-reset saat dibuka; error hanya dirender di modal Dokumentasi. | Kotak error tampil di modal Ajukan, isian lama dikembalikan, modal Dokumentasi hanya menampilkan error link dokumentasi. |
-| 7 | Pegawai tanpa email tidak bisa diedit. | Validasi `email` tidak menerima kosong. | Aturan menjadi `sometimes|nullable|email`. |
+| 7 | Pegawai tanpa email tidak bisa diedit. | Validasi `email` tidak menerima kosong. | Aturan email menjadi `sometimes`, `nullable`, `email`. |
 | 8 | Pesan validasi tampil sebagai kunci mentah (`validation.unique`). | `APP_LOCALE=id` tanpa berkas terjemahan. | Berkas baru `lang/id/validation.php`. |
 | 9 | Ikon edit di Pengajuan admin tidak bisa diklik setelah simpan (perlu refresh). | `JSON.stringify` memotong atribut `onclick`. | Helper `argAttr()` meng-escape argumen di atribut. |
 | 10 | Upload presensi file bukan Excel menampilkan "Gagal menghubungi server." | `fetch` tanpa `Accept: application/json` sehingga validasi membalas redirect. | Header `Accept` ditambahkan; pesan menjadi "Berkas harus berupa berkas berjenis: xlsx, xls." |
