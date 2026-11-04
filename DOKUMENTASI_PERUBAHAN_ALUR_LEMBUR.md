@@ -6179,12 +6179,14 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 | 7 | Tombol koreksi keputusan Ketua Tim tidak membuka modal setelah simpan jika catatan memuat tanda kutip tunggal (atribut `onclick` terpotong). | Nilai catatan dan uraian dipasang lewat helper `argAttr()` yang meloloskan tanda kutip, sama dengan perbaikan bug 9 di seksi 110. |
 | 8 | Dashboard Pimpinan: kolom Status kosong untuk Menunggu Kabag dan Dibatalkan. | Menunggu Kabag tampil "Menunggu", status lain yang tidak dikenal tampil "Dibatalkan". |
 | 9 | Pesan "Catatan Kabag wajib diisi..." selalu menyebut "jam yang sudah disetujui Ketua Tim", padahal pada pengajuan Tim Bagian Umum (Kabag sekaligus ketua, status `pending`) belum ada persetujuan Ketua Tim. | Untuk status `pending` pesan menjadi "...berbeda dari jam pengajuan." Pesan untuk tim lain tidak berubah. Aturannya sendiri tidak berubah. Berlaku di server dan di alert modal Kabag. |
+| 10 | Dashboard pegawai: pengajuan yang dibatalkan admin (status `cancelled`/`dibatalkan`) tampil tanpa badge status. Ditemukan saat uji klik di Chrome. | Ditambahkan badge abu-abu "Dibatalkan" pada daftar "Pengajuan terbaru". |
 
 ### C. Hasil Uji
 * Modal durasi di pegawai, ketua tim, dan admin: 59 dari 59 skenario klik lolos dan 35 tangkapan layar.
 * Uji klik per role: 297 tangkapan layar (Pegawai 51, Ketua Tim 40, Kabag Umum 28, Pimpinan 19, Admin operasional 86, Admin data master 44, Superadmin 29).
 * Tombol Setujui Ketua Tim diuji lewat HTTP pada salinan database dengan data presensi: kode lama HTTP 500, kode baru HTTP 200 (status menjadi Menunggu Kabag, jam disetujui dibatasi ke jam yang lebih awal antara jam pengajuan dan jam pulang presensi). Pengajuan tanpa presensi juga HTTP 200.
 * Backend: kirim paksa pengajuan 1 jam ditolak "Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS." dan tidak tersimpan; kirim 2 jam tersimpan.
+* Uji klik di Chrome untuk empat perbaikan tampilan (24 pemeriksaan, semua lolos): subjudul dan badge dashboard pegawai (termasuk Dibatalkan), tombol koreksi Ketua Tim dengan catatan berisi `'`, `"`, dan `<`, kolom Status dashboard Pimpinan (Menunggu, Disetujui, Ditolak, Dibatalkan), dan pesan catatan Kabag untuk Bagian Umum serta tim lain.
 * Aturan catatan Kabag diuji lewat HTTP (data uji pada salinan database):
 
 | Kasus | Hasil |
@@ -6202,7 +6204,7 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 | 1 | `resources/views/lembur.blade.php` | Bug 1 dan 2. |
 | 2 | `resources/views/ketua-tim/lembur.blade.php` | Bug 1 dan 2 (sama dengan berkas pegawai). |
 | 3 | `resources/views/admin/lembur.blade.php` | Bug 1 dan 3. |
-| 4 | `resources/views/dashboard.blade.php` | Bug 4 dan 5. |
+| 4 | `resources/views/dashboard.blade.php` | Bug 4, 5, dan 10. |
 | 5 | `app/Http/Controllers/ketuatim/DashboardController.php` | Bug 6. |
 | 6 | `app/Http/Controllers/admin/LemburController.php` | Bug 6. |
 | 7 | `resources/views/ketua-tim/pengajuan.blade.php` | Bug 7. |
