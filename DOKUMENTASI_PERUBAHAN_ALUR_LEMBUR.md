@@ -5914,3 +5914,39 @@ Penyebab profil melebar di HP ternyata cukup diatasi dengan `grid-cols-1`. Hasil
 * **Sidebar:** hanya ikon Rekapitulasi Lembur yang berubah (menjadi utuh).
 
 ---
+
+## 105. Kontrol Urutan Dipindah ke Baris Filter & Tabel Monitoring Lembur Admin Muat Tanpa Scroll Samping (`/admin/lembur`)
+
+### A. Latar Belakang
+1. Dropdown sortir (*Prioritas / Terbaru / Terlama*) ada di dalam judul kolom **Tanggal**. Ukurannya kecil (teks 11px, tinggi ±18px), daftar pilihannya menutupi isi kolom tanggal, dan label "Prioritas" membingungkan karena sebenarnya mengurutkan berdasarkan **status**, bukan tanggal.
+2. Tabel berisi 11 kolom dengan `min-w-[1240px]`. Kolom Tim & Ketua sempit sehingga nama tim pecah 5–6 baris (tinggi baris ±170px), dan di laptop selalu muncul scroll ke samping.
+3. Permintaan pengguna: pindahkan kontrol urutan, buat tabel *auto fit*, **tanpa scroll ke samping**, dengan memperhatikan berbagai ukuran layar laptop.
+
+### B. Perubahan
+1. **Kontrol urutan di baris filter**: `select#headerSortTanggal` dipindah ke ujung kanan baris filter, setelah dropdown status (`#wrapStatusFilter`, seksi 98). Tinggi `h-10`, `rounded-xl`, gaya sama dengan filter lain. Label baru: **Perlu ditindak dulu** (`priority`), **Tanggal terbaru** (`desc`), **Tanggal terlama** (`asc`). Nilai parameter `sort` dan fungsi `onHeaderSortChange()` tidak berubah.
+2. **Judul kolom Tanggal** menjadi teks biasa "Tanggal & Jam", dengan panah ↓/↑ saat urutan tanggal aktif.
+3. **Tabel 11 kolom digabung menjadi 7 kolom**:
+   - *Tanggal & Jam*: tanggal, jam diajukan, dan jam disetujui (hijau) bertumpuk dalam satu sel.
+   - *Uraian Kegiatan*: catatan tampil di bawah uraian. Catatan biasa diberi label "Catatan:"; catatan pembatalan admin tetap memakai label "Admin:" (seksi 93).
+   - *Status*: badge Data Presensi tampil di bawah badge status.
+   - Pegawai, Tim & Ketua, Dokumentasi, dan Aksi tetap.
+4. **Lebar otomatis**: `min-w-[1240px]` dan lebar tetap `w-*` per kolom dihapus; kolom memakai `min-w`/`max-w` seperlunya. Padding sel `px-2.5` di bawah 1440px dan `px-3.5` mulai 1440px.
+5. **Kotak pencarian lentur**: "Cari pegawai" dan "Cari tim" memakai `sm:flex-1` dengan `min-w`/`max-w` (placeholder disingkat) agar tanggal, pegawai, tim, status, dan urutan muat satu baris.
+6. `id` yang dipakai JavaScript tetap ada: `status-cell-{id}` (dipindah ke `div` di dalam sel Status agar badge presensi tidak terhapus saat batal), `note-cell-{id}` (div di dalam sel Uraian), `aksi-cell-{id}`. `colspan` baris kosong disesuaikan dari 11 ke 7.
+
+### C. Hasil Pengukuran (Playwright, sidebar terbuka)
+| Lebar layar | Area tabel | Scroll samping |
+| :---: | :---: | :---: |
+| 1280px | 894px | Tidak |
+| 1366px | 980px | Tidak |
+| 1440px | 1054px | Tidak |
+| 1536px | 1150px | Tidak |
+| 1920px | 1214px | Tidak |
+
+Di tablet/HP (< 900px) tabel tetap bisa digeser dengan petunjuk geser yang sudah ada.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/lembur.blade.php` | Kontrol urutan dipindah ke baris filter dengan label baru, tabel monitoring digabung jadi 7 kolom dan lebar otomatis tanpa scroll samping di laptop, kotak pencarian lentur. |
+| 2 | `public/build/*` | Hasil `npm run build` untuk class Tailwind baru. |

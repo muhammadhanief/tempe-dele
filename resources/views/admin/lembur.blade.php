@@ -134,10 +134,10 @@
             </div>
 
             {{-- Collapsible Container Pegawai, Tim & Status --}}
-            <div id="mobileFilterCollapse" class="{{ $hasActiveSearchFilter ? 'flex' : 'hidden' }} sm:!flex flex-col sm:flex-row sm:items-center gap-2.5 w-full sm:w-auto">
+            <div id="mobileFilterCollapse" class="{{ $hasActiveSearchFilter ? 'flex' : 'hidden' }} sm:!flex flex-col sm:flex-row sm:items-center gap-2.5 w-full sm:w-auto sm:flex-1 sm:min-w-0">
                 {{-- Filter Pegawai --}}
-                <div class="relative w-full sm:w-64" id="wrapSearchPegawai">
-                    <input type="text" id="searchPegawai" placeholder="Cari nama pegawai..."
+                <div class="relative w-full sm:flex-1 sm:min-w-[140px] sm:max-w-64" id="wrapSearchPegawai">
+                    <input type="text" id="searchPegawai" placeholder="Cari pegawai..."
                         onclick="openDropdown()" onfocus="openDropdown()" oninput="filterDropdown()" autocomplete="off"
                         class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
 
@@ -159,8 +159,8 @@
                 </div>
 
                 {{-- Filter Tim --}}
-                <div class="relative w-full sm:w-60" id="wrapSearchTim">
-                    <input type="text" id="searchTim" placeholder="Cari nama tim..."
+                <div class="relative w-full sm:flex-1 sm:min-w-[130px] sm:max-w-60" id="wrapSearchTim">
+                    <input type="text" id="searchTim" placeholder="Cari tim..."
                         onclick="openDropdownTim()" onfocus="openDropdownTim()" oninput="filterDropdownTim()" autocomplete="off"
                         value="{{ request('search') }}"
                         class="w-full h-10 rounded-xl border border-gray-200 bg-white pl-3.5 pr-12 text-xs font-medium text-gray-700 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all"/>
@@ -302,6 +302,23 @@
                 </div>
             </div>
 
+            {{-- Urutan Data --}}
+            <div class="relative w-full sm:w-auto sm:ml-auto">
+                <label for="headerSortTanggal" class="sr-only">Urutkan</label>
+                <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#faa938]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+                </svg>
+                <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
+                    class="appearance-none w-full sm:w-auto h-10 rounded-xl border border-gray-200 bg-white pl-9 pr-9 text-xs font-semibold text-gray-700 shadow-2xs cursor-pointer hover:border-[#faa938] focus:border-[#faa938] focus:outline-none focus:ring-2 focus:ring-[#faa938]/20 transition-all">
+                    <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Perlu ditindak dulu</option>
+                    <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Tanggal terbaru</option>
+                    <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Tanggal terlama</option>
+                </select>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-3 w-3 fill-current text-gray-400">
+                    <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L160 301.5l119.1-119.1c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-136 136c-9.4 9.4-24.6 9.4-34 0z"/>
+                </svg>
+            </div>
+
         </div>
 
         {{-- Petunjuk Geser & Scrollbar di Layar HP (Mobile) --}}
@@ -323,37 +340,23 @@
         {{-- Tabel --}}
         <div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs">
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1240px] table-auto divide-y divide-gray-200">
+                <table class="w-full table-auto divide-y divide-gray-200">
                     <thead class="bg-gray-50/90 border-b border-gray-200">
                         <tr>
-                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tl-2xl w-32">
-                                <div class="inline-flex items-center justify-center gap-1.5 w-full">
-                                    <span>Tanggal</span>
-                                    <div class="relative inline-block text-left">
-                                        <select id="headerSortTanggal" onchange="onHeaderSortChange(this.value)"
-                                            class="appearance-none bg-white hover:bg-gray-50 rounded-md pl-1.5 pr-4 py-0.5 text-[11px] font-medium text-gray-700 cursor-pointer border border-gray-300 shadow-2xs focus:border-[#faa938] focus:outline-none focus:ring-1 focus:ring-[#faa938]/40 transition-all">
-                                            <option value="priority" {{ (($sort ?? 'priority') === 'priority') ? 'selected' : '' }}>Prioritas</option>
-                                            <option value="desc" {{ (($sort ?? 'priority') === 'desc') ? 'selected' : '' }}>Terbaru</option>
-                                            <option value="asc" {{ (($sort ?? 'priority') === 'asc') ? 'selected' : '' }}>Terlama</option>
-                                        </select>
-                                        <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
+                            <th class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs font-semibold text-gray-700 capitalize text-center rounded-tl-2xl">
+                                <span class="whitespace-nowrap">Tanggal &amp; Jam</span>
+                                @if(($sort ?? 'priority') === 'desc')
+                                    <span class="text-[#faa938]" title="Tanggal terbaru di atas">&darr;</span>
+                                @elseif(($sort ?? 'priority') === 'asc')
+                                    <span class="text-[#faa938]" title="Tanggal terlama di atas">&uarr;</span>
+                                @endif
                             </th>
-                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize w-44">Pegawai</th>
-                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize w-40">Tim &amp; Ketua</th>
-                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-32">Jam Diajukan</th>
-                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-32">Jam Disetujui</th>
-                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize">Uraian Kegiatan</th>
-                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-36">Data Presensi</th>
-                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-36">Status</th>
-                            <th class="px-3.5 py-3.5 text-left text-xs font-semibold text-gray-700 capitalize w-32">Catatan</th>
-                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize w-24">Dokumentasi</th>
-                            <th class="px-3.5 py-3.5 text-center text-xs font-semibold text-gray-700 capitalize rounded-tr-2xl w-24">Aksi</th>
+                            <th class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs font-semibold text-gray-700 capitalize text-left">Pegawai</th>
+                            <th class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs font-semibold text-gray-700 capitalize text-left">Tim &amp; Ketua</th>
+                            <th class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs font-semibold text-gray-700 capitalize text-left">Uraian Kegiatan</th>
+                            <th class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs font-semibold text-gray-700 capitalize text-center">Status</th>
+                            <th class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs font-semibold text-gray-700 capitalize text-center">Dokumentasi</th>
+                            <th class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs font-semibold text-gray-700 capitalize text-center rounded-tr-2xl">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white" id="tabelLembur">
@@ -363,48 +366,44 @@
                                 data-tim="{{ $t->tim_kode_tim }}"
                                 data-nip="{{ $t->submitted_by_NIP }}">
 
-                                <td class="px-3.5 py-3.5 text-xs text-gray-700 whitespace-nowrap text-center align-middle">
+                                <td class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs text-gray-700 whitespace-nowrap text-center align-middle">
                                     <span class="font-medium text-gray-900">{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}</span>
+                                    <div class="mt-1.5 flex flex-col items-center gap-1">
+                                        <div class="text-[10px] text-gray-400 leading-none">Diajukan</div>
+                                        @if($t->jam_mulai && $t->jam_selesai)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] font-medium text-gray-700 bg-gray-50 border border-gray-200/80">
+                                                {{ substr($t->jam_mulai, 0, 5) }} &ndash; {{ substr($t->jam_selesai, 0, 5) }}
+                                            </span>
+                                        @elseif($t->jam_mulai)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-600 bg-gray-50 border border-gray-200/80">
+                                                {{ substr($t->jam_mulai, 0, 5) }} &ndash; <span class="text-gray-400 font-sans italic text-[10px] ml-1">menunggu</span>
+                                            </span>
+                                        @else
+                                            <span class="text-gray-300 font-mono">-</span>
+                                        @endif
+                                        @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
+                                            <div class="text-[10px] text-emerald-600 leading-none mt-0.5">Disetujui</div>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200/80">
+                                                {{ substr($t->jam_mulai_disetujui, 0, 5) }} &ndash; {{ substr($t->jam_selesai_disetujui, 0, 5) }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
 
-                                <td class="px-3.5 py-3.5 text-xs text-left align-middle">
-                                    <div class="font-semibold text-gray-900 leading-snug">{{ $t->nama_pegawai ?? '-' }}</div>
+                                <td class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs text-left align-middle">
+                                    <div class="font-semibold text-gray-900 leading-snug min-w-[130px]">{{ $t->nama_pegawai ?? '-' }}</div>
                                     <div class="text-[11px] font-mono text-gray-500 mt-0.5">{{ $t->submitted_by_NIP }}</div>
                                 </td>
 
-                                <td class="px-3.5 py-3.5 text-xs text-left align-middle">
-                                    <div class="font-medium text-gray-800 leading-snug max-w-[150px] break-words">{{ $t->nama_tim ?? '-' }}</div>
+                                <td class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs text-left align-middle">
+                                    <div class="font-medium text-gray-800 leading-snug min-w-[130px] max-w-[220px] break-words">{{ $t->nama_tim ?? '-' }}</div>
                                     <div class="text-[11px] text-gray-500 mt-0.5">Ketua: <span class="text-gray-700">{{ $t->nama_ketua ?? '-' }}</span></div>
                                 </td>
 
-                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
-                                    @if($t->jam_mulai && $t->jam_selesai)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] font-medium text-gray-700 bg-gray-50 border border-gray-200/80">
-                                            {{ substr($t->jam_mulai, 0, 5) }} &ndash; {{ substr($t->jam_selesai, 0, 5) }}
-                                        </span>
-                                    @elseif($t->jam_mulai)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-600 bg-gray-50 border border-gray-200/80">
-                                            {{ substr($t->jam_mulai, 0, 5) }} &ndash; <span class="text-gray-400 font-sans italic text-[10px] ml-1">menunggu</span>
-                                        </span>
-                                    @else
-                                        <span class="text-gray-300 font-mono">-</span>
-                                    @endif
-                                </td>
-
-                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
-                                    @if($t->jam_mulai_disetujui && $t->jam_selesai_disetujui)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[11px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200/80">
-                                            {{ substr($t->jam_mulai_disetujui, 0, 5) }} &ndash; {{ substr($t->jam_selesai_disetujui, 0, 5) }}
-                                        </span>
-                                    @else
-                                        <span class="text-gray-300 font-mono">-</span>
-                                    @endif
-                                </td>
-
-                                <td class="px-3.5 py-3.5 text-xs text-gray-800 group relative align-middle">
+                                <td class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs text-gray-800 group relative align-middle">
                                     {{-- Mode tampil --}}
                                     <div class="flex items-start gap-1.5" id="view-{{ $t->id_transaksi }}">
-                                        <div class="flex-1 max-w-[240px] whitespace-normal break-words leading-relaxed text-gray-700">
+                                        <div class="flex-1 min-w-[120px] max-w-[300px] whitespace-normal break-words leading-relaxed text-gray-700">
                                             {{ $t->uraian ?? '-' }}
                                         </div>
                                         <button type="button"
@@ -439,81 +438,78 @@
                                             </button>
                                         </div>
                                     </div>
-                                </td>
-
-                                {{-- Kolom Data Presensi (Lihat Presensi) --}}
-                                <td class="px-3.5 py-3.5 text-center whitespace-nowrap align-middle">
-                                    @if($t->has_presensi)
-                                        <button type="button"
-                                            onclick="openModalPresensiAdmin({{ $t->id_transaksi }})"
-                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer shadow-2xs group"
-                                            title="Presensi Pulang: {{ $t->jam_selesai_presensi ?? '-' }} • Klik untuk rincian">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            <span>Lihat Presensi</span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
-                                            </svg>
-                                        </button>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] text-gray-400 bg-gray-50 border border-gray-200/60">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                                            <span>Belum Presensi</span>
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle" id="status-cell-{{ $t->id_transaksi }}">
-                                    @if($t->status === 'pending')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                            <span>Menunggu Ketua</span>
-                                        </span>
-                                    @elseif($t->status === 'menunggu_kabag')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                            <span>Menunggu Kabag</span>
-                                        </span>
-                                    @elseif($t->status === 'approved')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            <span>Disetujui</span>
-                                        </span>
-                                    @elseif($t->status === 'rejected')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                            <span>Ditolak</span>
-                                        </span>
-                                    @elseif($t->status === 'cancelled' || $t->status === 'dibatalkan')
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                                            <span>Dibatalkan</span>
-                                        </span>
-                                    @else
-                                        <span class="text-gray-300 text-xs">-</span>
-                                    @endif
-                                </td>
-
-                                <td class="px-3.5 py-3.5 text-xs text-gray-600 text-left max-w-[140px] break-words align-middle" id="note-cell-{{ $t->id_transaksi }}">
-                                    @php
-                                        $rawNote = $t->note ?? '';
-                                        $isAdminCancelled = ($t->status === 'cancelled') || str_contains($rawNote, '[Dibatalkan Admin]');
-                                        $cleanNote = str_contains($rawNote, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNote)) : $rawNote;
-                                    @endphp
-                                    @if(!empty($rawNote))
-                                        @if($isAdminCancelled)
-                                            <div>
-                                                <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Admin:</span>
-                                                <div class="italic text-gray-700 leading-relaxed mt-0.5">{{ $cleanNote }}</div>
-                                            </div>
-                                        @else
-                                            <span class="italic text-gray-600 leading-relaxed">{{ $rawNote }}</span>
+                                    <div class="mt-1.5 text-[11px] text-gray-500 break-words" id="note-cell-{{ $t->id_transaksi }}">
+                                        @php
+                                            $rawNote = $t->note ?? '';
+                                            $isAdminCancelled = ($t->status === 'cancelled') || str_contains($rawNote, '[Dibatalkan Admin]');
+                                            $cleanNote = str_contains($rawNote, '[Dibatalkan Admin]') ? trim(str_replace('[Dibatalkan Admin]', '', $rawNote)) : $rawNote;
+                                        @endphp
+                                        @if(!empty($rawNote))
+                                            @if($isAdminCancelled)
+                                                <div>
+                                                    <span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Admin:</span>
+                                                    <div class="italic text-gray-700 leading-relaxed mt-0.5">{{ $cleanNote }}</div>
+                                                </div>
+                                            @else
+                                                <span class="font-medium text-gray-500">Catatan:</span> <span class="italic text-gray-600 leading-relaxed">{{ $rawNote }}</span>
+                                            @endif
                                         @endif
-                                    @else
-                                        <span class="text-gray-300">-</span>
-                                    @endif
+                                    </div>
                                 </td>
 
-                                <td class="px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
+                                <td class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
+                                    <div id="status-cell-{{ $t->id_transaksi }}">
+                                        @if($t->status === 'pending')
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                <span>Menunggu Ketua</span>
+                                            </span>
+                                        @elseif($t->status === 'menunggu_kabag')
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                                <span>Menunggu Kabag</span>
+                                            </span>
+                                        @elseif($t->status === 'approved')
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                <span>Disetujui</span>
+                                            </span>
+                                        @elseif($t->status === 'rejected')
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                <span>Ditolak</span>
+                                            </span>
+                                        @elseif($t->status === 'cancelled' || $t->status === 'dibatalkan')
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 text-gray-600 border border-gray-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                                <span>Dibatalkan</span>
+                                            </span>
+                                        @else
+                                            <span class="text-gray-300 text-xs">-</span>
+                                        @endif
+                                    </div>
+                                    <div class="mt-1.5">
+                                        @if($t->has_presensi)
+                                            <button type="button"
+                                                onclick="openModalPresensiAdmin({{ $t->id_transaksi }})"
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer shadow-2xs group"
+                                                title="Presensi Pulang: {{ $t->jam_selesai_presensi ?? '-' }} • Klik untuk rincian">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                <span>Lihat Presensi</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                                                </svg>
+                                            </button>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] text-gray-400 bg-gray-50 border border-gray-200/60">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                                                <span>Belum Presensi</span>
+                                            </span>
+                                        @endif
+                                    </div>
+                                </td>
+
+                                <td class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-xs text-center whitespace-nowrap align-middle">
                                     @if($t->status === 'approved')
                                         @if($t->file_dokumentasi)
                                             <div class="inline-flex items-center justify-center gap-1.5">
@@ -556,7 +552,7 @@
                                     @endif
                                 </td>
 
-                                <td class="px-3.5 py-3.5 text-center text-xs whitespace-nowrap align-middle" id="aksi-cell-{{ $t->id_transaksi }}">
+                                <td class="px-2.5 min-[1440px]:px-3.5 py-3.5 text-center text-xs whitespace-nowrap align-middle" id="aksi-cell-{{ $t->id_transaksi }}">
                                     @if($t->status !== 'cancelled')
                                         <button type="button"
                                             onclick="openModalAksiAdmin({{ $t->id_transaksi }}, {{ json_encode($t->nama_pegawai ?? '-') }}, '{{ \Carbon\Carbon::parse($t->date)->translatedFormat('d M Y') }}', {{ json_encode($t->uraian ?? '') }})"
@@ -573,7 +569,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="11" class="px-4 py-16 text-center">
+                                <td colspan="7" class="px-4 py-16 text-center">
                                     <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
                                         <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-[#faa938] mb-3 border border-amber-100/80 shadow-xs">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">

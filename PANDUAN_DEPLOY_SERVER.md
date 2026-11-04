@@ -354,6 +354,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 236. 📄 **`routes/web.php`** & **`app/Http/Controllers/AuthController.php`** *(Logout memakai `invalidate()` + `regenerateToken()`, login memakai `regenerate(true)` sehingga sesi lama benar-benar dihapus)*.
 237. 📄 **`resources/views/profile.blade.php`** *(Profil tidak melebar di HP, avatar tetap bulat, email kosong tampil `-`; tampilan desktop tidak berubah)*.
 238. 📄 **`resources/views/partials/sidebar.blade.php`** *(Path SVG ikon Rekapitulasi Lembur dilengkapi; error console di halaman admin hilang)*.
+239. 📄 **`resources/views/admin/lembur.blade.php`** + folder **`public/build/`** *(Kontrol urutan dipindah ke ujung kanan baris filter dengan label Perlu ditindak dulu / Tanggal terbaru / Tanggal terlama; tabel monitoring lembur admin digabung dari 11 menjadi 7 kolom [Tanggal & Jam, Pegawai, Tim & Ketua, Uraian + Catatan, Status + Presensi, Dokumentasi, Aksi] dan lebar otomatis tanpa scroll samping di laptop 1280–1920px; kotak cari pegawai/tim lentur)*.
 
 ---
 
@@ -1851,3 +1852,17 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - **Verifikasi**: Tidak bisa digeser ke kanan; nama panjang terpotong "..."; avatar bulat; email kosong tampil `-`. Tampilan desktop sama seperti sebelumnya.
 - [ ] Login sebagai admin, buka DevTools → Console.
   - **Verifikasi**: Tidak ada error `<path> attribute d`, dan ikon amplop menu "Rekapitulasi Lembur" tampil utuh.
+
+### CY. Uji Kontrol Urutan di Baris Filter & Tabel Monitoring Lembur Admin Tanpa Scroll Samping (`/admin/lembur`)
+- [ ] **Uji Kontrol Urutan**:
+  - Masuk sebagai Administrator, buka `/admin/lembur`.
+  - Verifikasi: kontrol urutan ada di ujung kanan baris filter (setelah dropdown status), bukan di judul kolom Tanggal.
+  - Pilih **Tanggal terlama**: halaman memuat ulang dengan `?sort=asc`, data urut dari tanggal terlama, dan judul kolom menampilkan "Tanggal & Jam ↑".
+  - Pilih **Perlu ditindak dulu**: baris berstatus Menunggu Kabag tampil paling atas.
+- [ ] **Uji Tabel Tanpa Scroll Samping**:
+  - Buka halaman di laptop 1280px, 1366px, 1536px, dan 1920px (atau ubah ukuran jendela/zoom browser).
+  - Verifikasi: tanggal, pegawai, tim, status, dan urutan berada dalam satu baris; tabel 7 kolom tampil utuh tanpa scrollbar horizontal.
+  - Verifikasi: jam disetujui (hijau) tampil di bawah jam diajukan, catatan tampil di bawah uraian, dan badge presensi tampil di bawah badge status.
+- [ ] **Uji Batal Pengajuan (JavaScript)**:
+  - Klik ikon pensil pada salah satu baris lalu batalkan pengajuan.
+  - Verifikasi: badge status berubah menjadi "Dibatalkan", catatan "Admin:" muncul di bawah uraian, dan badge presensi tetap tampil.
