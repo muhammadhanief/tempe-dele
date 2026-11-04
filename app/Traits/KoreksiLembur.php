@@ -71,7 +71,20 @@ trait KoreksiLembur
             $batasMaksimal      = $jamMulai->copy()->addHours($maxJam);
             $jamSelesaiPresensi = Carbon::parse($presensi->jam_selesai);
 
-            if ($jamSelesaiPresensi->lessThan($jamMulai)) $jamSelesaiPresensi->addDay();
+            if ($jamSelesaiPresensi->lessThan($jamMulai)) {
+                if ($jamSelesaiPresensi->hour < 6) {
+                    // Pulang dini hari (lembur melewati tengah malam): dihitung hari berikutnya.
+                    $jamSelesaiPresensi->addDay();
+                } else {
+                    // Pulang sebelum jam mulai lembur: tidak ada lembur yang dikerjakan.
+                    DB::table('t_transaksi')->where('id_transaksi', $transaksi->id_transaksi)->update([
+                        'jam_selesai_disetujui' => $jamMulai->format('H:i:s'),
+                        'eligible'              => 0,
+                        'note'                  => ($transaksi->note ? $transaksi->note . ' — ' : '') . 'Presensi pulang sebelum jam mulai lembur.',
+                    ]);
+                    continue;
+                }
+            }
 
             // Jam lembur disetujui tidak boleh melebihi jam yang disetujui/diajukan
             $jamSelesaiAcuan     = $transaksi->jam_selesai_disetujui ?: $transaksi->jam_selesai;
