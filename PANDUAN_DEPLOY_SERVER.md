@@ -357,6 +357,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 239. 📄 **`resources/views/admin/lembur.blade.php`** + folder **`public/build/`** *(Kontrol urutan dipindah ke ujung kanan baris filter dengan label Perlu ditindak dulu / Tanggal terbaru / Tanggal terlama; tabel monitoring lembur admin digabung dari 11 menjadi 7 kolom [Tanggal & Jam, Pegawai, Tim & Ketua, Uraian + Catatan, Status + Presensi, Dokumentasi, Aksi] dan lebar otomatis tanpa scroll samping di laptop 1280–1920px; kotak cari pegawai/tim lentur)*.
 240. 📄 **`resources/views/admin/daftar_hadir.blade.php`** *(Dropdown filter tim dibatasi `max-w-full` agar halaman tidak melebar di HP; tampilan desktop tidak berubah)*.
 241. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/kabag-umum/pengajuan.blade.php`**, **`resources/views/rekapitulasi.blade.php`**, **`resources/views/admin/spkl.blade.php`** + folder **`public/build/`** *(Tabel tidak terpotong di laptop tanpa mengubah desain: lebar minimum tabel dilepas di layar lebar, tooltip HL 6 rekapitulasi rata kanan, pesan data kosong rekap admin tetap terlihat saat digeser)*.
+242. 📄 **`resources/views/admin/manajemen_user.blade.php`** + folder **`public/build/`** *(Tombol Tambah Admin dan Tambah Superadmin turun baris di HP agar tidak keluar layar; desktop tidak berubah)*.
+243. 📄 **`app/Http/Controllers/pegawai/AkumulasiController.php`** *(Baru)*, **`routes/web.php`**, **`resources/views/akumulasi.blade.php`** *(Halaman akumulasi pegawai memakai data lembur asli per bulan, tarif dari `m_rates`, total dan paginasi asli, pemilih bulan di atas tabel)*.
 
 ---
 
@@ -1885,3 +1887,17 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji `/admin/rekapitulasi`** (pilih bulan tanpa data):
   - Geser tabel ke kanan: pesan "Tidak ada data lembur untuk periode ini." tetap terlihat.
 - [ ] **Uji HP (375px)**: tabel di halaman-halaman di atas tetap bisa digeser seperti sebelumnya.
+
+### DB. Uji Tombol Tambah Admin/Superadmin di HP (`/admin/manajemen-user`)
+- [ ] Masuk sebagai Superadmin, buka `/admin/manajemen-user` di HP (lebar 375px).
+  - Verifikasi: tombol "Tambah Admin" dan "Tambah Superadmin" tampil utuh di bawah judul seksinya; halaman tidak bisa digeser ke samping.
+- [ ] Buka halaman yang sama di desktop.
+  - Verifikasi: judul, badge, dan tombol tetap sebaris seperti sebelumnya.
+
+### DC. Uji Halaman Akumulasi Pegawai dengan Data Asli (`/akumulasi`)
+- [ ] Masuk sebagai pegawai yang memiliki lembur berstatus Disetujui dan eligible, buka `/akumulasi`.
+  - Verifikasi: tombol pemilih bulan berada di atas tabel.
+  - Pilih bulan yang memiliki lembur: URL berubah menjadi `?bulan=YYYY-MM` dan tabel menampilkan tanggal, jam, golongan, uang lembur, uang makan, jumlah, PPh 21, dan terima sesuai tarif `m_rates`.
+  - Verifikasi: angka Total sama dengan jumlah kolom Terima.
+- [ ] Pilih bulan tanpa lembur: tabel menampilkan "Tidak ada data lembur untuk periode ini." dan Total 0.
+- [ ] Jika data lebih dari 10 baris: tombol halaman berikutnya berpindah halaman dan teks "Page X of Y" sesuai.
