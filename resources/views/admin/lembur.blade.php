@@ -2071,6 +2071,11 @@
         if (counter) counter.textContent = `${this.value.length} / 2000`;
     });
 
+    // Teks dari pengguna/server ditampilkan sebagai teks biasa saat disisipkan lewat innerHTML.
+    function escapeHtmlAdmin(value) {
+        return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
     window.submitBatalAdmin = async function (e) {
         e.preventDefault();
         const id = document.getElementById('batalIdTransaksi').value;
@@ -2121,7 +2126,7 @@
 
             const noteCell = document.getElementById(`note-cell-${id}`);
             if (noteCell) {
-                noteCell.innerHTML = `<div><span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Admin:</span><div class="italic text-gray-700 leading-relaxed mt-0.5">${alasan}</div></div>`;
+                noteCell.innerHTML = `<div><span class="inline-block font-semibold text-[10px] uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Admin:</span><div class="italic text-gray-700 leading-relaxed mt-0.5">${escapeHtmlAdmin(alasan)}</div></div>`;
             }
 
             const aksiCell = document.getElementById(`aksi-cell-${id}`);
@@ -2137,7 +2142,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>${data.message || 'Pengajuan lembur berhasil dibatalkan.'}</span>
+                <span>${escapeHtmlAdmin(data.message || 'Pengajuan lembur berhasil dibatalkan.')}</span>
             `;
             document.body.appendChild(alertBox);
             setTimeout(() => {
