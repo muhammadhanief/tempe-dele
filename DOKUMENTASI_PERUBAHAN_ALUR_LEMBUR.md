@@ -6178,12 +6178,23 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 | 6 | Tombol **Setujui** di dashboard Ketua Tim error 500 ("Double date specification") jika pegawai sudah punya presensi. Pola yang sama ada di `admin/LemburController`. | `jam_selesai` presensi bertipe datetime, sehingga diambil jamnya dulu (`Carbon::parse(...)->format('H:i:s')`) sebelum digabung dengan tanggal, sama seperti controller lain. |
 | 7 | Tombol koreksi keputusan Ketua Tim tidak membuka modal setelah simpan jika catatan memuat tanda kutip tunggal (atribut `onclick` terpotong). | Nilai catatan dan uraian dipasang lewat helper `argAttr()` yang meloloskan tanda kutip, sama dengan perbaikan bug 9 di seksi 110. |
 | 8 | Dashboard Pimpinan: kolom Status kosong untuk Menunggu Kabag dan Dibatalkan. | Menunggu Kabag tampil "Menunggu", status lain yang tidak dikenal tampil "Dibatalkan". |
+| 9 | Pesan "Catatan Kabag wajib diisi..." selalu menyebut "jam yang sudah disetujui Ketua Tim", padahal pada pengajuan Tim Bagian Umum (Kabag sekaligus ketua, status `pending`) belum ada persetujuan Ketua Tim. | Untuk status `pending` pesan menjadi "...berbeda dari jam pengajuan." Pesan untuk tim lain tidak berubah. Aturannya sendiri tidak berubah. Berlaku di server dan di alert modal Kabag. |
 
 ### C. Hasil Uji
 * Modal durasi di pegawai, ketua tim, dan admin: 59 dari 59 skenario klik lolos dan 35 tangkapan layar.
 * Uji klik per role: 297 tangkapan layar (Pegawai 51, Ketua Tim 40, Kabag Umum 28, Pimpinan 19, Admin operasional 86, Admin data master 44, Superadmin 29).
 * Tombol Setujui Ketua Tim diuji lewat HTTP pada salinan database dengan data presensi: kode lama HTTP 500, kode baru HTTP 200 (status menjadi Menunggu Kabag, jam disetujui dibatasi ke jam yang lebih awal antara jam pengajuan dan jam pulang presensi). Pengajuan tanpa presensi juga HTTP 200.
 * Backend: kirim paksa pengajuan 1 jam ditolak "Durasi lembur minimal 2 jam sesuai ketentuan PMK/BPS." dan tidak tersimpan; kirim 2 jam tersimpan.
+* Aturan catatan Kabag diuji lewat HTTP (data uji pada salinan database):
+
+| Kasus | Hasil |
+| :--- | :--- |
+| Ketua tim lain sudah memangkas ke 19:30, Kabag setuju tanpa mengubah jam, tanpa catatan | Berhasil |
+| Ketua tim lain sudah memangkas ke 19:30, Kabag memangkas lagi ke 19:00, tanpa catatan | Ditolak (422); dengan catatan berhasil |
+| Tim Bagian Umum (Kabag sekaligus ketua), setuju sesuai pengajuan, tanpa catatan | Berhasil |
+| Tim Bagian Umum, Kabag memangkas jam, tanpa catatan | Ditolak (422) dengan pesan "...dari jam pengajuan"; dengan catatan berhasil |
+
+* Batas jam lembur (4 jam hari kerja, 6 jam hari libur) diuji dengan presensi: pengajuan hari kerja 7 jam dihitung 4 jam (selesai 20:01), pengajuan Sabtu 7 jam dihitung 6 jam (selesai 14:30). Tabel presensi tidak diubah oleh koreksi, sehingga jam pulang asli tetap tampil di Daftar Hadir; yang dibatasi hanya jam disetujui yang dipakai Rekapitulasi dan Akumulasi.
 
 ### D. Berkas yang Diperbarui
 | No | File | Keterangan |
@@ -6196,9 +6207,12 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 | 6 | `app/Http/Controllers/admin/LemburController.php` | Bug 6. |
 | 7 | `resources/views/ketua-tim/pengajuan.blade.php` | Bug 7. |
 | 8 | `resources/views/pimpinan/dashboard.blade.php` | Bug 8. |
+| 9 | `resources/views/kabag-umum/pengajuan.blade.php` | Bug 9 (alert modal). |
+| 10 | `app/Http/Controllers/ketuatim/KabagUmumPengajuanController.php` | Bug 9 (pesan server). |
 
 ### E. Catatan (Tidak Diubah)
 * Empat trigger `sync_jam_*` pada tabel `t_presensi` (jam disetujui disamakan dengan jam pulang presensi saat presensi diunggah) sudah ada di dump database dari mentor sejak awal dan tidak ada di repo. Tidak diubah dan tidak ada SQL baru.
 * Role `pimpinan` tidak dimiliki satu pun pegawai di database mana pun (dump mentor maupun lokal); halamannya hanya dapat dibuka admin dan superadmin lewat alamat langsung. Tidak diubah.
 * Kolom Status di dashboard Pimpinan terpotong di layar 1366px; menunggu persetujuan pengguna karena menyangkut tampilan.
-* Pertanyaan untuk mentor: lembur hari libur lebih dari 6 jam dan hari kerja lebih dari 4 jam tidak punya kolom di tabel Rekapitulasi (HL 2–6, HB 2–4); kebijakan catatan Kabag pada seksi 111; Ketua Tim dapat menyetujui pengajuannya sendiri; kebutuhan akun Pimpinan untuk Kepala BPS.
+* Sudah diputuskan pengguna sehingga bukan pertanyaan terbuka: lembur boleh diajukan melebihi batas tetapi dihitung sesuai batas maksimal (4 jam hari kerja, 6 jam hari libur); Ketua Tim boleh menyetujui pengajuannya sendiri karena persetujuan final tetap di Kabag; role Pimpinan dibiarkan; catatan Kabag hanya wajib jika jam diubah dari tingkat sebelumnya.
+* Pengajuan sampai 19:30 dengan presensi pulang 20:00: trigger database dari mentor menaikkan jam disetujui menjadi jam presensi (dibatasi 4 atau 6 jam). Dibiarkan; bila pegawai bekerja melebihi pengajuan, pegawai menyampaikan ke Ketua Tim, Kabag, atau Admin untuk dikoreksi.
