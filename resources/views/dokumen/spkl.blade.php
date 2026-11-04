@@ -126,11 +126,11 @@
     @endphp
     
     @if($logoSrc)
-        <div style="text-align: center; margin-bottom: 4px;">
+        <div style="text-align: left; margin-bottom: 4px;">
             <img
                 src="{{ $logoSrc }}"
                 alt="Header BPS Provinsi Jawa Tengah"
-                style="width: 60%;"
+                style="width: 70%;"
             >
         </div>
         <div style="width: 100%; border-top: 2px solid black; margin: 4px 0 8px 0;"></div>
