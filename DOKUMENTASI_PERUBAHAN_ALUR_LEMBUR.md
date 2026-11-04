@@ -6011,3 +6011,59 @@ Permintaan pengguna: perbaiki **tanpa mengubah desain desktop** (tidak menggabun
 | 4 | `resources/views/rekapitulasi.blade.php` | Lebar minimum tabel dilepas mulai 1280px; tooltip HL 6 rata kanan. |
 | 5 | `resources/views/admin/spkl.blade.php` | Pesan data kosong tetap terlihat saat tabel digeser. |
 | 6 | `public/build/*` | Hasil `npm run build`. |
+
+---
+
+## 108. Perbaikan Bug Hasil Uji Klik Menyeluruh (Semua Role)
+
+### A. Latar Belakang
+Uji klik UI + backend pada seluruh fitur role pegawai, ketua tim, kabag, admin, dan superadmin (sekitar 340 skenario, dicek di tampilan dan database) menemukan bug berikut. Semuanya diperbaiki tanpa perubahan database dan tanpa `npm run build`.
+
+### B. Daftar Perbaikan
+| No | Masalah | Penyebab | Perbaikan |
+| :---: | :--- | :--- | :--- |
+| 1 | Export Excel Lembur admin kehilangan 1 baris (tanggal paling awal). | Judul kolom ditulis di baris 4 yang juga baris data pertama. | `LemburExport` menyisipkan 4 baris, sehingga data mulai baris 5. |
+| 2 | Edit pengguna mengubah golongan (III/a jadi I, kosong jadi I). | Pilihan golongan hanya I/II/III/IV. | Golongan saat ini (termasuk kosong) ikut menjadi pilihan terpilih. |
+| 3 | Superadmin mengedit Ketua Tim/Kabag lalu Simpan, role turun jadi `user`. | Pilihan role hanya user/admin. | Role saat ini ikut menjadi pilihan; role yang tidak diubah tidak divalidasi ulang. |
+| 4 | Halaman Pejabat menampilkan pejabat lama (nonaktif) setelah Ganti Kabag/PPK. | `firstWhere` mengambil baris pertama per jabatan. | Data diurutkan dengan pejabat aktif lebih dulu. |
+| 5 | Hapus tim selalu gagal (404). | JS memanggil `/admin/master/tim/{kode}`. | URL diperbaiki ke `/admin/tim/{kode}`; tim yang sudah dipakai pengajuan ditolak dengan pesan jelas (foreign key `RESTRICT`), anggota tim ikut dihapus. |
+| 6 | Ajukan lembur yang ditolak server: modal terbuka kosong, pesan error tidak terlihat (pegawai & ketua tim). | Modal di-reset saat dibuka; error hanya dirender di modal Dokumentasi. | Kotak error tampil di modal Ajukan, isian lama dikembalikan, modal Dokumentasi hanya menampilkan error link dokumentasi. |
+| 7 | Pegawai tanpa email tidak bisa diedit. | Validasi `email` tidak menerima kosong. | Aturan menjadi `sometimes|nullable|email`. |
+| 8 | Pesan validasi tampil sebagai kunci mentah (`validation.unique`). | `APP_LOCALE=id` tanpa berkas terjemahan. | Berkas baru `lang/id/validation.php`. |
+| 9 | Ikon edit di Pengajuan admin tidak bisa diklik setelah simpan (perlu refresh). | `JSON.stringify` memotong atribut `onclick`. | Helper `argAttr()` meng-escape argumen di atribut. |
+| 10 | Upload presensi file bukan Excel menampilkan "Gagal menghubungi server." | `fetch` tanpa `Accept: application/json` sehingga validasi membalas redirect. | Header `Accept` ditambahkan; pesan menjadi "Berkas harus berupa berkas berjenis: xlsx, xls." |
+| 11 | Halaman Dokumen tidak menampilkan pesan berhasil/gagal. | Tidak ada blok `session('success')`/`session('error')`. | Blok pesan ditambahkan di atas toolbar. |
+| 13 | Detail anggota tim gagal untuk nama tim bertanda petik. | Nama tim disisipkan mentah ke `onclick`. | Memakai `@js()`. |
+| 14 | Alasan pembatalan admin sempat tampil sebagai HTML. | Alasan disisipkan mentah ke `innerHTML`. | Di-escape sebelum ditampilkan. |
+
+Bug nomor 12 (Manajemen User melebar di HP) belum diubah karena mengubah tata letak dan menunggu persetujuan.
+
+### C. Hasil Uji
+* Export Oktober 2026: 30 transaksi di DB, 30 baris di Excel (No 1–30), judul kolom di baris 4.
+* Edit Sunarto (III/a), Istiqomah (tanpa email/golongan), Joko (ketua_tim): nama tersimpan, golongan dan role tetap, pegawai tanpa email bisa disimpan.
+* Hapus tim tanpa pengajuan: terhapus beserta anggotanya; tim yang dipakai pengajuan: 422 dengan pesan.
+* Ajukan lembur tanpa tanda tangan (pegawai & ketua tim): modal terbuka dengan "Tanda tangan wajib diisi.", isian kembali; error link dokumentasi tetap tampil di modal Dokumentasi.
+* Pengajuan admin: simpan keputusan dengan catatan berisi kutip, lalu klik ikon edit lagi tanpa refresh: modal terbuka dan catatan terisi.
+* Uji regresi 80 aksi backend: 77 lolos, 3 sisanya memang 404 (rute sudah dihapus).
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan |
+| :---: | :--- | :--- |
+| 1 | `app/Exports/LemburExport.php` | Bug 1. |
+| 2 | `resources/views/admin/pengguna.blade.php` | Bug 2 dan 3. |
+| 3 | `app/Http/Controllers/admin/PenggunaController.php` | Bug 3 dan 7. |
+| 4 | `app/Http/Controllers/admin/PejabatController.php` | Bug 4. |
+| 5 | `app/Http/Controllers/admin/TimController.php` | Bug 5. |
+| 6 | `resources/views/admin/tim.blade.php` | Bug 5 dan 13. |
+| 7 | `resources/views/lembur.blade.php` | Bug 6. |
+| 8 | `resources/views/ketua-tim/lembur.blade.php` | Bug 6. |
+| 9 | `lang/id/validation.php` (baru) | Bug 8. |
+| 10 | `resources/views/admin/pengajuan.blade.php` | Bug 9. |
+| 11 | `resources/views/admin/presensi.blade.php` | Bug 10. |
+| 12 | `resources/views/admin/dokumen.blade.php` | Bug 11. |
+| 13 | `resources/views/admin/lembur.blade.php` | Bug 14. |
+
+### E. Perlu Konfirmasi Mentor (Bukan Bug)
+* Ketua tim bisa memilih dirinya sendiri sebagai penyetuju pengajuannya (persetujuan final tetap lewat Kabag).
+* Kabag wajib mengisi catatan walau hanya menyetujui jam yang sudah disesuaikan Ketua Tim.
+* Halaman `/akumulasi` pegawai berisi data contoh dan tidak ada di menu.
