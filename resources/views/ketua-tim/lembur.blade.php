@@ -896,10 +896,10 @@
             <form id="formDok" method="POST" class="space-y-4 px-5 py-5 sm:px-6">
                 @csrf
 
-                @if ($errors->any())
+                @if ($errors->has('file_path'))
                     <div class="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">
                         <ul class="list-disc pl-4">
-                            @foreach ($errors->all() as $errorDok)
+                            @foreach ($errors->get('file_path') as $errorDok)
                                 <li>{{ $errorDok }}</li>
                             @endforeach
                         </ul>
@@ -1069,6 +1069,17 @@
                 @csrf
 
                 <div class="flex-1 overflow-y-auto px-6 py-4">
+                    @if($errors->any() && old('tanggal') !== null)
+                        <div id="ajukanServerErrors" class="mb-3 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs">
+                            <p class="font-semibold">Pengajuan belum terkirim:</p>
+                            <ul class="mt-1 list-disc list-inside space-y-0.5">
+                                @foreach($errors->all() as $errorAjukan)
+                                    <li>{{ $errorAjukan }}</li>
+                                @endforeach
+                            </ul>
+                            <p class="mt-1">Isian sebelumnya sudah dikembalikan. Periksa lagi, lalu bubuhkan tanda tangan ulang.</p>
+                        </div>
+                    @endif
                     <input type="hidden" name="bulan" value="{{ request('bulan') }}">
                     <input type="hidden" name="perPage" value="{{ request('perPage') }}">
                     <input type="hidden" name="kode_tim" id="kode_tim">
@@ -2157,6 +2168,7 @@
 
     function closeModalAjukan() {
         modalAjukan?.classList.add('hidden');
+        document.getElementById('ajukanServerErrors')?.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     }
 
@@ -2167,9 +2179,25 @@
 
     window.addEventListener('resize', resizeCanvas);
 
-    @if($errors->any())
+    @if($errors->any() && old('tanggal') !== null)
         document.addEventListener('DOMContentLoaded', () => {
             openModalAjukan();
+
+            // Kembalikan isian sebelumnya agar pegawai tidak perlu mengisi ulang dari awal.
+            @php $isianLamaAjukan = collect(old())->only(['approver_id', 'kode_tim', 'tanggal', 'jam_mulai', 'jam_selesai', 'uraian']); @endphp
+            const lama = @json($isianLamaAjukan);
+            const isi = (id, nilai, evt) => {
+                const el = document.getElementById(id);
+                if (!el || nilai === undefined || nilai === null) return;
+                el.value = nilai;
+                if (evt) el.dispatchEvent(new Event(evt, { bubbles: true }));
+            };
+            isi('approver_id', lama.approver_id, 'change');
+            isi('kode_tim', lama.kode_tim);
+            isi('tanggal', lama.tanggal, 'change');
+            isi('jam_mulai', lama.jam_mulai, 'change');
+            isi('jam_selesai', lama.jam_selesai, 'change');
+            isi('uraian', lama.uraian, 'input');
         });
     @endif
 
