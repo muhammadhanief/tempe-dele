@@ -584,7 +584,8 @@ window.submitUpload = async function () {
 
     try {
         showUploadAlert('Sedang memproses unggahan data presensi...');
-        const res  = await fetch('/admin/presensi/upload', { method: 'POST', body: formData });
+        // Accept JSON agar error validasi (mis. bukan Excel) kembali sebagai JSON 422, bukan redirect.
+        const res  = await fetch('/admin/presensi/upload', { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } });
         const data = await res.json();
         if (res.ok) {
             showUploadAlert(data.message ?? 'Data presensi berhasil diunggah.');
