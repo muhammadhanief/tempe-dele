@@ -4278,3 +4278,29 @@ Di tablet/HP (< 900px) tabel tetap bisa digeser dengan petunjuk geser yang sudah
 | :---: | :--- | :--- |
 | 1 | `resources/views/admin/lembur.blade.php` | Kontrol urutan dipindah ke baris filter dengan label baru, tabel monitoring digabung jadi 7 kolom dan lebar otomatis tanpa scroll samping di laptop. |
 | 2 | `public/build/*` | Hasil `npm run build` untuk class Tailwind baru. |
+
+## 88. Filter Status Monitoring Lembur Admin Diubah dari Deretan Chip Menjadi Dropdown di Baris Filter (`/admin/lembur`)
+
+### A. Latar Belakang
+1. Filter status di desktop berupa 6 chip berwarna (Semua Status, Menunggu Kabag, Menunggu Ketua, Disetujui, Ditolak, Dibatalkan) di baris tersendiri. Di laptop 1280px chip "Dibatalkan" turun ke baris kedua, dan warnanya ramai.
+2. Urutan chip tidak mengikuti alur persetujuan (Menunggu Kabag tampil sebelum Menunggu Ketua).
+3. Permintaan pengguna: taruh filter status di sebelah "Cari nama tim" dalam bentuk dropdown.
+
+### B. Perubahan
+1. Dropdown status yang sebelumnya khusus HP (`#mobileStatusWrapper`, `#btnMobileStatus`, `#menuMobileStatus`) kini dipakai di HP **dan** desktop, dipindah ke baris filter tepat setelah "Cari tim". Baris chip desktop dihapus.
+2. Tombol menampilkan status aktif beserta jumlahnya. Menu menampilkan jumlah setiap status. Logika `selectStatus()` dan parameter `status` tidak berubah.
+3. Urutan pilihan mengikuti alur: Semua status → Menunggu Ketua → Menunggu Kabag → Disetujui → Ditolak → Dibatalkan (berlaku di HP dan desktop).
+4. Label "Semua Status" menjadi "Semua status". Di desktop awalan "Status:" disembunyikan agar tombol ringkas (`sm:w-52`); di HP awalan tetap tampil.
+5. Kotak pencarian pegawai dan tim dibuat lentur (`sm:flex-1` dengan `min-w`/`max-w`) dan placeholder disingkat menjadi "Cari pegawai..." dan "Cari tim..." agar seluruh filter muat satu baris.
+6. Blok `@php` penentu label/warna status dipindah ke atas toolbar karena dropdown kini berada di dalam toolbar.
+
+### C. Hasil Pengujian (Playwright)
+- Tanggal, pegawai, tim, status, dan urutan berada di satu baris pada 1280px, 1366px, 1536px, dan 1920px; tabel tetap tanpa scroll samping.
+- Memilih "Menunggu Ketua" memuat `?status=pending`, tombol menampilkan "Menunggu Ketua 8", dan tabel berisi 8 baris.
+- Tidak ada error JavaScript.
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/admin/lembur.blade.php` | Chip status desktop diganti dropdown di baris filter, urutan pilihan mengikuti alur, kotak pencarian lentur. |
+| 2 | `public/build/*` | Hasil `npm run build`. |

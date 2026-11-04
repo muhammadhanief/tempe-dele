@@ -300,6 +300,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 198. 📄 **`resources/views/ketua-tim/pengajuan.blade.php`** *(Penataan bertingkat vertikal flex-col header kolom Tanggal: teks Tanggal di atas dan dropdown sortir [Terbaru ▾] di bawahnya, mengeliminasi tabrakan horizontal dengan header Jam Diajukan)*.
 199. 📄 **`resources/views/lembur.blade.php`**, **`resources/views/ketua-tim/lembur.blade.php`**, **`resources/views/admin/lembur.blade.php`** *(Restrukturisasi tata letak modal #modalAjukan menjadi 2-kolom desktop md:grid-cols-2 zero-scroll: max-w-3xl lg:max-w-4xl max-h-[92vh], textarea uraian rows=3, kanvas tanda tangan h-28 touch-none, mengeliminasi scrollbar vertikal pada layar laptop/desktop dengan fallback responsif 1-kolom di mobile)*.
 200. 📄 **`resources/views/admin/lembur.blade.php`** + folder **`public/build/`** *(Kontrol urutan dipindah ke ujung kanan baris filter dengan label Perlu ditindak dulu / Tanggal terbaru / Tanggal terlama; tabel monitoring lembur admin digabung dari 11 menjadi 7 kolom [Tanggal & Jam, Pegawai, Tim & Ketua, Uraian + Catatan, Status + Presensi, Dokumentasi, Aksi] dan lebar otomatis tanpa scroll samping di laptop 1280–1920px)*.
+201. 📄 **`resources/views/admin/lembur.blade.php`** + folder **`public/build/`** *(Filter status monitoring lembur admin diubah dari deretan chip menjadi dropdown di baris filter setelah Cari tim, urutan pilihan Semua status → Menunggu Ketua → Menunggu Kabag → Disetujui → Ditolak → Dibatalkan, kotak pencarian pegawai/tim lentur agar semua filter muat satu baris)*.
 
 ---
 
@@ -1403,3 +1404,14 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Uji Batal Pengajuan (JavaScript)**:
   - Klik ikon pensil pada salah satu baris lalu batalkan pengajuan.
   - Verifikasi: badge status berubah menjadi "Dibatalkan", catatan pembatalan muncul di bawah uraian, dan badge presensi tetap tampil.
+
+### BU. Uji Dropdown Filter Status di Baris Filter (`/admin/lembur`)
+- [ ] **Uji Tata Letak**:
+  - Masuk sebagai Administrator, buka `/admin/lembur` di laptop (1280px ke atas).
+  - Verifikasi: Semua Tanggal, Cari pegawai, Cari tim, dropdown status, dan pilihan urutan berada dalam **satu baris**; deretan chip status tidak ada lagi.
+- [ ] **Uji Pilihan Status**:
+  - Klik dropdown status: menu menampilkan Semua status, Menunggu Ketua, Menunggu Kabag, Disetujui, Ditolak, Dibatalkan beserta jumlahnya.
+  - Pilih **Menunggu Ketua**: halaman memuat `?status=pending`, tombol menampilkan "Menunggu Ketua" dan jumlahnya, tabel hanya berisi status Menunggu Ketua.
+  - Klik di luar menu: menu tertutup.
+- [ ] **Uji HP (375px)**:
+  - Verifikasi: dropdown tampil selebar layar dengan awalan "Status:" dan urutan pilihan yang sama.
