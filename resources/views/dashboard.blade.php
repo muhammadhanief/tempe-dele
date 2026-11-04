@@ -159,7 +159,7 @@
                     </h2>
 
                     <p class="mt-1 text-sm text-gray-600">
-                        3 pengajuan lembur terakhir kamu.
+                        5 pengajuan lembur terakhir kamu.
                     </p>
                 </div>
 
@@ -224,7 +224,7 @@
                             Disetujui
                         </span>
 
-                        @elseif ($item->status === 'pending')
+                        @elseif (in_array($item->status, ['pending', 'menunggu_kabag']))
 
                         <span
                             class="rounded-full bg-yellow-100
