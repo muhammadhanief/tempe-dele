@@ -242,6 +242,15 @@
                             Ditolak
                         </span>
 
+                        @elseif (in_array($item->status, ['cancelled', 'dibatalkan']))
+
+                        <span
+                            class="rounded-full bg-gray-100
+                            px-3 py-1 text-xs font-semibold text-gray-700">
+
+                            Dibatalkan
+                        </span>
+
                         @endif
                     </div>
                 </div>
