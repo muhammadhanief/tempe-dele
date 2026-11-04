@@ -5971,3 +5971,43 @@ Class `max-w-full` ditambahkan pada pembungkus dropdown (`relative shrink-0 max-
 | 1 | `resources/views/admin/daftar_hadir.blade.php` | `max-w-full` pada pembungkus dan `<select id="timFilter">`. |
 
 ---
+
+## 107. Perbaikan Tabel Terpotong di Layar Laptop Tanpa Mengubah Desain (`/lembur`, `/ketua-tim/lembur`, `/kabag-umum/pengajuan`, `/rekapitulasi`, `/admin/rekapitulasi`)
+
+### A. Latar Belakang
+Pengecekan seluruh tampilan di laptop 1366px menemukan tabel yang lebih lebar dari areanya sehingga kolom paling kanan terpotong tanpa tanda bisa digeser:
+
+| Halaman | Terpotong | Penyebab |
+| :--- | :---: | :--- |
+| `/lembur` (pegawai) | 40px | `min-width: 1020px` (inline) |
+| `/ketua-tim/lembur` | 40px | `min-width: 1020px` (inline) |
+| `/kabag-umum/pengajuan` | 80px (kolom Aksi) | `min-w-[1100px]` |
+| `/rekapitulasi` | 102px (nilai "Jumlah Bekerja Hari Libur") | `min-w-[1050px]` dan tooltip kolom HL 6 yang menjorok keluar tabel |
+| `/admin/rekapitulasi` | Pesan "Tidak ada data" | Tabel matriks 29 kolom memang digeser; pesan berada di tengah tabel selebar 1728px |
+
+Permintaan pengguna: perbaiki **tanpa mengubah desain desktop** (tidak menggabung kolom), cukup merapatkan agar semua kolom terlihat. Tampilan HP tidak diubah.
+
+### B. Perubahan
+1. `/lembur` dan `/ketua-tim/lembur`: `style="min-width: 1020px;"` diganti `min-w-[1020px] xl:min-w-[880px]`. Di HP/tablet lebar minimum tetap 1020px (tetap bisa digeser); mulai 1280px tabel mengikuti lebar area. Proporsi kolom (`table-fixed` + persentase) tidak berubah.
+2. `/kabag-umum/pengajuan`: `min-w-[1100px]` ditambah `min-[1366px]:min-w-0`. Mulai 1366px tabel muat tanpa terpotong dengan tinggi baris sama seperti sebelumnya; di bawah 1366px tetap seperti semula (bisa digeser) agar kolom tidak terlalu sesak.
+3. `/rekapitulasi`: `min-w-[1050px]` ditambah `xl:min-w-0`; tooltip judul kolom terakhir (HL 6) diratakan kanan (`right-0`) agar tidak menjorok keluar tabel. Padding sel tidak berubah.
+4. `/admin/rekapitulasi` (`admin/spkl.blade.php`): pesan "Tidak ada data lembur untuk periode ini." dibungkus `sticky left-8` sehingga tetap terlihat saat tabel digeser. Lebar tabel matriks tidak diubah.
+5. Halaman `/akumulasi` pegawai tidak diubah: halaman ini masih contoh statis (data ditulis langsung di view, belum tersambung ke database) dan akan dikerjakan terpisah.
+
+### C. Hasil Pengukuran (Playwright, sidebar terbuka)
+| Halaman | 1280px | 1366px | 1920px | HP 375px |
+| :--- | :---: | :---: | :---: | :---: |
+| `/lembur`, `/ketua-tim/lembur` | Muat | Muat | Muat (sama seperti sebelumnya) | Tidak berubah |
+| `/kabag-umum/pengajuan` | Digeser (seperti sebelumnya) | Muat, tinggi baris sama | Muat (sama seperti sebelumnya) | Tidak berubah (1100px) |
+| `/rekapitulasi` | Muat | Muat | Muat | Tidak berubah (1050px) |
+| `/admin/rekapitulasi` | Digeser, pesan kosong terlihat | Digeser, pesan kosong terlihat | Digeser, pesan kosong terlihat | Tidak berubah |
+
+### D. Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `resources/views/lembur.blade.php` | Lebar minimum tabel 880px mulai 1280px (tetap 1020px di bawahnya). |
+| 2 | `resources/views/ketua-tim/lembur.blade.php` | Sama seperti nomor 1. |
+| 3 | `resources/views/kabag-umum/pengajuan.blade.php` | Lebar minimum tabel dilepas mulai 1366px. |
+| 4 | `resources/views/rekapitulasi.blade.php` | Lebar minimum tabel dilepas mulai 1280px; tooltip HL 6 rata kanan. |
+| 5 | `resources/views/admin/spkl.blade.php` | Pesan data kosong tetap terlihat saat tabel digeser. |
+| 6 | `public/build/*` | Hasil `npm run build`. |
