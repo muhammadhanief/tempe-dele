@@ -10,7 +10,13 @@ class PejabatController extends Controller
 {
     public function index()
     {
-        $pejabat = DB::table('m_pejabat')->orderBy('tahun', 'desc')->get();
+        // Pejabat aktif didahulukan agar tampilan per tahun (firstWhere per jabatan) menampilkan pejabat
+        // yang sedang menjabat, bukan baris lama hasil Ganti Kabag/PPK.
+        $pejabat = DB::table('m_pejabat')
+            ->orderBy('tahun', 'desc')
+            ->orderByRaw("status = 'aktif' DESC")
+            ->orderBy('id_pejabat', 'desc')
+            ->get();
         $pejabatPerTahun = $pejabat->groupBy('tahun');
         $pejabatList = DB::table('m_pejabat')
             ->select('nama', 'jabatan', 'nip_lama', 'nip')
