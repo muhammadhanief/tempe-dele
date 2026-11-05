@@ -13,7 +13,11 @@ class DokumenViewController extends Controller
         $bulan = $request->get('bulan');
         $isFiltered = !empty($bulan);
 
-        $dokumenList = DB::table('t_dokumen')->orderBy('periode', 'desc')->get();
+        // Isi berkas (file_blob) tidak diambil; halaman ini hanya butuh id, jenis, dan periode.
+        $dokumenList = DB::table('t_dokumen')
+            ->select('id_dokumen', 'type', 'periode', 'generated_at')
+            ->orderBy('periode', 'desc')
+            ->get();
 
         $periodeTransaksi = DB::table('t_transaksi')
             ->where('status', 'approved')
