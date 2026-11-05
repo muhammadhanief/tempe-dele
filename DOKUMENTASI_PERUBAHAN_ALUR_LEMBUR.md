@@ -6242,3 +6242,9 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 ### H. Kop Surat SPKL: Logo Diperkecil Menjadi 50%
 * Atas permintaan pengguna (05 November 2026), logo kop SPKL (`resources/views/dokumen/spkl.blade.php`) diperkecil dari **70% menjadi 50%** lebar area cetak, tetap rata kiri (versi 60% juga dicoba, pengguna memilih 50%). Acuan pengguna: contoh SPKL September 2025 yang logonya tampak lebih kecil.
 * Garis pemisah, judul, dan isi tabel tidak diubah. Tidak ada perubahan database.
+
+### I. Halaman Generate Dokumen Tidak Lagi Memuat Isi Berkas
+* **Masalah:** di server, membuka dokumen terasa lama. `DokumenViewController::index` mengambil semua baris `t_dokumen` beserta `file_blob` (isi PDF/Excel) setiap kali halaman Generate Dokumen dibuka, padahal tampilan hanya memakai `id_dokumen`, `type`, dan `periode`. Pada dump server 1 Oktober 2026 isinya 12 dokumen, total 5,4 MB per muat halaman, dan bertambah setiap ada dokumen baru.
+* **Perbaikan:** query diganti `select('id_dokumen', 'type', 'periode', 'generated_at')`. Tampilan dan tautan lihat dokumen tidak berubah.
+* **Catatan:** SPKL lama di server (mis. id 142) berukuran sekitar 705 KB karena dibuat sebelum logo kop diperkecil ke versi 2000 px; SPKL yang digenerate ulang sekarang sekitar 95 KB sehingga lebih cepat dibuka.
+* Berkas: `app/Http/Controllers/admin/DokumenViewController.php`.
