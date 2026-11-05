@@ -6238,3 +6238,7 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 | 18:30 | 18:30 | Ya | Dihitung 2 jam |
 
 * Berkas: `app/Traits/KoreksiLembur.php`.
+
+### H. Kop Surat SPKL: Logo Diperkecil Menjadi 50%
+* Atas permintaan pengguna (05 November 2026), logo kop SPKL (`resources/views/dokumen/spkl.blade.php`) diperkecil dari **70% menjadi 50%** lebar area cetak, tetap rata kiri (versi 60% juga dicoba, pengguna memilih 50%). Acuan pengguna: contoh SPKL September 2025 yang logonya tampak lebih kecil.
+* Garis pemisah, judul, dan isi tabel tidak diubah. Tidak ada perubahan database.
