@@ -457,8 +457,8 @@
                         Batal
                     </button>
 
-                    <button type="submit"
-                        class="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-black bg-[#faa938] rounded-lg hover:bg-[#fd9a10] hover:text-white">
+                    <button type="submit" id="btnGenerateSpkl"
+                        class="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-black bg-[#faa938] rounded-lg hover:bg-[#fd9a10] hover:text-white disabled:opacity-60 disabled:cursor-wait">
                         Generate
                     </button>
                 </div>
@@ -896,6 +896,25 @@
         document.getElementById('modalNomor').classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     };
+
+    // Cegah Generate terkirim dua kali selama proses berjalan (penyebab baris dokumen ganda).
+    let sedangGenerate = false;
+    const btnGenerateSpkl = document.getElementById('btnGenerateSpkl');
+    document.getElementById('formGenerateSpkl')?.addEventListener('submit', function (e) {
+        if (sedangGenerate) { e.preventDefault(); return; }
+        sedangGenerate = true;
+        if (btnGenerateSpkl) {
+            btnGenerateSpkl.disabled = true;
+            btnGenerateSpkl.textContent = 'Memproses...';
+        }
+    });
+    window.addEventListener('pageshow', function () {
+        sedangGenerate = false;
+        if (btnGenerateSpkl) {
+            btnGenerateSpkl.disabled = false;
+            btnGenerateSpkl.textContent = 'Generate';
+        }
+    });
 
 })();
 </script>
