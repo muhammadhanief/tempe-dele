@@ -119,6 +119,32 @@ class DokumenGenerateController extends Controller
         }
     }
 
+    /**
+     * Dokumen terbaru untuk periode dan jenis ini; baris ganda lainnya dihapus.
+     * Baris ganda muncul jika tombol Generate terkirim dua kali saat proses masih berjalan,
+     * sehingga generate ulang dan tombol lihat bisa memakai baris yang berbeda.
+     */
+    private function dokumenTunggal(string $bulan, string $type): ?object
+    {
+        $ids = DB::table('t_dokumen')
+            ->where('periode', $bulan)
+            ->where('type', $type)
+            ->orderByDesc('id_dokumen')
+            ->pluck('id_dokumen');
+
+        if ($ids->isEmpty()) {
+            return null;
+        }
+
+        $duplikat = $ids->slice(1)->values();
+        if ($duplikat->isNotEmpty()) {
+            DB::table('t_dokumen_pejabat')->whereIn('t_dokumen_id_dokumen', $duplikat)->delete();
+            DB::table('t_dokumen')->whereIn('id_dokumen', $duplikat)->delete();
+        }
+
+        return (object) ['id_dokumen' => $ids->first()];
+    }
+
     private function hariKerjaPertama(int $bulan, int $tahun): Carbon
     {
         $liburNasional = $this->getLiburNasional($tahun);
@@ -148,10 +174,7 @@ class DokumenGenerateController extends Controller
         [$tahun, $bln] = explode('-', $bulan);
         $dt = Carbon::parse($bulan . '-01');
 
-        $existing = DB::table('t_dokumen')
-            ->where('periode', $bulan)
-            ->where('type', $type)
-            ->first();
+        $existing = $this->dokumenTunggal($bulan, $type);
 
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')
@@ -286,10 +309,7 @@ class DokumenGenerateController extends Controller
         [$tahun, $bln] = explode('-', $bulan);
         $dt = Carbon::parse($bulan . '-01');
 
-        $existing = DB::table('t_dokumen')
-            ->where('periode', $bulan)
-            ->where('type', $type)
-            ->first();
+        $existing = $this->dokumenTunggal($bulan, $type);
 
         $query = DB::table('t_transaksi as t')
             ->join('m_pegawai as p', 't.submitted_by_NIP', '=', 'p.nip')

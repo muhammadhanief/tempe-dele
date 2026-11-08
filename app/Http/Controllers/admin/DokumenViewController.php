@@ -17,6 +17,7 @@ class DokumenViewController extends Controller
         $dokumenList = DB::table('t_dokumen')
             ->select('id_dokumen', 'type', 'periode', 'generated_at')
             ->orderBy('periode', 'desc')
+            ->orderByDesc('id_dokumen') // jika ada baris ganda, tautan lihat memakai yang terbaru
             ->get();
 
         $periodeTransaksi = DB::table('t_transaksi')
