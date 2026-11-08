@@ -110,15 +110,21 @@
         $logoSrc = null;
         if (extension_loaded('gd')) {
             // Versi 2000px: logo asli (10262px) butuh ±290 MB memori di DomPDF dan gagal di server.
+            // Berkas di dalam folder aplikasi didahulukan dan dibaca langsung oleh DomPDF (tanpa folder temp server).
             $logoCandidates = [
-                public_path('images/logo-bps-jateng-dokumen.png'),
                 base_path('public/images/logo-bps-jateng-dokumen.png'),
+                public_path('images/logo-bps-jateng-dokumen.png'),
                 base_path('../public_html/images/logo-bps-jateng-dokumen.png'),
                 '/home/lemburwe/public_html/images/logo-bps-jateng-dokumen.png',
             ];
+            $folderAplikasi = realpath(base_path());
             foreach ($logoCandidates as $cand) {
                 if (!empty($cand) && file_exists($cand)) {
-                    $logoSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($cand));
+                    $asli = realpath($cand);
+                    // Di luar folder aplikasi diblokir chroot DomPDF, jadi disisipkan sebagai data URI.
+                    $logoSrc = ($asli && $folderAplikasi && str_starts_with($asli, $folderAplikasi))
+                        ? $asli
+                        : 'data:image/png;base64,' . base64_encode(file_get_contents($cand));
                     break;
                 }
             }
