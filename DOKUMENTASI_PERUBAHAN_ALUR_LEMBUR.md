@@ -6248,3 +6248,13 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 * **Perbaikan:** query diganti `select('id_dokumen', 'type', 'periode', 'generated_at')`. Tampilan dan tautan lihat dokumen tidak berubah.
 * **Catatan:** SPKL lama di server (mis. id 142) berukuran sekitar 705 KB karena dibuat sebelum logo kop diperkecil ke versi 2000 px; SPKL yang digenerate ulang sekarang sekitar 95 KB sehingga lebih cepat dibuka.
 * Berkas: `app/Http/Controllers/admin/DokumenViewController.php`.
+
+### J. Perbaikan: Generate Ulang Tidak Tampil Karena Baris Dokumen Ganda
+* **Laporan (08 November 2026):** Bu Yuli generate ulang SPKL PPPK Mei 2026 dengan nomor surat baru dan muncul "SPKL berhasil diperbarui", tetapi PDF yang dibuka masih bernomor lama ("testing"). Sebelumnya Bu Yuli juga melaporkan "kalau generate baru tidak muncul".
+* **Penyebab:** generate di server sempat sangat lama, sehingga tombol Generate dapat terkirim dua kali (klik ulang atau refresh). Dua request sama-sama belum menemukan dokumen lalu sama-sama menambah baris, sehingga `t_dokumen` memiliki dua baris untuk periode dan jenis yang sama. Generate ulang memperbarui satu baris dengan `first()` tanpa urutan, sedangkan tombol lihat dapat membuka baris lainnya.
+* **Perbaikan:**
+  1. `DokumenGenerateController` memakai method baru `dokumenTunggal()` untuk SPKL dan Laporan: mengambil baris terbaru (`id_dokumen` terbesar) dan menghapus baris ganda lain (beserta relasi di `t_dokumen_pejabat` jika ada). Generate ulang selalu memperbarui baris tersebut.
+  2. `DokumenViewController::index` mengurutkan `id_dokumen` menurun sebagai urutan kedua, sehingga tombol lihat selalu membuka baris terbaru.
+* **Hasil uji (lokal, di dalam transaksi yang dibatalkan):** dua baris SPKL PPPK 2026-05 (id 3 dan 4) → setelah generate ulang tersisa 1 baris (id 4) berisi PDF baru 93 KB, dan tombol lihat membuka id 4. Uji asap 36/36 lulus.
+* Tidak ada perubahan database atau tampilan. Baris ganda yang sudah ada di server akan terhapus otomatis saat dokumen tersebut digenerate ulang.
+* Berkas: `app/Http/Controllers/admin/DokumenGenerateController.php`, `app/Http/Controllers/admin/DokumenViewController.php`.
