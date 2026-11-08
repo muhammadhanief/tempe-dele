@@ -25,13 +25,42 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+        // Token form tidak cocok (419). Jika pengguna masih login, kembalikan ke halaman sebelumnya
+        // dengan isian utuh agar cukup kirim ulang; hanya sesi yang benar-benar hilang yang ke login.
+        $tanganiTokenKedaluwarsa = function ($request) {
+            $masihLogin = $request->hasSession() && $request->session()->get('logged_in');
+
+            \Illuminate\Support\Facades\Log::warning('Token CSRF tidak cocok (419)', [
+                'url'          => $request->path(),
+                'masih_login'  => (bool) $masihLogin,
+                'nip'          => $masihLogin ? ($request->session()->get('user')['nip'] ?? null) : null,
+                'cookie_sesi'  => $request->cookies->has(config('session.cookie')),
+                'user_agent'   => substr((string) $request->userAgent(), 0, 120),
+            ]);
+
+            $pesan = 'Halaman sudah kedaluwarsa sehingga data belum terkirim. Silakan kirim ulang.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $masihLogin ? $pesan : 'Sesi Anda telah berakhir. Silakan masuk kembali.'], 419);
+            }
+
+            if ($masihLogin) {
+                return redirect()->back()
+                    ->withInput($request->except(['_token', 'signature', 'password']))
+                    ->withErrors(['token' => $pesan])
+                    ->with('error', $pesan);
+            }
+
             return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan masuk kembali.');
+        };
+
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) use ($tanganiTokenKedaluwarsa) {
+            return $tanganiTokenKedaluwarsa($request);
         });
 
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, $request) {
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, $request) use ($tanganiTokenKedaluwarsa) {
             if ($e->getStatusCode() === 419) {
-                return redirect()->route('login')->with('error', 'Sesi Anda telah berakhir. Silakan masuk kembali.');
+                return $tanganiTokenKedaluwarsa($request);
             }
         });
     })->create();
