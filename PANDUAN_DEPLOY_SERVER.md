@@ -383,6 +383,9 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 265. 📄 **`app/Traits/KoreksiLembur.php`** *(Presensi pulang sebelum jam mulai lembur tidak lagi dihitung penuh; pulang dini hari tetap dianggap hari berikutnya)*.
 266. 📄 **`app/Http/Controllers/admin/DokumenViewController.php`** *(Halaman Generate Dokumen tidak lagi memuat isi berkas `file_blob` semua dokumen; tombol lihat membuka baris dokumen terbaru)*.
 267. 📄 **`app/Http/Controllers/admin/DokumenGenerateController.php`** *(Generate ulang memperbarui baris terbaru dan menghapus baris dokumen ganda untuk periode dan jenis yang sama)*.
+268. 📄 **`resources/views/admin/dokumen.blade.php`** *(Tombol Generate SPKL dinonaktifkan dan bertuliskan "Memproses..." selama proses berjalan agar tidak terkirim dua kali)*.
+269. 📄 **`bootstrap/app.php`** *(Token form kedaluwarsa (419): pengguna yang masih login dikembalikan ke halaman sebelumnya dengan isian utuh, bukan ke halaman login; setiap kejadian dicatat di `laravel.log`)*.
+270. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Logo kop dibaca langsung dari `public/images` di folder aplikasi tanpa folder temp server; data URI hanya sebagai cadangan)*.
 
 ---
 
@@ -399,6 +402,12 @@ Pastikan file `.env` di server produksi:
    ```env
    APP_URL=https://lembur.web.bps.go.id
    ```
+4. Menyimpan sesi dan cache sebagai file, karena tabel `sessions` dan `cache` tidak ada di database server (diperbaiki Mas Hanief 08 November 2026). Jika `CACHE_STORE=database`, perintah `php artisan optimize:clear` berhenti di tahap `cache` sehingga cache rute dan tampilan lama tidak ikut terhapus:
+   ```env
+   SESSION_DRIVER=file
+   CACHE_STORE=file
+   ```
+5. Nilai yang mengandung karakter khusus (`!`, `]`, `)`, `#`, `$`, spasi) dibungkus kutip tunggal, misalnya `DB_PASSWORD='...'`.
 
 > [!NOTE]
 > **Mekanisme Keamanan Otomatis:**  
@@ -1951,5 +1960,8 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Dashboard pegawai**: pegawai yang punya pengajuan Menunggu Kabag. Verifikasi: subjudul "5 pengajuan lembur terakhir kamu." dan badge "Diproses" pada pengajuan tersebut. Pengajuan yang dibatalkan admin tampil dengan badge abu-abu "Dibatalkan".
 - [ ] **Kop SPKL**: Admin → Generate Dokumen → generate SPKL PDF, buka. Verifikasi: logo BPS Jawa Tengah berada di kiri atas (rata dengan tepi kiri tabel), lebarnya sekitar 50% area cetak (setengah lebar tabel). Generate ulang SPKL lama agar ukuran berkasnya turun (sekitar 95 KB) dan halaman Generate Dokumen terbuka cepat, garis hitam di bawahnya, lalu judul "SURAT PERINTAH KERJA LEMBUR" di tengah.
 - [ ] **Generate ulang tampil**: generate ulang SPKL yang sudah ada dengan nomor surat berbeda, lalu klik lihat. Verifikasi: PDF menampilkan nomor surat yang baru. Di phpMyAdmin, `SELECT periode, type, COUNT(*) FROM t_dokumen GROUP BY periode, type HAVING COUNT(*) > 1;` tidak lagi memuat periode yang baru digenerate ulang.
+- [ ] **Tombol Generate tidak dobel**: klik Generate SPKL, verifikasi tombol berubah menjadi "Memproses..." dan tidak dapat diklik lagi sampai halaman kembali.
+- [ ] **Logo kop dengan kode terbaru**: generate ulang SPKL, buka, lalu unduh. Verifikasi: nama berkas memuat tanggal hari ini (`..._2026MMDD_...`), logo tampil (bukan teks "Header BPS Provinsi Jawa Tengah"), ukuran berkas sekitar 95 KB, dan generate selesai dalam beberapa detik.
+- [ ] **Token kedaluwarsa tidak melempar ke login**: buka form Ajukan Lembur di dua tab, login ulang di tab kedua, lalu kirim dari tab pertama. Verifikasi: tetap di halaman Lembur, modal terbuka dengan pesan "Halaman sudah kedaluwarsa ... Silakan kirim ulang", isian kembali (tanda tangan dibubuhkan ulang), dan `storage/logs/laravel.log` memuat baris `Token CSRF tidak cocok (419)`.
 - [ ] **Pulang sebelum jam mulai**: siapkan presensi pegawai tanggal tertentu dengan jam pulang 16:00 (lebih kecil dari jam mulai lembur 16:01), lalu setujui pengajuan 16:01–19:01 pegawai itu pada tanggal yang sama. Verifikasi: pengajuan tidak eligible dengan catatan "Presensi pulang sebelum jam mulai lembur." dan tidak ikut terhitung di Akumulasi. Pulang 18:30 tetap eligible dan dihitung 2 jam.
 - [ ] **Pesan catatan Kabag**: Kabag membuka pengajuan Tim Bagian Umum berstatus Pending, mengubah jam, kosongkan catatan, lalu Setujui. Verifikasi: pesan "...berbeda dari jam pengajuan." Untuk pengajuan tim lain berstatus Menunggu Kabag, pesannya "...berbeda dari jam yang sudah disetujui Ketua Tim."

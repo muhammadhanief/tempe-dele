@@ -6258,3 +6258,30 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 * **Hasil uji (lokal, di dalam transaksi yang dibatalkan):** dua baris SPKL PPPK 2026-05 (id 3 dan 4) → setelah generate ulang tersisa 1 baris (id 4) berisi PDF baru 93 KB, dan tombol lihat membuka id 4. Uji asap 36/36 lulus.
 * Tidak ada perubahan database atau tampilan. Baris ganda yang sudah ada di server akan terhapus otomatis saat dokumen tersebut digenerate ulang.
 * Berkas: `app/Http/Controllers/admin/DokumenGenerateController.php`, `app/Http/Controllers/admin/DokumenViewController.php`.
+* **Bukti di data server:** dump database server 1 Oktober 2026 sudah memuat baris ganda `spkl_pns_pdf` periode 2026-06 (id 142 dan 143, selisih 18 detik) dan 2026-07 (id 144 dan 145, selisih 3 detik). Berkas yang dibuka pengguna bernama `SPKL_PNS_2026-06_20260703_152427.pdf`, yaitu id 142, sedangkan generate ulang memperbarui id 143.
+
+### K. Tombol Generate SPKL Tidak Dapat Terkirim Dua Kali
+* Halaman Generate Dokumen tidak memiliki indikator loading (`hideLoading`), sehingga saat generate lama pengguna cenderung mengklik ulang.
+* Tombol Generate pada modal Nomor Surat kini dinonaktifkan dan bertuliskan "Memproses..." setelah diklik; kiriman kedua diabaikan. Tombol kembali normal jika halaman dibuka lagi lewat tombol Back (`pageshow`). Laporan tidak perlu diubah karena modalnya langsung ditutup sebelum berpindah halaman.
+* Berkas: `resources/views/admin/dokumen.blade.php`.
+
+### L. Token Form Kedaluwarsa (419) Tidak Lagi Melempar Pengguna ke Halaman Login
+* **Laporan (06 November 2026):** sebagian pengguna terlempar ke halaman login dengan pesan "Sesi Anda telah berakhir" saat mengirim pengajuan lembur, padahal halaman tidak dibuka lama. Pemeriksaan server (08 November 2026): folder web benar (`public_html/index.php` → `../lembur`), disk terpakai 40%, folder sesi normal. Mas Hanief menemukan `CACHE_STORE=database` tanpa tabel `cache` dan menggantinya menjadi `file`.
+* **Perubahan:** handler `TokenMismatchException` / HTTP 419 di `bootstrap/app.php`:
+  1. Jika sesi masih login, pengguna dikembalikan ke halaman sebelumnya dengan isian utuh (kecuali `_token`, `signature`, `password`) dan pesan "Halaman sudah kedaluwarsa sehingga data belum terkirim. Silakan kirim ulang." Pada halaman Lembur, modal Ajukan otomatis terbuka kembali dengan isian sebelumnya.
+  2. Jika sesi benar-benar hilang, tetap diarahkan ke login seperti sebelumnya.
+  3. Permintaan AJAX menerima JSON 419 dengan pesan yang sama.
+  4. Setiap kejadian dicatat ke `laravel.log` (`Token CSRF tidak cocok (419)`) beserta url, status login, NIP, ada/tidaknya cookie sesi, dan user agent, untuk melacak penyebab jika masih terjadi.
+* **Hasil uji lokal:** POST `/lembur` dengan token salah saat login → 302 ke `/lembur`, modal terbuka dengan pesan dan uraian kembali, tidak ada transaksi tersimpan; POST tanpa sesi → 302 ke `/login`; kedua kejadian tercatat di log.
+* Berkas: `bootstrap/app.php`.
+
+### M. Logo Kop SPKL Dibaca Langsung dari Folder Aplikasi
+* Sebelumnya logo selalu disisipkan sebagai data URI, sehingga DomPDF harus menulis salinan gambar ke folder temp server sebelum memuatnya. Jika folder temp bermasalah, yang tampil hanya teks "Header BPS Provinsi Jawa Tengah".
+* Kini `base_path('public/images/logo-bps-jateng-dokumen.png')` (berkas di repo, 2000 px) didahulukan dan diberikan sebagai path lokal, yang diizinkan chroot DomPDF (`base_path()`). Kandidat di `public_html` (di luar chroot) tetap memakai data URI sebagai cadangan.
+* Hasil uji lokal: PDF 93 KB, gambar 2000 × 421 px, tanpa teks pengganti. Uji asap 36/36 lulus.
+* **Catatan:** dump server 1 Oktober 2026 menunjukkan server pernah berhasil merender logo asli 10262 px (id 144 dan 145), sedangkan 3 November gagal; ada perubahan lingkungan server di antaranya (batas memori atau versi PHP). Logo 2000 px tidak terpengaruh.
+* Berkas: `resources/views/dokumen/spkl.blade.php`.
+
+### N. Diperiksa, Tidak Diubah
+* Validasi persetujuan Ketua Tim (`ketuatim/PengajuanController.php`) masih menganggap presensi pulang sebelum jam mulai sebagai hari berikutnya sehingga persetujuan lolos. Dibiarkan: `KoreksiLembur` (seksi G) langsung menandai pengajuan tersebut tidak eligible dengan catatan, dan menutup celah ini justru membuat Ketua Tim tidak dapat menyetujui sama sekali.
+* NIP Pak Joko 15 digit pada PDF SPKL PPPK Mei 2026 (dibuat 05 November) belum dapat dipastikan penyebabnya: PDF kemungkinan dibuat sebelum `UPDATE m_pejabat` dijalankan, atau NIP tersimpan dengan spasi sehingga `WHERE nip = '197106131993121'` tidak cocok. Cek ulang setelah generate ulang; bila masih 15 digit, jalankan `UPDATE m_pejabat SET nip = '197106131993121001' WHERE jabatan = 'Kepala Bagian Umum' AND nama LIKE 'Joko Suwarjo%';`.
