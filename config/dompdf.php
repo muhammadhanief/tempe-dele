@@ -65,8 +65,13 @@ return [
          * The directory specified must be writeable by the webserver process.
          * The temporary directory is required to download remote images and when
          * using the PDFLib back end.
+         *
+         * Catatan server produksi: /tmp akun tidak bisa membuat berkas (tempnam
+         * mengembalikan false) sehingga gambar yang disisipkan sebagai data URI
+         * gagal dimuat DomPDF dan diganti teks alt. Arahkan ke folder di dalam
+         * aplikasi agar tidak bergantung pada /tmp server.
          */
-        'temp_dir' => sys_get_temp_dir(),
+        'temp_dir' => storage_path('app/dompdf'),
 
         /**
          * ==== IMPORTANT ====

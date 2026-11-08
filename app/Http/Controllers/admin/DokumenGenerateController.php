@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\LaporanExport;
@@ -13,6 +14,31 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class DokumenGenerateController extends Controller
 {
+    /**
+     * Pastikan folder temp DomPDF ada. Server produksi tidak bisa memakai /tmp
+     * (tempnam gagal), sehingga temp_dir diarahkan ke storage/app/dompdf.
+     */
+    private function pastikanTempDirDomPdf(): void
+    {
+        $dir = storage_path('app/dompdf');
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+    }
+
+    /**
+     * Catat peringatan DomPDF ke log. Peringatan (mis. gambar kop gagal dimuat)
+     * hanya disimpan di variabel global $_dompdf_warnings saat render, jadi tanpa
+     * ini kegagalan gambar tidak terlihat sama sekali.
+     */
+    private function catatPeringatanDomPdf(string $konteks): void
+    {
+        $warnings = $GLOBALS['_dompdf_warnings'] ?? [];
+        if (!empty($warnings)) {
+            Log::warning('DomPDF: ' . $konteks . ' -> ' . implode(' | ', $warnings));
+        }
+    }
+
     private function getPejabat(?Request $request = null, ?int $tahun = null)
     {
         // 1. PPK: jika dioper via request, gunakan parameter; jika tidak, ambil yang aktif
@@ -276,16 +302,21 @@ class DokumenGenerateController extends Controller
         
         ini_set('memory_limit', '512M');
 
+        $this->pastikanTempDirDomPdf();
+
         $pdf = Pdf::loadView('dokumen.spkl', compact(
             'pegawai', 'ppk', 'kbu', 'nomorSurat', 'bulanLabel', 'tahun', 'tanggalTtd'
         ))->setPaper('a4', 'portrait');
         
         $pdf->getDomPDF()->add_info('Title', "SPKL_" . strtoupper($jenis) . "_" . $bulan);
 
+        $fileBlob = $pdf->output();
+        $this->catatPeringatanDomPdf('SPKL ' . strtoupper($jenis) . ' ' . $bulan);
+
         if ($existing) {
             DB::table('t_dokumen')->where('id_dokumen', $existing->id_dokumen)->update([
                 'generated_at' => now(),
-                'file_blob'    => $pdf->output(),
+                'file_blob'    => $fileBlob,
             ]);
             return redirect()->route('admin.dokumen')->with('success', 'SPKL berhasil diperbarui.');
         }
@@ -294,7 +325,7 @@ class DokumenGenerateController extends Controller
             'type'         => $type,
             'periode'      => $bulan,
             'generated_at' => now(),
-            'file_blob'    => $pdf->output(),
+            'file_blob'    => $fileBlob,
         ]);
 
         return redirect()->route('admin.dokumen')->with('success', 'SPKL berhasil digenerate.');
@@ -417,10 +448,13 @@ class DokumenGenerateController extends Controller
 
         $pdf->getDomPDF()->add_info('Title', "Laporan_" . strtoupper($jenis) . "_" . $bulan);
         
+        $fileBlob = $pdf->output();
+        $this->catatPeringatanDomPdf('Laporan ' . strtoupper($jenis) . ' ' . $bulan);
+
         if ($existing) {
             DB::table('t_dokumen')->where('id_dokumen', $existing->id_dokumen)->update([
                 'generated_at' => now(),
-                'file_blob'    => $pdf->output(),
+                'file_blob'    => $fileBlob,
             ]);
             return redirect()->route('admin.dokumen')->with('success', 'Laporan berhasil diperbarui.');
         }
@@ -429,7 +463,7 @@ class DokumenGenerateController extends Controller
             'type'         => $type,
             'periode'      => $bulan,
             'generated_at' => now(),
-            'file_blob'    => $pdf->output(),
+            'file_blob'    => $fileBlob,
         ]);
 
         return redirect()->route('admin.dokumen')->with('success', 'Laporan berhasil digenerate.');

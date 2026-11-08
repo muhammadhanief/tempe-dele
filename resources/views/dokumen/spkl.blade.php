@@ -119,14 +119,20 @@
             ];
             $folderAplikasi = realpath(base_path());
             foreach ($logoCandidates as $cand) {
-                if (!empty($cand) && file_exists($cand)) {
-                    $asli = realpath($cand);
-                    // Di luar folder aplikasi diblokir chroot DomPDF, jadi disisipkan sebagai data URI.
-                    $logoSrc = ($asli && $folderAplikasi && str_starts_with($asli, $folderAplikasi))
-                        ? $asli
-                        : 'data:image/png;base64,' . base64_encode(file_get_contents($cand));
-                    break;
+                // Berkas kosong/rusak dilewati: DomPDF mencetak teks alt bila gambarnya broken.
+                if (empty($cand) || !is_file($cand)) {
+                    continue;
                 }
+                $isiLogo = @file_get_contents($cand);
+                if ($isiLogo === false || @imagecreatefromstring($isiLogo) === false) {
+                    continue;
+                }
+                $asli = realpath($cand);
+                // Di luar folder aplikasi diblokir chroot DomPDF, jadi disisipkan sebagai data URI.
+                $logoSrc = ($asli && $folderAplikasi && str_starts_with($asli, $folderAplikasi))
+                    ? $asli
+                    : 'data:image/png;base64,' . base64_encode($isiLogo);
+                break;
             }
         }
     @endphp
