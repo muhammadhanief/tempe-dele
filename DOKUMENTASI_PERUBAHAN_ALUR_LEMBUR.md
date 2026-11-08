@@ -6285,3 +6285,39 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 ### N. Diperiksa, Tidak Diubah
 * Validasi persetujuan Ketua Tim (`ketuatim/PengajuanController.php`) masih menganggap presensi pulang sebelum jam mulai sebagai hari berikutnya sehingga persetujuan lolos. Dibiarkan: `KoreksiLembur` (seksi G) langsung menandai pengajuan tersebut tidak eligible dengan catatan, dan menutup celah ini justru membuat Ketua Tim tidak dapat menyetujui sama sekali.
 * NIP Pak Joko 15 digit pada PDF SPKL PPPK Mei 2026 (dibuat 05 November) belum dapat dipastikan penyebabnya: PDF kemungkinan dibuat sebelum `UPDATE m_pejabat` dijalankan, atau NIP tersimpan dengan spasi sehingga `WHERE nip = '197106131993121'` tidak cocok. Cek ulang setelah generate ulang; bila masih 15 digit, jalankan `UPDATE m_pejabat SET nip = '197106131993121001' WHERE jabatan = 'Kepala Bagian Umum' AND nama LIKE 'Joko Suwarjo%';`.
+
+---
+
+## 113. Akar Masalah Kop Logo SPKL di Server: Folder Temp DomPDF Dipindah ke `storage/app/dompdf`
+
+### A. Gejala
+* SPKL yang digenerate di server (id 163, periode 2026-08, 08 November 2026) menampilkan teks **"Header BPS Provinsi Jawa Tengah"** di posisi kop, bukan gambar logo. Ukuran berkasnya hanya 15 KB, sedangkan SPKL yang logonya tampil sekitar 95 KB.
+
+### B. Pembuktian
+1. Bedah berkas `SPKL_PNS_2026-08_20261108_101953.pdf`: **nol objek gambar** (`/Subtype /Image` tidak ada) dan teks yang tercetak persis `Header BPS Provinsi Jawa Tengah`. Teks itu adalah atribut `alt` pada `<img>` kop, jadi berkas logo memang ditemukan tetapi DomPDF menilai gambarnya rusak (`Cache::is_broken()`), lalu `Renderer/Image.php:41` mencetak teks `alt`.
+2. Berkas logo di server identik dengan lokal (md5 `DB8C6273727BA275C4F4B6E6B3C12E38`, 89.049 byte), jadi bukan soal path atau isi berkas.
+3. Pemeriksaan konteks web (`fpm-fcgi`): `memory_limit=128M`, `open_basedir` kosong, `gd_png=1`, `getimagesize` dan `imagecreatefromstring` sukses (2000x421), tetapi **`tempnam(sys_get_temp_dir(), 'cek_')` mengembalikan `false`** meskipun `is_writable('/tmp')` bernilai 1.
+4. Pemeriksaan shell: `touch /tmp/tes_lembur` gagal ("No such file or directory") dan `/tmp` justru `drwx------` milik akun `lemburwe` (bukan `drwxrwxrwt root root`), sedangkan disk terpakai 40% dan inode 2%.
+
+### C. Penyebab
+* DomPDF 3.1.6 menyalin gambar ke berkas sementara sebelum dimasukkan ke PDF (`vendor/dompdf/dompdf/src/Image/Cache.php:98`): `tempnam($options->getTempDir(), 'ca_dompdf_img_')`, dengan `temp_dir` bawaan `sys_get_temp_dir()` yaitu `/tmp`.
+* Saat `tempnam` gagal, DomPDF melempar `ImageException("Unable to create temporary image in /tmp")`, gambar ditandai *broken*, lalu teks `alt` dicetak. Peringatannya hanya masuk variabel global `$_dompdf_warnings` dan `log_output_file` bernilai `null`, sehingga kegagalan ini **senyap**: tidak ada error di layar maupun di log.
+* Yang terkena hanya gambar bertipe data URI/URL karena hanya gambar itu yang butuh berkas sementara. Seksi M sudah memindahkan logo ke path lokal di dalam folder aplikasi sehingga tidak lagi butuh berkas sementara; seksi ini menutup akar masalahnya agar gambar data URI mana pun (termasuk kandidat cadangan di `public_html`) tetap aman.
+
+### D. Perbaikan
+| No | Perubahan | Berkas |
+| :---: | :--- | :--- |
+| 1 | `temp_dir` DomPDF diarahkan dari `sys_get_temp_dir()` ke `storage_path('app/dompdf')` agar tidak bergantung pada `/tmp` server. | `config/dompdf.php` |
+| 2 | Folder `storage/app/dompdf` disertakan ke Git (pengecualian `!dompdf/`) dan dipastikan ada sebelum generate lewat `pastikanTempDirDomPdf()`. | `storage/app/.gitignore`, `storage/app/dompdf/.gitignore`, `app/Http/Controllers/admin/DokumenGenerateController.php` |
+| 3 | Peringatan DomPDF (`$_dompdf_warnings`) dicatat ke `storage/logs/laravel.log` setiap generate SPKL/Laporan lewat `catatPeringatanDomPdf()`, agar kegagalan serupa tidak lagi senyap. | `app/Http/Controllers/admin/DokumenGenerateController.php` |
+| 4 | Kandidat logo (termasuk cadangan data URI) hanya dipakai bila isinya lolos `imagecreatefromstring()`; berkas kosong/rusak dilewati sehingga tidak lagi mencetak teks `alt`. | `resources/views/dokumen/spkl.blade.php` |
+
+### E. Hasil Uji
+* Uji dengan PHP 8.2 (mimik blok kandidat logo): berkas kosong, bukan PNG, PNG terpotong, dan berkas tidak ada semuanya **dilewati**; logo asli 89.049 byte **dipakai**.
+* Di server: `tempnam('/tmp')` gagal (`bool(false)`), sedangkan `tempnam('/home/lemburwe/lembur/storage/app/dompdf')` berhasil mengembalikan path berkas. Pemeriksaan sintaks (`php -l`) pada berkas yang diubah: tidak ada error.
+* Verifikasi setelah deploy: generate ulang SPKL, logo tampil, ukuran berkas sekitar 95 KB, dan `storage/logs/laravel.log` tidak memuat baris `DomPDF:`.
+
+### F. Catatan Deploy
+* Tidak ada perubahan database pada seksi ini.
+* Jika server memakai `php artisan config:cache`, perubahan `config/dompdf.php` baru terbaca setelah cache dibersihkan atau dibuat ulang. Rinciannya ada di `PANDUAN_DEPLOY_SERVER.md` Bagian 5.
+* `/tmp` server masih rusak dan tidak diperbaiki oleh seksi ini. Fitur lain yang memakai `/tmp` (unggah berkas/import Excel) berisiko terganggu dan sebaiknya dilaporkan ke admin hosting.

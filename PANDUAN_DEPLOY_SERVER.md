@@ -74,6 +74,9 @@ php artisan migrate --path=database/migrations/2026_11_03_000001_widen_password_
 > **Hindari menjalankan `php artisan migrate` polosan tanpa `--path` di server!**  
 > Karena ada beberapa migrasi lama bawaan repositori yang kolomnya sudah ada di database, menjalankan `php artisan migrate` secara umum berisiko memunculkan error *Duplicate column*.
 
+> [!NOTE]
+> **Update 08 November 2026 (Seksi 113 - folder temp DomPDF):** tidak ada perubahan database dan tidak ada SQL/migrasi baru. Cukup pembaruan berkas di Bagian 2 dan pembersihan cache di Bagian 5.
+
 ---
 
 ## 📁 2. Pembaruan Berkas Kode ke Server
@@ -386,6 +389,10 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 268. 📄 **`resources/views/admin/dokumen.blade.php`** *(Tombol Generate SPKL dinonaktifkan dan bertuliskan "Memproses..." selama proses berjalan agar tidak terkirim dua kali)*.
 269. 📄 **`bootstrap/app.php`** *(Token form kedaluwarsa (419): pengguna yang masih login dikembalikan ke halaman sebelumnya dengan isian utuh, bukan ke halaman login; setiap kejadian dicatat di `laravel.log`)*.
 270. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Logo kop dibaca langsung dari `public/images` di folder aplikasi tanpa folder temp server; data URI hanya sebagai cadangan)*.
+271. 📄 **`config/dompdf.php`** *(Seksi 113: `temp_dir` DomPDF diarahkan dari `sys_get_temp_dir()` ke `storage/app/dompdf` karena `/tmp` server tidak bisa membuat berkas, sehingga gambar data URI gagal dimuat dan diganti teks `alt`)*.
+272. 📄 **`app/Http/Controllers/admin/DokumenGenerateController.php`** *(Seksi 113: memastikan folder `storage/app/dompdf` ada sebelum generate, dan mencatat peringatan DomPDF ke `storage/logs/laravel.log` agar kegagalan gambar tidak lagi senyap)*.
+273. 📄 **`resources/views/dokumen/spkl.blade.php`** *(Seksi 113: kandidat logo harus lolos `imagecreatefromstring()`; berkas kosong/rusak dilewati sehingga tidak mencetak teks `alt`)*.
+274. 📁 **`storage/app/dompdf/`** *(FOLDER BARU berisi `.gitignore`, ikut terunduh oleh `git pull`. Jika unggah manual: buat folder `storage/app/dompdf` di dalam `storage/app` server dan pastikan dapat ditulis. Tanpa folder ini gambar data URI kembali gagal dimuat)*.
 
 ---
 
@@ -448,6 +455,16 @@ php artisan view:cache
 
 > [!WARNING]
 > `php artisan config:cache` baru aman setelah commit `fix(config): baca KIPAPP_API_KEY lewat config` ikut ter-deploy. Pada versi sebelumnya, login utama membaca `env('KIPAPP_API_KEY')` langsung, sehingga setelah `config:cache` nilainya kosong dan semua login gagal. Jika ragu, cukup jalankan `php artisan optimize:clear`.
+
+> [!IMPORTANT]
+> **Seksi 113 (`temp_dir` DomPDF):** perubahan `config/dompdf.php` hanya terbaca Laravel setelah cache config dibersihkan. Setelah `git pull`/unggah manual, jalankan:
+> ```bash
+> php artisan config:clear
+> php artisan view:clear
+> # bila tetap ingin memakai cache config:
+> php artisan config:cache
+> ```
+> Jika langkah ini dilewati, gambar data URI (kandidat logo cadangan di `public_html`) tetap gagal dimuat. Sekalian pastikan folder `storage/app/dompdf` ada dan dapat ditulis (`ls -ld storage/app/dompdf`).
 
 > Jika tidak memiliki akses terminal SSH di server cPanel, Anda dapat membuat rute sementara atau menghapus isi folder cache di `bootstrap/cache/*.php` secara manual via File Manager cPanel.
 
@@ -1965,3 +1982,14 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Token kedaluwarsa tidak melempar ke login**: buka form Ajukan Lembur di dua tab, login ulang di tab kedua, lalu kirim dari tab pertama. Verifikasi: tetap di halaman Lembur, modal terbuka dengan pesan "Halaman sudah kedaluwarsa ... Silakan kirim ulang", isian kembali (tanda tangan dibubuhkan ulang), dan `storage/logs/laravel.log` memuat baris `Token CSRF tidak cocok (419)`.
 - [ ] **Pulang sebelum jam mulai**: siapkan presensi pegawai tanggal tertentu dengan jam pulang 16:00 (lebih kecil dari jam mulai lembur 16:01), lalu setujui pengajuan 16:01–19:01 pegawai itu pada tanggal yang sama. Verifikasi: pengajuan tidak eligible dengan catatan "Presensi pulang sebelum jam mulai lembur." dan tidak ikut terhitung di Akumulasi. Pulang 18:30 tetap eligible dan dihitung 2 jam.
 - [ ] **Pesan catatan Kabag**: Kabag membuka pengajuan Tim Bagian Umum berstatus Pending, mengubah jam, kosongkan catatan, lalu Setujui. Verifikasi: pesan "...berbeda dari jam pengajuan." Untuk pengajuan tim lain berstatus Menunggu Kabag, pesannya "...berbeda dari jam yang sudah disetujui Ketua Tim."
+
+### DG. Uji Folder Temp DomPDF (Seksi 113)
+- [ ] **Prasyarat:** tidak ada SQL/migrasi untuk seksi ini. Pastikan berkas di Bagian 2 sudah terunggah dan cache dibersihkan (Bagian 5: `php artisan config:clear && php artisan view:clear`).
+- [ ] **Folder temp DomPDF ada dan dapat ditulis:** di root project server jalankan `ls -ld storage/app/dompdf`. Verifikasi: folder ada dan bisa ditulis. Jika belum ada: `mkdir -p storage/app/dompdf`.
+- [ ] **(Opsional, diagnosa) Cek `/tmp` server:** `php -r 'var_dump(@tempnam("/tmp","cek_"));'`. Nilai `bool(false)` berarti server memang tidak bisa membuat berkas di `/tmp` (itulah alasan `temp_dir` dipindah ke `storage/app/dompdf`).
+- [ ] **Generate SPKL:** Admin → Generate Dokumen → pilih periode → Generate SPKL (PDF), lalu buka PDF di jendela incognito.
+  - Verifikasi: kop menampilkan **gambar logo BPS Jawa Tengah** (rata kiri, lebar sekitar 50% area cetak), **bukan** teks "Header BPS Provinsi Jawa Tengah" dan bukan ikon gambar rusak.
+- [ ] **Cek ukuran berkas (phpMyAdmin):** `SELECT id_dokumen, type, periode, generated_at, ROUND(LENGTH(file_blob)/1024) AS kb FROM t_dokumen WHERE type LIKE 'spkl%' ORDER BY generated_at DESC LIMIT 5;`
+  - Verifikasi: baris terbaru sekitar **90-100 KB**. Jika masih 10-20 KB, gambar belum masuk ke PDF.
+- [ ] **Cek log peringatan DomPDF:** buka `storage/logs/laravel.log`, cari baris `DomPDF:`. Verifikasi: tidak ada baris baru setelah generate. Jika ada, pesannya menyebutkan penyebab pastinya (mis. `Unable to create temporary image in ...`).
+- [ ] **Regresi dokumen lain:** generate Laporan Lembur PDF dan unduh Daftar Hadir PDF (berisi tanda tangan). Verifikasi: keduanya tetap tampil normal seperti sebelumnya.
