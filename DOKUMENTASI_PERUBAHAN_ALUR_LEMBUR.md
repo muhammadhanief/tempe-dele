@@ -6321,3 +6321,37 @@ Uji skenario "klik → hasil yang diharapkan" (93 skenario, dicek di tampilan da
 * Tidak ada perubahan database pada seksi ini.
 * Jika server memakai `php artisan config:cache`, perubahan `config/dompdf.php` baru terbaca setelah cache dibersihkan atau dibuat ulang. Rinciannya ada di `PANDUAN_DEPLOY_SERVER.md` Bagian 5.
 * `/tmp` server masih rusak dan tidak diperbaiki oleh seksi ini. Fitur lain yang memakai `/tmp` (unggah berkas/import Excel) berisiko terganggu dan sebaiknya dilaporkan ke admin hosting.
+
+
+---
+
+## 114. Unggah Presensi Tidak Lagi Bergantung pada `/tmp` Server (Pesan "Berkas gagal diunggah")
+
+### A. Gejala
+* Admin (Yuli Purwitasari) mengunggah `Presensi September 2026.xlsx` (110 kB) di halaman Presensi pada server dan mendapat pesan merah **"Berkas gagal diunggah."**. Mas Hanief dan Bu Yuli sama-sama mengalaminya, sedangkan berkas yang sama berhasil diunggah di lokal.
+
+### B. Pembuktian
+1. Teks itu bukan dari skrip halaman, melainkan terjemahan aturan validasi `uploaded` (`lang/id/validation.php:91`). Aturan ini gagal bila PHP **tidak berhasil menerima berkas**, yaitu sebelum kode aplikasi sempat memprosesnya.
+2. Berkas dan kode terbukti sehat: di lokal unggahan berhasil (`200`, 3.154 data presensi, 133 pegawai, ±16 detik, ±6.300 query). Tidak ada pencocokan NIP saat unggah, dan validasi hanya mengecek jenis (xlsx/xls) dan ukuran (maks 10 MB).
+3. Penyebab yang cocok dengan seksi 113: `/tmp` akun server tidak bisa membuat berkas (`tempnam` gagal, `touch /tmp/...` gagal). PHP menaruh unggahan multipart di `upload_tmp_dir` (bawaan `/tmp`) sebelum aplikasi berjalan, dan pengaturan itu `PHP_INI_SYSTEM` sehingga tidak bisa diubah dari kode.
+4. Pembacaan xlsx oleh PhpSpreadsheet **tidak** butuh `/tmp`: dengan `sys_temp_dir`, `TMP`, dan `TEMP` sengaja diarahkan ke folder yang tidak ada (`tempnam` bernilai `false`), berkas yang sama tetap terbaca (142 baris, 133 pegawai, 3.154 sel).
+
+### C. Perbaikan
+Mas Hanief meminta penyesuaian kode agar tidak memakai `/tmp` (pola yang sama dengan seksi 113). Berkas tidak lagi dikirim sebagai multipart, melainkan sebagai **teks base64 di body JSON**, sehingga PHP tidak menulis berkas ke `/tmp`.
+
+| No | Perubahan | Berkas |
+| :---: | :--- | :--- |
+| 1 | Browser membaca berkas (`arrayBuffer`), mengubahnya ke base64 per 32 KB, dan mengirim `fetch` JSON berisi `file_base64`, `file_nama`, `tahun`, dengan token CSRF di body dan header `X-CSRF-TOKEN`. Batas ukuran sisi browser 5 MB agar body tetap di bawah `post_max_size`. | `resources/views/admin/presensi.blade.php` |
+| 2 | Controller memvalidasi: ekstensi `xlsx`/`xls`, base64 sah, ukuran maks 10 MB, dan penanda isi berkas (`PK\x03\x04` untuk xlsx, `D0 CF 11 E0` untuk xls) sehingga berkas lain yang hanya diganti namanya ditolak (422). | `app/Http/Controllers/admin/PresensiUploadController.php` |
+| 3 | Isi berkas disimpan ke `storage/app/private/unggahan/presensi_<acak>.<ekstensi>` (folder dibuat otomatis), dibaca dari sana, lalu **selalu dihapus** (`finally`). Nama berkas asli tetap dicatat di Riwayat Presensi. | `app/Http/Controllers/admin/PresensiUploadController.php` |
+
+### D. Hasil Uji
+* Payload dibuat dengan logika JavaScript yang sama persis (Node) dari berkas asli (113.058 byte menjadi payload 150.833 byte) lalu dikirim ke controller dengan `sys_temp_dir`/`upload_tmp_dir`/`TMP`/`TEMP` dirusak: `200 Upload berhasil! 3154 data presensi periode September 2026 disimpan.`
+* Kasus gagal: nama `.pdf` ditolak (422), isi bukan Excel ditolak (422), base64 rusak ditolak (422), tanpa berkas ditolak (422). Tidak ada berkas sementara tersisa di `storage/app/private/unggahan`.
+* Uji asap lokal: skrip membuat data presensi lewat endpoint ini, sehingga kontraknya disesuaikan ke JSON base64. Hasil **36/36 lulus**. Sebelum skrip disesuaikan, 13 pemeriksaan gagal karena kontrak lama (multipart, field `file`) memang sudah tidak diterima.
+
+### E. Catatan Deploy
+* Tidak ada perubahan database dan tidak ada perubahan `.env`.
+* Dua berkas harus diperbarui di server: `PresensiUploadController.php` dan `presensi.blade.php`. Setelah unggah jalankan `php artisan view:clear` agar tampilan terbaru terbaca. Folder `storage/app/private/unggahan` dibuat otomatis; cukup pastikan `storage/app/private` dapat ditulis.
+* Batas yang berlaku: berkas maks 5 MB dari sisi browser. Body JSON ±1,34 kali ukuran berkas; PHP menahan body kecil di memori (`php://temp` batas 2 MB), jadi berkas presensi biasa (±110 kB) tidak menyentuh `/tmp` sama sekali.
+* Perubahan ini hanya menutup unggahan presensi. `/tmp` server tetap rusak dan sebaiknya dilaporkan ke admin hosting; fitur lain yang memakai `/tmp` bisa terganggu.
