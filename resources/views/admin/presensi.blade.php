@@ -574,18 +574,43 @@ function showUploadAlert(message, type = 'success') {
 window.submitUpload = async function () {
     if (!selectedFile) { showUploadAlert('Silakan pilih berkas spreadsheet (.xlsx) terlebih dahulu.', 'error'); return; }
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    formData.append('_token', '{{ csrf_token() }}');
-    const tahunVal = document.getElementById('uploadTahun')?.value;
-    if (tahunVal) {
-        formData.append('tahun', tahunVal);
+    // Berkas dikirim sebagai teks base64 di JSON, bukan multipart: server produksi tidak bisa
+    // menulis ke /tmp sehingga unggahan multipart gagal ("Berkas gagal diunggah").
+    const BATAS_BYTE = 5 * 1024 * 1024;
+    if (selectedFile.size > BATAS_BYTE) {
+        showUploadAlert('Ukuran berkas maksimal 5 MB.', 'error');
+        return;
     }
 
     try {
         showUploadAlert('Sedang memproses unggahan data presensi...');
+
+        const bytes = new Uint8Array(await selectedFile.arrayBuffer());
+        let biner = '';
+        for (let i = 0; i < bytes.length; i += 0x8000) {
+            biner += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+        }
+
+        const payload = {
+            _token: '{{ csrf_token() }}',
+            file_base64: btoa(biner),
+            file_nama: selectedFile.name,
+        };
+        const tahunVal = document.getElementById('uploadTahun')?.value;
+        if (tahunVal) {
+            payload.tahun = tahunVal;
+        }
+
         // Accept JSON agar error validasi (mis. bukan Excel) kembali sebagai JSON 422, bukan redirect.
-        const res  = await fetch('/admin/presensi/upload', { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } });
+        const res  = await fetch('/admin/presensi/upload', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            },
+            body: JSON.stringify(payload),
+        });
         const data = await res.json();
         if (res.ok) {
             showUploadAlert(data.message ?? 'Data presensi berhasil diunggah.');

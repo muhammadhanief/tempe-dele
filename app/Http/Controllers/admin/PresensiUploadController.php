@@ -24,16 +24,56 @@ class PresensiUploadController extends Controller
         return view('admin.presensi', compact('hariLibur'));
     }
 
+    /**
+     * Berkas dikirim browser sebagai teks base64 di dalam JSON (bukan multipart) karena
+     * server produksi tidak bisa menulis ke /tmp: PHP menaruh unggahan multipart di
+     * upload_tmp_dir sebelum kode aplikasi berjalan, sehingga gagal dengan pesan
+     * "Berkas gagal diunggah". Isi berkas disimpan ke storage/app/private/unggahan,
+     * dibaca dari sana, lalu dihapus.
+     */
     public function upload(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls|max:10240',
+            'file_base64' => 'required|string',
+            'file_nama'   => 'required|string|max:255',
+        ], [
+            'file_base64.required' => 'Berkas belum dipilih.',
+            'file_nama.required'   => 'Nama berkas tidak terbaca.',
         ]);
 
-        $file = $request->file('file');
+        $namaAsli = basename(str_replace('\\', '/', (string) $request->input('file_nama')));
+        $ekstensi = strtolower(pathinfo($namaAsli, PATHINFO_EXTENSION));
+        if (!in_array($ekstensi, ['xlsx', 'xls'], true)) {
+            return response()->json(['message' => 'Berkas harus berformat xlsx atau xls.'], 422);
+        }
+
+        $isi = base64_decode((string) $request->input('file_base64'), true);
+        if ($isi === false || $isi === '') {
+            return response()->json(['message' => 'Isi berkas tidak valid. Silakan pilih berkas lagi.'], 422);
+        }
+        if (strlen($isi) > 10 * 1024 * 1024) {
+            return response()->json(['message' => 'Ukuran berkas maksimal 10 MB.'], 422);
+        }
+        // xlsx berawal "PK" (zip), xls berawal tanda OLE2. Mencegah berkas lain yang hanya diganti namanya.
+        $awalXlsx = str_starts_with($isi, "PK\x03\x04");
+        $awalXls  = str_starts_with($isi, "\xD0\xCF\x11\xE0");
+        if (!$awalXlsx && !$awalXls) {
+            return response()->json(['message' => 'Isi berkas bukan spreadsheet Excel (xlsx/xls).'], 422);
+        }
+
+        $folder = storage_path('app/private/unggahan');
+        if (!is_dir($folder)) {
+            @mkdir($folder, 0775, true);
+        }
+        $pathBerkas = $folder . DIRECTORY_SEPARATOR . 'presensi_' . bin2hex(random_bytes(8)) . '.' . ($awalXlsx ? 'xlsx' : 'xls');
+        if (@file_put_contents($pathBerkas, $isi) === false) {
+            \Illuminate\Support\Facades\Log::error('Unggah presensi: gagal menyimpan berkas sementara', ['folder' => $folder]);
+            return response()->json(['message' => 'Server tidak bisa menyimpan berkas sementara (storage/app/private/unggahan).'], 500);
+        }
+        unset($isi);
 
         try {
-            $spreadsheet = IOFactory::load($file->getPathname());
+            $spreadsheet = IOFactory::load($pathBerkas);
             $sheet       = $spreadsheet->getActiveSheet();
             $rows        = $sheet->toArray();
 
@@ -121,7 +161,7 @@ class PresensiUploadController extends Controller
             $adminNama = session('nama') ?? session('user.nama') ?? session('pegawai.nama') ?? 'Admin';
             RiwayatPresensi::create([
                 'periode'     => sprintf('%04d-%02d', $tahun, $bulan),
-                'nama_file'   => $file->getClientOriginalName(),
+                'nama_file'   => $namaAsli,
                 'uploaded_by' => $adminNama,
                 'uploaded_at' => now(),
             ]);
@@ -133,6 +173,8 @@ class PresensiUploadController extends Controller
 
         } catch (\Exception $e) {
             return response()->json(['message' => 'Gagal memproses file: ' . $e->getMessage()], 500);
+        } finally {
+            @unlink($pathBerkas);
         }
     }
 
