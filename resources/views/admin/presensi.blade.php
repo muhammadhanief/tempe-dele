@@ -571,55 +571,107 @@ function showUploadAlert(message, type = 'success') {
     el.classList.remove('hidden');
 }
 
+function keBase64(bytes) {
+    let biner = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+        biner += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(biner);
+}
+
+// Mengirim berkas per potongan. Di server, body request yang besar hilang sebelum sampai ke
+// Laravel, jadi potongan yang ditolak "potongan_kosong"/"potongan_rusak" dikirim ulang dengan
+// ukuran setengahnya. kirim(url, isi) mengembalikan { ok, data }.
+async function kirimBerkasBertahap(bytes, uploadId, kirim, onProgres) {
+    const POTONGAN_MIN = 1024;
+    let ukuranPotongan = 32 * 1024;
+    let offset = 0;
+    let percobaan = 0;
+
+    while (offset < bytes.length) {
+        if (++percobaan > 2000) {
+            throw new Error('Pengiriman berkas tidak selesai. Silakan coba lagi.');
+        }
+
+        const potongan = bytes.subarray(offset, offset + ukuranPotongan);
+        const url = `/admin/presensi/upload?aksi=potongan&upload_id=${uploadId}&offset=${offset}&panjang=${potongan.length}`;
+        const { ok, data } = await kirim(url, { data: keBase64(potongan) });
+
+        if (ok && Number.isInteger(data.diterima)) {
+            offset = data.diterima;
+            onProgres?.(offset, bytes.length);
+        } else if (data.kode === 'potongan_kosong' || data.kode === 'potongan_rusak') {
+            if (ukuranPotongan <= POTONGAN_MIN) {
+                throw new Error(data.message ?? 'Potongan berkas tidak sampai ke server.');
+            }
+            ukuranPotongan = Math.max(POTONGAN_MIN, Math.floor(ukuranPotongan / 2));
+        } else if (data.kode === 'offset_tidak_cocok' && Number.isInteger(data.diterima) && data.diterima <= bytes.length) {
+            offset = data.diterima;
+        } else {
+            throw new Error(data.message ?? 'Gagal mengunggah data presensi.');
+        }
+    }
+}
+
 window.submitUpload = async function () {
     if (!selectedFile) { showUploadAlert('Silakan pilih berkas spreadsheet (.xlsx) terlebih dahulu.', 'error'); return; }
 
-    // Berkas dikirim sebagai teks base64 di JSON, bukan multipart: server produksi tidak bisa
-    // menulis ke /tmp sehingga unggahan multipart gagal ("Berkas gagal diunggah").
-    const BATAS_BYTE = 5 * 1024 * 1024;
+    // Berkas dikirim sebagai base64 di JSON, bukan multipart: server produksi tidak bisa menulis
+    // ke /tmp sehingga unggahan multipart gagal ("Berkas gagal diunggah").
+    const BATAS_BYTE = 10 * 1024 * 1024;
     if (selectedFile.size > BATAS_BYTE) {
-        showUploadAlert('Ukuran berkas maksimal 5 MB.', 'error');
+        showUploadAlert('Ukuran berkas maksimal 10 MB.', 'error');
         return;
     }
 
-    try {
-        showUploadAlert('Sedang memproses unggahan data presensi...');
-
-        const bytes = new Uint8Array(await selectedFile.arrayBuffer());
-        let biner = '';
-        for (let i = 0; i < bytes.length; i += 0x8000) {
-            biner += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-        }
-
-        const payload = {
-            _token: '{{ csrf_token() }}',
-            file_base64: btoa(biner),
-            file_nama: selectedFile.name,
-        };
-        const tahunVal = document.getElementById('uploadTahun')?.value;
-        if (tahunVal) {
-            payload.tahun = tahunVal;
-        }
-
-        // Accept JSON agar error validasi (mis. bukan Excel) kembali sebagai JSON 422, bukan redirect.
-        const res  = await fetch('/admin/presensi/upload', {
+    const token = '{{ csrf_token() }}';
+    // Accept JSON agar error validasi (mis. bukan Excel) kembali sebagai JSON 422, bukan redirect.
+    const kirim = async (url, isi) => {
+        const res = await fetch(url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-CSRF-TOKEN': token,
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ _token: token, ...isi }),
         });
-        const data = await res.json();
-        if (res.ok) {
+        let data = {};
+        try { data = await res.json(); } catch { data = {}; }
+        return { ok: res.ok, data };
+    };
+
+    try {
+        showUploadAlert('Sedang mengirim berkas presensi...');
+
+        const bytes = new Uint8Array(await selectedFile.arrayBuffer());
+        const uploadId = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
+        let sha256 = '';
+        if (window.crypto?.subtle) {
+            const hash = await crypto.subtle.digest('SHA-256', bytes);
+            sha256 = Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        await kirimBerkasBertahap(bytes, uploadId, kirim, (terkirim, total) => {
+            showUploadAlert(`Sedang mengirim berkas presensi... ${Math.floor(terkirim / total * 100)}%`);
+        });
+
+        showUploadAlert('Berkas terkirim. Sedang memproses data presensi...');
+        const isiProses = { file_nama: selectedFile.name, ukuran: bytes.length, sha256 };
+        const tahunVal = document.getElementById('uploadTahun')?.value;
+        if (tahunVal) {
+            isiProses.tahun = tahunVal;
+        }
+
+        const { ok, data } = await kirim(`/admin/presensi/upload?aksi=proses&upload_id=${uploadId}`, isiProses);
+        if (ok) {
             showUploadAlert(data.message ?? 'Data presensi berhasil diunggah.');
             setTimeout(() => closeUploadModal(), 1500);
         } else {
-            showUploadAlert(data.message ?? 'Gagal mengunggah data presensi.', 'error');
+            showUploadAlert(data.message ?? 'Gagal menghubungi server.', 'error');
         }
-    } catch {
-        showUploadAlert('Gagal menghubungi server.', 'error');
+    } catch (e) {
+        showUploadAlert(e?.message && !(e instanceof TypeError) ? e.message : 'Gagal menghubungi server.', 'error');
     }
 };
 
