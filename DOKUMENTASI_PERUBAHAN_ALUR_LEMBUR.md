@@ -6355,3 +6355,38 @@ Mas Hanief meminta penyesuaian kode agar tidak memakai `/tmp` (pola yang sama de
 * Dua berkas harus diperbarui di server: `PresensiUploadController.php` dan `presensi.blade.php`. Setelah unggah jalankan `php artisan view:clear` agar tampilan terbaru terbaca. Folder `storage/app/private/unggahan` dibuat otomatis; cukup pastikan `storage/app/private` dapat ditulis.
 * Batas yang berlaku: berkas maks 5 MB dari sisi browser. Body JSON ±1,34 kali ukuran berkas; PHP menahan body kecil di memori (`php://temp` batas 2 MB), jadi berkas presensi biasa (±110 kB) tidak menyentuh `/tmp` sama sekali.
 * Perubahan ini hanya menutup unggahan presensi. `/tmp` server tetap rusak dan sebaiknya dilaporkan ke admin hosting; fitur lain yang memakai `/tmp` bisa terganggu.
+
+
+---
+
+## 115. Unggah Presensi Dikirim Per Potongan (Body Request Besar Hilang di Server, Lanjutan Seksi 114)
+
+### A. Gejala Setelah Seksi 114 Dipasang
+* Unggahan `Presensi September 2026.xlsx` di server membalas **"Berkas belum dipilih. (and 1 more error)"** (422, `file_base64` dan `file_nama` kosong), padahal DevTools menunjukkan browser mengirim `Content-Type: application/json` dengan `Content-Length: 150857` (berkas utuh).
+* Sebelumnya sempat muncul error lain karena berkas tertukar saat diunggah ke server: isi `PresensiUploadController.php` tersimpan dengan nama `PresensiController.php` ("Cannot redeclare class PresensiUploadController"), sehingga dropdown pegawai kosong. Sudah dikembalikan Mas Hanief; bukan bagian dari kode.
+
+### B. Pembuktian (uji di server dengan berkas palsu, tidak ada data yang masuk)
+| Berkas uji | Body JSON | Hasil di server |
+| :--- | :---: | :--- |
+| `tes.xlsx` berisi teks "halo" | ±0,2 KB | "Isi berkas bukan spreadsheet Excel" (body **sampai**) |
+| `tes_60kb.xlsx` | ±82 KB | "Berkas belum dipilih" (body **hilang**) |
+| `tes_90kb.xlsx` | ±123 KB | "Berkas belum dipilih" (body **hilang**) |
+| `tes_110kb.xlsx` | ±150 KB | "Berkas belum dipilih" (body **hilang**) |
+
+* Body kecil sampai, body ±82 KB ke atas hilang sebelum dibaca Laravel. Batas pastinya belum diketahui; dugaan awal batas 128 KB (bawaan ModSecurity) terbukti salah karena 82 KB pun hilang. Lapisan yang memotong (WAF/ModSecurity atau perangkat F5 di depan server, terlihat dari cookie `f5_cspm`) belum dipastikan.
+* Pengaturan PHP server tidak menjadi penyebab: `post_max_size` 8M, `memory_limit` 128M, `max_allowed_packet` 256 MB.
+
+### C. Perbaikan (kode menyesuaikan server, tanpa mengubah pengaturan server)
+| No | Perubahan | Berkas |
+| :---: | :--- | :--- |
+| 1 | Browser mengirim berkas per potongan 32 KB ke `/admin/presensi/upload?aksi=potongan&upload_id=..&offset=..&panjang=..`. Data penanda ada di URL sehingga tetap terbaca walau body hilang. Bila server membalas `potongan_kosong`/`potongan_rusak`, ukuran potongan dibagi dua (minimal 1 KB) lalu dikirim ulang. Setelah semua masuk, browser meminta `?aksi=proses` dengan nama berkas, ukuran, dan SHA-256. Pesan progres "Sedang mengirim berkas presensi... NN%". | `resources/views/admin/presensi.blade.php` |
+| 2 | Controller menyambung potongan ke `storage/app/private/unggahan/{upload_id}.part` (urutan dijaga lewat `offset`, maks 10 MB, potongan lama >1 hari dibersihkan), lalu `aksi=proses` mencocokkan ukuran dan SHA-256, memeriksa penanda xlsx/xls, dan memproses dengan logika yang sama seperti sebelumnya (dipindah ke `prosesBerkas()`). Kiriman satu request utuh (seksi 114) tetap diterima. | `app/Http/Controllers/admin/PresensiUploadController.php` |
+
+* Tidak ada rute baru, tidak ada perubahan database, `.env`, maupun pengaturan server. Tetap tidak memakai `/tmp`.
+
+### D. Hasil Uji
+* Algoritma kirim bertahap diuji dengan server tiruan yang membuang body di atas batas tertentu memakai berkas asli 113.058 byte: tanpa batas (4 request), batas 80 KB (4), 40 KB (9, termasuk simulasi urutan salah), 11 KB (16), 2,5 KB (116): berkas tersambung **utuh** (SHA-256 sama). Batas di bawah 1 KB: berhenti dengan pesan "Potongan berkas tidak sampai ke server.".
+* Uji asap lokal lewat HTTP: **40/40 lulus**, termasuk 4 pemeriksaan baru (potongan tanpa body ditolak `potongan_kosong`, potongan diterima berurutan, berkas tidak lengkap ditolak saat proses, unggah per potongan berhasil diproses). Tidak ada berkas tersisa di `storage/app/private/unggahan`.
+
+### E. Catatan Deploy
+* Ganti dua berkas yang sama seperti seksi 114: `app/Http/Controllers/admin/PresensiUploadController.php` dan `resources/views/admin/presensi.blade.php`, lalu `php artisan view:clear`. Jangan sampai tertukar dengan `PresensiController.php` (berkas itu tidak berubah).

@@ -395,6 +395,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 274. 📁 **`storage/app/dompdf/`** *(FOLDER BARU berisi `.gitignore`, ikut terunduh oleh `git pull`. Jika unggah manual: buat folder `storage/app/dompdf` di dalam `storage/app` server dan pastikan dapat ditulis. Tanpa folder ini gambar data URI kembali gagal dimuat)*.
 275. 📄 **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Seksi 114: unggah presensi menerima JSON base64, bukan multipart, agar tidak memakai `/tmp` server; berkas disimpan sementara ke `storage/app/private/unggahan` lalu dihapus)*.
 276. 📄 **`resources/views/admin/presensi.blade.php`** *(Seksi 114: browser mengirim berkas presensi sebagai base64 di body JSON dengan token CSRF di body dan header; batas ukuran 5 MB. Setelah unggah jalankan `php artisan view:clear`)*.
+277. 📄 **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Seksi 115: menerima berkas per potongan lewat `?aksi=potongan` lalu `?aksi=proses` (cek ukuran + SHA-256) karena body request besar hilang di server. **Jangan tertukar** dengan `PresensiController.php`, yang tidak berubah)*.
+278. 📄 **`resources/views/admin/presensi.blade.php`** *(Seksi 115: browser mengirim berkas per potongan 32 KB dan otomatis memperkecil potongan bila body hilang; menampilkan progres persen. Setelah unggah jalankan `php artisan view:clear`)*.
 
 ---
 
@@ -1998,3 +2000,4 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Unggah presensi berhasil tanpa `/tmp`:** Admin → Presensi → Upload → pilih berkas presensi bulanan (.xlsx) → Upload. Verifikasi: muncul pesan hijau "Upload berhasil! ... data presensi periode ... disimpan" (bukan "Berkas gagal diunggah"), dan baris baru muncul di Riwayat Presensi dengan nama berkas aslinya.
   - Setelah berhasil, pastikan `ls storage/app/private/unggahan` kosong (berkas sementara selalu dihapus). Jika unggahan gagal dengan pesan "Server tidak bisa menyimpan berkas sementara", periksa izin tulis `storage/app/private`.
   - Uji penolakan: unggah berkas non-Excel (mis. `.pdf` atau berkas teks yang diganti namanya jadi `.xlsx`). Verifikasi: ditolak dengan pesan merah (422), tidak ada data presensi yang berubah.
+- [ ] **Unggah presensi per potongan (Seksi 115):** sebelum menguji, pastikan isi dua controller tidak tertukar: `md5sum app/Http/Controllers/admin/PresensiController.php` harus sama dengan versi GitHub (berkas ini tidak berubah). Lalu unggah berkas presensi bulanan. Verifikasi: muncul progres "Sedang mengirim berkas presensi... NN%", lalu "Berkas terkirim. Sedang memproses data presensi...", lalu pesan hijau "Upload berhasil! ...". `ls storage/app/private/unggahan` kosong setelahnya.
