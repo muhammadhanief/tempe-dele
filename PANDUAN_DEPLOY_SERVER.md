@@ -397,6 +397,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 276. 📄 **`resources/views/admin/presensi.blade.php`** *(Seksi 114: browser mengirim berkas presensi sebagai base64 di body JSON dengan token CSRF di body dan header; batas ukuran 5 MB. Setelah unggah jalankan `php artisan view:clear`)*.
 277. 📄 **`app/Http/Controllers/admin/PresensiUploadController.php`** *(Seksi 115: menerima berkas per potongan lewat `?aksi=potongan` lalu `?aksi=proses` (cek ukuran + SHA-256) karena body request besar hilang di server. **Jangan tertukar** dengan `PresensiController.php`, yang tidak berubah)*.
 278. 📄 **`resources/views/admin/presensi.blade.php`** *(Seksi 115: browser mengirim berkas per potongan 32 KB dan otomatis memperkecil potongan bila body hilang; menampilkan progres persen. Setelah unggah jalankan `php artisan view:clear`)*.
+279. 📄 **`resources/views/admin/akumulasi.blade.php`** *(Seksi 116: tabel Akumulasi memakai sisa tinggi layar di layar lebar lewat aturan CSS di halaman; tidak perlu build ulang `public/build`. Setelah unggah jalankan `php artisan view:clear`)*.
 
 ---
 
@@ -2001,3 +2002,4 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Setelah berhasil, pastikan `ls storage/app/private/unggahan` kosong (berkas sementara selalu dihapus). Jika unggahan gagal dengan pesan "Server tidak bisa menyimpan berkas sementara", periksa izin tulis `storage/app/private`.
   - Uji penolakan: unggah berkas non-Excel (mis. `.pdf` atau berkas teks yang diganti namanya jadi `.xlsx`). Verifikasi: ditolak dengan pesan merah (422), tidak ada data presensi yang berubah.
 - [ ] **Unggah presensi per potongan (Seksi 115):** sebelum menguji, pastikan isi dua controller tidak tertukar: `md5sum app/Http/Controllers/admin/PresensiController.php` harus sama dengan versi GitHub (berkas ini tidak berubah). Lalu unggah berkas presensi bulanan. Verifikasi: muncul progres "Sedang mengirim berkas presensi... NN%", lalu "Berkas terkirim. Sedang memproses data presensi...", lalu pesan hijau "Upload berhasil! ...". `ls storage/app/private/unggahan` kosong setelahnya.
+- [ ] **Tabel Akumulasi lebih tinggi (Seksi 116):** Admin → Akumulasi → pilih bulan yang berisi banyak pegawai. Verifikasi: tabel memanjang sampai dekat dasar layar (bukan berhenti di sekitar 9 baris), penggulir tetap ada, dan di HP tampilan tabel tidak berubah.

@@ -6390,3 +6390,25 @@ Mas Hanief meminta penyesuaian kode agar tidak memakai `/tmp` (pola yang sama de
 
 ### E. Catatan Deploy
 * Ganti dua berkas yang sama seperti seksi 114: `app/Http/Controllers/admin/PresensiUploadController.php` dan `resources/views/admin/presensi.blade.php`, lalu `php artisan view:clear`. Jangan sampai tertukar dengan `PresensiController.php` (berkas itu tidak berubah).
+
+
+---
+
+## 116. Tabel Halaman Akumulasi Memanfaatkan Sisa Tinggi Layar
+
+### A. Latar Belakang
+* Di server, admin mengira Pak Joko tidak ada di Akumulasi September 2026. Ternyata ia ada, tetapi di bagian bawah tabel (urutan nama A-Z) dan tidak terlihat karena tabel dibatasi 60% tinggi layar dengan penggulir sendiri, menyisakan ruang kosong di bawahnya. Tinggi itu hanya menampilkan ±9 baris.
+
+### B. Perubahan
+| No | Perubahan | Berkas |
+| :---: | :--- | :--- |
+| 1 | Pada layar lebar (>=640px) tinggi maksimal tabel menjadi `calc(100vh - 12rem)`, yaitu sisa tinggi layar. Ditulis sebagai aturan CSS di halaman (`#tabelAkumulasi`) karena kelas Tailwind `calc()` tidak ada di hasil build (`public/build`), dan membangun ulang CSS akan mengganti berkas aset di server. Kelas `max-h-[65vh]` untuk HP dipertahankan. | `resources/views/admin/akumulasi.blade.php` |
+
+### C. Hasil Uji (Chrome lokal, 25 baris contoh)
+* Layar 1280x720: tabel berakhir di ±695 px (sebelumnya ±600 px). Layar 1280x800: ±772 px (sebelumnya ±648 px). Jarak ke dasar layar ±25 px.
+* Layar HP 390x844: tangkapan layar versi lama dan baru **identik byte-per-byte**.
+* Sempat keliru memakai kelas Tailwind `sm:max-h-[calc(...)]`: tinggi tabel tidak berubah karena kelas itu tidak ada di CSS build; terdeteksi dengan membandingkan tinggi hasil (468 px di layar 720 = 65vh) lalu diganti dengan aturan CSS di halaman.
+
+### D. Catatan Deploy
+* Tidak ada perubahan database, `.env`, maupun aset `public/build`.
+* Ganti satu berkas: `resources/views/admin/akumulasi.blade.php`, lalu `php artisan view:clear`.
