@@ -125,7 +125,13 @@
             </div>
         </div>
 
-        <div class="overflow-auto max-h-[65vh] sm:max-h-[60vh] rounded-xl border border-gray-200 bg-white">
+        {{-- Di layar lebar tabel memakai sisa tinggi layar. Ditulis sebagai CSS biasa karena kelas Tailwind calc() belum ada di hasil build. --}}
+        <style>
+            @media (min-width: 640px) {
+                #tabelAkumulasi { max-height: calc(100vh - 12rem); }
+            }
+        </style>
+        <div id="tabelAkumulasi" class="overflow-auto max-h-[65vh] sm:max-h-[60vh] rounded-xl border border-gray-200 bg-white">
             <table class="min-w-[1100px] lg:min-w-full table-auto">
                 <thead class="sticky top-0 z-20">
                     <tr class="bg-gray-100">
