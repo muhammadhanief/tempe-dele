@@ -6412,3 +6412,33 @@ Mas Hanief meminta penyesuaian kode agar tidak memakai `/tmp` (pola yang sama de
 ### D. Catatan Deploy
 * Tidak ada perubahan database, `.env`, maupun aset `public/build`.
 * Ganti satu berkas: `resources/views/admin/akumulasi.blade.php`, lalu `php artisan view:clear`.
+
+
+---
+
+## 117. Kolom Durasi Lama Lembur pada Daftar Hadir (Cetak dan PDF)
+
+### A. Permintaan
+* Daftar Hadir Lembur hanya menampilkan Datang dan Pulang. Ditambah satu kolom agar terbaca berapa lama lemburnya pada hari itu.
+
+### B. Aturan Hitung (diputuskan pengguna)
+* **Durasi = jam disetujui**, bukan lama berada di kantor: `jam_selesai_disetujui` dikurangi `jam_mulai_disetujui`, **dibulatkan ke bawah ke jam penuh**, sama dengan Rekapitulasi (3 jam 9 menit ditulis "3 jam"; 2 jam 59 menit ditulis "2 jam"). Ditulis "N jam".
+* Lembur yang melewati tengah malam dihitung (selesai < mulai ditambah satu hari). Jam disetujui kosong atau hasil kurang dari 1 jam ditulis "-".
+* Alasan memakai jam disetujui: jam Pulang berasal dari presensi dan bisa lebih lambat dari batas yang disetujui (mis. Pulang 22:26, disetujui 4 jam), sedangkan angka resmi yang dibayarkan adalah jam disetujui.
+
+### C. Perubahan
+| No | Perubahan | Berkas |
+| :---: | :--- | :--- |
+| 1 | Fungsi `labelDurasi()` menghitung label sekali; `download()` dan `print()` mengisi `durasi_label` pada tiap baris. | `app/Http/Controllers/admin/DaftarHadirController.php` |
+| 2 | Halaman cetak: grup "Jam" menjadi 3 kolom (Datang, Pulang, Durasi); lebar kolom disesuaikan (Tanggal 14%, NO 5%, Nama 33%, Jam 28%, Tanda Tangan 20%); `colspan` baris kosong menjadi 7. | `resources/views/dokumen/daftar_hadir_print.blade.php` |
+| 3 | PDF unduhan: kolom Durasi dengan `colspan` Jam 3 dan baris kosong 7. | `resources/views/dokumen/daftar_hadir.blade.php` |
+
+* Daftar Hadir di layar (halaman `admin/daftar-hadir`) **tidak diubah**.
+
+### D. Hasil Uji (lokal, data September 2026)
+* Cetak 11 Sep: Datang 16:31 dengan Pulang 20:02, 19:58, 20:01, 19:36 (disetujui 3j 31m, 3j 27m, 3j 30m, 3j 05m) semuanya "3 jam". 8 Sep: Pulang 22:26, durasi "4 jam". 14 Sep: 2j 13m dan 2j 20m menjadi "2 jam". Tanggal tanpa data: baris kosong `colspan="7"`.
+* PDF unduhan menghasilkan PDF valid untuk semua tanggal uji; tampilan PDF memuat header "Durasi" dan sel "3 jam".
+* Tangkapan layar halaman cetak sama dengan pratinjau yang disetujui. Sempat ditemukan dan diperbaiki dua kekeliruan di skrip pratinjau (bukan di aplikasi) sebelum dikerjakan ke kode.
+
+### E. Catatan Deploy
+* Tidak ada perubahan database dan `.env`. Ganti tiga berkas di atas lalu `php artisan view:clear`.
