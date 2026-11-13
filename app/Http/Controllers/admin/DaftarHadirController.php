@@ -80,6 +80,9 @@ class DaftarHadirController extends Controller
         if ($request->filled('nip')) $query->where('p.nip', $request->nip);
 
         $daftarHadir  = $query->get();
+        foreach ($daftarHadir as $item) {
+            $item->durasi_label = $this->labelDurasi($item->jam_mulai_disetujui, $item->jam_selesai_disetujui);
+        }
         $tanggalLabel = \Carbon\Carbon::parse($tanggal)->translatedFormat('d/m/Y');
         $namaTim      = $request->filled('tim')
             ? DB::table('m_tim')->where('kode_tim', $request->tim)->value('nama_tim') ?? ''
@@ -114,6 +117,27 @@ class DaftarHadirController extends Controller
         $labelJenis = $jenis === 'pns' ? 'PNS' : 'PPPK';
 
         return $pdf->download('Daftar_Hadir_' . $labelJenis . '_' . $tanggal . '.pdf');
+    }
+
+    /**
+     * Lama lembur pada hari itu: jam disetujui dibulatkan ke bawah ke jam penuh, sama dengan
+     * hitungan Rekapitulasi (mis. 3 jam 9 menit menjadi "3 jam"). Melewati tengah malam ikut dihitung.
+     */
+    private function labelDurasi(?string $mulai, ?string $selesai): string
+    {
+        if (!$mulai || !$selesai) {
+            return '-';
+        }
+
+        $awal  = \Carbon\Carbon::parse($mulai);
+        $akhir = \Carbon\Carbon::parse($selesai);
+        if ($akhir->lessThan($awal)) {
+            $akhir->addDay();
+        }
+
+        $jam = intdiv((int) floor($awal->diffInMinutes($akhir)), 60);
+
+        return $jam > 0 ? $jam . ' jam' : '-';
     }
 
     /**
@@ -162,6 +186,7 @@ class DaftarHadirController extends Controller
 
         // Siapkan signature dalam format data URI Base64 agar dapat di-render langsung di browser print
         foreach ($daftarHadir as $item) {
+            $item->durasi_label = $this->labelDurasi($item->jam_mulai_disetujui, $item->jam_selesai_disetujui);
             $item->signature_src = null;
             if ($item->signature_path) {
                 $fullPath = storage_path('app/public/' . $item->signature_path);

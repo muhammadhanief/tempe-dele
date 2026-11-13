@@ -86,12 +86,13 @@
             <th rowspan="2">Tanggal</th>
             <th rowspan="2">NO</th>
             <th rowspan="2">Nama</th>
-            <th colspan="2">Jam</th>
+            <th colspan="3">Jam</th>
             <th rowspan="2">Tanda Tangan</th>
         </tr>
         <tr>
             <th>Datang</th>
             <th>Pulang</th>
+            <th>Durasi</th>
         </tr>
     </thead>
     <tbody>
@@ -105,6 +106,7 @@
             </td>
             <td>{{ $d->jam_mulai_disetujui ? substr($d->jam_mulai_disetujui, 0, 5) : '-' }}</td>
             <td>{{ $d->jam_pulang ?: '-' }}</td>
+            <td>{{ $d->durasi_label }}</td>
             <td class="ttd">
                 @if($d->signature_path && file_exists(storage_path('app/public/' . $d->signature_path)))
                     <img src="{{ storage_path('app/public/' . $d->signature_path) }}"
@@ -114,7 +116,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="6">Tidak ada data.</td>
+            <td colspan="7">Tidak ada data.</td>
         </tr>
         @endforelse
     </tbody>

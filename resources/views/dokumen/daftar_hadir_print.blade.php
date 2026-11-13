@@ -301,15 +301,16 @@
         <table class="table-hadir">
             <thead>
                 <tr>
-                    <th rowspan="2" style="width: 15%;">Tanggal</th>
-                    <th rowspan="2" style="width: 6%;">NO</th>
-                    <th rowspan="2" style="width: 38%;">Nama / NIP</th>
-                    <th colspan="2" style="width: 21%;">Jam</th>
+                    <th rowspan="2" style="width: 14%;">Tanggal</th>
+                    <th rowspan="2" style="width: 5%;">NO</th>
+                    <th rowspan="2" style="width: 33%;">Nama / NIP</th>
+                    <th colspan="3" style="width: 28%;">Jam</th>
                     <th rowspan="2" style="width: 20%;">Tanda Tangan</th>
                 </tr>
                 <tr>
-                    <th style="width: 10.5%;">Datang</th>
-                    <th style="width: 10.5%;">Pulang</th>
+                    <th style="width: 9.5%;">Datang</th>
+                    <th style="width: 9.5%;">Pulang</th>
+                    <th style="width: 9%;">Durasi</th>
                 </tr>
             </thead>
             <tbody>
@@ -329,6 +330,9 @@
                         <td class="col-center">
                             {{ $d->jam_pulang ?: '-' }}
                         </td>
+                        <td class="col-center">
+                            {{ $d->durasi_label }}
+                        </td>
                         <td class="ttd-cell">
                             @if(!empty($d->signature_src))
                                 <img src="{{ $d->signature_src }}" alt="TTD" class="ttd-img">
@@ -339,7 +343,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="col-center" style="padding: 16px; color: #64748b;">
+                        <td colspan="7" class="col-center" style="padding: 16px; color: #64748b;">
                             Tidak ada data kehadiran lembur untuk tanggal dan kategori ini.
                         </td>
                     </tr>
