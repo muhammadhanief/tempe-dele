@@ -91,9 +91,18 @@
 
                     @if($kabagAktif)
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3.5">
-                            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 font-bold text-base flex items-center justify-center shrink-0">
-                                {{ strtoupper(substr($kabagAktif->nama ?? 'K', 0, 2)) }}
-                            </div>
+                            @if(!empty($detailKabagAktif->foto_url))
+                                <img src="{{ $detailKabagAktif->foto_url }}" alt="{{ $kabagAktif->nama }}" referrerpolicy="no-referrer"
+                                    class="w-12 h-12 rounded-xl object-cover border border-slate-200/80 shrink-0 shadow-2xs"
+                                    onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                <div class="hidden w-12 h-12 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 font-bold text-base flex items-center justify-center shrink-0">
+                                    {{ strtoupper(substr($kabagAktif->nama ?? 'K', 0, 2)) }}
+                                </div>
+                            @else
+                                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 font-bold text-base flex items-center justify-center shrink-0">
+                                    {{ strtoupper(substr($kabagAktif->nama ?? 'K', 0, 2)) }}
+                                </div>
+                            @endif
                             <div class="min-w-0 flex-1 space-y-1">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="font-bold text-slate-900 text-sm truncate">{{ $kabagAktif->nama }}</span>
@@ -185,9 +194,18 @@
 
                     @if($ppkAktif)
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3.5">
-                            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 font-bold text-base flex items-center justify-center shrink-0">
-                                {{ strtoupper(substr($ppkAktif->nama ?? 'P', 0, 2)) }}
-                            </div>
+                            @if(!empty($detailPpkAktif->foto_url))
+                                <img src="{{ $detailPpkAktif->foto_url }}" alt="{{ $ppkAktif->nama }}" referrerpolicy="no-referrer"
+                                    class="w-12 h-12 rounded-xl object-cover border border-slate-200/80 shrink-0 shadow-2xs"
+                                    onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                <div class="hidden w-12 h-12 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 font-bold text-base flex items-center justify-center shrink-0">
+                                    {{ strtoupper(substr($ppkAktif->nama ?? 'P', 0, 2)) }}
+                                </div>
+                            @else
+                                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 font-bold text-base flex items-center justify-center shrink-0">
+                                    {{ strtoupper(substr($ppkAktif->nama ?? 'P', 0, 2)) }}
+                                </div>
+                            @endif
                             <div class="min-w-0 flex-1 space-y-1">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="font-bold text-slate-900 text-sm truncate">{{ $ppkAktif->nama }}</span>
@@ -325,9 +343,18 @@
                                 <tr class="hover:bg-slate-50/80 transition-colors">
                                     <td class="px-4 py-3">
                                         <div class="flex items-center gap-2.5">
-                                            <div class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
-                                                {{ strtoupper(substr($adm->nama, 0, 2)) }}
-                                            </div>
+                                            @if(!empty($adm->foto_url))
+                                                <img src="{{ $adm->foto_url }}" alt="{{ $adm->nama }}" referrerpolicy="no-referrer"
+                                                    class="w-7 h-7 rounded-lg object-cover border border-slate-200/80 shrink-0"
+                                                    onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                                <div class="hidden w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
+                                                    {{ strtoupper(substr($adm->nama, 0, 2)) }}
+                                                </div>
+                                            @else
+                                                <div class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
+                                                    {{ strtoupper(substr($adm->nama, 0, 2)) }}
+                                                </div>
+                                            @endif
                                             <div class="min-w-0">
                                                 <span class="font-semibold text-slate-900 block truncate">{{ $adm->nama }}</span>
                                                 @if($isMe)
@@ -354,7 +381,7 @@
                                         @else
                                             <div class="inline-flex items-center justify-center gap-1.5">
                                                 <button type="button"
-                                                    onclick="openModalGantiAdmin('{{ $adm->id_pegawai }}', '{{ addslashes($adm->nama) }}', '{{ $adm->nip ?? ($adm->nip_lama ?? '-') }}')"
+                                                    onclick="openModalGantiAdmin('{{ $adm->id_pegawai }}', '{{ addslashes($adm->nama) }}', '{{ $adm->nip ?? ($adm->nip_lama ?? '-') }}', '{{ $adm->foto_url ?? '' }}')"
                                                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-900 bg-amber-100/90 hover:bg-amber-200 border border-amber-300 transition-colors cursor-pointer"
                                                     title="Ganti Admin: serahkan wewenang admin ini kepada pegawai lain">
                                                     <svg class="w-3.5 h-3.5 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -450,9 +477,18 @@
                             <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
-                                            {{ strtoupper(substr($sa->nama, 0, 2)) }}
-                                        </div>
+                                        @if(!empty($sa->foto_url))
+                                            <img src="{{ $sa->foto_url }}" alt="{{ $sa->nama }}" referrerpolicy="no-referrer"
+                                                class="w-7 h-7 rounded-lg object-cover border border-slate-200/80 shrink-0"
+                                                onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                            <div class="hidden w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
+                                                {{ strtoupper(substr($sa->nama, 0, 2)) }}
+                                            </div>
+                                        @else
+                                            <div class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
+                                                {{ strtoupper(substr($sa->nama, 0, 2)) }}
+                                            </div>
+                                        @endif
                                         <div class="min-w-0">
                                             <span class="font-semibold text-slate-900 block truncate">{{ $sa->nama }}</span>
                                             @if($isMe)
@@ -574,7 +610,7 @@
                         <div id="previewContainerKabag" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div id="previewAvatarKabag" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
+                                    <div id="previewAvatarKabag" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs overflow-hidden">
                                         KG
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -629,9 +665,18 @@
                                     data-name="{{ strtolower($p->nama) }}"
                                     data-nip="{{ $p->nip ?? ($p->nip_lama ?? '') }}">
                                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-300">
-                                            {{ $initials }}
-                                        </div>
+                                        @if(!empty($p->foto_url))
+                                            <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
+                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-300 opacity-60"
+                                                onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                            <div class="hidden w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-300">
+                                                {{ $initials }}
+                                            </div>
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-300">
+                                                {{ $initials }}
+                                            </div>
+                                        @endif
                                         <div class="min-w-0 flex-1">
                                             <div class="text-xs font-semibold text-slate-700 truncate">{{ $p->nama }}</div>
                                             <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -652,11 +697,21 @@
                                     data-display-name="{{ $p->nama }}"
                                     data-display-nip="{{ $p->nip ?? ($p->nip_lama ?? '-') }}"
                                     data-display-satker="{{ $p->satker ?? 'BPS' }}"
+                                    data-foto-url="{{ $p->foto_url ?? '' }}"
                                     onclick="selectPegawaiModern('Kabag', '{{ $p->id_pegawai }}', this)">
                                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                        <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-200 group-hover:scale-105 transition-transform">
-                                            {{ $initials }}
-                                        </div>
+                                        @if(!empty($p->foto_url))
+                                            <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
+                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-amber-200 group-hover:scale-105 transition-transform"
+                                                onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                            <div class="hidden w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-200 group-hover:scale-105 transition-transform">
+                                                {{ $initials }}
+                                            </div>
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-200 group-hover:scale-105 transition-transform">
+                                                {{ $initials }}
+                                            </div>
+                                        @endif
                                         <div class="min-w-0 flex-1">
                                             <div class="text-xs font-semibold text-slate-800 group-hover:text-slate-900 truncate">{{ $p->nama }}</div>
                                             <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
@@ -775,7 +830,7 @@
                         <div id="previewContainerPpk" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div id="previewAvatarPpk" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
+                                    <div id="previewAvatarPpk" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs overflow-hidden">
                                         PK
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -830,9 +885,18 @@
                                     data-name="{{ strtolower($p->nama) }}"
                                     data-nip="{{ $p->nip ?? ($p->nip_lama ?? '') }}">
                                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-300">
-                                            {{ $initials }}
-                                        </div>
+                                        @if(!empty($p->foto_url))
+                                            <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
+                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-300 opacity-60"
+                                                onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                            <div class="hidden w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-300">
+                                                {{ $initials }}
+                                            </div>
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-300">
+                                                {{ $initials }}
+                                            </div>
+                                        @endif
                                         <div class="min-w-0 flex-1">
                                             <div class="text-xs font-semibold text-slate-700 truncate">{{ $p->nama }}</div>
                                             <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -853,11 +917,21 @@
                                     data-display-name="{{ $p->nama }}"
                                     data-display-nip="{{ $p->nip ?? ($p->nip_lama ?? '-') }}"
                                     data-display-satker="{{ $p->satker ?? 'BPS' }}"
+                                    data-foto-url="{{ $p->foto_url ?? '' }}"
                                     onclick="selectPegawaiModern('Ppk', '{{ $p->id_pegawai }}', this)">
                                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
-                                            {{ $initials }}
-                                        </div>
+                                        @if(!empty($p->foto_url))
+                                            <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
+                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform"
+                                                onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                            <div class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+                                                {{ $initials }}
+                                            </div>
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+                                                {{ $initials }}
+                                            </div>
+                                        @endif
                                         <div class="min-w-0 flex-1">
                                             <div class="text-xs font-semibold text-slate-800 group-hover:text-slate-900 truncate">{{ $p->nama }}</div>
                                             <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
@@ -984,7 +1058,7 @@
                         <div id="previewContainerAdmin" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div id="previewAvatarAdmin" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
+                                    <div id="previewAvatarAdmin" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs overflow-hidden">
                                         AD
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -1039,11 +1113,21 @@
                                 data-display-name="{{ $p->nama }}"
                                 data-display-nip="{{ $p->nip ?? ($p->nip_lama ?? '-') }}"
                                 data-display-satker="{{ $p->satker ?? 'BPS' }}"
+                                data-foto-url="{{ $p->foto_url ?? '' }}"
                                 onclick="selectPegawaiModern('Admin', '{{ $p->id_pegawai }}', this)">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
-                                        {{ $initials }}
-                                    </div>
+                                    @if(!empty($p->foto_url))
+                                        <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
+                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform"
+                                            onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                        <div class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+                                            {{ $initials }}
+                                        </div>
+                                    @else
+                                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+                                            {{ $initials }}
+                                        </div>
+                                    @endif
                                     <div class="min-w-0 flex-1">
                                         <div class="text-xs font-semibold text-slate-800 group-hover:text-slate-900 truncate">{{ $p->nama }}</div>
                                         <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
@@ -1131,7 +1215,7 @@
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 text-slate-800 space-y-2.5">
                             <span class="block text-xs font-bold uppercase tracking-wider text-slate-900">Admin yang Digantikan</span>
                             <div class="flex items-center gap-2.5 bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs">
-                                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200">
+                                <div id="avatarGantiAdminLama" class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 overflow-hidden">
                                     AL
                                 </div>
                                 <div class="min-w-0 flex-1">
@@ -1157,7 +1241,7 @@
                         <div id="previewContainerGantiAdmin" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div id="previewAvatarGantiAdmin" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
+                                    <div id="previewAvatarGantiAdmin" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs overflow-hidden">
                                         PG
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -1212,11 +1296,21 @@
                                 data-display-name="{{ $p->nama }}"
                                 data-display-nip="{{ $p->nip ?? ($p->nip_lama ?? '-') }}"
                                 data-display-satker="{{ $p->satker ?? 'BPS' }}"
+                                data-foto-url="{{ $p->foto_url ?? '' }}"
                                 onclick="selectPegawaiModern('GantiAdmin', '{{ $p->id_pegawai }}', this)">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
-                                        {{ $initials }}
-                                    </div>
+                                    @if(!empty($p->foto_url))
+                                        <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
+                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform"
+                                            onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                        <div class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+                                            {{ $initials }}
+                                        </div>
+                                    @else
+                                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+                                            {{ $initials }}
+                                        </div>
+                                    @endif
                                     <div class="min-w-0 flex-1">
                                         <div class="text-xs font-semibold text-slate-800 group-hover:text-slate-900 truncate">{{ $p->nama }}</div>
                                         <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
@@ -1347,7 +1441,7 @@
                         <div id="previewContainerSuperadmin" class="hidden p-3 rounded-xl border border-amber-300 bg-amber-50/90 shadow-2xs">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div id="previewAvatarSuperadmin" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs">
+                                    <div id="previewAvatarSuperadmin" class="w-9 h-9 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-300 shadow-2xs overflow-hidden">
                                         SA
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -1402,11 +1496,21 @@
                                 data-display-name="{{ $p->nama }}"
                                 data-display-nip="{{ $p->nip ?? ($p->nip_lama ?? '-') }}"
                                 data-display-satker="Role: {{ ucfirst($p->role) }}"
+                                data-foto-url="{{ $p->foto_url ?? '' }}"
                                 onclick="selectPegawaiModern('Superadmin', '{{ $p->id_pegawai }}', this)">
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
-                                        {{ $initials }}
-                                    </div>
+                                    @if(!empty($p->foto_url))
+                                        <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
+                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform"
+                                            onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                                        <div class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+                                            {{ $initials }}
+                                        </div>
+                                    @else
+                                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+                                            {{ $initials }}
+                                        </div>
+                                    @endif
                                     <div class="min-w-0 flex-1">
                                         <div class="text-xs font-semibold text-slate-800 group-hover:text-slate-900 truncate">{{ $p->nama }}</div>
                                         <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
@@ -1495,10 +1599,19 @@
     }
 
     // Modal Ganti Admin
-    function openModalGantiAdmin(idLama, namaLama, nipLama) {
+    function openModalGantiAdmin(idLama, namaLama, nipLama, fotoUrlLama) {
         document.getElementById('inputGantiAdminLama').value = idLama;
         document.getElementById('labelGantiAdminLamaNama').textContent = namaLama;
         document.getElementById('labelGantiAdminLamaNip').textContent = 'NIP: ' + nipLama;
+        const avatarLama = document.getElementById('avatarGantiAdminLama');
+        if (avatarLama) {
+            const initials = namaLama ? namaLama.substring(0, 2).toUpperCase() : 'AL';
+            if (fotoUrlLama) {
+                avatarLama.innerHTML = `<img src="${fotoUrlLama}" alt="${namaLama}" referrerpolicy="no-referrer" class="w-full h-full rounded-full object-cover" onerror="this.parentElement.textContent='${initials}'">`;
+            } else {
+                avatarLama.textContent = initials;
+            }
+        }
         document.getElementById('modalGantiAdmin').classList.remove('hidden');
         document.body.classList.add('overflow-hidden');
         clearSelection('GantiAdmin');
@@ -1604,12 +1717,19 @@
         const displayName = element.dataset.displayName || '';
         const displayNip = element.dataset.displayNip || '-';
         const displaySatker = element.dataset.displaySatker || 'BPS';
+        const fotoUrl = element.dataset.fotoUrl || '';
         const initials = displayName ? displayName.substring(0, 2).toUpperCase() : 'PG';
 
         if (previewName) previewName.textContent = displayName;
         if (previewNip) previewNip.textContent = 'NIP: ' + displayNip;
         if (previewSatker) previewSatker.textContent = displaySatker;
-        if (previewAvatar) previewAvatar.textContent = initials;
+        if (previewAvatar) {
+            if (fotoUrl) {
+                previewAvatar.innerHTML = `<img src="${fotoUrl}" alt="${displayName}" referrerpolicy="no-referrer" class="w-full h-full rounded-full object-cover" onerror="this.parentElement.textContent='${initials}'">`;
+            } else {
+                previewAvatar.textContent = initials;
+            }
+        }
 
         if (placeholder) placeholder.classList.add('hidden');
         if (preview) preview.classList.remove('hidden');
@@ -1702,6 +1822,12 @@
 
         if (preview) preview.classList.add('hidden');
         if (placeholder) placeholder.classList.remove('hidden');
+
+        const previewAvatar = document.getElementById('previewAvatar' + type);
+        if (previewAvatar) {
+            const defaultInitials = { Kabag: 'KG', Ppk: 'PK', Admin: 'AD', GantiAdmin: 'PG', Superadmin: 'SA' };
+            previewAvatar.textContent = defaultInitials[type] || 'PG';
+        }
     }
 
     // Validasi submit form agar pegawai wajib dipilih

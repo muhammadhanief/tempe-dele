@@ -111,7 +111,7 @@ class ManajemenUserController extends Controller
 
         // 5. Daftar seluruh pegawai untuk modal picker (agar cepat dipilih)
         $semuaPegawai = DB::table('m_pegawai')
-            ->select('id_pegawai', 'nama', 'nip', 'nip_lama', 'role', 'satker')
+            ->select('id_pegawai', 'nama', 'nip', 'nip_lama', 'role', 'satker', 'foto_url')
             ->orderBy('nama')
             ->get();
 

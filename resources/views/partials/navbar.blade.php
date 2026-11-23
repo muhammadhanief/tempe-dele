@@ -7,6 +7,18 @@
             ? \DB::table('m_pegawai')->where('nip', $nipSess)->value('role')
             : (session('user')['role'] ?? null);
 
+        $sessUser = session('user');
+        $userFoto = is_array($sessUser) ? ($sessUser['foto_url'] ?? null) : ($sessUser->foto_url ?? null);
+        if (!$userFoto && ($nipSess || $nipLamaSess)) {
+            $userFoto = \DB::table('m_pegawai')
+                ->where(function ($q) use ($nipSess, $nipLamaSess) {
+                    if ($nipSess) $q->where('nip', $nipSess);
+                    if ($nipLamaSess) $q->orWhere('nip_lama', $nipLamaSess);
+                })
+                ->value('foto_url');
+        }
+        $userName = is_array($sessUser) ? ($sessUser['nama'] ?? 'Nama User') : ($sessUser->nama ?? 'Nama User');
+
         $isKabagUmum = false;
         if ($nipSess || $nipLamaSess) {
             $isKabagUmum = \DB::table('m_pejabat')
@@ -74,10 +86,19 @@
                 aria-haspopup="true"
                 aria-expanded="false"
                 class="flex h-10 items-center gap-2.5 rounded-xl px-3 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-500/20 cursor-pointer">
-                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100">
-                    <svg class="h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 overflow-hidden">
+                    @if(!empty($userFoto))
+                        <img src="{{ $userFoto }}" alt="{{ $userName }}" referrerpolicy="no-referrer"
+                            class="h-full w-full object-cover"
+                            onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                        <svg class="hidden h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    @else
+                        <svg class="h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    @endif
                 </div>
 
                 <div class="hidden flex-col text-left leading-tight sm:flex">
@@ -98,10 +119,19 @@
                 class="hidden absolute right-0 top-full mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white shadow-lg">
                 <a href="{{ route('profile') }}"
                     class="flex items-center gap-3 rounded-t-xl border-b border-slate-100 px-3 py-3 transition-colors hover:bg-slate-50 cursor-pointer">
-                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
-                        <svg class="h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 overflow-hidden">
+                        @if(!empty($userFoto))
+                            <img src="{{ $userFoto }}" alt="{{ $userName }}" referrerpolicy="no-referrer"
+                                class="h-full w-full object-cover"
+                                onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                            <svg class="hidden h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        @else
+                            <svg class="h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        @endif
                     </div>
 
                     <div class="flex min-w-0 flex-col leading-tight">
