@@ -93,7 +93,7 @@
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3.5">
                             @if(!empty($detailKabagAktif->foto_url))
                                 <img src="{{ $detailKabagAktif->foto_url }}" alt="{{ $kabagAktif->nama }}" referrerpolicy="no-referrer"
-                                    class="w-12 h-12 rounded-xl object-cover border border-slate-200/80 shrink-0 shadow-2xs"
+                                    class="w-12 h-12 rounded-xl object-cover border border-slate-200/80 shrink-0 shadow-2xs" style="object-fit: cover; object-position: center top;"
                                     onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                 <div class="hidden w-12 h-12 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 font-bold text-base flex items-center justify-center shrink-0">
                                     {{ strtoupper(substr($kabagAktif->nama ?? 'K', 0, 2)) }}
@@ -196,7 +196,7 @@
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3.5">
                             @if(!empty($detailPpkAktif->foto_url))
                                 <img src="{{ $detailPpkAktif->foto_url }}" alt="{{ $ppkAktif->nama }}" referrerpolicy="no-referrer"
-                                    class="w-12 h-12 rounded-xl object-cover border border-slate-200/80 shrink-0 shadow-2xs"
+                                    class="w-12 h-12 rounded-xl object-cover border border-slate-200/80 shrink-0 shadow-2xs" style="object-fit: cover; object-position: center top;"
                                     onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                 <div class="hidden w-12 h-12 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 font-bold text-base flex items-center justify-center shrink-0">
                                     {{ strtoupper(substr($ppkAktif->nama ?? 'P', 0, 2)) }}
@@ -345,7 +345,7 @@
                                         <div class="flex items-center gap-2.5">
                                             @if(!empty($adm->foto_url))
                                                 <img src="{{ $adm->foto_url }}" alt="{{ $adm->nama }}" referrerpolicy="no-referrer"
-                                                    class="w-7 h-7 rounded-lg object-cover border border-slate-200/80 shrink-0"
+                                                    class="w-7 h-7 rounded-lg object-cover border border-slate-200/80 shrink-0" style="object-fit: cover; object-position: center top;"
                                                     onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                                 <div class="hidden w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
                                                     {{ strtoupper(substr($adm->nama, 0, 2)) }}
@@ -479,7 +479,7 @@
                                     <div class="flex items-center gap-2.5">
                                         @if(!empty($sa->foto_url))
                                             <img src="{{ $sa->foto_url }}" alt="{{ $sa->nama }}" referrerpolicy="no-referrer"
-                                                class="w-7 h-7 rounded-lg object-cover border border-slate-200/80 shrink-0"
+                                                class="w-7 h-7 rounded-lg object-cover border border-slate-200/80 shrink-0" style="object-fit: cover; object-position: center top;"
                                                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                             <div class="hidden w-7 h-7 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-700 font-bold flex items-center justify-center shrink-0 text-[10.5px]">
                                                 {{ strtoupper(substr($sa->nama, 0, 2)) }}
@@ -667,7 +667,7 @@
                                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                         @if(!empty($p->foto_url))
                                             <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
-                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-300 opacity-60"
+                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-300 opacity-60" style="object-fit: cover; object-position: center top;"
                                                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                             <div class="hidden w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-300">
                                                 {{ $initials }}
@@ -702,7 +702,7 @@
                                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                         @if(!empty($p->foto_url))
                                             <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
-                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-amber-200 group-hover:scale-105 transition-transform"
+                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-amber-200 group-hover:scale-105 transition-transform" style="object-fit: cover; object-position: center top;"
                                                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                             <div class="hidden w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-200 group-hover:scale-105 transition-transform">
                                                 {{ $initials }}
@@ -887,7 +887,7 @@
                                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                         @if(!empty($p->foto_url))
                                             <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
-                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-300 opacity-60"
+                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-300 opacity-60" style="object-fit: cover; object-position: center top;"
                                                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                             <div class="hidden w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-300">
                                                 {{ $initials }}
@@ -922,7 +922,7 @@
                                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                         @if(!empty($p->foto_url))
                                             <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
-                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform"
+                                                class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform" style="object-fit: cover; object-position: center top;"
                                                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                             <div class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
                                                 {{ $initials }}
@@ -1118,7 +1118,7 @@
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                     @if(!empty($p->foto_url))
                                         <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
-                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform"
+                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform" style="object-fit: cover; object-position: center top;"
                                             onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                         <div class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
                                             {{ $initials }}
@@ -1301,7 +1301,7 @@
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                     @if(!empty($p->foto_url))
                                         <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
-                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform"
+                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform" style="object-fit: cover; object-position: center top;"
                                             onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                         <div class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
                                             {{ $initials }}
@@ -1501,7 +1501,7 @@
                                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                     @if(!empty($p->foto_url))
                                         <img src="{{ $p->foto_url }}" alt="{{ $p->nama }}" referrerpolicy="no-referrer"
-                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform"
+                                            class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 group-hover:scale-105 transition-transform" style="object-fit: cover; object-position: center top;"
                                             onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                                         <div class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
                                             {{ $initials }}
@@ -1607,7 +1607,7 @@
         if (avatarLama) {
             const initials = namaLama ? namaLama.substring(0, 2).toUpperCase() : 'AL';
             if (fotoUrlLama) {
-                avatarLama.innerHTML = `<img src="${fotoUrlLama}" alt="${namaLama}" referrerpolicy="no-referrer" class="w-full h-full rounded-full object-cover" onerror="this.parentElement.textContent='${initials}'">`;
+                avatarLama.innerHTML = `<img src="${fotoUrlLama}" alt="${namaLama}" referrerpolicy="no-referrer" class="w-full h-full rounded-full object-cover" style="object-fit: cover; object-position: center top;" onerror="this.parentElement.textContent='${initials}'">`;
             } else {
                 avatarLama.textContent = initials;
             }
@@ -1725,7 +1725,7 @@
         if (previewSatker) previewSatker.textContent = displaySatker;
         if (previewAvatar) {
             if (fotoUrl) {
-                previewAvatar.innerHTML = `<img src="${fotoUrl}" alt="${displayName}" referrerpolicy="no-referrer" class="w-full h-full rounded-full object-cover" onerror="this.parentElement.textContent='${initials}'">`;
+                previewAvatar.innerHTML = `<img src="${fotoUrl}" alt="${displayName}" referrerpolicy="no-referrer" class="w-full h-full rounded-full object-cover" style="object-fit: cover; object-position: center top;" onerror="this.parentElement.textContent='${initials}'">`;
             } else {
                 previewAvatar.textContent = initials;
             }

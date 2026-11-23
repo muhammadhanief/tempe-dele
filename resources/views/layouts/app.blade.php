@@ -16,6 +16,8 @@
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
+        .object-cover { object-fit: cover !important; }
+        .object-top { object-position: top center !important; }
     </style>
 
     @stack('styles')

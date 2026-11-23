@@ -89,7 +89,7 @@
                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 overflow-hidden">
                     @if(!empty($userFoto))
                         <img src="{{ $userFoto }}" alt="{{ $userName }}" referrerpolicy="no-referrer"
-                            class="h-full w-full object-cover"
+                            class="h-full w-full object-cover" style="object-fit: cover; object-position: center top;"
                             onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                         <svg class="hidden h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -122,7 +122,7 @@
                     <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 overflow-hidden">
                         @if(!empty($userFoto))
                             <img src="{{ $userFoto }}" alt="{{ $userName }}" referrerpolicy="no-referrer"
-                                class="h-full w-full object-cover"
+                                class="h-full w-full object-cover" style="object-fit: cover; object-position: center top;"
                                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
                             <svg class="hidden h-4 w-4 stroke-current text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

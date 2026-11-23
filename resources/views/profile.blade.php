@@ -14,7 +14,7 @@
           <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 overflow-hidden">
             @if(!empty($user->foto_url))
               <img src="{{ $user->foto_url }}" alt="{{ $user->nama ?? 'Profile' }}" referrerpolicy="no-referrer"
-                class="h-full w-full object-cover"
+                class="h-full w-full object-cover" style="object-fit: cover; object-position: center top;"
                 onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
               <svg class="hidden h-7 w-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2-8 4.5A1.5 1.5 0 0 0 5.5 20h13A1.5 1.5 0 0 0 20 18.5C20 16 16.42 14 12 14Z"/>
