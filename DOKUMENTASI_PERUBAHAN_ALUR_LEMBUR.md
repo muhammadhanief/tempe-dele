@@ -6490,3 +6490,55 @@ Mas Hanief meminta penyesuaian kode agar tidak memakai `/tmp` (pola yang sama de
 * Tidak ada perubahan database, `.env`, maupun aset `public/build`.
 * Cukup unggah `resources/views/partials/table_sort.blade.php` dan `resources/views/layouts/app.blade.php`, lalu jalankan `php artisan view:clear`.
 
+
+---
+
+## 119. Penerapan Foto Avatar Pegawai dari `foto_url` pada Pejabat, Pengelola, Navbar, dan Profil (Task #3 Foto)
+
+### A. Permintaan Mentor BPS (Task #3 Foto)
+* Mas Hanief (Mentor BPS) memberikan instruksi: *"disini kan ada foto_url ya, masukin ke sini2 semua footo2nya ke sini, gantiin JO, SU itu, sini jg"* disertai tangkapan layar phpMyAdmin kolom `foto_url` pada tabel `m_pegawai`, kartu Pejabat Kedinasan Aktif (Kabag Umum & PPK) pada `/admin/manajemen-user`, tabel Admin Lembur & Super Administrator, serta tombol profil dan dropdown menu pada bilah navigasi (navbar) atas.
+* Instruksi ini bertujuan menggantikan badge inisial huruf teks dua karakter ("JO"/"JS", "SU", "RD", dll.) dan ikon siluet generik dengan foto resmi pegawai BPS yang bersumber langsung dari URL `https://community.bps.go.id/images/avatar/...`.
+
+### B. Arsitektur & Logika Implementasi
+1. **Penyediaan Atribut `foto_url` pada Controller (`ManajemenUserController.php`):**
+   * `$detailKabagAktif` dan `$detailPpkAktif` mengambil baris data dari `m_pegawai` sehingga atribut `foto_url` sudah langsung tersedia.
+   * `$admins` dan `$superadmins` mengambil seluruh kolom dari `m_pegawai` (termasuk `foto_url`).
+   * Pada query `$semuaPegawai` (untuk modal interaktif pergantian pejabat/admin), kolom `'foto_url'` ditambahkan ke dalam klausa `->select('id_pegawai', 'nama', 'nip', 'nip_lama', 'role', 'satker', 'foto_url')`.
+2. **Kartu Pejabat Penandatangan Kedinasan Aktif (`resources/views/admin/manajemen_user.blade.php`):**
+   * **Kepala Bagian Umum:** Menampilkan tag `<img>` berdimensi `w-12 h-12 rounded-xl object-cover border border-slate-200/80 shrink-0 shadow-2xs` bersumber dari `$detailKabagAktif->foto_url`.
+   * **Pejabat Pembuat Komitmen (PPK):** Menampilkan tag `<img>` berdimensi `w-12 h-12 rounded-xl object-cover border border-slate-200/80 shrink-0 shadow-2xs` bersumber dari `$detailPpkAktif->foto_url`.
+3. **Tabel Pengelola Sistem (Admin Lembur & Super Administrator):**
+   * Kolom "Nama Petugas" pada tabel Admin Lembur dan kolom "Nama Superadmin" pada tabel Super Administrator menampilkan avatar berdimensi `w-7 h-7 rounded-lg object-cover border border-slate-200/80 shrink-0` jika pegawai memiliki `foto_url`.
+4. **Modal Picker Interaktif (Kabag, PPK, Tambah Admin, Ganti Admin, Superadmin):**
+   * Seluruh baris listbox pegawai menyematkan atribut `data-foto-url="{{ $p->foto_url ?? '' }}"` dan merender avatar foto miniatur (`w-8 h-8 rounded-full object-cover`).
+   * Saat pegawai diklik, fungsi JavaScript `selectPegawaiModern(type, id, element)` membaca `fotoUrl` dari data attribute dan merender tag `<img>` pada kotak pratinjau pegawai terpilih di kolom kiri (`previewAvatar<Type>`).
+   * Pada modal Ganti Admin, fungsi `openModalGantiAdmin` menerima parameter `fotoUrlLama` untuk menampilkan foto admin yang digantikan pada kartu informasi.
+5. **Bilah Navigasi Atas (Navbar Global) & Halaman Profil:**
+   * **Navbar (`resources/views/partials/navbar.blade.php`):** Menampilkan foto pengguna login pada tombol profil kanan atas (`h-7 w-7 rounded-full object-cover`) dan di dalam header menu dropdown profil (`h-8 w-8 rounded-full object-cover`).
+   * **Halaman Profil (`resources/views/profile.blade.php`):** Menampilkan foto pengguna pada kartu identitas profil (`h-14 w-14 rounded-full object-cover`).
+6. **Keandalan & Fallback Anggun (*Graceful Error Fallback*):**
+   * Menggunakan atribut `referrerpolicy="no-referrer"` pada seluruh tag `<img>` foto untuk mencegah pemblokiran lintas domain (hotlinking) oleh peladen community BPS.
+   * Menerapkan event listener inline `onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"`: bila URL kosong, koneksi internet terputus, atau gambar gagal dimuat, foto otomatis disembunyikan dan elemen cadangan (badge inisial huruf berbingkai warna oranye/amber BPS atau ikon siluet) otomatis dimunculkan tanpa merusak tata letak antarmuka.
+
+### C. Daftar Berkas yang Diperbarui
+| No | File | Keterangan Perubahan |
+| :---: | :--- | :--- |
+| 1 | `app/Http/Controllers/admin/ManajemenUserController.php` | Menambahkan kolom `'foto_url'` pada query `$semuaPegawai`. |
+| 2 | `resources/views/admin/manajemen_user.blade.php` | Implementasi foto pada kartu pejabat aktif (Kabag & PPK), tabel Admin & Superadmin, modal listbox, dan kotak pratinjau pegawai. |
+| 3 | `resources/views/partials/navbar.blade.php` | Implementasi foto profil pengguna login pada tombol avatar navbar dan dropdown menu profil. |
+| 4 | `resources/views/profile.blade.php` | Implementasi foto profil pada kartu identitas pengguna halaman profil. |
+
+### D. Hasil Pengujian
+* Pengujian skrip verifikasi otomatis (`test_foto_avatar.php`):
+  - `profile.blade.php` merender foto profil secara presisi: **PASS**.
+  - `partials/navbar.blade.php` merender foto profil tombol & dropdown: **PASS**.
+  - `admin/manajemen_user.blade.php` merender foto Kabag aktif (Joko Suwarjo) & PPK aktif (Suci Budi Utami): **PASS**.
+  - Keberadaan atribut `onerror` graceful fallback terverifikasi: **PASS**.
+  - Keberadaan atribut `data-foto-url` pada seluruh modal listbox terverifikasi: **PASS**.
+* Kompilasi dan pembersihan cache template Blade (`php artisan view:clear`) sukses 100%.
+
+### E. Catatan Deploy
+* Tidak ada perubahan skema database (kolom `foto_url` sudah ada pada tabel `m_pegawai`).
+* Unggah 4 berkas di atas ke peladen produksi, lalu jalankan `php artisan view:clear`.
+
+

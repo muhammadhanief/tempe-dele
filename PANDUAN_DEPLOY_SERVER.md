@@ -403,6 +403,10 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 282. 📄 **`resources/views/dokumen/daftar_hadir.blade.php`** *(Seksi 117: kolom Durasi pada PDF unduhan. Setelah ketiga berkas diunggah jalankan `php artisan view:clear`)*.
 283. 📄 **`resources/views/partials/table_sort.blade.php`** *(Seksi 118: Modul universal client-side table sorter ala PointSE BPS. Menangani pengurutan instan ascending & descending seluruh kolom tabel, deteksi cerdas tipe data numerik/rupiah/durasi/tanggal/golongan, preservasi baris total, dan aksesibilitas keyboard)*.
 284. 📄 **`resources/views/layouts/app.blade.php`** *(Seksi 118: Memuat partial universal table sorter `@include('partials.table_sort')` agar otomatis aktif di seluruh halaman tabel aplikasi. Setelah berkas diunggah, jalankan `php artisan view:clear`)*.
+285. 📄 **`app/Http/Controllers/admin/ManajemenUserController.php`** *(Seksi 119: Menambahkan kolom `'foto_url'` pada query `$semuaPegawai` untuk mendukung rendering foto avatar pegawai pada seluruh modal picker manajemen user)*.
+286. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Seksi 119: Menampilkan foto pegawai dari `foto_url` pada kartu Pejabat Kedinasan Aktif (Kabag Umum & PPK), tabel Admin Lembur, tabel Super Administrator, serta modal interaktif pergantian pejabat dengan graceful onerror fallback)*.
+287. 📄 **`resources/views/partials/navbar.blade.php`** *(Seksi 119: Menampilkan foto profil pegawai yang sedang login pada tombol avatar navbar dan dropdown profil menu dengan graceful onerror fallback)*.
+288. 📄 **`resources/views/profile.blade.php`** *(Seksi 119: Menampilkan foto profil pegawai pada kartu identitas profil pengguna dengan graceful fallback. Setelah berkas diunggah, jalankan `php artisan view:clear`)*.
 
 ---
 
@@ -2017,3 +2021,20 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
   - Buka halaman Rekapitulasi (`/rekapitulasi`): klik header kolom manapun, baris "Total" tetap terkunci di bagian paling bawah tabel.
   - Buka halaman Pengajuan (`/admin/pengajuan` atau `/ketua-tim/pengajuan`): klik header kolom data, nomor baris pada kolom "No" tetap berurutan rapi.
   - Aksesibilitas: arahkan navigasi keyboard (Tab) ke header, tekan tombol Enter atau Spasi untuk mengurutkan.
+
+### DI. Uji Integrasi Foto Avatar Pegawai dari foto_url (Seksi 119)
+- [ ] **Halaman Manajemen User (`/admin/manajemen-user`):**
+  - Masuk sebagai Superadmin, buka menu `/admin/manajemen-user`.
+  - Verifikasi kartu Kepala Bagian Umum aktif: menampilkan foto asli Joko Suwarjo (bukan inisial "JO"/"JS").
+  - Verifikasi kartu PPK aktif: menampilkan foto asli Suci Budi Utami (bukan inisial "SU").
+  - Verifikasi tabel Admin Lembur dan Super Administrator: kolom nama menampilkan avatar foto bagi akun yang memiliki `foto_url`.
+  - Verifikasi fallback: jika URL foto tidak valid atau pegawai belum memiliki foto di database, sistem menampilkan badge inisial huruf dengan rapi tanpa gambar rusak (*broken image*).
+- [ ] **Modal Pemilihan Pegawai (Kabag, PPK, Admin, Superadmin):**
+  - Klik tombol "Ganti Kabag Umum", "Ganti PPK", atau "Tambah Admin".
+  - Verifikasi: pada listbox pegawai sebelah kanan, setiap pegawai menampilkan foto avatar (atau badge inisial jika foto null).
+  - Klik salah satu pegawai: pada kartu pratinjau di kolom sebelah kiri, avatar pegawai terpilih menampilkan foto pegawai tersebut.
+  - Klik tombol Ganti Admin: pada kartu admin yang digantikan, foto admin lama tampil di samping namanya.
+- [ ] **Bilah Navigasi Atas (Navbar Global) & Halaman Profil:**
+  - Verifikasi: tombol profil di navbar kanan atas menampilkan foto avatar pengguna yang sedang login.
+  - Klik tombol profil: dropdown menu profil menampilkan foto avatar pengguna.
+  - Klik menu "Profile" (`/profile`): kartu profil menampilkan foto pengguna dengan resolusi tajam dan proporsional.
