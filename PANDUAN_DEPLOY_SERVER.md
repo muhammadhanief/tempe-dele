@@ -401,6 +401,8 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 280. 📄 **`app/Http/Controllers/admin/DaftarHadirController.php`** *(Seksi 117: fungsi `labelDurasi()` dan `durasi_label` pada cetak dan unduhan PDF)*.
 281. 📄 **`resources/views/dokumen/daftar_hadir_print.blade.php`** *(Seksi 117: kolom Durasi di grup Jam, lebar kolom disesuaikan)*.
 282. 📄 **`resources/views/dokumen/daftar_hadir.blade.php`** *(Seksi 117: kolom Durasi pada PDF unduhan. Setelah ketiga berkas diunggah jalankan `php artisan view:clear`)*.
+283. 📄 **`resources/views/partials/table_sort.blade.php`** *(Seksi 118: Modul universal client-side table sorter ala PointSE BPS. Menangani pengurutan instan ascending & descending seluruh kolom tabel, deteksi cerdas tipe data numerik/rupiah/durasi/tanggal/golongan, preservasi baris total, dan aksesibilitas keyboard)*.
+284. 📄 **`resources/views/layouts/app.blade.php`** *(Seksi 118: Memuat partial universal table sorter `@include('partials.table_sort')` agar otomatis aktif di seluruh halaman tabel aplikasi. Setelah berkas diunggah, jalankan `php artisan view:clear`)*.
 
 ---
 
@@ -2007,3 +2009,11 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Unggah presensi per potongan (Seksi 115):** sebelum menguji, pastikan isi dua controller tidak tertukar: `md5sum app/Http/Controllers/admin/PresensiController.php` harus sama dengan versi GitHub (berkas ini tidak berubah). Lalu unggah berkas presensi bulanan. Verifikasi: muncul progres "Sedang mengirim berkas presensi... NN%", lalu "Berkas terkirim. Sedang memproses data presensi...", lalu pesan hijau "Upload berhasil! ...". `ls storage/app/private/unggahan` kosong setelahnya.
 - [ ] **Tabel Akumulasi lebih tinggi (Seksi 116):** Admin → Akumulasi → pilih bulan yang berisi banyak pegawai. Verifikasi: tabel memanjang sampai dekat dasar layar (bukan berhenti di sekitar 9 baris), penggulir tetap ada, dan di HP tampilan tabel tidak berubah.
 - [ ] **Kolom Durasi di Daftar Hadir (Seksi 117):** Admin → Daftar Hadir → pilih tanggal yang ada lemburnya → Cetak, lalu Unduh PDF. Verifikasi: header Jam berisi Datang, Pulang, **Durasi**; durasi ditulis "N jam" (jam disetujui dibulatkan ke bawah, mis. disetujui 3j 31m menjadi "3 jam"); nama panjang boleh turun ke baris kedua; tanggal tanpa data menampilkan pesan "Tidak ada data" selebar tabel.
+- [ ] **Pengurutan Universal Seluruh Kolom Tabel ala PointSE (Seksi 118):**
+  - Buka halaman Akumulasi Admin (`/admin/akumulasi`).
+  - Verifikasi: seluruh kolom tabel memiliki ikon panah ganda `⇅` ala PointSE.
+  - Klik kolom "Nama Pegawai": data terurut A-Z, panah atas `▲` berubah warna oranye BPS (`#faa938`); klik lagi untuk Z-A (panah bawah `▼`).
+  - Klik kolom "Jam Diajukan": terurut numerik jam secara akurat; klik kolom nominal "Terima" terurut rupiah secara akurat.
+  - Buka halaman Rekapitulasi (`/rekapitulasi`): klik header kolom manapun, baris "Total" tetap terkunci di bagian paling bawah tabel.
+  - Buka halaman Pengajuan (`/admin/pengajuan` atau `/ketua-tim/pengajuan`): klik header kolom data, nomor baris pada kolom "No" tetap berurutan rapi.
+  - Aksesibilitas: arahkan navigasi keyboard (Tab) ke header, tekan tombol Enter atau Spasi untuk mengurutkan.

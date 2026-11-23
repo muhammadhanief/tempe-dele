@@ -6442,3 +6442,51 @@ Mas Hanief meminta penyesuaian kode agar tidak memakai `/tmp` (pola yang sama de
 
 ### E. Catatan Deploy
 * Tidak ada perubahan database dan `.env`. Ganti tiga berkas di atas lalu `php artisan view:clear`.
+
+
+---
+
+## 118. Fitur Pengurutan Universal Seluruh Kolom Tabel (PointSE Style Table Sorting)
+
+### A. Permintaan Mentor BPS (Task #1 Sort)
+* Mas Hanief (Mentor BPS) memberikan penugasan: *"semua tabel tolong bisa disort di masing2 kolomnya, sort ascending descending, kaya gini"* disertai contoh antarmuka tabel sistem PointSE BPS (halaman rekap kabupaten/kota dan pengguna aktif) yang memiliki tombol pengurutan ganda `⇅` pada setiap kolom tabel.
+* Pengguna menyetujui implementasi **Opsi 1 (Universal Client-Side Table Sorter)** dan evaluasi **Antislop Mode 1 (selama pengerjaan)** dengan penegasan menjaga keseragaman desain BPS dan tidak mengubah hal lain.
+
+### B. Arsitektur & Logika Implementasi
+1. **Modul Universal Terisolasi (`resources/views/partials/table_sort.blade.php`):**
+   * Diintegrasikan secara global pada `resources/views/layouts/app.blade.php` via `@include('partials.table_sort')`.
+   * Otomatis memindai dan mengaktifkan pengurutan pada seluruh tabel dalam aplikasi tanpa memodifikasi puluhan controller PHP maupun kueri basis data.
+   * Menggunakan Vanilla JavaScript murni dan styling SVG mandiri (tanpa dependensi eksternal), tidak memerlukan proses build Vite ulang (`public/build` tidak berubah).
+2. **Deteksi Cerdas Tipe Data (Smart Value Parser):**
+   * **Mata Uang & Angka Format BPS:** Menangani format seperti `Rp 1.050.000`, `1.050.000`, `225.000`, `0`, dan persentase (`15%`, `5%`) secara numerik murni.
+   * **Durasi Waktu:** Format jam seperti `11 jam`, `3 jam`, `25 jam`, `0 jam` diurutkan berdasarkan nilai jam numerik.
+   * **Tanggal:** Menangani format tanggal resmi BPS (`23 Nov 2026`, `11 Sep 2026`, `9 September 2026`) dan format ISO (`2026-11-23`) secara kronologis.
+   * **Pangkat / Golongan ASN:** Memetakan urutan kepangkatan ASN BPS (`I/a` s.d. `IV/e`, `IX`, `X`) secara terstruktur.
+   * **Teks & Nama Pegawai:** Menggunakan `localeCompare('id', { numeric: true, sensitivity: 'base' })` untuk perbandingan alfabetis A-Z dan Z-A yang akurat.
+   * **Nilai Kosong / Strip:** Sel kosong atau berisi tanda strip (`-`, `—`, `N/A`) selalu ditempatkan di posisi terbawah baik pada pengurutan ascending maupun descending.
+3. **Penyelarasan Tampilan & UX PointSE (Antislop Mode 1):**
+   * Setiap header kolom yang dapat diurutkan otomatis memiliki tombol ikon panah ganda `⇅` SVG yang sejajar rapi.
+   * Status netral: abu-abu `text-slate-400` dengan opacity 35%.
+   * Status Ascending (`is-sorted-asc`): panah atas `▲` menyala oranye BPS (`#faa938`, stroke-width 3.2px), panah bawah redup.
+   * Status Descending (`is-sorted-desc`): panah bawah `▼` menyala oranye BPS (`#faa938`, stroke-width 3.2px), panah atas redup.
+   * Kolom non-data seperti Aksi, Tanda Tangan, Dokumentasi, Password, dan Checkbox secara otomatis dikecualikan.
+   * Baris rangkuman ("Total") pada tabel rekapitulasi tetap terkunci (*pinned*) di baris terbawah.
+   * Penomoran visual pada kolom "No" otomatis diperbarui agar tetap berurutan rapi saat kolom lain diurutkan, serta dapat diurutkan kembali ke urutan semula jika header "No" diklik.
+4. **Aksesibilitas (WCAG / Antislop Human R-32):**
+   * Setiap `<th>` yang dapat diurutkan memiliki `role="columnheader"`, `tabindex="0"`, `aria-sort="none|ascending|descending"`, tooltip penjelasan, dan dapat dioperasikan penuh melalui keyboard (`Enter` atau `Space`).
+
+### C. Daftar Berkas yang Berubah
+| No | Perubahan | Berkas |
+| :---: | :--- | :--- |
+| 1 | Modul universal client-side table sorter ala PointSE BPS | `resources/views/partials/table_sort.blade.php` |
+| 2 | Pemasangan `@include('partials.table_sort')` pada layout utama | `resources/views/layouts/app.blade.php` |
+
+### D. Hasil Uji
+* Pengujian otomatis Node.js (`test_table_sort.js`): **8/8 tes unit lulus 100%** (angka rupiah, durasi jam, tanggal Indonesia, golongan PNS, nama A-Z, stable sort tie-breaking).
+* Pengujian simulasi DOM: pengurutan bergantian antar kolom, preservasi baris total rekapitulasi, pengurutan durasi desc/asc, dan reset nomor urut baris lulus 100%.
+* Pembersihan cache view via `php artisan view:clear` sukses tanpa galat.
+
+### E. Catatan Deploy
+* Tidak ada perubahan database, `.env`, maupun aset `public/build`.
+* Cukup unggah `resources/views/partials/table_sort.blade.php` dan `resources/views/layouts/app.blade.php`, lalu jalankan `php artisan view:clear`.
+
