@@ -99,6 +99,9 @@
         </script>
     @endif
 
+    {{-- UNIVERSAL TABLE SORTER (PointSE Style) --}}
+    @include('partials.table_sort')
+
     {{-- SCRIPTS --}}
     @stack('scripts')
 
