@@ -402,7 +402,7 @@ Jika melakukan unggah manual tanpa Git, **pastikan berkas-berkas baru dan pentin
 281. 📄 **`resources/views/dokumen/daftar_hadir_print.blade.php`** *(Seksi 117: kolom Durasi di grup Jam, lebar kolom disesuaikan)*.
 282. 📄 **`resources/views/dokumen/daftar_hadir.blade.php`** *(Seksi 117: kolom Durasi pada PDF unduhan. Setelah ketiga berkas diunggah jalankan `php artisan view:clear`)*.
 283. 📄 **`resources/views/partials/table_sort.blade.php`** *(Seksi 118: Modul universal client-side table sorter ala PointSE BPS. Menangani pengurutan instan ascending & descending seluruh kolom tabel, deteksi cerdas tipe data numerik/rupiah/durasi/tanggal/golongan, preservasi baris total, dan aksesibilitas keyboard)*.
-284. 📄 **`resources/views/layouts/app.blade.php`** *(Seksi 118: Memuat partial universal table sorter `@include('partials.table_sort')` agar otomatis aktif di seluruh halaman tabel aplikasi. Setelah berkas diunggah, jalankan `php artisan view:clear`)*.
+284. 📄 **`resources/views/layouts/app.blade.php`** *(Seksi 118 & 119: Memuat partial universal table sorter `@include('partials.table_sort')` dan aturan CSS global `.object-cover { object-fit: cover !important; }` agar foto avatar tidak terdistorsi/gepeng. Setelah berkas diunggah, jalankan `php artisan view:clear`)*.
 285. 📄 **`app/Http/Controllers/admin/ManajemenUserController.php`** *(Seksi 119: Menambahkan kolom `'foto_url'` pada query `$semuaPegawai` untuk mendukung rendering foto avatar pegawai pada seluruh modal picker manajemen user)*.
 286. 📄 **`resources/views/admin/manajemen_user.blade.php`** *(Seksi 119: Menampilkan foto pegawai dari `foto_url` pada kartu Pejabat Kedinasan Aktif (Kabag Umum & PPK), tabel Admin Lembur, tabel Super Administrator, serta modal interaktif pergantian pejabat dengan graceful onerror fallback)*.
 287. 📄 **`resources/views/partials/navbar.blade.php`** *(Seksi 119: Menampilkan foto profil pegawai yang sedang login pada tombol avatar navbar dan dropdown profil menu dengan graceful onerror fallback)*.
@@ -2037,4 +2037,5 @@ Lakukan pengujian cepat setelah proses deploy selesai untuk memastikan semuanya 
 - [ ] **Bilah Navigasi Atas (Navbar Global) & Halaman Profil:**
   - Verifikasi: tombol profil di navbar kanan atas menampilkan foto avatar pengguna yang sedang login.
   - Klik tombol profil: dropdown menu profil menampilkan foto avatar pengguna.
+  - Verifikasi aspek rasio: foto pasfoto potret (3:4) tidak melebar/gepeng, terpotong proporsional rapi di dalam lingkaran atau kartu rounded.
   - Klik menu "Profile" (`/profile`): kartu profil menampilkan foto pengguna dengan resolusi tajam dan proporsional.

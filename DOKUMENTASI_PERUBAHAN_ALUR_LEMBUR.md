@@ -6519,14 +6519,21 @@ Mas Hanief meminta penyesuaian kode agar tidak memakai `/tmp` (pola yang sama de
 6. **Keandalan & Fallback Anggun (*Graceful Error Fallback*):**
    * Menggunakan atribut `referrerpolicy="no-referrer"` pada seluruh tag `<img>` foto untuk mencegah pemblokiran lintas domain (hotlinking) oleh peladen community BPS.
    * Menerapkan event listener inline `onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"`: bila URL kosong, koneksi internet terputus, atau gambar gagal dimuat, foto otomatis disembunyikan dan elemen cadangan (badge inisial huruf berbingkai warna oranye/amber BPS atau ikon siluet) otomatis dimunculkan tanpa merusak tata letak antarmuka.
+7. **Koreksi Distorsi Aspek Rasio Foto Pasfoto (Anti-Gepeng / Preserving Aspect Ratio):**
+   * Berkas foto avatar pegawai dari peladen BPS mayoritas memiliki rasio pasfoto tegak/portrait 3:4 (contoh: 449x685 px).
+   * Pada berkas build CSS lama peladen produksi (`app-CrifL3-y.css`), kelas `.object-cover` belum terkompilasi, sehingga deklarasi kelas Tailwind `object-cover` tidak mengeksekusi `object-fit: cover` di peramban, mengakibatkan gambar terdistorsi melebar/gepeng memenuhi kontainer lingkaran 1:1.
+   * Solusi definitif:
+     - Menambahkan aturan CSS global pada `resources/views/layouts/app.blade.php`: `.object-cover { object-fit: cover !important; }` dan `.object-top { object-position: top center !important; }`.
+     - Menyematkan inline style eksplisit `style="object-fit: cover; object-position: center top;"` pada seluruh elemen `<img>` avatar di navbar, dropdown, modal manajemen user, dan profil agar rasio pasfoto tetap utuh alami dan fokus pada wajah.
 
 ### C. Daftar Berkas yang Diperbarui
 | No | File | Keterangan Perubahan |
 | :---: | :--- | :--- |
 | 1 | `app/Http/Controllers/admin/ManajemenUserController.php` | Menambahkan kolom `'foto_url'` pada query `$semuaPegawai`. |
-| 2 | `resources/views/admin/manajemen_user.blade.php` | Implementasi foto pada kartu pejabat aktif (Kabag & PPK), tabel Admin & Superadmin, modal listbox, dan kotak pratinjau pegawai. |
-| 3 | `resources/views/partials/navbar.blade.php` | Implementasi foto profil pengguna login pada tombol avatar navbar dan dropdown menu profil. |
-| 4 | `resources/views/profile.blade.php` | Implementasi foto profil pada kartu identitas pengguna halaman profil. |
+| 2 | `resources/views/admin/manajemen_user.blade.php` | Implementasi foto pada kartu pejabat aktif (Kabag & PPK), tabel Admin & Superadmin, modal listbox, dan kotak pratinjau pegawai dengan inline object-fit cover. |
+| 3 | `resources/views/partials/navbar.blade.php` | Implementasi foto profil pengguna login pada tombol avatar navbar dan dropdown menu profil dengan inline object-fit cover. |
+| 4 | `resources/views/profile.blade.php` | Implementasi foto profil pada kartu identitas pengguna halaman profil dengan inline object-fit cover. |
+| 5 | `resources/views/layouts/app.blade.php` | Penambahan aturan utilitas CSS global `.object-cover { object-fit: cover !important; }` pada tag `<style>`. |
 
 ### D. Hasil Pengujian
 * Pengujian skrip verifikasi otomatis (`test_foto_avatar.php`):
@@ -6535,10 +6542,11 @@ Mas Hanief meminta penyesuaian kode agar tidak memakai `/tmp` (pola yang sama de
   - `admin/manajemen_user.blade.php` merender foto Kabag aktif (Joko Suwarjo) & PPK aktif (Suci Budi Utami): **PASS**.
   - Keberadaan atribut `onerror` graceful fallback terverifikasi: **PASS**.
   - Keberadaan atribut `data-foto-url` pada seluruh modal listbox terverifikasi: **PASS**.
+  - Proporsionalitas aspek rasio foto potret 3:4 (449x685 px) terpusat alami anti-gepeng via `object-fit: cover`: **PASS**.
 * Kompilasi dan pembersihan cache template Blade (`php artisan view:clear`) sukses 100%.
 
 ### E. Catatan Deploy
 * Tidak ada perubahan skema database (kolom `foto_url` sudah ada pada tabel `m_pegawai`).
-* Unggah 4 berkas di atas ke peladen produksi, lalu jalankan `php artisan view:clear`.
+* Unggah 5 berkas di atas (`app/Http/Controllers/admin/ManajemenUserController.php`, `resources/views/admin/manajemen_user.blade.php`, `resources/views/partials/navbar.blade.php`, `resources/views/profile.blade.php`, `resources/views/layouts/app.blade.php`) ke peladen produksi, lalu jalankan `php artisan view:clear`.
 
 
